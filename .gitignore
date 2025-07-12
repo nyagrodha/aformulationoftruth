@@ -1,0 +1,7 @@
+cat <<EOF > .gitignore
+node_modules/
+*.log
+*.sqlite
+.env
+.DS_Store
+EOF

@@ -1,61 +1,25 @@
 // server.js
-// ─── Rate-limit middleware ───────────────────────────────────────────────
-import express from 'express';
+
+const express = require('express');
+const sqlite3 = require('sqlite3').verbose();
+const nodemailer = require('nodemailer');
+const jwt = require('jsonwebtoken');
+const cors = require('cors');
+const path = require('path');
+
 const app = express();
-import rateLimit from 'express-rate-limit';          // ESM import
-import answersRouter from './routes/answers.js';   // note the “.js” extension
-import sqlite3Pkg from 'sqlite3';
-const sqlite3 = sqlite3Pkg.verbose();
-
-import nodemailer from 'nodemailer';
-import jwt from 'jsonwebtoken';
-import cors from 'cors';
-import path from 'path';
-import questionsRouter from './routes/questions.js';
-app.use('/api/questions', questionsRouter);
-// make __dirname available by default
-import { fileURLToPath } from 'url';
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-// const rateLimit = require('express-rate-limit');  // CommonJS
-
-
-
-// Global limiter: 100 requests per IP per 15 min
-const apiLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,        // 15 minutes
-  max: 100,                        // limit each IP
-  standardHeaders: true,           // adds 'RateLimit-*' headers
-  legacyHeaders: false,            // removes 'X-RateLimit-*'
-  message: { error: 'Too many requests; try again later.' },
-});
-
-// Apply to all API routes
-app.use('/api', apiLimiter);
-// routes
-app.get('/api/ping', (_, res) => res.json({ pong: true }));
-/*
-// Example of per-route limiting
-app.post(
-  '/auth/login',
-  rateLimit({ windowMs: 60_000, max: 5, message: 'Slow down…' }),
-  loginController
-);
-*/
-// ──────────────────────────────────────────────────────────────────────────
-const PORT = process.env.PORT || 3000;
-
+const PORT = 3000;
 const JWT_SECRET = 'your-secret-key'; // Replace this with a secure value
 
 // Middleware
 app.use(cors());
 app.use(express.json());
+
 //Serve static files from "public"
 app.use(express.static(path.join(__dirname, 'public')));
 
 
-// Register route handler for retrieving basic user information via /api/user
+app.use('/api/answers', require('./routes/answers'));
 
 //Route for homepage
 app.get('/', (req, res) => {
@@ -111,8 +75,16 @@ app.post('/auth/request', (req, res) => {
       return res.status(500).json({ error: 'Database error' });
     }
 
-console.log(`🔗 Magic login link for ${email}: ${link}`);
-res.json({ message: 'Magic link (simulated)', link });
+    transporter.sendMail({
+      to: email,
+      subject: 'Your Magic Login Link',
+      text: `Click here to log in: ${link}`
+    }, (error, info) => {
+      if (error) {
+        return res.status(500).json({ error: 'Email error' });
+      }
+      res.json({ message: 'Magic link sent' });
+    });
   });
 });
 
@@ -164,4 +136,3 @@ setInterval(() => {}, 1000 * 60); // keep-alive
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server is running on http://0.0.0.0:${PORT}`);
 });
-
