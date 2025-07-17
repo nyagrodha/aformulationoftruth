@@ -1,74 +1,72 @@
-
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <title>☸︎ a formulation of truth</title>
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600&display=swap" rel="stylesheet">
-  <style>
-    body {
-      background: black;
-      color: #00ffcc;
-      font-family: 'Orbitron', monospace;
-      text-align: center;
-      padding: 2em;
-    }
-    h1 {
-      font-size: 3em;
-      color: #ccff00;
-      text-shadow: 0 0 10px #00ffff;
-    }
-    .weird-verse {
-      margin: 3em 0;
-      font-size: 1.2em;
-      line-height: 1.6em;
-    }
-    nav {
-      margin-top: 4em;
-    }
-    nav a {
-      display: inline-block;
-      margin: 0 1em;
-      color: #ff00ff;
-      text-decoration: none;
-      text-shadow: 0 0 5px #ff00ff;
-    }
-    nav a:hover {
-      color: #00ffff;
-    }
-    .secret {
-      color: #111;
-      text-decoration: none;
-    }
-    .secret:hover {
-      color: #ccff00;
-    }
-    .ascii {
-      font-family: monospace;
-      white-space: pre;
-      color: #666;
-    }
-  </style>
-</head>
-<body>
-  <h1>🌌 A Formulation of Truth 🌌</h1>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>a formulation of truth</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+      html, body {
+        margin: 0;
+        padding: 0;
+        background: #000;
+        color: #00ffff;
+        font-family: 'Orbitron', sans-serif;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        overflow: hidden;
+      }
 
-  <div class="weird-verse">
-    <p><i>"As ought to, bestin’ any Kantian—she’s got subject-¡WoM!"</i></p>
-    <p>To be unified is to <span class="secret" title="https://archive.org/details/sayana-rgveda">trespass here</span>...</p>
-    <p class="ascii">
-      [▓▓░░░░░░░░░░░░░░░]  scanning identity-form<br>
-      [░░░░░░▓▓▓▓▓▓░░░░]  tuning śabdārthamarmajñaḥ<br>
-      [░░░░░░░░░░▓▓▓▓▓▓]  click <a class="secret" href="http://examplehiddenservice.onion">this</a> if you understand silence
-    </p>
-    <p>Captively imprisoned, an uncaptive captivator.</p>
-  </div>
+      h1 {
+        font-size: 3rem;
+        text-shadow: 0 0 10px #00ffff, 0 0 20px #ff00ff, 0 0 30px #ccff00;
+        margin-bottom: 1rem;
+      }
 
-  <nav>
-    <a href="/about">About</a>
-    <a href="/manifesto">Manifesto</a>
-    <a href="/vision">Vision</a>
-    <a href="/login">Login</a>
-  </nav>
-</body>
+      p {
+        font-size: 1.2rem;
+        color: #ff00ff;
+        text-shadow: 0 0 5px #ff00ff;
+      }
+
+      #root {
+        margin-top: 2rem;
+        width: 100%;
+        height: 100%;
+      }
+
+      .enter-button {
+        margin-top: 2rem;
+        padding: 0.75rem 2rem;
+        font-size: 1rem;
+        border: none;
+        border-radius: 8px;
+        background: linear-gradient(90deg, #00ffff, #ff00ff, #ccff00);
+        color: black;
+        font-weight: bold;
+        cursor: pointer;
+        box-shadow: 0 0 15px #00ffff;
+        transition: transform 0.2s ease;
+      }
+
+      .enter-button:hover {
+        transform: scale(1.1);
+      }
+
+    </style>
+  </head>
+  <body>
+    <h1>a formulation of truth</h1>
+    <p>descend into yourself<br/>or ascend into myth</p>
+    <button class="enter-button" onclick="location.href='/app'">enter</button>
+
+    <div id="root"></div>
+    <!-- React will mount here -->
+  </body>
 </html>
