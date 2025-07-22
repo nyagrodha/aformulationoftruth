@@ -1,18 +1,15 @@
-// backend/src/app.js
 import express from 'express';
-import questionsRouter from '../routes/questions.js';
-import answersRouter   from '../routes/answers.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
 const app = express();
 
-//serve frontend assets from backend/public
 const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-app.use(espress.static(path.join(__dirname, '../public')));
+const __dirname  = path.dirname(__filename);
 
-// make sure to parse JSON bodies
+// serve frontend assets
+app.use(express.static(path.join(__dirname, '../public')));
+
 app.use(express.json());
 
 // mount your routers
