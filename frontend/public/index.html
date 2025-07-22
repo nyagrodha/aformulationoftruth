@@ -1,82 +1,160 @@
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>a formulation of truth</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
-    <style>
-      html, body {
-        margin: 0;
-        padding: 0;
-        background: #000;
-        color: #00ffff;
-        font-family: 'Orbitron', sans-serif;
-        height: 100%;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        text-align: center;
-        overflow: hidden;
+<html lang="ta">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>a formulation of truth</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Noto+Serif+Devanagari&family=Noto+Sans+Tamil&display=swap" rel="stylesheet">
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      background: #000;
+      color: #00ffff;
+      font-family: 'Orbitron', 'Noto Serif Devanagari', 'Noto Sans Tamil', Georgia, serif, sans-serif;
+      overflow-x: hidden;
+    }
+
+    .layer {
+      position: relative;
+      width: 100vw;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 1;
+    }
+
+    .om-tamil {
+      font-family: 'Noto Sans Tamil', 'Noto Serif Devanagari', Georgia, serif;
+      font-size: 12vw;
+      color: #ccff00;
+      text-shadow:
+        0 0 30px #00ffff,
+        0 0 60px #ff00ff,
+        0 0 90px #ccff00;
+      letter-spacing: 0.1em;
+      animation: pulse 2.7s infinite alternate cubic-bezier(.68,-0.55,.27,1.55);
+      margin-bottom: 0;
+      margin-top: 0;
+      user-select: none;
+      z-index: 5;
+    }
+
+    @keyframes pulse {
+      0%   { text-shadow: 0 0 15px #00ffff, 0 0 20px #ff00ff, 0 0 50px #ccff00; transform: scale(1);}
+      100% { text-shadow: 0 0 60px #ff00ff, 0 0 120px #ccff00, 0 0 30px #00ffff; transform: scale(1.07);}
+    }
+
+    /* Parallax effect: sticky layers with different top offsets */
+    .sticky-layer {
+      position: sticky;
+      top: 0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      will-change: transform;
+    }
+
+    /* Layer custom speeds and color effects */
+    .layer1 { z-index: 2; }
+    .layer2 { z-index: 3; }
+    .layer3 { z-index: 4; }
+
+    .verse {
+      font-size: 2rem;
+      color: #fff;
+      text-shadow: 0 0 10px #00ffff, 0 0 20px #ff00ff;
+      margin-bottom: 1.5rem;
+      margin-top: 1.5rem;
+      font-family: 'Noto Serif Devanagari', 'Noto Sans Tamil', Georgia, serif;
+    }
+    .translation {
+      font-size: 1.1rem;
+      color: #ccff00;
+      margin-bottom: 2.5rem;
+      text-shadow: 0 0 6px #ff00ff;
+    }
+    .quote {
+      font-size: 1.3rem;
+      color: #ff00ff;
+      max-width: 700px;
+      margin: 1.5rem auto;
+      text-shadow: 0 0 4px #00ffff;
+      line-height: 1.7;
+    }
+    /* Hide scrollbars for immersive effect */
+    ::-webkit-scrollbar { width: 0; height: 0; }
+    body { scrollbar-width: none; }
+
+    /* Responsive tweaks */
+    @media (max-width: 600px) {
+      .verse { font-size: 1.1rem; }
+      .translation, .quote { font-size: 0.96rem; }
+      .om-tamil { font-size: 18vw; }
+    }
+  </style>
+</head>
+<body>
+  <!-- AUDIO LOOP: Replace src with your actual Vedic chant audio file -->
+  <audio id="chant-audio" src="https://archive.org/download/vedic_chant_sample/vedic_chant_sample.mp3" loop autoplay></audio>
+
+  <!-- Parallax layers -->
+  <div class="layer layer1 sticky-layer" style="z-index:10;">
+    <div class="om-tamil">ஓம்</div>
+  </div>
+
+  <div class="layer layer2 sticky-layer">
+    <div class="verse">गा व्य-स्या त्म-सं सा रे क वी रे व प्र जा प ति: य था स् मै रो च ते वि ष्वं तथे दं प रि व र्त ते</div>
+    <div class="translation">
+      In the self-world of poetry, the poet alone is the Prajāpati, the lord of creation.<br>
+      Just as it pleases him, so too does the world transform.
+    </div>
+  </div>
+
+  <div class="layer layer3 sticky-layer">
+    <div class="quote">
+      truth resides in the reconstruction of events without precedent<br/>
+      in a world where nothing repeats itself exactly; where sense<br/>
+      comes from the association of memory.
+    </div>
+    <div class="quote">
+      to be a person, to act as one ought,<br/>
+      to act according to the categorical imperative,<br/>
+      in other words, to be oneself cohesive through time (having said something thoughtless)<br/>
+      one may not want to identify a 'self' as unified in any 'person'
+    </div>
+  </div>
+
+  <script>
+    // Ensure the audio starts on user gesture (for mobile/browser restrictions)
+    document.addEventListener('DOMContentLoaded', function() {
+      var audio = document.getElementById('chant-audio');
+      function startAudio() {
+        audio.volume = 0.33;
+        audio.play();
+        document.removeEventListener('click', startAudio);
+        document.removeEventListener('keydown', startAudio);
       }
+      document.addEventListener('click', startAudio);
+      document.addEventListener('keydown', startAudio);
+    });
 
-      h1 {
-        font-size: 3rem;
-        text-shadow: 0 0 10px #00ffff, 0 0 20px #ff00ff, 0 0 30px #ccff00;
-        margin-bottom: 1rem;
-      }
-
-      p {
-        font-size: 1.2rem;
-        color: #ff00ff;
-        text-shadow: 0 0 5px #ff00ff;
-      }
-
-      #root {
-        margin-top: 2rem;
-        width: 100%;
-        height: 100%;
-      }
-
-      .enter-button {
-        margin-top: 2rem;
-        padding: 0.75rem 2rem;
-        font-size: 1rem;
-        border: none;
-        border-radius: 8px;
-        background: linear-gradient(90deg, #00ffff, #ff00ff, #ccff00);
-        color: black;
-        font-weight: bold;
-        cursor: pointer;
-        box-shadow: 0 0 15px #00ffff;
-        transition: transform 0.2s ease;
-      }
-
-      .enter-button:hover {
-        transform: scale(1.1);
-      }
-
-    </style>
-  </head>
-  <body>
-    <h1>welcome to a formulation of truth</h1>
-    <h2>a creation of a self-inquisitive intellect operator</h2>
-    <h3>working in a hard-hearts not necessary zone</h3>
-    <p>to be a person, to act as one oughta live up to the<br/>
- <link>categorical imperative</link>, in other words, to be<br/>
-       cohesive as one self through time (having said something thoughtless)<br/>
-       one may not want to identify a 'self' as unified in any 'person'</p>
-  <br/> 
-    
-    <p>truth resides in the reconstruction of events without precedent<br/>
-       in a world where nothing repeats itself exactly; where sense<br/>
-       comes from the association of memory.</p>
-    <button class="enter-button" onclick="location.href='/app'">enter</button>
-
-    <div id="root"></div>
-    <!-- React will mount here -->
-  </body>
+    // Parallax scroll with slight transform
+    window.addEventListener('scroll', function() {
+      const scrolled = window.scrollY;
+      document.querySelector('.layer1').style.transform = `translateY(${scrolled * 0.2}px)`;
+      document.querySelector('.layer2').style.transform = `translateY(${scrolled * 0.4}px)`;
+      document.querySelector('.layer3').style.transform = `translateY(${scrolled * 0.7}px)`;
+    });
+  </script>
+  <div id="questions-list"></div>
+  <script src="/questionnaire.js"></script>
+</body>
 </html>
