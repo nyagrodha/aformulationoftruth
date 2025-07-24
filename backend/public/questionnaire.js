@@ -1,4 +1,4 @@
-// backend/public/questionnaire.js
+// frontend/public/questionnaire.js
 
 document.addEventListener('DOMContentLoaded', () => {
   // For now, prompt for the user’s email.
