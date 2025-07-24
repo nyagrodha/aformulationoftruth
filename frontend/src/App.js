@@ -1,16 +1,16 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import Login        from './components/Login';
-import Callback     from './components/Callback';
+import Navbar        from './components/Navbar';
+import Login         from './components/Login';
 import Questionnaire from './components/Questionnaire';
 
 export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/"       element={<Login />} />
-        <Route path="/callback" element={<Callback />} />
-        <Route path="/questions" element={<Questionnaire />} />
+        <Route path="/components/Login" element={<Login />} />
+        <Route path="/components/callback" element={<Callback />} />
+        <Route path="/components/questions" element={<Questionnaire />} />
       </Routes>
     </BrowserRouter>
   );
