@@ -112,7 +112,7 @@ export default function AuthPage() {
         <div className="text-center mb-8 animate-fade-in">
           <h1 className="text-3xl font-bold text-secondary mb-2">Proust Questionnaire</h1>
           <p className="text-muted-foreground mb-8 text-center leading-relaxed">
-              A practice in self-inquiry these questions invite a reflective state of awareness. Any persons who craft their responses authentically expose some among the inner machinations that constitute their personhood today.
+              A practice in self-inquiry these questions invite a reflective state of awareness. Persons who craft authentic responses stand to expose some of the inner machinations constituting the subject's personhood, its formulation of truth today.
             </p>
         </div>
 
