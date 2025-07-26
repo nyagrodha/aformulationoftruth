@@ -70,6 +70,30 @@
   animation: neon-background-pulse 8s infinite ease-in-out;
 }
 
+@keyframes rainbow-cycle {
+  0% { color: #ff0000; text-shadow: 0 0 10px #ff0000; }
+  14% { color: #ff8c00; text-shadow: 0 0 10px #ff8c00; }
+  28% { color: #ffd700; text-shadow: 0 0 10px #ffd700; }
+  42% { color: #32cd32; text-shadow: 0 0 10px #32cd32; }
+  57% { color: #00bfff; text-shadow: 0 0 10px #00bfff; }
+  71% { color: #6a5acd; text-shadow: 0 0 10px #6a5acd; }
+  85% { color: #da70d6; text-shadow: 0 0 10px #da70d6; }
+  100% { color: #ff0000; text-shadow: 0 0 10px #ff0000; }
+}
+
+.rainbow-symbols {
+  display: inline-block;
+  animation: rainbow-cycle 3s infinite ease-in-out;
+}
+
+.rainbow-symbols:nth-child(odd) {
+  animation-delay: 0s;
+}
+
+.rainbow-symbols:nth-child(even) {
+  animation-delay: 0.3s;
+}
+
 .dark {
   --primary: hsl(207, 90%, 54%);
   --primary-foreground: hsl(0, 0%, 100%);
