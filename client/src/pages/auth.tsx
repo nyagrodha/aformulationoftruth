@@ -29,7 +29,7 @@ export default function AuthPage() {
       }}
     >
       <div 
-        className="relative px-12 py-8 cursor-pointer transition-all duration-300 ease-in-out transform hover:scale-105 neon-frame"
+        className="relative px-12 py-8 cursor-pointer neon-frame magnify-bubble"
         onClick={handleLogin}
         style={{
           background: 'rgba(212, 175, 55, 0.8)',
