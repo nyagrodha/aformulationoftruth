@@ -11,6 +11,18 @@ import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
 import { LogOut, Save, ArrowRight, Clock } from "lucide-react";
 
+// Devanagari numerals mapping
+const devanagariNumerals: { [key: number]: string } = {
+  1: "१", 2: "२", 3: "३", 4: "४", 5: "५", 6: "६", 7: "७", 8: "८", 9: "९", 10: "१०",
+  11: "११", 12: "१२", 13: "१३", 14: "१४", 15: "१५", 16: "१६", 17: "१७", 18: "१८", 19: "१९", 20: "२०",
+  21: "२१", 22: "२२", 23: "२३", 24: "२४", 25: "२५", 26: "२६", 27: "२७", 28: "२८", 29: "२९", 30: "३०",
+  31: "३१", 32: "३२", 33: "३३", 34: "३४", 35: "३५"
+};
+
+const getDevanagariNumeral = (num: number): string => {
+  return devanagariNumerals[num] || num.toString();
+};
+
 interface Question {
   id: number;
   text: string;
@@ -193,10 +205,10 @@ export default function QuestionnairePage() {
   // Loading states
   if (authLoading || sessionLoading || questionLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-blue-950 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-slate-600 dark:text-slate-400">Loading your questionnaire...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-400 mx-auto mb-4"></div>
+          <p className="text-slate-400">Loading your questionnaire...</p>
         </div>
       </div>
     );
@@ -210,13 +222,13 @@ export default function QuestionnairePage() {
 
   if (!questionData?.question) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-blue-950 flex items-center justify-center">
-        <Card className="w-full max-w-md">
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center">
+        <Card className="w-full max-w-md bg-slate-800/60 border-slate-700/50">
           <CardContent className="text-center p-8">
-            <p className="text-slate-600 dark:text-slate-400 mb-4">
+            <p className="text-slate-400 mb-4">
               Unable to load questionnaire data.
             </p>
-            <Button onClick={() => refetch()}>Try Again</Button>
+            <Button onClick={() => refetch()} className="bg-emerald-600 hover:bg-emerald-700">Try Again</Button>
           </CardContent>
         </Card>
       </div>
@@ -226,23 +238,23 @@ export default function QuestionnairePage() {
   const progress = (questionData.progress.current / questionData.progress.total) * 100;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-blue-950">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
       {/* Header */}
-      <div className="sticky top-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm border-b border-slate-200 dark:border-slate-700 z-10">
+      <div className="sticky top-0 bg-slate-900/90 backdrop-blur-sm border-b border-slate-700 z-10">
         <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
           <div>
-            <h1 className="text-lg font-semibold text-slate-800 dark:text-slate-100">
+            <h1 className="text-lg font-semibold text-slate-100">
               The Proust Questionnaire
             </h1>
-            <p className="text-sm text-slate-600 dark:text-slate-400">
-              Question {questionData.progress.current} of {questionData.progress.total}
+            <p className="text-sm text-slate-400">
+              {questionData.progress.current} of {questionData.progress.total}
             </p>
           </div>
           <Button 
             variant="outline" 
             size="sm" 
             onClick={handleLogout}
-            className="text-slate-600 dark:text-slate-400"
+            className="text-slate-400 hover:text-slate-200"
           >
             <LogOut className="w-4 h-4 mr-2" />
             Logout
@@ -257,32 +269,34 @@ export default function QuestionnairePage() {
 
       {/* Main Content */}
       <div className="max-w-4xl mx-auto px-4 py-8">
-        <Card className="border-0 shadow-xl bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm">
+        <Card className="border border-slate-700/50 shadow-xl bg-slate-800/60 backdrop-blur-sm">
           <CardHeader className="pb-6">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
-                <span className="text-blue-600 dark:text-blue-400 font-semibold">
+            <div className="flex items-start gap-4 mb-6">
+              {/* Question numerals */}
+              <div className="flex flex-col items-center gap-2 min-w-[80px] pt-1">
+                <div className={`text-3xl font-bold ${questionData.progress.current % 2 === 1 ? 'text-emerald-400' : 'text-yellow-400'}`}>
+                  {getDevanagariNumeral(questionData.progress.current)}
+                </div>
+                <div className={`text-2xl font-semibold ${questionData.progress.current % 2 === 1 ? 'text-yellow-400' : 'text-emerald-400'}`}>
                   {questionData.progress.current}
-                </span>
+                </div>
               </div>
-              <div>
-                <CardTitle className="text-xl text-slate-800 dark:text-slate-100">
-                  Question {questionData.progress.current}
-                </CardTitle>
-                <p className="text-sm text-slate-500 dark:text-slate-500 capitalize">
+              
+              {/* Question text */}
+              <div className="flex-1">
+                <div className="text-xl text-slate-100 leading-relaxed font-light">
+                  {questionData.question.text}
+                </div>
+                <p className="text-sm text-slate-400 mt-2 capitalize">
                   {questionData.question.position} question
                 </p>
               </div>
-            </div>
-            
-            <div className="text-lg text-slate-700 dark:text-slate-300 leading-relaxed">
-              {questionData.question.text}
             </div>
           </CardHeader>
           
           <CardContent className="space-y-6">
             <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+              <label className="text-sm font-medium text-slate-300">
                 Your answer
               </label>
               <Textarea
@@ -290,11 +304,11 @@ export default function QuestionnairePage() {
                 onChange={(e) => handleAnswerChange(e.target.value)}
                 onBlur={handleBlur}
                 placeholder="Take your time to reflect and share your thoughts..."
-                className="min-h-32 text-base leading-relaxed resize-none"
+                className="min-h-32 text-base leading-relaxed resize-none bg-slate-700/50 border-slate-600 text-slate-100 placeholder:text-slate-400"
                 disabled={submitAnswerMutation.isPending}
               />
               {hasUnsavedChanges && (
-                <div className="flex items-center gap-2 text-sm text-amber-600 dark:text-amber-400">
+                <div className="flex items-center gap-2 text-sm text-amber-400">
                   <Clock className="w-4 h-4" />
                   Unsaved changes
                 </div>
@@ -302,7 +316,7 @@ export default function QuestionnairePage() {
             </div>
 
             <div className="flex items-center justify-between pt-4">
-              <div className="text-sm text-slate-500 dark:text-slate-500">
+              <div className="text-sm text-slate-400">
                 Your response will be automatically saved
               </div>
               
@@ -312,6 +326,7 @@ export default function QuestionnairePage() {
                     variant="outline"
                     onClick={handleBlur}
                     disabled={!currentAnswer.trim() || autoSaveMutation.isPending}
+                    className="border-slate-600 text-slate-300 hover:bg-slate-700"
                   >
                     <Save className="w-4 h-4 mr-2" />
                     Save Draft
@@ -321,7 +336,7 @@ export default function QuestionnairePage() {
                 <Button
                   onClick={handleSubmit}
                   disabled={!currentAnswer.trim() || submitAnswerMutation.isPending}
-                  className="bg-blue-600 hover:bg-blue-700"
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white"
                 >
                   {submitAnswerMutation.isPending ? (
                     <>
