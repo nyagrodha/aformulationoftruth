@@ -19,7 +19,7 @@ export default function CompletionPage() {
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = 'proust-questionnaire.pdf';
+      link.download = 'formulation-of-truth.pdf';
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -76,9 +76,9 @@ export default function CompletionPage() {
               <CheckCircle className="text-accent h-8 w-8" />
             </div>
 
-            <h1 className="text-3xl font-bold text-secondary mb-4">Questionnaire Complete!</h1>
+            <h1 className="text-3xl font-bold text-secondary mb-4">a formulation of truth complete!</h1>
             <p className="text-muted-foreground mb-8 leading-relaxed">
-              Thank you for taking the time to complete the Proust Questionnaire. Your thoughtful responses have been compiled into a beautiful document.
+              om shree ganapataye namah • Your thoughtful responses have been compiled into a beautiful document.
             </p>
 
             {/* Completion Stats */}

@@ -1,8 +1,8 @@
-# Proust Questionnaire Application
+# A Formulation of Truth Application
 
 ## Overview
 
-This is a full-stack web application that implements a digital version of the Proust Questionnaire - a set of questions designed for self-discovery and reflection. The application provides a personalized questionnaire experience with magic link authentication, randomized question ordering, and PDF generation capabilities.
+This is a full-stack web application that implements a digital version of a philosophical questionnaire - a set of questions designed for self-discovery and reflection. The application provides a personalized questionnaire experience with mystical authentication, randomized question ordering, and PDF generation capabilities.
 
 ## User Preferences
 
@@ -45,10 +45,10 @@ The application follows a modern full-stack architecture with clear separation b
 - **User Experience**: Seamless authentication with automatic session persistence
 
 ### Questionnaire Engine
-- 35 predefined Proust questions with intelligent ordering
+- 35 predefined philosophical questions with intelligent ordering
 - Fixed position questions (start/middle/end) ensure proper flow
 - Random ordering for middle questions provides unique experiences
-- Progress tracking with visual indicators
+- Mystical progress tracking with Devanagari/Arabic numerals
 - Response validation ensures meaningful answers
 
 ### Database Schema

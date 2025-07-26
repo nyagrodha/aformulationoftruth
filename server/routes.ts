@@ -64,7 +64,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         question: currentQuestion,
         progress: {
           current: session.currentQuestionIndex + 1,
-          total: session.questionOrder.length
+          total: (session.questionOrder as number[]).length
         },
         responses: responses.map(r => ({
           questionId: r.questionId,
@@ -117,10 +117,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Update progress
-      const currentQuestionIndex = session.questionOrder.indexOf(questionId);
+      const questionOrder = session.questionOrder as number[];
+      const currentQuestionIndex = questionOrder.indexOf(questionId);
       const nextQuestionIndex = currentQuestionIndex + 1;
       
-      if (nextQuestionIndex < session.questionOrder.length) {
+      if (nextQuestionIndex < questionOrder.length) {
         await storage.updateSessionProgress(sessionId, nextQuestionIndex);
       } else {
         // Complete session and generate PDF
@@ -132,9 +133,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         if (user?.email) {
           // Generate and send PDF
-          const pdfBuffer = await pdfService.generateProustQuestionnairePDF(
+          const pdfBuffer = await pdfService.generateQuestionnairePDF(
             allResponses,
-            session.questionOrder
+            session.questionOrder as number[]
           );
           
           await emailService.sendCompletionEmail(user.email, pdfBuffer);
@@ -179,9 +180,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const responses = await storage.getResponsesBySessionId(sessionId);
-      const pdfBuffer = await pdfService.generateProustQuestionnairePDF(
+      const pdfBuffer = await pdfService.generateQuestionnairePDF(
         responses,
-        session.questionOrder
+        session.questionOrder as number[]
       );
 
       res.setHeader('Content-Type', 'application/pdf');
