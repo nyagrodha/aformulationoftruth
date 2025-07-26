@@ -3,7 +3,7 @@ import type { Response } from '@shared/schema';
 import { questionService } from './questionService';
 
 class PDFService {
-  async generateProustQuestionnairePDF(responses: Response[], questionOrder: number[]): Promise<Buffer> {
+  async generateFormulationOfTruthPDF(responses: Response[], questionOrder: number[]): Promise<Buffer> {
     return this.generateQuestionnairePDF(responses, questionOrder);
   }
 
@@ -19,11 +19,11 @@ class PDFService {
         // Header
         doc.fontSize(28)
            .fillColor('#1976D2')
-           .text('Proust Questionnaire', 50, 50);
+           .text('a formulation of truth', 50, 50);
 
         doc.fontSize(14)
            .fillColor('#666')
-           .text('A journey of self-discovery through thoughtful reflection', 50, 85);
+           .text('om shree ganapataye namah • A journey of self-discovery through thoughtful reflection', 50, 85);
 
         // Add date
         doc.fontSize(12)
@@ -78,7 +78,7 @@ class PDFService {
         doc.fontSize(10)
            .fillColor('#999')
            .text(
-             'The Proust Questionnaire has been used to reveal the inner thoughts of many notable figures throughout history.',
+             'om shree ganapataye namah • a practice in self-inquiry revealing the formulation of truth within',
              50, 
              doc.page.height - 100,
              { width: 500, align: 'center' }

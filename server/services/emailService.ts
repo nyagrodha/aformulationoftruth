@@ -115,13 +115,13 @@ class EmailService {
           </div>
           
           <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; color: #999; font-size: 14px; text-align: center;">
-            <p>The Proust Questionnaire has been used to reveal the inner thoughts of many notable figures throughout history.</p>
+            <p>om shree ganapataye namah • a practice in self-inquiry revealing the formulation of truth within</p>
           </div>
         </div>
       `,
       attachments: [
         {
-          filename: 'proust-questionnaire.pdf',
+          filename: 'formulation-of-truth.pdf',
           content: pdfBuffer,
           contentType: 'application/pdf',
         },

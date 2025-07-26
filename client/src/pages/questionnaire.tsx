@@ -244,10 +244,10 @@ export default function QuestionnairePage() {
         <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
           <div>
             <h1 className="text-lg font-semibold text-slate-100">
-              The Proust Questionnaire
+              a formulation of truth
             </h1>
-            <p className="text-sm text-slate-400">
-              {questionData.progress.current} of {questionData.progress.total}
+            <p className="text-xs text-slate-500 italic">
+              om shree ganapataye namah
             </p>
           </div>
           <Button 
@@ -287,8 +287,8 @@ export default function QuestionnairePage() {
                 <div className="text-xl text-slate-100 leading-relaxed font-light">
                   {questionData.question.text}
                 </div>
-                <p className="text-sm text-slate-400 mt-2 capitalize">
-                  {questionData.question.position} question
+                <p className="text-xs text-slate-500 mt-2 italic">
+                  om shree ganapataye namah • {questionData.question.position} question
                 </p>
               </div>
             </div>
@@ -316,8 +316,8 @@ export default function QuestionnairePage() {
             </div>
 
             <div className="flex items-center justify-between pt-4">
-              <div className="text-sm text-slate-400">
-                Your response will be automatically saved
+              <div className="text-xs text-slate-500 italic">
+                om shree ganapataye namah • your response will be automatically saved
               </div>
               
               <div className="flex gap-3">
