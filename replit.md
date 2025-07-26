@@ -114,4 +114,7 @@ The application follows a modern full-stack architecture with clear separation b
 - `FROM_EMAIL`: Sender email address
 - `REPLIT_DOMAINS`: Deployment domain configuration
 
+### Production Deployment
+The application will be deployed to a VPS hosted at `proust.aformulationoftruth.com` with Apple Mail SMTP servers configured for email delivery from `formitselfisemptiness@aformulationoftruth.com`, `eachmomenteverydayur@aformulationoftruth.com`, and root user emails.
+
 The application is designed for easy deployment on platforms like Replit, with automatic detection of environment context and appropriate configuration for development vs. production modes.
