@@ -120,9 +120,9 @@ export default function AuthPage() {
         <Card className="animate-slide-up">
           <CardContent className="p-6">
             <div className="mb-6">
-              <h2 className="text-xl font-semibold text-secondary mb-2">Begin Your Journey</h2>
+              <h2 className="text-xl font-semibold text-secondary mb-2">Enter your email address to begin</h2>
               <p className="text-muted-foreground text-sm">
-                Enter your email to receive an apotropaic link to access the questionnaire. Your progress will be automatically saved.
+                Our web tech Karuppacami Nirmeyappor should send you an apotropaic link to start responding. Any progress you make will be automatically saved.
               </p>
             </div>
 
