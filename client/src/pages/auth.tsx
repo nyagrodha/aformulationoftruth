@@ -1,194 +1,114 @@
-import { useState, useEffect } from "react";
-import { useLocation } from "wouter";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { useMutation } from "@tanstack/react-query";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
-import { CheckCircle, Loader2, Mail } from "lucide-react";
-
-const emailSchema = z.object({
-  email: z.string().email("Please enter a valid email address"),
-});
-
-type EmailForm = z.infer<typeof emailSchema>;
+import { useAuth } from "@/hooks/useAuth";
+import { LogIn, BookOpen, Users, Award } from "lucide-react";
 
 export default function AuthPage() {
-  const [, setLocation] = useLocation();
-  const { toast } = useToast();
-  const [emailSent, setEmailSent] = useState(false);
-  const [isVerifying, setIsVerifying] = useState(false);
+  const { isLoading } = useAuth();
 
-  const form = useForm<EmailForm>({
-    resolver: zodResolver(emailSchema),
-    defaultValues: {
-      email: "",
-    },
-  });
-
-  // Check for token in URL params
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const token = urlParams.get('token');
-
-    if (token) {
-      verifyToken(token);
-    }
-  }, []);
-
-  const verifyToken = async (token: string) => {
-    setIsVerifying(true);
-    try {
-      const response = await apiRequest('GET', `/api/auth/verify/${token}`);
-      const data = await response.json();
-
-      if (data.success) {
-        if (data.completed) {
-          setLocation(`/complete/${data.sessionId}`);
-        } else {
-          setLocation(`/questionnaire/${data.sessionId}`);
-        }
-      } else {
-        throw new Error(data.message);
-      }
-    } catch (error) {
-      toast({
-        title: "Invalid Link",
-        description: "This link has expired or is invalid. Please request a new one.",
-        variant: "destructive",
-      });
-      setIsVerifying(false);
-    }
+  const handleLogin = () => {
+    window.location.href = "/api/login";
   };
 
-  const sendMagicLinkMutation = useMutation({
-    mutationFn: async (data: EmailForm) => {
-      const response = await apiRequest('POST', '/api/auth/magic-link', data);
-      return response.json();
-    },
-    onSuccess: () => {
-      setEmailSent(true);
-      toast({
-        title: "Link sent successfully!",
-        description: "Check your email for the access link.",
-      });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to send magic link",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const onSubmit = (data: EmailForm) => {
-    sendMagicLinkMutation.mutate(data);
-  };
-
-  if (isVerifying) {
+  if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center px-4 py-8">
-        <Card className="w-full max-w-md">
-          <CardContent className="pt-6 text-center">
-            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-primary" />
-            <h2 className="text-xl font-semibold text-secondary mb-2">Verifying Access</h2>
-            <p className="text-muted-foreground">Please wait while we verify your link...</p>
-          </CardContent>
-        </Card>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 py-8 bg-background">
-      <div className="w-full max-w-md">
-        {/* Header Section */}
-        <div className="text-center mb-8 animate-fade-in">
-          <h1 className="text-3xl font-bold text-secondary mb-2">Proust Questionnaire</h1>
-          <p className="text-muted-foreground mb-8 text-center leading-relaxed">
-              A practice in self-inquiry these questions invite a reflective state of awareness. Persons who craft authentic responses stand to expose some of the inner machinations constituting the subject's personhood, its formulation of truth today.
-            </p>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-blue-950 flex items-center justify-center px-4">
+      <div className="w-full max-w-4xl">
+        <div className="text-center mb-12">
+          <h1 className="text-5xl font-bold text-slate-800 dark:text-slate-100 mb-4">
+            The Proust Questionnaire
+          </h1>
+          <p className="text-xl text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">
+            A journey of self-discovery through 35 thoughtfully crafted questions, 
+            designed to reveal the essence of who you are.
+          </p>
         </div>
 
-        {/* Authentication Card */}
-        <Card className="animate-slide-up">
-          <CardContent className="p-6">
-            <div className="mb-6">
-              <h2 className="text-xl font-semibold text-secondary mb-2">Enter your email address to begin</h2>
-              <p className="text-muted-foreground text-sm">
-                Our web tech Karuppacami Nirmeyappor should send you an apotropaic link to start responding. Any progress you make will be automatically saved.
+        <div className="grid md:grid-cols-3 gap-6 mb-12">
+          <Card className="border-0 shadow-lg bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm">
+            <CardHeader className="text-center pb-4">
+              <BookOpen className="w-12 h-12 text-blue-600 mx-auto mb-3" />
+              <CardTitle className="text-lg text-slate-800 dark:text-slate-100">
+                Thoughtful Questions
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="text-center">
+              <p className="text-slate-600 dark:text-slate-400">
+                35 carefully curated questions designed to explore your values, 
+                dreams, and perspectives on life.
               </p>
-            </div>
+            </CardContent>
+          </Card>
 
-            {!emailSent ? (
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                <div>
-                  <Label htmlFor="email" className="text-sm font-medium text-secondary">
-                    Email Address
-                  </Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="your.email@example.com"
-                    className="mt-2"
-                    {...form.register("email")}
-                  />
-                  {form.formState.errors.email && (
-                    <p className="text-destructive text-sm mt-1">
-                      {form.formState.errors.email.message}
-                    </p>
-                  )}
-                </div>
+          <Card className="border-0 shadow-lg bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm">
+            <CardHeader className="text-center pb-4">
+              <Users className="w-12 h-12 text-green-600 mx-auto mb-3" />
+              <CardTitle className="text-lg text-slate-800 dark:text-slate-100">
+                Personal Journey
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="text-center">
+              <p className="text-slate-600 dark:text-slate-400">
+                Your responses are saved as you progress, allowing you to 
+                take your time and return whenever you're ready.
+              </p>
+            </CardContent>
+          </Card>
 
-                <Button 
-                  type="submit" 
-                  className="w-full"
-                  disabled={sendMagicLinkMutation.isPending}
-                >
-                  {sendMagicLinkMutation.isPending ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Sending...
-                    </>
-                  ) : (
-                    <>
-                      <Mail className="w-4 h-4 mr-2" />
-                      Send Access Link
-                    </>
-                  )}
-                </Button>
-              </form>
-            ) : (
-              <div className="p-4 bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 rounded-lg">
-                <div className="flex items-center">
-                  <CheckCircle className="text-accent mr-2 h-5 w-5" />
-                  <span className="text-accent font-medium">Link sent successfully!</span>
-                </div>
-                <p className="text-sm text-muted-foreground mt-1">Check your email for the access link.</p>
-              </div>
-            )}
+          <Card className="border-0 shadow-lg bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm">
+            <CardHeader className="text-center pb-4">
+              <Award className="w-12 h-12 text-purple-600 mx-auto mb-3" />
+              <CardTitle className="text-lg text-slate-800 dark:text-slate-100">
+                Beautiful PDF
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="text-center">
+              <p className="text-slate-600 dark:text-slate-400">
+                Receive a beautifully formatted PDF of your completed 
+                questionnaire delivered to your email.
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+
+        <Card className="border-0 shadow-xl bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm max-w-md mx-auto">
+          <CardHeader className="text-center pb-6">
+            <CardTitle className="text-2xl text-slate-800 dark:text-slate-100">
+              Begin Your Journey
+            </CardTitle>
+            <p className="text-slate-600 dark:text-slate-400 mt-2">
+              Click below to receive your secure access link and start exploring.
+            </p>
+          </CardHeader>
+          <CardContent className="text-center">
+            <Button 
+              onClick={handleLogin}
+              size="lg" 
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 transition-colors"
+            >
+              <LogIn className="w-5 h-5 mr-2" />
+              Get Your Apotropaic Link
+            </Button>
+            <p className="text-xs text-slate-500 dark:text-slate-500 mt-4">
+              An apotropaic link is a secure, personalized gateway that protects 
+              your privacy while providing access to your questionnaire.
+            </p>
           </CardContent>
         </Card>
 
-        {/* Info Section */}
-        <div className="mt-8">
-          <Card>
-            <CardContent className="p-4">
-              <h3 className="font-medium text-secondary mb-2 text-center">About the Questionnaire</h3>
-              <div className="text-sm text-muted-foreground space-y-1">
-                <p>• 35 carefully curated questions</p>
-                <p>• Progress automatically saved</p>
-                <p>• Resume anytime with your email</p>
-                <p>• Receive a beautiful PDF of your responses</p>
-              </div>
-            </CardContent>
-          </Card>
+        <div className="text-center mt-12">
+          <p className="text-slate-500 dark:text-slate-500 text-sm max-w-2xl mx-auto">
+            Named after Marcel Proust, this questionnaire has been used by writers, 
+            thinkers, and curious minds for over a century to explore the depths 
+            of personality and preference.
+          </p>
         </div>
       </div>
     </div>

@@ -3,7 +3,11 @@ import type { Response } from '@shared/schema';
 import { questionService } from './questionService';
 
 class PDFService {
-  async generateQuestionnairePDF(responses: Response[]): Promise<Buffer> {
+  async generateProustQuestionnairePDF(responses: Response[], questionOrder: number[]): Promise<Buffer> {
+    return this.generateQuestionnairePDF(responses, questionOrder);
+  }
+
+  async generateQuestionnairePDF(responses: Response[], questionOrder?: number[]): Promise<Buffer> {
     return new Promise((resolve, reject) => {
       try {
         const doc = new PDFDocument({ margin: 50 });

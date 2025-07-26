@@ -63,6 +63,10 @@ class EmailService {
     await this.transporter.sendMail(mailOptions);
   }
 
+  async sendCompletionEmail(email: string, pdfBuffer: Buffer): Promise<void> {
+    return this.sendResults(email, [], pdfBuffer);
+  }
+
   async sendResults(email: string, responses: Response[], pdfBuffer: Buffer): Promise<void> {
     if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
       console.log(`Results ready for ${email} with ${responses.length} responses and PDF generated`);
