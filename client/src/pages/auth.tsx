@@ -17,17 +17,23 @@ export default function AuthPage() {
 
   return (
     <div 
-      className="min-h-screen overflow-hidden flex items-center justify-center"
+      className="min-h-screen overflow-hidden flex items-center justify-center neon-background"
       style={{
-        background: '#111 url("data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%23222" fill-opacity="0.4"%3E%3Ccircle cx="30" cy="30" r="4"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E") center/cover no-repeat'
+        background: `
+          radial-gradient(circle at 20% 20%, rgba(0, 255, 255, 0.1) 0%, transparent 50%),
+          radial-gradient(circle at 80% 80%, rgba(255, 0, 255, 0.1) 0%, transparent 50%),
+          radial-gradient(circle at 40% 60%, rgba(148, 0, 211, 0.1) 0%, transparent 50%),
+          radial-gradient(circle at 70% 30%, rgba(0, 255, 255, 0.05) 0%, transparent 60%),
+          #8B4513
+        `
       }}
     >
       <div 
         className="relative px-12 py-8 cursor-pointer transition-all duration-300 ease-in-out transform hover:scale-105 neon-frame"
         onClick={handleLogin}
         style={{
-          background: 'rgba(0,0,0,0.6)',
-          border: '12px solid #d4af37',
+          background: 'rgba(212, 175, 55, 0.8)',
+          border: '12px solid #8B4513',
           borderRadius: '16px',
           boxShadow: `
             0 0 20px #00ffff,
@@ -40,10 +46,12 @@ export default function AuthPage() {
           className="block text-center lowercase text-5xl"
           style={{
             fontFamily: '"Playfair Display", serif',
-            color: '#f7f3e8',
+            color: '#111',
             textShadow: `
               0 0 8px #00ffff,
-              0 0 12px #ff00ff
+              0 0 12px #ff00ff,
+              0 0 4px rgba(0, 255, 255, 0.8),
+              0 0 8px rgba(255, 0, 255, 0.8)
             `
           }}
         >
