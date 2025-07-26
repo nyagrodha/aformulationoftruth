@@ -9,7 +9,7 @@ export default function ProgressBar({ current, total, progress }: ProgressBarPro
     <div className="bg-surface shadow-sm sticky top-0 z-10">
       <div className="max-w-4xl mx-auto px-4 py-4">
         <div className="flex items-center justify-between mb-3">
-          <h1 className="text-lg font-semibold text-secondary">Proust Questionnaire</h1>
+          <h1 className="text-lg font-semibold text-secondary">you are this moment: aformulationoftruth.com</h1>
           <span className="text-sm text-muted-foreground">Question {current} of {total}</span>
         </div>
         

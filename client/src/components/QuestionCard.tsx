@@ -98,9 +98,6 @@ export default function QuestionCard({
           <Badge variant="secondary" className="bg-primary/10 text-primary">
             Question {questionNumber}
           </Badge>
-          <Badge variant="outline" className="text-xs">
-            {question.position === 'fixed' ? 'Fixed Position' : 'Randomized'}
-          </Badge>
         </div>
 
         {/* Question Text */}
