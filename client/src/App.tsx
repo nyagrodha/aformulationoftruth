@@ -28,11 +28,13 @@ function Router() {
 
   return (
     <Switch>
+      {/* Auth callback route - always available */}
+      <Route path="/auth-callback" component={AuthCallbackPage} />
+      
       {!isAuthenticated ? (
         <>
           <Route path="/" component={AuthPage} />
           <Route path="/auth-portal" component={AuthPortalPage} />
-          <Route path="/auth-callback" component={AuthCallbackPage} />
         </>
       ) : (
         <>
