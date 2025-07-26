@@ -23,11 +23,10 @@ export default function AuthPage() {
       <div className="w-full max-w-4xl">
         <div className="text-center mb-12">
           <h1 className="text-5xl font-bold text-slate-800 dark:text-slate-100 mb-4">
-            The Proust Questionnaire
+            you are this moment; a formulation of truth
           </h1>
           <p className="text-xl text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">
-            A journey of self-discovery through 35 thoughtfully crafted questions, 
-            designed to reveal the essence of who you are.
+            Please share your original blurb text and I'll add it here.
           </p>
         </div>
 
