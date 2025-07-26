@@ -2,10 +2,18 @@ interface Question {
   id: number;
   text: string;
   position: 'fixed' | 'random';
+  shloka?: string;
+  deity?: string;
 }
 
-const PROUST_QUESTIONS: Question[] = [
-  { id: 1, text: "What is your idea of perfect happiness?", position: 'fixed' },
+const PHILOSOPHICAL_QUESTIONS: Question[] = [
+  { 
+    id: 1, 
+    text: "What is your idea of perfect happiness?", 
+    position: 'fixed',
+    shloka: "गणानां त्वा गणपतिं हवामहे कविं कवीनामुपमश्रवस्तमम्। ज्येष्ठराजं ब्रह्मणां ब्रह्मणस्पत आ नः शृण्वन्नूतिभिः सीद सादनम्॥",
+    deity: "Ganapati"
+  },
   { id: 2, text: "What is your greatest fear?", position: 'fixed' },
   { id: 3, text: "What is the trait you most deplore in yourself?", position: 'fixed' },
   { id: 4, text: "What is the trait you most deplore in others?", position: 'random' },
@@ -44,11 +52,11 @@ const PROUST_QUESTIONS: Question[] = [
 
 class QuestionService {
   getQuestion(id: number): Question | undefined {
-    return PROUST_QUESTIONS.find(q => q.id === id);
+    return PHILOSOPHICAL_QUESTIONS.find(q => q.id === id);
   }
 
   generateQuestionOrder(): number[] {
-    const randomQuestions = PROUST_QUESTIONS.filter(q => q.position === 'random');
+    const randomQuestions = PHILOSOPHICAL_QUESTIONS.filter(q => q.position === 'random');
     
     // Shuffle all random questions
     const shuffledRandom = [...randomQuestions].sort(() => Math.random() - 0.5);

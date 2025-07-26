@@ -27,6 +27,8 @@ interface Question {
   id: number;
   text: string;
   position: string;
+  shloka?: string;
+  deity?: string;
 }
 
 interface QuestionData {
@@ -284,11 +286,21 @@ export default function QuestionnairePage() {
               
               {/* Question text */}
               <div className="flex-1">
+                {questionData.question.shloka && (
+                  <div className="mb-4 p-3 bg-slate-800/50 rounded-lg border-l-4 border-emerald-400">
+                    <div className="text-emerald-300 text-sm font-medium mb-1">
+                      {questionData.question.deity}
+                    </div>
+                    <div className="text-amber-200 text-sm leading-relaxed font-light">
+                      {questionData.question.shloka}
+                    </div>
+                  </div>
+                )}
                 <div className="text-xl text-slate-100 leading-relaxed font-light">
                   {questionData.question.text}
                 </div>
                 <p className="text-xs text-slate-500 mt-2 italic">
-                  om shree ganapataye namah • {questionData.question.position} question
+                  om shree ganapataye namah
                 </p>
               </div>
             </div>

@@ -122,6 +122,12 @@ The application follows a modern full-stack architecture with clear separation b
 - `FROM_EMAIL`: Sender email address
 - `REPLIT_DOMAINS`: Deployment domain configuration
 
+### Recent Changes: Latest modifications with dates
+- **2025-01-26**: Removed "fixed question" references from questionnaire display
+- **2025-01-26**: Implemented procession of shlokas with Ganapati/Ganesh for first question
+- **2025-01-26**: Added shloka and deity fields to question interface
+- **2025-01-26**: Enhanced question display with shloka invocations in mystical styling
+
 ### Production Deployment
 The application will be deployed to a VPS hosted at `proust.aformulationoftruth.com` with Apple Mail SMTP servers configured for email delivery from `formitselfisemptiness@aformulationoftruth.com`, `eachmomenteverydayur@aformulationoftruth.com`, and root user emails.
 
