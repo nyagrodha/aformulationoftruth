@@ -28,7 +28,7 @@
   --radius: 0.5rem;
 }
 
-/* Landing page neon glow animation */
+/* Landing page neon glow animations */
 @keyframes pulse-glow {
   from {
     box-shadow:
@@ -44,8 +44,30 @@
   }
 }
 
+@keyframes neon-background-pulse {
+  0% {
+    filter: brightness(1) hue-rotate(0deg);
+  }
+  25% {
+    filter: brightness(1.2) hue-rotate(90deg);
+  }
+  50% {
+    filter: brightness(1.4) hue-rotate(180deg);
+  }
+  75% {
+    filter: brightness(1.2) hue-rotate(270deg);
+  }
+  100% {
+    filter: brightness(1) hue-rotate(360deg);
+  }
+}
+
 .neon-frame {
   animation: pulse-glow 2.5s infinite alternate ease-in-out;
+}
+
+.neon-background {
+  animation: neon-background-pulse 8s infinite ease-in-out;
 }
 
 .dark {
