@@ -9,12 +9,12 @@ import { questionService } from "./services/questionService";
 import crypto from "crypto";
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  
+
   // Send magic link
   app.post("/api/auth/magic-link", async (req, res) => {
     try {
       const { email } = insertUserSchema.parse(req.body);
-      
+
       // Create or get user
       let user = await storage.getUserByEmail(email);
       if (!user) {
@@ -45,7 +45,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/auth/verify/:token", async (req, res) => {
     try {
       const { token } = req.params;
-      
+
       const magicLink = await storage.getMagicLink(token);
       if (!magicLink) {
         return res.status(400).json({ message: "Invalid or expired link" });
@@ -88,7 +88,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { sessionId } = req.params;
       const session = await storage.getSessionById(sessionId);
-      
+
       if (!session) {
         return res.status(404).json({ message: "Session not found" });
       }
@@ -98,21 +98,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const questionOrder = session.questionOrder as number[];
+      // Get current question and response
       const currentQuestionId = questionOrder[session.currentQuestionIndex];
       const question = questionService.getQuestion(currentQuestionId);
-      
-      // Get existing response if any
-      const existingResponse = await storage.getResponseBySessionAndQuestion(
-        sessionId, 
-        currentQuestionId
-      );
+      const existingResponse = await storage.getResponseBySessionAndQuestion(sessionId, currentQuestionId);
+
+      if (!question) {
+        return res.status(404).json({ message: "Question not found" });
+      }
+
+      const progress = Math.round(((session.currentQuestionIndex + 1) / questionOrder.length) * 100);
 
       res.json({
-        question,
+        question: {
+          id: question.id,
+          text: question.text,
+          position: question.position
+        },
         questionNumber: session.currentQuestionIndex + 1,
         totalQuestions: questionOrder.length,
         existingAnswer: existingResponse?.answer || "",
-        progress: Math.round(((session.currentQuestionIndex + 1) / questionOrder.length) * 100)
+        declined: existingResponse?.declined || false,
+        reviewingDeclined: session.reviewingDeclined,
+        progress
       });
     } catch (error) {
       console.error('Get current question error:', error);
@@ -135,7 +143,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Check if response already exists
       const existingResponse = await storage.getResponseBySessionAndQuestion(sessionId, questionId);
-      
+
       let response;
       if (existingResponse) {
         response = await storage.updateResponse(sessionId, questionId, answer);
@@ -177,13 +185,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       if (direction === 'next') {
         newIndex = Math.min(session.currentQuestionIndex + 1, questionOrder.length - 1);
-        
+
         // Check if completed
         if (newIndex === questionOrder.length - 1) {
           // Get the last question's response to check if questionnaire is complete
           const lastQuestionId = questionOrder[newIndex];
           const lastResponse = await storage.getResponseBySessionAndQuestion(sessionId, lastQuestionId);
-          
+
           if (lastResponse) {
             await storage.completeSession(sessionId);
             return res.json({ completed: true });
@@ -205,13 +213,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/questionnaire/:sessionId/complete", async (req, res) => {
     try {
       const { sessionId } = req.params;
-      
+
       await storage.completeSession(sessionId);
       const responses = await storage.getResponsesBySessionId(sessionId);
-      
+
       // Generate PDF
       const pdfBuffer = await pdfService.generateQuestionnairePDF(responses);
-      
+
       // Get user email for sending results
       const session = await storage.getSessionById(sessionId);
       if (session) {
@@ -237,9 +245,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { sessionId } = req.params;
       const responses = await storage.getResponsesBySessionId(sessionId);
-      
+
       const pdfBuffer = await pdfService.generateQuestionnairePDF(responses);
-      
+
       res.setHeader('Content-Type', 'application/pdf');
       res.setHeader('Content-Disposition', 'attachment; filename="proust-questionnaire.pdf"');
       res.send(pdfBuffer);

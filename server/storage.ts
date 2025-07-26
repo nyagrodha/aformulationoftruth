@@ -148,11 +148,12 @@ export class DatabaseStorage implements IStorage {
     return response;
   }
 
-  async updateResponse(sessionId: string, questionId: number, answer: string): Promise<Response> {
+  async updateResponse(sessionId: string, questionId: number, answer: string | null, declined: boolean = false): Promise<Response> {
     const [response] = await db
       .update(responses)
       .set({ 
         answer,
+        declined,
         updatedAt: new Date()
       })
       .where(
@@ -163,6 +164,28 @@ export class DatabaseStorage implements IStorage {
       )
       .returning();
     return response;
+  }
+
+  async getDeclinedQuestions(sessionId: string): Promise<Response[]> {
+    return await db
+      .select()
+      .from(responses)
+      .where(
+        and(
+          eq(responses.sessionId, sessionId),
+          eq(responses.declined, true)
+        )
+      );
+  }
+
+  async setSessionReviewingDeclined(sessionId: string, reviewing: boolean): Promise<void> {
+    await db
+      .update(questionnaireSessions)
+      .set({ 
+        reviewingDeclined: reviewing,
+        updatedAt: new Date()
+      })
+      .where(eq(questionnaireSessions.id, sessionId));
   }
 
   async getResponseBySessionAndQuestion(sessionId: string, questionId: number): Promise<Response | undefined> {

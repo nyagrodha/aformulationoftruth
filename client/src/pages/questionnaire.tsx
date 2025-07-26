@@ -17,8 +17,12 @@ interface QuestionData {
   questionNumber: number;
   totalQuestions: number;
   existingAnswer: string;
+  declined: boolean;
+  reviewingDeclined: boolean;
   progress: number;
   completed?: boolean;
+  reviewDeclined?: boolean;
+  declinedCount?: number;
 }
 
 export default function QuestionnairePage() {
@@ -39,6 +43,11 @@ export default function QuestionnairePage() {
       return;
     }
 
+    if (questionData?.reviewDeclined) {
+      setLocation(`/review-declined/${sessionId}`);
+      return;
+    }
+
     if (questionData?.existingAnswer) {
       setCurrentAnswer(questionData.existingAnswer);
       setHasUnsavedChanges(false);
@@ -49,18 +58,19 @@ export default function QuestionnairePage() {
   }, [questionData, sessionId, setLocation]);
 
   const saveResponseMutation = useMutation({
-    mutationFn: async ({ questionId, answer }: { questionId: number; answer: string }) => {
+    mutationFn: async ({ questionId, answer, declined }: { questionId: number; answer?: string; declined?: boolean }) => {
       const response = await apiRequest('POST', `/api/questionnaire/${sessionId}/response`, {
         questionId,
-        answer
+        answer,
+        declined: declined || false
       });
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data, variables) => {
       setHasUnsavedChanges(false);
       toast({
-        title: "Response saved",
-        description: "Your answer has been saved automatically.",
+        title: variables.declined ? "Question declined" : "Response saved",
+        description: variables.declined ? "You have declined to answer this question." : "Your answer has been saved automatically.",
       });
     },
     onError: (error: any) => {
@@ -101,11 +111,25 @@ export default function QuestionnairePage() {
   };
 
   const handleSave = () => {
-    if (!questionData?.question.id || !currentAnswer.trim()) return;
+    if (!questionData?.question.id || (!currentAnswer.trim() && !questionData.declined)) return;
     
     saveResponseMutation.mutate({
       questionId: questionData.question.id,
-      answer: currentAnswer.trim()
+      answer: currentAnswer.trim(),
+      declined: false
+    });
+  };
+
+  const handleDecline = () => {
+    if (!questionData?.question.id) return;
+    
+    saveResponseMutation.mutate({
+      questionId: questionData.question.id,
+      declined: true
+    }, {
+      onSuccess: () => {
+        navigateMutation.mutate('next');
+      }
     });
   };
 
@@ -113,13 +137,14 @@ export default function QuestionnairePage() {
     if (hasUnsavedChanges && currentAnswer.trim()) {
       saveResponseMutation.mutate({
         questionId: questionData!.question.id,
-        answer: currentAnswer.trim()
+        answer: currentAnswer.trim(),
+        declined: false
       }, {
         onSuccess: () => {
           navigateMutation.mutate('next');
         }
       });
-    } else if (!hasUnsavedChanges) {
+    } else if (!hasUnsavedChanges || questionData?.declined) {
       navigateMutation.mutate('next');
     }
   };
@@ -128,7 +153,8 @@ export default function QuestionnairePage() {
     if (hasUnsavedChanges && currentAnswer.trim()) {
       saveResponseMutation.mutate({
         questionId: questionData!.question.id,
-        answer: currentAnswer.trim()
+        answer: currentAnswer.trim(),
+        declined: false
       }, {
         onSuccess: () => {
           navigateMutation.mutate('previous');
@@ -186,8 +212,11 @@ export default function QuestionnairePage() {
           question={questionData.question}
           questionNumber={questionData.questionNumber}
           answer={currentAnswer}
+          declined={questionData.declined}
+          reviewingDeclined={questionData.reviewingDeclined}
           onAnswerChange={handleAnswerChange}
           onSave={handleSave}
+          onDecline={handleDecline}
           onNext={handleNext}
           onPrevious={handlePrevious}
           canGoBack={questionData.questionNumber > 1}

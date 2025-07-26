@@ -6,7 +6,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import AuthPage from "@/pages/auth";
 import QuestionnairePage from "@/pages/questionnaire";
 import CompletionPage from "@/pages/completion";
-import NotFound from "@/pages/not-found";
+import ReviewDeclinedPage from "@/pages/review-declined";
+import NotFoundPage from "@/pages/not-found";
 
 function Router() {
   return (
@@ -14,8 +15,9 @@ function Router() {
       <Route path="/" component={AuthPage} />
       <Route path="/auth" component={AuthPage} />
       <Route path="/questionnaire/:sessionId" component={QuestionnairePage} />
+      <Route path="/review-declined/:sessionId" component={ReviewDeclinedPage} />
       <Route path="/complete/:sessionId" component={CompletionPage} />
-      <Route component={NotFound} />
+      <Route component={NotFoundPage} />
     </Switch>
   );
 }

@@ -21,9 +21,10 @@ export const magicLinks = pgTable("magic_links", {
 export const questionnaireSessions = pgTable("questionnaire_sessions", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   userId: varchar("user_id").notNull().references(() => users.id),
-  questionOrder: jsonb("question_order").notNull(), // Array of question IDs in randomized order
   currentQuestionIndex: integer("current_question_index").default(0).notNull(),
+  questionOrder: jsonb("question_order").notNull(),
   completed: boolean("completed").default(false).notNull(),
+  reviewingDeclined: boolean("reviewing_declined").default(false).notNull(),
   completedAt: timestamp("completed_at"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),

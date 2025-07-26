@@ -16,8 +16,11 @@ interface QuestionCardProps {
   question: Question;
   questionNumber: number;
   answer: string;
+  declined: boolean;
+  reviewingDeclined: boolean;
   onAnswerChange: (value: string) => void;
   onSave: () => void;
+  onDecline: () => void;
   onNext: () => void;
   onPrevious: () => void;
   canGoBack: boolean;
@@ -30,8 +33,11 @@ export default function QuestionCard({
   question,
   questionNumber,
   answer,
+  declined,
+  reviewingDeclined,
   onAnswerChange,
   onSave,
+  onDecline,
   onNext,
   onPrevious,
   canGoBack,
@@ -88,7 +94,7 @@ export default function QuestionCard({
     onNext();
   };
 
-  const canProceed = !validationError && answer.trim().length >= 10;
+  const canProceed = !validationError && (answer.trim().length >= 10 || declined);
 
   return (
     <Card className="animate-slide-up">
@@ -98,12 +104,31 @@ export default function QuestionCard({
           <Badge variant="secondary" className="bg-primary/10 text-primary">
             Question {questionNumber}
           </Badge>
+          {reviewingDeclined && (
+            <Badge variant="outline" className="text-orange-600 border-orange-600">
+              Reviewing Declined
+            </Badge>
+          )}
+          {declined && (
+            <Badge variant="outline" className="text-yellow-600 border-yellow-600">
+              Previously Declined
+            </Badge>
+          )}
         </div>
 
         {/* Question Text */}
         <h2 className="text-2xl font-semibold text-secondary mb-8 leading-relaxed">
           {question.text}
         </h2>
+
+        {/* Declined Notice */}
+        {declined && !answer && (
+          <div className="mb-6 p-4 bg-yellow-50 dark:bg-yellow-950 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+            <p className="text-sm text-yellow-800 dark:text-yellow-200">
+              You previously declined to answer this question. You can now provide a response or decline again.
+            </p>
+          </div>
+        )}
 
         {/* Answer Input */}
         <div className="space-y-4">
@@ -116,11 +141,12 @@ export default function QuestionCard({
             onChange={(e) => handleAnswerChange(e.target.value)}
             rows={6} 
             className="resize-vertical"
-            placeholder="Take your time to reflect and share your thoughts..."
+            placeholder={declined ? "You can now provide a response if you'd like..." : "Take your time to reflect and share your thoughts..."}
+            disabled={declined && !reviewingDeclined}
           />
           
           {/* Validation Messages */}
-          {validationError && (
+          {validationError && !declined && (
             <div className="text-destructive text-sm flex items-center">
               <AlertTriangle className="w-4 h-4 mr-1" />
               {validationError}
@@ -152,10 +178,21 @@ export default function QuestionCard({
           </Button>
 
           <div className="flex space-x-3">
+            {!declined && (
+              <Button 
+                variant="outline"
+                onClick={onDecline}
+                disabled={isSaving || isNavigating}
+                className="text-yellow-600 border-yellow-600 hover:bg-yellow-50 dark:hover:bg-yellow-950"
+              >
+                Decline to Answer
+              </Button>
+            )}
+
             <Button 
               variant="secondary"
               onClick={onSave}
-              disabled={!answer.trim() || isSaving || !canProceed}
+              disabled={(!answer.trim() && !declined) || isSaving || !canProceed}
             >
               {isSaving ? (
                 <>
