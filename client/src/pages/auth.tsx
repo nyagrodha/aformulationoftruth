@@ -35,7 +35,7 @@ export default function AuthPage() {
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const token = urlParams.get('token');
-    
+
     if (token) {
       verifyToken(token);
     }
@@ -46,7 +46,7 @@ export default function AuthPage() {
     try {
       const response = await apiRequest('GET', `/api/auth/verify/${token}`);
       const data = await response.json();
-      
+
       if (data.success) {
         if (data.completed) {
           setLocation(`/complete/${data.sessionId}`);
@@ -111,9 +111,9 @@ export default function AuthPage() {
         {/* Header Section */}
         <div className="text-center mb-8 animate-fade-in">
           <h1 className="text-3xl font-bold text-secondary mb-2">Proust Questionnaire</h1>
-          <p className="text-muted-foreground text-sm leading-relaxed">
-            A journey of self-discovery through thoughtful reflection. Complete the classical questionnaire that has revealed the inner thoughts of notable figures throughout history.
-          </p>
+          <p className="text-muted-foreground mb-8 text-center leading-relaxed">
+              These questions, a practice in self-inquiry, invite a reflective, if not meditative awareness. Any person who endeavors to craft their responses authentically exposes some inner machinations of their personalities.
+            </p>
         </div>
 
         {/* Authentication Card */}
