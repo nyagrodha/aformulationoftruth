@@ -1,7 +1,9 @@
 import { useAuth } from "@/hooks/useAuth";
+import { useLocation } from "wouter";
 
 export default function AuthPage() {
   const { isLoading } = useAuth();
+  const [, setLocation] = useLocation();
 
   const handleLogin = () => {
     window.location.href = "/api/login";
@@ -89,7 +91,7 @@ export default function AuthPage() {
         </div>
         
         <p 
-          className="text-center text-lg leading-relaxed max-w-2xl mx-auto"
+          className="text-center text-lg leading-relaxed max-w-2xl mx-auto mb-12"
           style={{
             fontFamily: '"Playfair Display", serif',
             color: '#2d1810',
@@ -103,6 +105,48 @@ export default function AuthPage() {
           awareness. Persons' authentically crafted responses (or a non-response!) betray something 
           of the interior machinations constituting the subject's personhood, its formulation of truth today.
         </p>
+
+        {/* Interactive mystical entry point */}
+        <div className="flex justify-center">
+          <div 
+            onClick={() => setLocation('/auth-portal')}
+            className="relative cursor-pointer group transition-all duration-500 hover:scale-105"
+            style={{
+              background: 'linear-gradient(45deg, rgba(0,255,255,0.2), rgba(255,0,255,0.2), rgba(255,255,0,0.2))',
+              border: '2px solid',
+              borderImage: 'linear-gradient(45deg, #00ffff, #ff00ff, #ffff00) 1',
+              borderRadius: '50px',
+              padding: '20px 40px',
+              boxShadow: `
+                0 0 20px rgba(0,255,255,0.3),
+                inset 0 0 10px rgba(255,0,255,0.2)
+              `
+            }}
+          >
+            <span 
+              className="text-2xl font-medium tracking-wider group-hover:tracking-widest transition-all duration-300"
+              style={{
+                fontFamily: '"Playfair Display", serif',
+                color: '#2d1810',
+                textShadow: `
+                  0 0 8px rgba(0,255,255,0.6),
+                  0 0 12px rgba(255,0,255,0.4)
+                `
+              }}
+            >
+              ⟐ enter the apotropaic realm ⟐
+            </span>
+            
+            {/* Subtle pulsing border effect */}
+            <div 
+              className="absolute inset-0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+              style={{
+                background: 'linear-gradient(45deg, rgba(0,255,255,0.1), rgba(255,0,255,0.1))',
+                filter: 'blur(8px)'
+              }}
+            />
+          </div>
+        </div>
       </div>
     </div>
   );
