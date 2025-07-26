@@ -5,6 +5,8 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useAuth } from "@/hooks/useAuth";
 import AuthPage from "@/pages/auth";
+import AuthPortalPage from "@/pages/auth-portal";
+import AuthCallbackPage from "@/pages/auth-callback";
 import QuestionnairePage from "@/pages/questionnaire";
 import CompletionPage from "@/pages/completion";
 import ReviewDeclinedPage from "@/pages/review-declined";
@@ -27,7 +29,11 @@ function Router() {
   return (
     <Switch>
       {!isAuthenticated ? (
-        <Route path="/" component={AuthPage} />
+        <>
+          <Route path="/" component={AuthPage} />
+          <Route path="/auth-portal" component={AuthPortalPage} />
+          <Route path="/auth-callback" component={AuthCallbackPage} />
+        </>
       ) : (
         <>
           <Route path="/" component={QuestionnairePage} />

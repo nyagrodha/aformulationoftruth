@@ -38,6 +38,10 @@ The application follows a modern full-stack architecture with clear separation b
 - **Replit Auth Integration**: OAuth-based authentication using Replit as identity provider
 - **Session Management**: Secure session storage using PostgreSQL with automatic token refresh
 - **Apotropaic Link Terminology**: Uses "apotropaic link" in user interface instead of technical terms
+- **Mystical Auth Experience**: Custom portal pages create coherent, strange authentication flow
+  - Landing page with interactive "enter the apotropaic realm" button
+  - Auth portal with mystical transition animations and consciousness-themed text
+  - Post-auth callback page with identity materialization effects
 - **User Experience**: Seamless authentication with automatic session persistence
 
 ### Questionnaire Engine
