@@ -35,7 +35,7 @@ export default function AuthPage() {
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const token = urlParams.get('token');
-    
+
     if (token) {
       verifyToken(token);
     }
@@ -46,7 +46,7 @@ export default function AuthPage() {
     try {
       const response = await apiRequest('GET', `/api/auth/verify/${token}`);
       const data = await response.json();
-      
+
       if (data.success) {
         if (data.completed) {
           setLocation(`/complete/${data.sessionId}`);
@@ -111,18 +111,18 @@ export default function AuthPage() {
         {/* Header Section */}
         <div className="text-center mb-8 animate-fade-in">
           <h1 className="text-3xl font-bold text-secondary mb-2">Proust Questionnaire</h1>
-          <p className="text-muted-foreground text-sm leading-relaxed">
-            A journey of self-discovery through thoughtful reflection. Complete the classical questionnaire that has revealed the inner thoughts of notable figures throughout history.
-          </p>
+          <p className="text-muted-foreground mb-8 text-center leading-relaxed">
+              A practice in self-inquiry these questions invite a reflective state of awareness. Persons who craft authentic responses stand to expose some of the inner machinations constituting the subject's personhood, its formulation of truth today.
+            </p>
         </div>
 
         {/* Authentication Card */}
         <Card className="animate-slide-up">
           <CardContent className="p-6">
             <div className="mb-6">
-              <h2 className="text-xl font-semibold text-secondary mb-2">Begin Your Journey</h2>
+              <h2 className="text-xl font-semibold text-secondary mb-2">Enter your email address to begin</h2>
               <p className="text-muted-foreground text-sm">
-                Enter your email to receive an apotropaic link to access the questionnaire. Your progress will be automatically saved.
+                Our web tech Karuppacami Nirmeyappor should send you an apotropaic link to start responding. Any progress you make will be automatically saved.
               </p>
             </div>
 
