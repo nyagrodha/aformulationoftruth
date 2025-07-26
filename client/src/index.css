@@ -92,36 +92,7 @@
   animation: at-to-gold 10s infinite ease-in-out;
 }
 
-.magnify-bubble {
-  position: relative;
-  transition: all 0.3s ease;
-}
 
-.magnify-bubble::before {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 0;
-  height: 0;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 50%;
-  transform: translate(-50%, -50%);
-  transition: all 0.4s ease;
-  pointer-events: none;
-  z-index: 1;
-}
-
-.magnify-bubble:hover::before {
-  width: 150px;
-  height: 150px;
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0.05) 70%, transparent 100%);
-  backdrop-filter: blur(2px);
-}
-
-.magnify-bubble:hover {
-  filter: brightness(1.1) contrast(1.05);
-}
 
 .dark {
   --primary: hsl(207, 90%, 54%);
