@@ -58,6 +58,19 @@ export default function AuthPage() {
           >
             you are this moment।
           </span>
+          
+          <div className="my-3 text-3xl leading-none overflow-hidden">
+            {Array.from({ length: 30 }, (_, i) => (
+              <span 
+                key={i} 
+                className="rainbow-symbols"
+                style={{ animationDelay: `${i * 0.1}s` }}
+              >
+                {i % 2 === 0 ? 'ॐ' : '@'}
+              </span>
+            ))}
+          </div>
+          
           <span 
             className="block lowercase text-5xl mt-2"
             style={{
