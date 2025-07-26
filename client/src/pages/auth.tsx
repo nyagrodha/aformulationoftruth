@@ -56,7 +56,7 @@ export default function AuthPage() {
               `
             }}
           >
-            you are this moment।
+            you are this moment
           </span>
           
           <div className="my-3 text-3xl leading-none overflow-hidden">

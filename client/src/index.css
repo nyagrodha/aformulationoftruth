@@ -70,21 +70,21 @@
   animation: neon-background-pulse 8s infinite ease-in-out;
 }
 
-@keyframes om-to-silver {
+@keyframes om-to-emerald {
   0% { color: #d4af37; text-shadow: 0 0 15px #d4af37; }
-  50% { color: #b8860b; text-shadow: 0 0 12px #b8860b; }
-  100% { color: #c0c0c0; text-shadow: 0 0 15px #c0c0c0; }
+  50% { color: #228b22; text-shadow: 0 0 12px #228b22; }
+  100% { color: #006400; text-shadow: 0 0 15px #006400; }
 }
 
 @keyframes at-to-gold {
-  0% { color: #c0c0c0; text-shadow: 0 0 15px #c0c0c0; }
-  50% { color: #b8860b; text-shadow: 0 0 12px #b8860b; }
+  0% { color: #006400; text-shadow: 0 0 15px #006400; }
+  50% { color: #228b22; text-shadow: 0 0 12px #228b22; }
   100% { color: #d4af37; text-shadow: 0 0 15px #d4af37; }
 }
 
 .om-symbol {
   display: inline-block;
-  animation: om-to-silver 10s infinite ease-in-out;
+  animation: om-to-emerald 10s infinite ease-in-out;
 }
 
 .at-symbol {
