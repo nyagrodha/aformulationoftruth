@@ -70,28 +70,26 @@
   animation: neon-background-pulse 8s infinite ease-in-out;
 }
 
-@keyframes rainbow-cycle {
-  0% { color: #ff0000; text-shadow: 0 0 10px #ff0000; }
-  14% { color: #ff8c00; text-shadow: 0 0 10px #ff8c00; }
-  28% { color: #ffd700; text-shadow: 0 0 10px #ffd700; }
-  42% { color: #32cd32; text-shadow: 0 0 10px #32cd32; }
-  57% { color: #00bfff; text-shadow: 0 0 10px #00bfff; }
-  71% { color: #6a5acd; text-shadow: 0 0 10px #6a5acd; }
-  85% { color: #da70d6; text-shadow: 0 0 10px #da70d6; }
-  100% { color: #ff0000; text-shadow: 0 0 10px #ff0000; }
+@keyframes om-to-silver {
+  0% { color: #d4af37; text-shadow: 0 0 15px #d4af37; }
+  50% { color: #b8860b; text-shadow: 0 0 12px #b8860b; }
+  100% { color: #c0c0c0; text-shadow: 0 0 15px #c0c0c0; }
 }
 
-.rainbow-symbols {
+@keyframes at-to-gold {
+  0% { color: #c0c0c0; text-shadow: 0 0 15px #c0c0c0; }
+  50% { color: #b8860b; text-shadow: 0 0 12px #b8860b; }
+  100% { color: #d4af37; text-shadow: 0 0 15px #d4af37; }
+}
+
+.om-symbol {
   display: inline-block;
-  animation: rainbow-cycle 3s infinite ease-in-out;
+  animation: om-to-silver 10s infinite ease-in-out;
 }
 
-.rainbow-symbols:nth-child(odd) {
-  animation-delay: 0s;
-}
-
-.rainbow-symbols:nth-child(even) {
-  animation-delay: 0.3s;
+.at-symbol {
+  display: inline-block;
+  animation: at-to-gold 10s infinite ease-in-out;
 }
 
 .dark {

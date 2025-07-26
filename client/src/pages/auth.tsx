@@ -60,11 +60,11 @@ export default function AuthPage() {
           </span>
           
           <div className="my-3 text-3xl leading-none overflow-hidden">
-            {Array.from({ length: 30 }, (_, i) => (
+            {Array.from({ length: 16 }, (_, i) => (
               <span 
                 key={i} 
-                className="rainbow-symbols"
-                style={{ animationDelay: `${i * 0.1}s` }}
+                className={i % 2 === 0 ? 'om-symbol' : 'at-symbol'}
+                style={{ animationDelay: `${i * 0.2}s` }}
               >
                 {i % 2 === 0 ? 'ॐ' : '@'}
               </span>
