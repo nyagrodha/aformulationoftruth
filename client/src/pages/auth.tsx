@@ -71,7 +71,7 @@ export default function AuthPage() {
               `
             }}
           >
-            ॥ a formulation of truth ॥
+            ஸ்ரீ ॥ a formulation of truth ॥ ശ്രീ
           </span>
         </div>
         
