@@ -99,9 +99,9 @@ export default function AuthPage() {
             `
           }}
         >
-          A practice in self-inquiry these questions invite a reflective state of awareness. 
-          Persons who craft authentic responses stand to expose some of the inner machinations 
-          constituting the subject's personhood, its formulation of truth today.
+          A practice in self-inquiry these questions invite upon respondents a reflective state of 
+          awareness. Persons' authentically crafted responses (or a non-response!) betray something 
+          of the interior machinations constituting the subject's personhood, its formulation of truth today.
         </p>
       </div>
     </div>

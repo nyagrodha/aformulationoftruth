@@ -8,6 +8,10 @@ This is a full-stack web application that implements a digital version of the Pr
 
 Preferred communication style: Simple, everyday language.
 
+### Landing Page Content Versions
+- **Current (v3.0)**: "A practice in self-inquiry these questions invite upon respondents a reflective state of awareness. Persons' authentically crafted responses (or a non-response!) betray something of the interior machinations constituting the subject's personhood, its formulation of truth today."
+- **Version 2.0**: "A practice in self-inquiry these questions invite a reflective state of awareness. Persons who craft authentic responses stand to expose some of the inner machinations constituting the subject's personhood, its formulation of truth today."
+
 ## System Architecture
 
 The application follows a modern full-stack architecture with clear separation between frontend and backend concerns:
