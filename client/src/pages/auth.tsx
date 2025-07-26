@@ -43,7 +43,7 @@ export default function AuthPage() {
         }}
       >
         <span 
-          className="block text-center lowercase text-5xl"
+          className="block text-center lowercase text-5xl mb-6"
           style={{
             fontFamily: '"Playfair Display", serif',
             color: '#111',
@@ -57,6 +57,22 @@ export default function AuthPage() {
         >
           you are this moment; a formulation of truth
         </span>
+        
+        <p 
+          className="text-center text-lg leading-relaxed max-w-2xl mx-auto"
+          style={{
+            fontFamily: '"Playfair Display", serif',
+            color: '#2d1810',
+            textShadow: `
+              0 0 4px rgba(0, 255, 255, 0.3),
+              0 0 6px rgba(255, 0, 255, 0.3)
+            `
+          }}
+        >
+          A practice in self-inquiry these questions invite a reflective state of awareness. 
+          Persons who craft authentic responses stand to expose some of the inner machinations 
+          constituting the subject's personhood, its formulation of truth today.
+        </p>
       </div>
     </div>
   );
