@@ -91,7 +91,7 @@ export default function AuthPage() {
         </div>
         
         <p 
-          className="text-center text-lg leading-relaxed max-w-2xl mx-auto mb-12"
+          className="text-lg leading-relaxed max-w-2xl mx-auto mb-12 font-light text-center text-[#4d2316] pt-[0px] pb-[0px]"
           style={{
             fontFamily: '"Playfair Display", serif',
             color: '#2d1810',
@@ -100,11 +100,7 @@ export default function AuthPage() {
               0 0 6px rgba(255, 0, 255, 0.3)
             `
           }}
-        >
-          A practice in self-inquiry these questions invite upon respondents a reflective state of 
-          awareness. Persons' authentically crafted responses (or a non-response!) betray something 
-          of the interior machinations constituting the subject's personhood, its formulation of truth today.
-        </p>
+        >A practice in self-inquiry these questions invite upon users a reflective state of awareness. Persons' crafted responses (or a non-response!) betray something interior to us, manigances idiosyncratiques that constitute the subject, a person, and their formulation of truth today.</p>
 
         {/* Interactive mystical entry point */}
         <div className="flex justify-center">
