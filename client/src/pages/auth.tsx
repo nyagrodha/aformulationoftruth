@@ -42,21 +42,38 @@ export default function AuthPage() {
           `
         }}
       >
-        <span 
-          className="block text-center lowercase text-5xl mb-6"
-          style={{
-            fontFamily: '"Playfair Display", serif',
-            color: '#111',
-            textShadow: `
-              0 0 8px #00ffff,
-              0 0 12px #ff00ff,
-              0 0 4px rgba(0, 255, 255, 0.8),
-              0 0 8px rgba(255, 0, 255, 0.8)
-            `
-          }}
-        >
-          you are this moment; a formulation of truth
-        </span>
+        <div className="text-center mb-6">
+          <span 
+            className="block lowercase text-5xl"
+            style={{
+              fontFamily: '"Playfair Display", serif',
+              color: '#111',
+              textShadow: `
+                0 0 8px #00ffff,
+                0 0 12px #ff00ff,
+                0 0 4px rgba(0, 255, 255, 0.8),
+                0 0 8px rgba(255, 0, 255, 0.8)
+              `
+            }}
+          >
+            you are this moment।
+          </span>
+          <span 
+            className="block lowercase text-5xl mt-2"
+            style={{
+              fontFamily: '"Playfair Display", serif',
+              color: '#111',
+              textShadow: `
+                0 0 8px #00ffff,
+                0 0 12px #ff00ff,
+                0 0 4px rgba(0, 255, 255, 0.8),
+                0 0 8px rgba(255, 0, 255, 0.8)
+              `
+            }}
+          >
+            ॥ a formulation of truth ॥
+          </span>
+        </div>
         
         <p 
           className="text-center text-lg leading-relaxed max-w-2xl mx-auto"
