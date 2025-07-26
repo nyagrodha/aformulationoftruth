@@ -4,8 +4,6 @@ import express from 'express';
 const app = express();
 import rateLimit from 'express-rate-limit';          // ESM import
 import answersRouter from './routes/answers.js';   // note the “.js” extension
-import sqlite3Pkg from 'sqlite3';
-const sqlite3 = sqlite3Pkg.verbose();
 
 import nodemailer from 'nodemailer';
 import jwt from 'jsonwebtoken';
@@ -63,6 +61,8 @@ app.get('/', (req, res) => {
 });
 
 // Initialize SQLite database
+import sqlite3Pkg from 'sqlite3';
+const sqlite3 = sqlite3Pkg.verbose();
 const db = new sqlite3.Database('./database.sqlite', (err) => {
   if (err) {
     console.error('Failed to open database:', err.message);
@@ -164,4 +164,3 @@ setInterval(() => {}, 1000 * 60); // keep-alive
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server is running on http://0.0.0.0:${PORT}`);
 });
-

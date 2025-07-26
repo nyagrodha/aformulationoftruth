@@ -1,18 +1,21 @@
-const sqlite3 = require('sqlite3').verbose();
-const db = new sqlite3.Database(process.env.DB_PATH);
+import sqlite3Pkg from 'sqlite3';
+const sqlite3 = sqlite3Pkg.verbose();
+const db = new sqlite3.Database(process.env.DB_PATH || './database.sqlite');
 
 db.serialize(() => {
     db.run(`CREATE TABLE IF NOT EXISTS users (
-      email TEXT PRIMARY KEY,
-      created_at INTEGER
-)`);
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      email TEXT UNIQUE,
+      token TEXT
+    )`);
 
     db.run(`CREATE TABLE IF NOT EXISTS responses (
-      email TEXT,
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER,
       question TEXT,
       answer TEXT,
-      timestamp INTEGER
+      FOREIGN KEY(user_id) REFERENCES users(id)
     )`);
 });
 
-module.exports = db;
+export default db;
