@@ -27,7 +27,7 @@ class EmailService {
     const magicLink = `https://${baseUrl}/auth?token=${token}`;
 
     const mailOptions = {
-      from: process.env.FROM_EMAIL || process.env.SMTP_USER,
+      from: process.env.SMTP_USER,
       to: email,
       subject: 'Your Apotropaic Link - Proust Questionnaire',
       html: `
@@ -81,7 +81,7 @@ class EmailService {
       });
 
     const mailOptions = {
-      from: process.env.FROM_EMAIL || process.env.SMTP_USER,
+      from: process.env.SMTP_USER,
       to: email,
       subject: 'Your Proust Questionnaire Results',
       html: `
