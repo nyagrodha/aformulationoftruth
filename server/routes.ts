@@ -2,117 +2,74 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { z } from "zod";
-import { insertUserSchema, insertResponseSchema } from "@shared/schema";
+import { insertResponseSchema } from "@shared/schema";
+import { setupAuth, isAuthenticated } from "./replitAuth";
 import { emailService } from "./services/emailService";
 import { pdfService } from "./services/pdfService";
 import { questionService } from "./services/questionService";
-import crypto from "crypto";
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  
-  // Send magic link
-  app.post("/api/auth/magic-link", async (req, res) => {
+  // Auth middleware
+  await setupAuth(app);
+
+  // Auth routes
+  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
     try {
-      const { email } = insertUserSchema.parse(req.body);
-      
-      // Create or get user
-      let user = await storage.getUserByEmail(email);
-      if (!user) {
-        user = await storage.createUser({ email });
-      }
-
-      // Generate magic link token
-      const token = crypto.randomBytes(32).toString('hex');
-      const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
-
-      await storage.createMagicLink({
-        email,
-        token,
-        expiresAt
-      });
-
-      // Send magic link email
-      await emailService.sendMagicLink(email, token);
-
-      res.json({ success: true });
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      res.json(user);
     } catch (error) {
-      console.error('Magic link error:', error);
-      res.status(500).json({ message: "Failed to send magic link" });
+      console.error("Error fetching user:", error);
+      res.status(500).json({ message: "Failed to fetch user" });
     }
   });
 
-  // Verify magic link and start session
-  app.get("/api/auth/verify/:token", async (req, res) => {
+  // Get or create questionnaire session for authenticated user
+  app.get("/api/questionnaire/session", isAuthenticated, async (req: any, res) => {
     try {
-      const { token } = req.params;
+      const userId = req.user.claims.sub;
       
-      const magicLink = await storage.getMagicLink(token);
-      if (!magicLink) {
-        return res.status(400).json({ message: "Invalid or expired link" });
-      }
-
-      // Mark link as used
-      await storage.markMagicLinkUsed(token);
-
-      // Get or create user
-      let user = await storage.getUserByEmail(magicLink.email);
-      if (!user) {
-        user = await storage.createUser({ email: magicLink.email });
-      }
-
-      // Get or create session
-      let session = await storage.getSessionByUserId(user.id);
+      // Get existing session or create new one
+      let session = await storage.getSessionByUserId(userId);
       if (!session) {
         const questionOrder = questionService.generateQuestionOrder();
         session = await storage.createSession({
-          userId: user.id,
+          userId,
           questionOrder
         });
       }
 
-      res.json({ 
-        success: true, 
-        userId: user.id,
-        sessionId: session.id,
-        currentQuestionIndex: session.currentQuestionIndex,
-        completed: session.completed
-      });
+      res.json(session);
     } catch (error) {
-      console.error('Verify token error:', error);
-      res.status(500).json({ message: "Failed to verify token" });
+      console.error('Session error:', error);
+      res.status(500).json({ message: "Failed to get session" });
     }
   });
 
-  // Get current question
-  app.get("/api/questionnaire/:sessionId/current", async (req, res) => {
+  // Get current question for a session
+  app.get("/api/questionnaire/:sessionId/current", isAuthenticated, async (req: any, res) => {
     try {
       const { sessionId } = req.params;
-      const session = await storage.getSessionById(sessionId);
+      const userId = req.user.claims.sub;
       
-      if (!session) {
+      const session = await storage.getSessionById(sessionId);
+      if (!session || session.userId !== userId) {
         return res.status(404).json({ message: "Session not found" });
       }
 
-      if (session.completed) {
-        return res.json({ completed: true });
-      }
-
-      const questionOrder = session.questionOrder as number[];
-      const currentQuestionId = questionOrder[session.currentQuestionIndex];
-      const question = questionService.getQuestion(currentQuestionId);
+      const currentQuestion = questionService.getCurrentQuestion(session);
+      const responses = await storage.getResponsesBySessionId(sessionId);
       
-      // Get existing response if any
-      const existingResponse = await storage.getResponseBySessionAndQuestion(
-        sessionId, 
-        currentQuestionId
-      );
-
       res.json({
-        question,
-        questionNumber: session.currentQuestionIndex + 1,
-        totalQuestions: questionOrder.length,
-        existingAnswer: existingResponse?.answer || "",
-        progress: Math.round(((session.currentQuestionIndex + 1) / questionOrder.length) * 100)
+        question: currentQuestion,
+        progress: {
+          current: session.currentQuestionIndex + 1,
+          total: session.questionOrder.length
+        },
+        responses: responses.map(r => ({
+          questionId: r.questionId,
+          answer: r.answer
+        }))
       });
     } catch (error) {
       console.error('Get current question error:', error);
@@ -120,23 +77,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Save response
-  app.post("/api/questionnaire/:sessionId/response", async (req, res) => {
+  // Submit answer
+  app.post("/api/questionnaire/:sessionId/answer", isAuthenticated, async (req: any, res) => {
     try {
       const { sessionId } = req.params;
-      const responseSchema = z.object({
-        questionId: z.number(),
-        answer: z.string().min(10, "Response must be at least 10 characters")
-          .refine(val => !/^\d+$/.test(val.trim()), "Response cannot be purely numerical")
-          .refine(val => !/^[^a-zA-Z]*$/.test(val.trim()), "Response must contain meaningful text")
-      });
-
-      const { questionId, answer } = responseSchema.parse(req.body);
-
-      // Check if response already exists
-      const existingResponse = await storage.getResponseBySessionAndQuestion(sessionId, questionId);
+      const userId = req.user.claims.sub;
+      const { questionId, answer } = insertResponseSchema.parse(req.body);
       
+      const session = await storage.getSessionById(sessionId);
+      if (!session || session.userId !== userId) {
+        return res.status(404).json({ message: "Session not found" });
+      }
+
+      if (session.completed) {
+        return res.status(400).json({ message: "Session already completed" });
+      }
+
+      // Validate answer
+      const validationResult = questionService.validateAnswer(answer);
+      if (!validationResult.isValid) {
+        return res.status(400).json({ 
+          message: "Invalid answer", 
+          details: validationResult.errors 
+        });
+      }
+
+      // Save or update response
+      const existingResponse = await storage.getResponseBySessionAndQuestion(sessionId, questionId);
       let response;
+      
       if (existingResponse) {
         response = await storage.updateResponse(sessionId, questionId, answer);
       } else {
@@ -147,104 +116,79 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      res.json({ success: true, response });
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ 
-          message: error.errors[0]?.message || "Invalid response" 
-        });
+      // Update progress
+      const currentQuestionIndex = session.questionOrder.indexOf(questionId);
+      const nextQuestionIndex = currentQuestionIndex + 1;
+      
+      if (nextQuestionIndex < session.questionOrder.length) {
+        await storage.updateSessionProgress(sessionId, nextQuestionIndex);
+      } else {
+        // Complete session and generate PDF
+        await storage.completeSession(sessionId);
+        
+        // Get user and all responses for PDF
+        const user = await storage.getUser(userId);
+        const allResponses = await storage.getResponsesBySessionId(sessionId);
+        
+        if (user?.email) {
+          // Generate and send PDF
+          const pdfBuffer = await pdfService.generateProustQuestionnairePDF(
+            allResponses,
+            session.questionOrder
+          );
+          
+          await emailService.sendCompletionEmail(user.email, pdfBuffer);
+        }
       }
-      console.error('Save response error:', error);
-      res.status(500).json({ message: "Failed to save response" });
+
+      res.json(response);
+    } catch (error) {
+      console.error('Submit answer error:', error);
+      res.status(500).json({ message: "Failed to submit answer" });
     }
   });
 
-  // Navigate to next/previous question
-  app.post("/api/questionnaire/:sessionId/navigate", async (req, res) => {
+  // Get previous answers (for navigation)
+  app.get("/api/questionnaire/:sessionId/responses", isAuthenticated, async (req: any, res) => {
     try {
       const { sessionId } = req.params;
-      const { direction } = z.object({ 
-        direction: z.enum(['next', 'previous']) 
-      }).parse(req.body);
-
+      const userId = req.user.claims.sub;
+      
       const session = await storage.getSessionById(sessionId);
-      if (!session) {
+      if (!session || session.userId !== userId) {
         return res.status(404).json({ message: "Session not found" });
       }
 
-      const questionOrder = session.questionOrder as number[];
-      let newIndex = session.currentQuestionIndex;
-
-      if (direction === 'next') {
-        newIndex = Math.min(session.currentQuestionIndex + 1, questionOrder.length - 1);
-        
-        // Check if completed
-        if (newIndex === questionOrder.length - 1) {
-          // Get the last question's response to check if questionnaire is complete
-          const lastQuestionId = questionOrder[newIndex];
-          const lastResponse = await storage.getResponseBySessionAndQuestion(sessionId, lastQuestionId);
-          
-          if (lastResponse) {
-            await storage.completeSession(sessionId);
-            return res.json({ completed: true });
-          }
-        }
-      } else {
-        newIndex = Math.max(session.currentQuestionIndex - 1, 0);
-      }
-
-      await storage.updateSessionProgress(sessionId, newIndex);
-      res.json({ success: true, newIndex });
+      const responses = await storage.getResponsesBySessionId(sessionId);
+      res.json(responses);
     } catch (error) {
-      console.error('Navigate error:', error);
-      res.status(500).json({ message: "Failed to navigate" });
+      console.error('Get responses error:', error);
+      res.status(500).json({ message: "Failed to get responses" });
     }
   });
 
-  // Complete questionnaire
-  app.post("/api/questionnaire/:sessionId/complete", async (req, res) => {
+  // Download PDF (for completed sessions)
+  app.get("/api/questionnaire/:sessionId/pdf", isAuthenticated, async (req: any, res) => {
     try {
       const { sessionId } = req.params;
+      const userId = req.user.claims.sub;
       
-      await storage.completeSession(sessionId);
-      const responses = await storage.getResponsesBySessionId(sessionId);
-      
-      // Generate PDF
-      const pdfBuffer = await pdfService.generateQuestionnairePDF(responses);
-      
-      // Get user email for sending results
       const session = await storage.getSessionById(sessionId);
-      if (session) {
-        const user = await storage.getUser(session.userId);
-        if (user) {
-          await emailService.sendResults(user.email, responses, pdfBuffer);
-        }
+      if (!session || session.userId !== userId || !session.completed) {
+        return res.status(404).json({ message: "Completed session not found" });
       }
 
-      res.json({ 
-        success: true,
-        totalResponses: responses.length,
-        totalWords: responses.reduce((acc, r) => acc + r.answer.split(' ').length, 0)
-      });
-    } catch (error) {
-      console.error('Complete questionnaire error:', error);
-      res.status(500).json({ message: "Failed to complete questionnaire" });
-    }
-  });
-
-  // Download PDF
-  app.get("/api/questionnaire/:sessionId/pdf", async (req, res) => {
-    try {
-      const { sessionId } = req.params;
       const responses = await storage.getResponsesBySessionId(sessionId);
-      
-      const pdfBuffer = await pdfService.generateQuestionnairePDF(responses);
-      
+      const pdfBuffer = await pdfService.generateProustQuestionnairePDF(
+        responses,
+        session.questionOrder
+      );
+
       res.setHeader('Content-Type', 'application/pdf');
       res.setHeader('Content-Disposition', 'attachment; filename="proust-questionnaire.pdf"');
       res.send(pdfBuffer);
     } catch (error) {
-      console.error('Download PDF error:', error);
+      console.error('PDF download error:', error);
       res.status(500).json({ message: "Failed to generate PDF" });
     }
   });

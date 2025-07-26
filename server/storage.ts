@@ -5,6 +5,7 @@ import {
   responses,
   type User, 
   type InsertUser,
+  type UpsertUser,
   type MagicLink,
   type InsertMagicLink,
   type QuestionnaireSession,
@@ -20,6 +21,7 @@ export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
+  upsertUser(user: UpsertUser): Promise<User>;
 
   // Magic link operations
   createMagicLink(magicLink: InsertMagicLink): Promise<MagicLink>;
@@ -55,6 +57,21 @@ export class DatabaseStorage implements IStorage {
     const [user] = await db
       .insert(users)
       .values(insertUser)
+      .returning();
+    return user;
+  }
+
+  async upsertUser(userData: UpsertUser): Promise<User> {
+    const [user] = await db
+      .insert(users)
+      .values(userData)
+      .onConflictDoUpdate({
+        target: users.id,
+        set: {
+          ...userData,
+          updatedAt: new Date(),
+        },
+      })
       .returning();
     return user;
   }
@@ -148,11 +165,12 @@ export class DatabaseStorage implements IStorage {
     return response;
   }
 
-  async updateResponse(sessionId: string, questionId: number, answer: string): Promise<Response> {
+  async updateResponse(sessionId: string, questionId: number, answer: string | null, declined: boolean = false): Promise<Response> {
     const [response] = await db
       .update(responses)
       .set({ 
         answer,
+        declined,
         updatedAt: new Date()
       })
       .where(
@@ -163,6 +181,28 @@ export class DatabaseStorage implements IStorage {
       )
       .returning();
     return response;
+  }
+
+  async getDeclinedQuestions(sessionId: string): Promise<Response[]> {
+    return await db
+      .select()
+      .from(responses)
+      .where(
+        and(
+          eq(responses.sessionId, sessionId),
+          eq(responses.declined, true)
+        )
+      );
+  }
+
+  async setSessionReviewingDeclined(sessionId: string, reviewing: boolean): Promise<void> {
+    await db
+      .update(questionnaireSessions)
+      .set({ 
+        reviewingDeclined: reviewing,
+        updatedAt: new Date()
+      })
+      .where(eq(questionnaireSessions.id, sessionId));
   }
 
   async getResponseBySessionAndQuestion(sessionId: string, questionId: number): Promise<Response | undefined> {

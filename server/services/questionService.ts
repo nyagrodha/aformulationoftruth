@@ -74,6 +74,35 @@ class QuestionService {
     return questionOrder;
   }
 
+  getCurrentQuestion(session: any) {
+    const questionId = session.questionOrder[session.currentQuestionIndex];
+    const question = this.getQuestion(questionId);
+    return question ? { ...question, id: questionId } : null;
+  }
+
+  validateAnswer(answer: string) {
+    // Basic validation
+    if (!answer || answer.trim().length === 0) {
+      return { isValid: false, errors: ['Answer cannot be empty'] };
+    }
+    
+    if (answer.trim().length < 3) {
+      return { isValid: false, errors: ['Answer must be at least 3 characters long'] };
+    }
+    
+    // Check for all numbers
+    if (/^\d+$/.test(answer.trim())) {
+      return { isValid: false, errors: ['Please provide a meaningful text response, not just numbers'] };
+    }
+    
+    // Check for starting with special characters
+    if (/^[^a-zA-Z0-9]/.test(answer.trim())) {
+      return { isValid: false, errors: ['Please start your answer with a letter or number'] };
+    }
+    
+    return { isValid: true, errors: [] };
+  }
+
   getQuestionDisplayOrder(questionId: number): number {
     // For sorting responses in display order
     const question = this.getQuestion(questionId);

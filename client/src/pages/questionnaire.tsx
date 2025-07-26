@@ -1,56 +1,107 @@
 import { useEffect, useState } from "react";
-import { useLocation, useParams } from "wouter";
+import { useLocation } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import ProgressBar from "@/components/ProgressBar";
-import QuestionCard from "@/components/QuestionCard";
-import LoadingOverlay from "@/components/LoadingOverlay";
-import { Skeleton } from "@/components/ui/skeleton";
+import { useAuth } from "@/hooks/useAuth";
+import { isUnauthorizedError } from "@/lib/authUtils";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Textarea } from "@/components/ui/textarea";
+import { Progress } from "@/components/ui/progress";
+import { LogOut, Save, ArrowRight, Clock } from "lucide-react";
+
+interface Question {
+  id: number;
+  text: string;
+  position: string;
+}
 
 interface QuestionData {
-  question: {
-    id: number;
-    text: string;
-    position: string;
+  question: Question;
+  progress: {
+    current: number;
+    total: number;
   };
-  questionNumber: number;
-  totalQuestions: number;
-  existingAnswer: string;
-  progress: number;
-  completed?: boolean;
+  responses: Array<{
+    questionId: number;
+    answer: string;
+  }>;
 }
 
 export default function QuestionnairePage() {
-  const { sessionId } = useParams();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const { user, isAuthenticated, isLoading: authLoading } = useAuth();
   const [currentAnswer, setCurrentAnswer] = useState("");
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
-  const { data: questionData, isLoading, refetch } = useQuery<QuestionData>({
-    queryKey: ['/api/questionnaire', sessionId, 'current'],
-    enabled: !!sessionId,
-  });
-
+  // Redirect to auth if not authenticated
   useEffect(() => {
-    if (questionData?.completed) {
-      setLocation(`/complete/${sessionId}`);
+    if (!authLoading && !isAuthenticated) {
+      toast({
+        title: "Unauthorized",
+        description: "You are logged out. Logging in again...",
+        variant: "destructive",
+      });
+      setTimeout(() => {
+        window.location.href = "/api/login";
+      }, 500);
       return;
     }
+  }, [isAuthenticated, authLoading, toast]);
 
-    if (questionData?.existingAnswer) {
-      setCurrentAnswer(questionData.existingAnswer);
-      setHasUnsavedChanges(false);
-    } else {
-      setCurrentAnswer("");
-      setHasUnsavedChanges(false);
+  // Get or create session
+  const { data: session, isLoading: sessionLoading } = useQuery({
+    queryKey: ["/api/questionnaire/session"],
+    enabled: !!isAuthenticated,
+    retry: (failureCount, error) => {
+      if (isUnauthorizedError(error as Error)) {
+        return false;
+      }
+      return failureCount < 3;
+    },
+  });
+
+  // Get current question data
+  const { data: questionData, isLoading: questionLoading, refetch } = useQuery<QuestionData>({
+    queryKey: ['/api/questionnaire', session?.id, 'current'],
+    enabled: !!session?.id,
+    retry: (failureCount, error) => {
+      if (isUnauthorizedError(error as Error)) {
+        return false;
+      }
+      return failureCount < 3;
+    },
+  });
+
+  // Update current answer when question data loads
+  useEffect(() => {
+    if (questionData?.question) {
+      const existingResponse = questionData.responses.find(
+        r => r.questionId === questionData.question.id
+      );
+      
+      if (existingResponse) {
+        setCurrentAnswer(existingResponse.answer);
+        setHasUnsavedChanges(false);
+      } else {
+        setCurrentAnswer("");
+        setHasUnsavedChanges(false);
+      }
     }
-  }, [questionData, sessionId, setLocation]);
+  }, [questionData]);
 
-  const saveResponseMutation = useMutation({
+  // Handle answer changes
+  const handleAnswerChange = (value: string) => {
+    setCurrentAnswer(value);
+    setHasUnsavedChanges(true);
+  };
+
+  // Submit answer mutation
+  const submitAnswerMutation = useMutation({
     mutationFn: async ({ questionId, answer }: { questionId: number; answer: string }) => {
-      const response = await apiRequest('POST', `/api/questionnaire/${sessionId}/response`, {
+      const response = await apiRequest('POST', `/api/questionnaire/${session?.id}/answer`, {
         questionId,
         answer
       });
@@ -58,166 +109,237 @@ export default function QuestionnairePage() {
     },
     onSuccess: () => {
       setHasUnsavedChanges(false);
+      queryClient.invalidateQueries({ queryKey: ['/api/questionnaire', session?.id, 'current'] });
       toast({
-        title: "Response saved",
-        description: "Your answer has been saved automatically.",
+        title: "Answer saved",
+        description: "Your response has been saved and you've moved to the next question.",
       });
     },
-    onError: (error: any) => {
+    onError: (error) => {
+      if (isUnauthorizedError(error)) {
+        toast({
+          title: "Unauthorized",
+          description: "You are logged out. Logging in again...",
+          variant: "destructive",
+        });
+        setTimeout(() => {
+          window.location.href = "/api/login";
+        }, 500);
+        return;
+      }
+      
       toast({
-        title: "Validation Error",
-        description: error.message || "Please provide a thoughtful response",
+        title: "Error",
+        description: error.message || "Failed to save answer. Please try again.",
         variant: "destructive",
       });
     },
   });
 
-  const navigateMutation = useMutation({
-    mutationFn: async (direction: 'next' | 'previous') => {
-      const response = await apiRequest('POST', `/api/questionnaire/${sessionId}/navigate`, {
-        direction
+  // Auto-save mutation (triggered on blur or periodically)
+  const autoSaveMutation = useMutation({
+    mutationFn: async ({ questionId, answer }: { questionId: number; answer: string }) => {
+      const response = await apiRequest('POST', `/api/questionnaire/${session?.id}/answer`, {
+        questionId,
+        answer
       });
       return response.json();
     },
-    onSuccess: (data) => {
-      if (data.completed) {
-        setLocation(`/complete/${sessionId}`);
-      } else {
-        refetch();
-      }
+    onSuccess: () => {
+      setHasUnsavedChanges(false);
+      queryClient.invalidateQueries({ queryKey: ['/api/questionnaire', session?.id, 'responses'] });
     },
-    onError: (error: any) => {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to navigate",
-        variant: "destructive",
-      });
+    onError: (error) => {
+      if (!isUnauthorizedError(error)) {
+        console.error("Auto-save failed:", error);
+      }
     },
   });
 
-  const handleAnswerChange = (value: string) => {
-    setCurrentAnswer(value);
-    setHasUnsavedChanges(value !== (questionData?.existingAnswer || ""));
+  // Auto-save on blur if there are changes
+  const handleBlur = () => {
+    if (hasUnsavedChanges && currentAnswer.trim() && questionData?.question) {
+      autoSaveMutation.mutate({
+        questionId: questionData.question.id,
+        answer: currentAnswer.trim()
+      });
+    }
   };
 
-  const handleSave = () => {
-    if (!questionData?.question.id || !currentAnswer.trim()) return;
-    
-    saveResponseMutation.mutate({
+  // Submit answer and move to next question
+  const handleSubmit = () => {
+    if (!currentAnswer.trim()) {
+      toast({
+        title: "Answer required",
+        description: "Please provide an answer before continuing.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!questionData?.question) return;
+
+    submitAnswerMutation.mutate({
       questionId: questionData.question.id,
       answer: currentAnswer.trim()
     });
   };
 
-  const handleNext = () => {
-    if (hasUnsavedChanges && currentAnswer.trim()) {
-      saveResponseMutation.mutate({
-        questionId: questionData!.question.id,
-        answer: currentAnswer.trim()
-      }, {
-        onSuccess: () => {
-          navigateMutation.mutate('next');
-        }
-      });
-    } else if (!hasUnsavedChanges) {
-      navigateMutation.mutate('next');
-    }
+  // Handle logout
+  const handleLogout = () => {
+    window.location.href = "/api/logout";
   };
 
-  const handlePrevious = () => {
-    if (hasUnsavedChanges && currentAnswer.trim()) {
-      saveResponseMutation.mutate({
-        questionId: questionData!.question.id,
-        answer: currentAnswer.trim()
-      }, {
-        onSuccess: () => {
-          navigateMutation.mutate('previous');
-        }
-      });
-    } else {
-      navigateMutation.mutate('previous');
-    }
-  };
-
-  if (isLoading) {
+  // Loading states
+  if (authLoading || sessionLoading || questionLoading) {
     return (
-      <div className="min-h-screen bg-background">
-        <div className="bg-surface shadow-sm sticky top-0 z-10">
-          <div className="max-w-4xl mx-auto px-4 py-4">
-            <div className="flex items-center justify-between mb-3">
-              <Skeleton className="h-6 w-48" />
-              <Skeleton className="h-4 w-32" />
-            </div>
-            <Skeleton className="w-full h-2 rounded-full" />
-          </div>
-        </div>
-        <div className="max-w-4xl mx-auto px-4 py-8">
-          <div className="bg-surface rounded-lg shadow-lg p-8">
-            <Skeleton className="h-8 w-32 mb-6" />
-            <Skeleton className="h-8 w-full mb-8" />
-            <Skeleton className="h-32 w-full" />
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (!questionData) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-blue-950 flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-xl font-semibold text-secondary mb-2">Session not found</h2>
-          <p className="text-muted-foreground">Please start a new questionnaire.</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-slate-600 dark:text-slate-400">Loading your questionnaire...</p>
         </div>
       </div>
     );
   }
+
+  // Check if questionnaire is completed
+  if (session?.completed) {
+    setLocation(`/complete/${session.id}`);
+    return null;
+  }
+
+  if (!questionData?.question) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-blue-950 flex items-center justify-center">
+        <Card className="w-full max-w-md">
+          <CardContent className="text-center p-8">
+            <p className="text-slate-600 dark:text-slate-400 mb-4">
+              Unable to load questionnaire data.
+            </p>
+            <Button onClick={() => refetch()}>Try Again</Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  const progress = (questionData.progress.current / questionData.progress.total) * 100;
 
   return (
-    <div className="min-h-screen bg-background">
-      <ProgressBar
-        current={questionData.questionNumber}
-        total={questionData.totalQuestions}
-        progress={questionData.progress}
-      />
-
-      <div className="max-w-4xl mx-auto px-4 py-8">
-        <QuestionCard
-          question={questionData.question}
-          questionNumber={questionData.questionNumber}
-          answer={currentAnswer}
-          onAnswerChange={handleAnswerChange}
-          onSave={handleSave}
-          onNext={handleNext}
-          onPrevious={handlePrevious}
-          canGoBack={questionData.questionNumber > 1}
-          hasUnsavedChanges={hasUnsavedChanges}
-          isSaving={saveResponseMutation.isPending}
-          isNavigating={navigateMutation.isPending}
-        />
-
-        {/* Tips Section */}
-        <div className="mt-6 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-          <h3 className="font-medium text-blue-900 dark:text-blue-100 mb-2 flex items-center">
-            <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7.5 3.5a.5.5 0 01-1 0V9a.5.5 0 011 0v4.5zm0-8a.75.75 0 100-1.5.75.75 0 000 1.5z" clipRule="evenodd" />
-            </svg>
-            Reflection Tips
-          </h3>
-          <ul className="text-sm text-blue-800 dark:text-blue-200 space-y-1">
-            <li>• Take your time - there are no wrong answers</li>
-            <li>• Be honest and authentic in your responses</li>
-            <li>• Consider what these questions reveal about your values</li>
-            <li>• Your progress is saved automatically as you type</li>
-          </ul>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-blue-950">
+      {/* Header */}
+      <div className="sticky top-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm border-b border-slate-200 dark:border-slate-700 z-10">
+        <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
+          <div>
+            <h1 className="text-lg font-semibold text-slate-800 dark:text-slate-100">
+              The Proust Questionnaire
+            </h1>
+            <p className="text-sm text-slate-600 dark:text-slate-400">
+              Question {questionData.progress.current} of {questionData.progress.total}
+            </p>
+          </div>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={handleLogout}
+            className="text-slate-600 dark:text-slate-400"
+          >
+            <LogOut className="w-4 h-4 mr-2" />
+            Logout
+          </Button>
+        </div>
+        
+        {/* Progress Bar */}
+        <div className="px-4 pb-4">
+          <Progress value={progress} className="h-2" />
         </div>
       </div>
 
-      <LoadingOverlay 
-        isVisible={navigateMutation.isPending}
-        title="Loading next question..."
-        message="Please wait while we prepare your next question"
-      />
+      {/* Main Content */}
+      <div className="max-w-4xl mx-auto px-4 py-8">
+        <Card className="border-0 shadow-xl bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm">
+          <CardHeader className="pb-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
+                <span className="text-blue-600 dark:text-blue-400 font-semibold">
+                  {questionData.progress.current}
+                </span>
+              </div>
+              <div>
+                <CardTitle className="text-xl text-slate-800 dark:text-slate-100">
+                  Question {questionData.progress.current}
+                </CardTitle>
+                <p className="text-sm text-slate-500 dark:text-slate-500 capitalize">
+                  {questionData.question.position} question
+                </p>
+              </div>
+            </div>
+            
+            <div className="text-lg text-slate-700 dark:text-slate-300 leading-relaxed">
+              {questionData.question.text}
+            </div>
+          </CardHeader>
+          
+          <CardContent className="space-y-6">
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                Your answer
+              </label>
+              <Textarea
+                value={currentAnswer}
+                onChange={(e) => handleAnswerChange(e.target.value)}
+                onBlur={handleBlur}
+                placeholder="Take your time to reflect and share your thoughts..."
+                className="min-h-32 text-base leading-relaxed resize-none"
+                disabled={submitAnswerMutation.isPending}
+              />
+              {hasUnsavedChanges && (
+                <div className="flex items-center gap-2 text-sm text-amber-600 dark:text-amber-400">
+                  <Clock className="w-4 h-4" />
+                  Unsaved changes
+                </div>
+              )}
+            </div>
+
+            <div className="flex items-center justify-between pt-4">
+              <div className="text-sm text-slate-500 dark:text-slate-500">
+                Your response will be automatically saved
+              </div>
+              
+              <div className="flex gap-3">
+                {hasUnsavedChanges && (
+                  <Button
+                    variant="outline"
+                    onClick={handleBlur}
+                    disabled={!currentAnswer.trim() || autoSaveMutation.isPending}
+                  >
+                    <Save className="w-4 h-4 mr-2" />
+                    Save Draft
+                  </Button>
+                )}
+                
+                <Button
+                  onClick={handleSubmit}
+                  disabled={!currentAnswer.trim() || submitAnswerMutation.isPending}
+                  className="bg-blue-600 hover:bg-blue-700"
+                >
+                  {submitAnswerMutation.isPending ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      Continue
+                      <ArrowRight className="w-4 h-4 ml-2" />
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

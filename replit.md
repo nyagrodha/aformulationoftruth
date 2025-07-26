@@ -31,10 +31,10 @@ The application follows a modern full-stack architecture with clear separation b
 ## Key Components
 
 ### Authentication System
-- Magic link authentication eliminates the need for passwords
-- Users receive secure, time-limited tokens via email
-- Tokens expire after 1 hour for security
-- Session management tracks user progress
+- **Replit Auth Integration**: OAuth-based authentication using Replit as identity provider
+- **Session Management**: Secure session storage using PostgreSQL with automatic token refresh
+- **Apotropaic Link Terminology**: Uses "apotropaic link" in user interface instead of technical terms
+- **User Experience**: Seamless authentication with automatic session persistence
 
 ### Questionnaire Engine
 - 35 predefined Proust questions with intelligent ordering
