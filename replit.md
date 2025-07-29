@@ -125,7 +125,7 @@ The application follows a modern full-stack architecture with clear separation b
 ### Recent Changes: Latest modifications with dates
 - **2025-01-29**: Updated Ganapati shloka to traditional Devanagari script
 - **2025-01-29**: Fixed questionnaire completion validation error 
-- **2025-01-29**: Changed Devanagari numerals to Sanskrit words (एक, द्वि, त्रि...)
+- **2025-01-29**: Corrected numerals to proper Devanagari numerals (१, २, ३...)
 - **2025-01-26**: Removed "fixed question" references from questionnaire display
 - **2025-01-26**: Implemented procession of shlokas with Ganapati/Ganesh for first question
 - **2025-01-26**: Added shloka and deity fields to question interface
