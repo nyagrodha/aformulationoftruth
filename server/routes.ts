@@ -82,7 +82,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { sessionId } = req.params;
       const userId = req.user.claims.sub;
-      const { questionId, answer } = insertResponseSchema.parse(req.body);
+      const { questionId, answer } = insertResponseSchema.omit({ sessionId: true }).parse(req.body);
       
       const session = await storage.getSessionById(sessionId);
       if (!session || session.userId !== userId) {
