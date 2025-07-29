@@ -347,16 +347,16 @@ const LongScrollShowcase = () => {
         
         @keyframes flicker {
           0% { background-color: #f5f5dc; opacity: 1; }
-          10% { background-color: #f0f0e6; opacity: 0.9; }
-          20% { background-color: #f5f5dc; opacity: 1; }
-          30% { background-color: #ebe6d3; opacity: 0.8; }
-          40% { background-color: #f5f5dc; opacity: 1; }
-          50% { background-color: #f0f0e6; opacity: 0.95; }
-          60% { background-color: #f5f5dc; opacity: 1; }
-          70% { background-color: #ebe6d3; opacity: 0.85; }
-          80% { background-color: #f5f5dc; opacity: 1; }
-          90% { background-color: #f0f0e6; opacity: 0.9; }
-          100% { background-color: #f5f5dc; opacity: 1; }
+          10% { background-color: #e6e6fa; opacity: 0.9; }
+          20% { background-color: #d3d3e6; opacity: 1; }
+          30% { background-color: #b0b0d3; opacity: 0.8; }
+          40% { background-color: #8080b3; opacity: 1; }
+          50% { background-color: #5050a0; opacity: 0.95; }
+          60% { background-color: #303080; opacity: 1; }
+          70% { background-color: #202060; opacity: 0.85; }
+          80% { background-color: #101040; opacity: 1; }
+          90% { background-color: #080820; opacity: 0.9; }
+          100% { background-color: #040410; opacity: 1; }
         }
         
         @keyframes pulse-warm {
