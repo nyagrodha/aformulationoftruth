@@ -123,7 +123,7 @@ The application follows a modern full-stack architecture with clear separation b
 - `REPLIT_DOMAINS`: Deployment domain configuration
 
 ### Recent Changes: Latest modifications with dates
-- **2025-01-29**: Updated Ganapati shloka to traditional Devanagari script
+- **2025-01-29**: Replaced arbitrary shloka with proper Ganesh aarti beneath first question
 - **2025-01-29**: Fixed questionnaire completion validation error 
 - **2025-01-29**: Updated numerals to Kannada script (೧, ೨, ೩...)
 - **2025-01-26**: Removed "fixed question" references from questionnaire display
