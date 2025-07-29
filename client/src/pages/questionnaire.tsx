@@ -43,6 +43,11 @@ interface QuestionData {
   }>;
 }
 
+interface SessionData {
+  id: string;
+  completed: boolean;
+}
+
 export default function QuestionnairePage() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
@@ -66,7 +71,7 @@ export default function QuestionnairePage() {
   }, [isAuthenticated, authLoading, toast]);
 
   // Get or create session
-  const { data: session, isLoading: sessionLoading } = useQuery({
+  const { data: session, isLoading: sessionLoading } = useQuery<SessionData>({
     queryKey: ["/api/questionnaire/session"],
     enabled: !!isAuthenticated,
     retry: (failureCount, error) => {
