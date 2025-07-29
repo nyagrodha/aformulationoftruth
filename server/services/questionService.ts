@@ -11,8 +11,8 @@ const PHILOSOPHICAL_QUESTIONS: Question[] = [
     id: 1, 
     text: "What is your idea of perfect happiness?", 
     position: 'fixed',
-    shloka: "गणानां त्वा गणपतिं हवामहे कविं कवीनामुपमश्रवस्तमम्। ज्येष्ठराजं ब्रह्मणां ब्रह्मणस्पत आ नः शृण्वन्नूतिभिः सीद सादनम्॥",
-    deity: "Ganapati"
+    shloka: "OM vakratuṇḍa mahākāya sūryakoṭi samaprabha | nirvighnaṃ kuru me deva śubhakāryeṣu sarvadā || || Śrī OM Gaṇapataye namaḥ ||",
+    deity: "Gaṇapati"
   },
   { id: 2, text: "What is your greatest fear?", position: 'fixed' },
   { id: 3, text: "What is the trait you most deplore in yourself?", position: 'fixed' },
