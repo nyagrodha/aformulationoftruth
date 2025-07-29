@@ -253,9 +253,6 @@ export default function QuestionnairePage() {
             <h1 className="text-lg font-semibold text-slate-100">
               a formulation of truth
             </h1>
-            <p className="text-xs text-slate-500 italic">
-              om shree ganapataye namah
-            </p>
           </div>
           <Button 
             variant="outline" 
@@ -294,29 +291,6 @@ export default function QuestionnairePage() {
                 <div className="text-xl text-slate-100 leading-relaxed font-light">
                   {questionData.question.text}
                 </div>
-                <p className="text-xs text-slate-500 mt-2 italic">
-                  om shree ganapataye namah
-                </p>
-                
-                {/* Ganesh-ji Aarti for first question */}
-                {questionData.progress.current === 1 && (
-                  <div className="mt-6 p-4 bg-gradient-to-r from-amber-900/20 to-orange-900/20 rounded-lg border border-amber-700/30">
-                    <div className="text-center mb-3">
-                      <div className="text-amber-300 text-sm font-medium mb-1">श्री गणेश आरती</div>
-                      <div className="text-xs text-amber-400/70">Small Aarti to Ganesh-ji</div>
-                    </div>
-                    <div className="text-amber-200 text-sm leading-relaxed space-y-2 text-center">
-                      <div>जय गणेश जय गणेश जय गणेश देवा</div>
-                      <div>माता जाकी पार्वती पिता महादेवा</div>
-                      <div className="text-xs text-amber-300/80 italic pt-2">
-                        Victory to Ganesha, whose mother is Parvati and father is Mahadeva
-                      </div>
-                    </div>
-                    <div className="flex justify-center mt-3">
-                      <div className="text-2xl">🪔</div>
-                    </div>
-                  </div>
-                )}
               </div>
             </div>
           </CardHeader>
@@ -344,7 +318,7 @@ export default function QuestionnairePage() {
 
             <div className="flex items-center justify-between pt-4">
               <div className="text-xs text-slate-500 italic">
-                om shree ganapataye namah • your response will be automatically saved
+                your response will be automatically saved
               </div>
               
               <div className="flex gap-3">

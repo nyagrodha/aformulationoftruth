@@ -6,7 +6,7 @@ This is a full-stack web application that implements a digital version of a phil
 
 ## User Preferences
 
-Preferred communication style: Simple, everyday language.
+Preferred communication style: Simple, everyday language. Do not include cultural/prayerful/mindful practices.
 
 ### Landing Page Content Versions
 - **Current (v3.0)**: "A practice in self-inquiry these questions invite upon respondents a reflective state of awareness. Persons' authentically crafted responses (or a non-response!) betray something of the interior machinations constituting the subject's personhood, its formulation of truth today."
@@ -123,7 +123,7 @@ The application follows a modern full-stack architecture with clear separation b
 - `REPLIT_DOMAINS`: Deployment domain configuration
 
 ### Recent Changes: Latest modifications with dates
-- **2025-01-29**: Replaced arbitrary shloka with proper Ganesh aarti beneath first question
+- **2025-01-29**: Removed religious/spiritual elements per user preference
 - **2025-01-29**: Fixed questionnaire completion validation error 
 - **2025-01-29**: Updated numerals to Kannada script (೧, ೨, ೩...)
 - **2025-01-26**: Removed "fixed question" references from questionnaire display
