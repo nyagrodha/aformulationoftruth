@@ -291,22 +291,32 @@ export default function QuestionnairePage() {
               
               {/* Question text */}
               <div className="flex-1">
-                {questionData.question.shloka && (
-                  <div className="mb-4 p-3 bg-slate-800/50 rounded-lg border-l-4 border-emerald-400">
-                    <div className="text-emerald-300 text-sm font-medium mb-1">
-                      {questionData.question.deity}
-                    </div>
-                    <div className="text-amber-200 text-sm leading-relaxed font-light">
-                      {questionData.question.shloka}
-                    </div>
-                  </div>
-                )}
                 <div className="text-xl text-slate-100 leading-relaxed font-light">
                   {questionData.question.text}
                 </div>
                 <p className="text-xs text-slate-500 mt-2 italic">
                   om shree ganapataye namah
                 </p>
+                
+                {/* Ganesh-ji Aarti for first question */}
+                {questionData.progress.current === 1 && (
+                  <div className="mt-6 p-4 bg-gradient-to-r from-amber-900/20 to-orange-900/20 rounded-lg border border-amber-700/30">
+                    <div className="text-center mb-3">
+                      <div className="text-amber-300 text-sm font-medium mb-1">श्री गणेश आरती</div>
+                      <div className="text-xs text-amber-400/70">Small Aarti to Ganesh-ji</div>
+                    </div>
+                    <div className="text-amber-200 text-sm leading-relaxed space-y-2 text-center">
+                      <div>जय गणेश जय गणेश जय गणेश देवा</div>
+                      <div>माता जाकी पार्वती पिता महादेवा</div>
+                      <div className="text-xs text-amber-300/80 italic pt-2">
+                        Victory to Ganesha, whose mother is Parvati and father is Mahadeva
+                      </div>
+                    </div>
+                    <div className="flex justify-center mt-3">
+                      <div className="text-2xl">🪔</div>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </CardHeader>
