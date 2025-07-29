@@ -33,7 +33,7 @@ const LongScrollShowcase = () => {
     },
     {
       type: 'text',
-      content: 'Memory is the architecture of the soul',
+      content: 'Memory is the architecture of',
       position: 15,
       duration: 30,
       style: { fontSize: '2.5rem', color: '#00ffff', fontStyle: 'italic' }
