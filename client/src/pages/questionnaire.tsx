@@ -11,16 +11,16 @@ import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
 import { LogOut, Save, ArrowRight, Clock } from "lucide-react";
 
-// Devanagari numerals mapping - using traditional Devanagari numerals
-const devanagariNumerals: { [key: number]: string } = {
-  1: "१", 2: "२", 3: "३", 4: "४", 5: "५", 6: "६", 7: "७", 8: "८", 9: "९", 10: "१०",
-  11: "११", 12: "१२", 13: "१३", 14: "१४", 15: "१५", 16: "१६", 17: "१७", 18: "१८", 19: "१९", 20: "२०",
-  21: "२१", 22: "२२", 23: "२३", 24: "२४", 25: "२५", 26: "२६", 27: "२७", 28: "२८", 29: "२९", 30: "३०",
-  31: "३१", 32: "३२", 33: "३३", 34: "३४", 35: "३५"
+// Kannada numerals mapping - using traditional Kannada numerals
+const kannadaNumerals: { [key: number]: string } = {
+  1: "೧", 2: "೨", 3: "೩", 4: "೪", 5: "೫", 6: "೬", 7: "೭", 8: "೮", 9: "೯", 10: "೧೦",
+  11: "೧೧", 12: "೧೨", 13: "೧೩", 14: "೧೪", 15: "೧೫", 16: "೧೬", 17: "೧೭", 18: "೧೮", 19: "೧೯", 20: "೨೦",
+  21: "೨೧", 22: "೨೨", 23: "೨೩", 24: "೨೪", 25: "೨೫", 26: "೨೬", 27: "೨೭", 28: "೨೮", 29: "೨೯", 30: "೩೦",
+  31: "೩೧", 32: "೩೨", 33: "೩೩", 34: "೩೪", 35: "೩೫"
 };
 
-const getDevanagariNumeral = (num: number): string => {
-  return devanagariNumerals[num] || num.toString();
+const getKannadaNumeral = (num: number): string => {
+  return kannadaNumerals[num] || num.toString();
 };
 
 interface Question {
@@ -282,7 +282,7 @@ export default function QuestionnairePage() {
               {/* Question numerals */}
               <div className="flex flex-col items-center gap-2 min-w-[80px] pt-1">
                 <div className={`text-3xl font-bold ${questionData.progress.current % 2 === 1 ? 'text-emerald-400' : 'text-yellow-400'}`}>
-                  {getDevanagariNumeral(questionData.progress.current)}
+                  {getKannadaNumeral(questionData.progress.current)}
                 </div>
                 <div className={`text-2xl font-semibold ${questionData.progress.current % 2 === 1 ? 'text-yellow-400' : 'text-emerald-400'}`}>
                   {questionData.progress.current}
