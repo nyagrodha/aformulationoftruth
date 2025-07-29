@@ -4,6 +4,23 @@ import React, { useEffect, useRef, useState } from 'react';
 const LongScrollShowcase = () => {
   const containerRef = useRef(null);
   const [scrollProgress, setScrollProgress] = useState(0);
+  const [introPhase, setIntroPhase] = useState('flickering'); // 'flickering', 'dark', 'pulsing', 'scrolled'
+
+  useEffect(() => {
+    // Intro sequence timing
+    const flickerTimer = setTimeout(() => {
+      setIntroPhase('dark');
+    }, 3000); // Flicker for 3 seconds
+
+    const darkTimer = setTimeout(() => {
+      setIntroPhase('pulsing');
+    }, 5500); // Dark for 2.5 seconds (3000 + 2500)
+
+    return () => {
+      clearTimeout(flickerTimer);
+      clearTimeout(darkTimer);
+    };
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -13,6 +30,11 @@ const LongScrollShowcase = () => {
         const scrollHeight = element.scrollHeight - element.clientHeight;
         const progress = scrollTop / scrollHeight;
         setScrollProgress(progress);
+        
+        // Switch to scrolled mode once user starts scrolling
+        if (scrollTop > 50 && introPhase !== 'scrolled') {
+          setIntroPhase('scrolled');
+        }
       }
     };
 
@@ -21,7 +43,7 @@ const LongScrollShowcase = () => {
       container.addEventListener('scroll', handleScroll);
       return () => container.removeEventListener('scroll', handleScroll);
     }
-  }, []);
+  }, [introPhase]);
 
   const mediaElements = [
     {
@@ -197,7 +219,7 @@ const LongScrollShowcase = () => {
       {/* Main scroll content - 20000px for 4-5 minute scroll */}
       <div style={{ height: '20000px', position: 'relative' }}>
         
-        {/* Background gradient that changes with scroll */}
+        {/* Background that changes based on intro phase and scroll */}
         <div
           style={{
             position: 'fixed',
@@ -205,13 +227,22 @@ const LongScrollShowcase = () => {
             left: 0,
             width: '100vw',
             height: '100vh',
-            background: `linear-gradient(
-              ${scrollProgress * 360}deg,
-              rgba(255,0,255,${0.1 + scrollProgress * 0.1}),
-              rgba(0,255,255,${0.1 + scrollProgress * 0.1}),
-              rgba(204,255,0,${0.1 + scrollProgress * 0.1})
-            )`,
-            zIndex: 1
+            background: introPhase === 'scrolled' 
+              ? `linear-gradient(
+                  ${scrollProgress * 360}deg,
+                  rgba(255,0,255,${0.1 + scrollProgress * 0.1}),
+                  rgba(0,255,255,${0.1 + scrollProgress * 0.1}),
+                  rgba(204,255,0,${0.1 + scrollProgress * 0.1})
+                )`
+              : introPhase === 'dark'
+              ? '#000000'
+              : '#f5f5dc', // Warm white (beige)
+            zIndex: 1,
+            animation: introPhase === 'flickering' 
+              ? 'flicker 0.15s infinite alternate'
+              : introPhase === 'pulsing'
+              ? 'pulse-warm 2s infinite ease-in-out'
+              : 'none'
           }}
         />
 
@@ -253,19 +284,21 @@ const LongScrollShowcase = () => {
           />
         ))}
 
-        {/* Media elements container */}
-        <div
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            width: '100vw',
-            height: '100vh',
-            zIndex: 10
-          }}
-        >
-          {mediaElements.map((element, index) => renderMediaElement(element, index))}
-        </div>
+        {/* Media elements container - only show after intro */}
+        {introPhase === 'scrolled' && (
+          <div
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              width: '100vw',
+              height: '100vh',
+              zIndex: 10
+            }}
+          >
+            {mediaElements.map((element, index) => renderMediaElement(element, index))}
+          </div>
+        )}
 
         {/* Progress indicator */}
         <div
@@ -285,19 +318,20 @@ const LongScrollShowcase = () => {
           {Math.round(scrollProgress * 100)}%
         </div>
 
-        {/* Scroll hint at the beginning */}
-        {scrollProgress < 0.05 && (
+        {/* Scroll hint during pulsing phase */}
+        {introPhase === 'pulsing' && (
           <div
             style={{
               position: 'fixed',
               bottom: '4rem',
               left: '50%',
               transform: 'translateX(-50%)',
-              color: '#ccff00',
+              color: '#8b4513',
               fontSize: '1.2rem',
               zIndex: 100,
               textAlign: 'center',
-              animation: 'pulse 2s infinite'
+              animation: 'pulse 2s infinite',
+              textShadow: '0 0 10px rgba(139, 69, 19, 0.5)'
             }}
           >
             ↓ Scroll slowly to experience the journey ↓
@@ -309,6 +343,26 @@ const LongScrollShowcase = () => {
         @keyframes pulse {
           0%, 100% { opacity: 1; }
           50% { opacity: 0.5; }
+        }
+        
+        @keyframes flicker {
+          0% { background-color: #f5f5dc; opacity: 1; }
+          10% { background-color: #f0f0e6; opacity: 0.9; }
+          20% { background-color: #f5f5dc; opacity: 1; }
+          30% { background-color: #ebe6d3; opacity: 0.8; }
+          40% { background-color: #f5f5dc; opacity: 1; }
+          50% { background-color: #f0f0e6; opacity: 0.95; }
+          60% { background-color: #f5f5dc; opacity: 1; }
+          70% { background-color: #ebe6d3; opacity: 0.85; }
+          80% { background-color: #f5f5dc; opacity: 1; }
+          90% { background-color: #f0f0e6; opacity: 0.9; }
+          100% { background-color: #f5f5dc; opacity: 1; }
+        }
+        
+        @keyframes pulse-warm {
+          0% { background-color: #f5f5dc; opacity: 0.8; }
+          50% { background-color: #fff8dc; opacity: 1; }
+          100% { background-color: #f5f5dc; opacity: 0.8; }
         }
         
         /* Custom scrollbar */
