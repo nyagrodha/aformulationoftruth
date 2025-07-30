@@ -103,7 +103,7 @@ export default function AuthPage() {
         >
           A practice in self-inquiry these questions invite upon users a
           reflective state of awareness. Persons' crafted responses (or a
-          non-response!) betray something interior to us, manigances
+          non-response!) betray something interior to us, machinations
           idiosyncratiques that constitute the subject, a person, and their
           formulation of truth today.
         </p>
