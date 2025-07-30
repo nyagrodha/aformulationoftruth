@@ -44,6 +44,7 @@ export const questionnaireSessions = pgTable("questionnaire_sessions", {
   completed: boolean("completed").default(false).notNull(),
   reviewingDeclined: boolean("reviewing_declined").default(false).notNull(),
   completedAt: timestamp("completed_at"),
+  wantsReminder: boolean("wants_reminder").default(false).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });

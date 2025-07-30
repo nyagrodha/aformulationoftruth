@@ -14,7 +14,7 @@ import {
   type InsertResponse
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, gt } from "drizzle-orm";
+import { eq, and, gt, desc } from "drizzle-orm";
 
 export interface IStorage {
   // User operations
@@ -33,7 +33,8 @@ export interface IStorage {
   getSessionById(sessionId: string): Promise<QuestionnaireSession | undefined>;
   createSession(session: InsertQuestionnaireSession): Promise<QuestionnaireSession>;
   updateSessionProgress(sessionId: string, questionIndex: number): Promise<void>;
-  completeSession(sessionId: string): Promise<void>;
+  completeSession(sessionId: string, wantsReminder?: boolean): Promise<void>;
+  getUserCompletedSessions(userId: string): Promise<QuestionnaireSession[]>;
 
   // Response operations
   getResponsesBySessionId(sessionId: string): Promise<Response[]>;
@@ -139,15 +140,27 @@ export class DatabaseStorage implements IStorage {
       .where(eq(questionnaireSessions.id, sessionId));
   }
 
-  async completeSession(sessionId: string): Promise<void> {
+  async completeSession(sessionId: string, wantsReminder: boolean = false): Promise<void> {
     await db
       .update(questionnaireSessions)
       .set({ 
         completed: true,
         completedAt: new Date(),
+        wantsReminder,
         updatedAt: new Date()
       })
       .where(eq(questionnaireSessions.id, sessionId));
+  }
+
+  async getUserCompletedSessions(userId: string): Promise<QuestionnaireSession[]> {
+    return await db
+      .select()
+      .from(questionnaireSessions)
+      .where(and(
+        eq(questionnaireSessions.userId, userId),
+        eq(questionnaireSessions.completed, true)
+      ))
+      .orderBy(desc(questionnaireSessions.completedAt));
   }
 
   async getResponsesBySessionId(sessionId: string): Promise<Response[]> {
@@ -165,12 +178,11 @@ export class DatabaseStorage implements IStorage {
     return response;
   }
 
-  async updateResponse(sessionId: string, questionId: number, answer: string | null, declined: boolean = false): Promise<Response> {
+  async updateResponse(sessionId: string, questionId: number, answer: string): Promise<Response> {
     const [response] = await db
       .update(responses)
       .set({ 
         answer,
-        declined,
         updatedAt: new Date()
       })
       .where(
@@ -181,18 +193,6 @@ export class DatabaseStorage implements IStorage {
       )
       .returning();
     return response;
-  }
-
-  async getDeclinedQuestions(sessionId: string): Promise<Response[]> {
-    return await db
-      .select()
-      .from(responses)
-      .where(
-        and(
-          eq(responses.sessionId, sessionId),
-          eq(responses.declined, true)
-        )
-      );
   }
 
   async setSessionReviewingDeclined(sessionId: string, reviewing: boolean): Promise<void> {

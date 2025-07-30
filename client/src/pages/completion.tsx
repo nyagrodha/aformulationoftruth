@@ -1,14 +1,18 @@
 import { useParams } from "wouter";
 import { useMutation } from "@tanstack/react-query";
-import { Card, CardContent } from "@/components/ui/card";
+import { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { CheckCircle, Download, Mail, RotateCcw, Loader2 } from "lucide-react";
+import { CheckCircle, Download, Mail, Clock, Loader2 } from "lucide-react";
 
 export default function CompletionPage() {
   const { sessionId } = useParams();
   const { toast } = useToast();
+  const [wantsReminder, setWantsReminder] = useState(false);
+  const [isCompleted, setIsCompleted] = useState(false);
 
   const downloadPDFMutation = useMutation({
     mutationFn: async () => {
@@ -34,23 +38,34 @@ export default function CompletionPage() {
     },
   });
 
-  const emailResultsMutation = useMutation({
+  const completeQuestionnaireMutation = useMutation({
     mutationFn: async () => {
-      const response = await apiRequest('POST', `/api/questionnaire/${sessionId}/complete`);
+      const response = await apiRequest('POST', `/api/questionnaire/${sessionId}/complete`, {
+        wantsReminder
+      });
       return response.json();
     },
     onSuccess: () => {
+      setIsCompleted(true);
       toast({
-        title: "Results Sent",
-        description: "Your questionnaire results have been emailed to you.",
+        title: "Journey Complete",
+        description: "Your questionnaire has been completed and emailed to you. May all your paths be auspicious.",
       });
     },
     onError: (error: any) => {
-      toast({
-        title: "Email Failed",
-        description: error.message || "Failed to send results",
-        variant: "destructive",
-      });
+      if (error.message.includes('2 months')) {
+        toast({
+          title: "Already Completed",
+          description: "You may only complete the questionnaire once every 2 months.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Completion Failed",
+          description: error.message || "Failed to complete questionnaire",
+          variant: "destructive",
+        });
+      }
     },
   });
 
@@ -58,97 +73,108 @@ export default function CompletionPage() {
     downloadPDFMutation.mutate();
   };
 
-  const handleEmailResults = () => {
-    emailResultsMutation.mutate();
+  const handleComplete = () => {
+    completeQuestionnaireMutation.mutate();
   };
 
-  const handleStartNew = () => {
-    window.location.href = '/';
-  };
+  if (isCompleted) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-green-950 via-slate-900 to-green-950 flex items-center justify-center px-4 py-8" style={{backgroundColor: 'hsl(120, 100%, 3%)'}}>
+        <Card className="w-full max-w-2xl bg-slate-800/60 border-slate-700/50">
+          <CardContent className="p-8 text-center">
+            <div className="w-16 h-16 bg-emerald-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
+              <CheckCircle className="w-8 h-8 text-emerald-500" />
+            </div>
+            <h1 className="text-2xl font-semibold text-slate-100 mb-4 question-text">
+              Your Journey is Complete
+            </h1>
+            <p className="text-slate-300 mb-6">
+              Your philosophical reflections have been sent to your email along with insights from Jacques Lacan and Sri Aurobindo.
+            </p>
+            <p className="text-lg text-emerald-400 question-text">
+              May all your paths be auspicious.
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 py-8 bg-background">
-      <div className="w-full max-w-2xl text-center">
-        <Card className="animate-slide-up">
+    <div className="min-h-screen bg-gradient-to-br from-green-950 via-slate-900 to-green-950 flex items-center justify-center px-4 py-8" style={{backgroundColor: 'hsl(120, 100%, 3%)'}}>
+      <div className="w-full max-w-2xl">
+        <Card className="bg-slate-800/60 border-slate-700/50">
+          <CardHeader>
+            <CardTitle className="text-2xl text-slate-100 question-text text-center">
+              Complete Your Journey
+            </CardTitle>
+          </CardHeader>
           <CardContent className="p-8">
-            {/* Success Icon */}
-            <div className="w-16 h-16 bg-accent/10 rounded-full flex items-center justify-center mx-auto mb-6">
-              <CheckCircle className="text-accent h-8 w-8" />
+            <div className="w-16 h-16 bg-emerald-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
+              <CheckCircle className="w-8 h-8 text-emerald-500" />
             </div>
 
-            <h1 className="text-3xl font-bold text-secondary mb-4">a formulation of truth complete!</h1>
-            <p className="text-muted-foreground mb-8 leading-relaxed">
-              om shree ganapataye namah • Your thoughtful responses have been compiled into a beautiful document.
+            <h2 className="text-xl text-slate-100 mb-6 question-text text-center">
+              You have answered all 35 questions
+            </h2>
+
+            <p className="text-slate-300 mb-8 text-center leading-relaxed">
+              Your philosophical reflections are ready to be compiled into a beautiful PDF with insights from Jacques Lacan and Sri Aurobindo, then sent to your email.
             </p>
 
-            {/* Completion Stats */}
-            <div className="grid grid-cols-3 gap-4 mb-8">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-primary">35</div>
-                <div className="text-sm text-muted-foreground">Questions</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-primary">Complete</div>
-                <div className="text-sm text-muted-foreground">Status</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-primary">PDF</div>
-                <div className="text-sm text-muted-foreground">Format</div>
+            {/* Reminder Option */}
+            <div className="mb-8 p-4 bg-slate-700/30 rounded-lg border border-slate-600/50">
+              <div className="flex items-start space-x-3">
+                <Checkbox
+                  id="reminder"
+                  checked={wantsReminder}
+                  onCheckedChange={(checked) => setWantsReminder(checked as boolean)}
+                  className="mt-1"
+                />
+                <div className="flex-1">
+                  <label
+                    htmlFor="reminder"
+                    className="text-sm font-medium text-slate-200 cursor-pointer"
+                  >
+                    Send me a reminder in 2 months
+                  </label>
+                  <p className="text-xs text-slate-400 mt-1">
+                    You may complete the questionnaire once every 2 months. We can remind you when you're eligible again.
+                  </p>
+                </div>
               </div>
             </div>
 
-            {/* Action Buttons */}
-            <div className="space-y-4">
-              <Button 
+            {/* Complete Button */}
+            <div className="flex justify-center">
+              <Button
+                onClick={handleComplete}
+                disabled={completeQuestionnaireMutation.isPending}
+                className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-3"
+              >
+                {completeQuestionnaireMutation.isPending ? (
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  <Mail className="w-4 h-4 mr-2" />
+                )}
+                Complete & Email Results
+              </Button>
+            </div>
+
+            {/* Download Option */}
+            <div className="mt-6 pt-6 border-t border-slate-600 text-center">
+              <Button
                 onClick={handleDownloadPDF}
-                className="w-full"
                 disabled={downloadPDFMutation.isPending}
+                variant="outline"
+                className="text-slate-300 border-slate-600 hover:bg-slate-700"
               >
                 {downloadPDFMutation.isPending ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Generating PDF...
-                  </>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                 ) : (
-                  <>
-                    <Download className="w-4 h-4 mr-2" />
-                    Download PDF Report
-                  </>
+                  <Download className="w-4 h-4 mr-2" />
                 )}
-              </Button>
-              
-              <Button 
-                variant="outline"
-                onClick={handleEmailResults}
-                className="w-full"
-                disabled={emailResultsMutation.isPending}
-              >
-                {emailResultsMutation.isPending ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Sending Email...
-                  </>
-                ) : (
-                  <>
-                    <Mail className="w-4 h-4 mr-2" />
-                    Email Results to Me
-                  </>
-                )}
-              </Button>
-            </div>
-
-            {/* Additional Options */}
-            <div className="mt-8 pt-6 border-t border-border">
-              <p className="text-sm text-muted-foreground mb-4">
-                Your responses have been securely saved. You can access them anytime using your email.
-              </p>
-              <Button 
-                variant="ghost"
-                onClick={handleStartNew}
-                className="text-primary hover:text-primary/80"
-              >
-                <RotateCcw className="w-4 h-4 mr-2" />
-                Start a New Questionnaire
+                Download PDF Only
               </Button>
             </div>
           </CardContent>
