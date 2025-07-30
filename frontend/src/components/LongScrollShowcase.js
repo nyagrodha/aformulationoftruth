@@ -277,7 +277,7 @@ const LongScrollShowcase = () => {
             transition: "transform 0.1s ease-out",
           }}
         >
-          ॐ
+          प्रश्नाः
         </div>
 
         {/* Floating particles */}
@@ -317,23 +317,7 @@ const LongScrollShowcase = () => {
           </div>
         )}
 
-        {/* Progress indicator */}
-        <div
-          style={{
-            position: "fixed",
-            bottom: "2rem",
-            right: "2rem",
-            color: "#00ffff",
-            fontSize: "1rem",
-            zIndex: 100,
-            background: "rgba(0,0,0,0.7)",
-            padding: "1rem",
-            borderRadius: "10px",
-            border: "1px solid #00ffff",
-          }}
-        >
-          {Math.round(scrollProgress * 100)}%
-        </div>
+        
 
         {/* Scroll hint during pulsing phase */}
         {introPhase === "pulsing" && (
