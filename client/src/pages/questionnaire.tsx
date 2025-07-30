@@ -297,8 +297,8 @@ export default function QuestionnairePage() {
           
           <CardContent className="space-y-6">
             <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-300">
-                Craft your response here:
+              <label className="text-sm font-medium text-emerald-400">
+                Craft your response below:
               </label>
               <div className="relative">
                 <Textarea
