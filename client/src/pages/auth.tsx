@@ -103,9 +103,9 @@ export default function AuthPage() {
         >
           A practice in self-inquiry these questions invite upon users a
           reflective state of awareness. Persons' crafted responses (or a
-          non-response!) betray something interior to us, machinations
-          idiosyncratiques that constitute the subject, a person, and their
-          formulation of truth today.
+          non-response!) betray something interior (அகம்) this I--machinations
+          idiosyncratiques--that vivify the subject, as such, a person and a
+          formulation of truth.
         </p>
 
         {/* Interactive mystical entry point */}
