@@ -311,8 +311,7 @@ export default function QuestionnairePage() {
                 />
                 {currentAnswer === '' && (
                   <div className="absolute top-3 left-3 pointer-events-none">
-                    <span className="text-transparent">|</span>
-                    <span className="text-yellow-500 font-bold animate-pulse">|</span>
+                    <span className="text-yellow-500 font-bold animate-pulse text-xl">|</span>
                   </div>
                 )}
               </div>
@@ -325,9 +324,11 @@ export default function QuestionnairePage() {
             </div>
 
             <div className="flex items-center justify-between pt-4">
-              <div className="text-xs text-slate-500 italic">
-                your response will be automatically saved
-              </div>
+              {questionData.progress.current === 1 && (
+                <div className="text-xs text-slate-500 italic">
+                  Each response will be encrypted and stored securely.
+                </div>
+              )}
               
               <div className="flex gap-3">
                 {hasUnsavedChanges && (
