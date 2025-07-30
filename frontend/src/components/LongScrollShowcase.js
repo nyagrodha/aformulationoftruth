@@ -317,8 +317,6 @@ const LongScrollShowcase = () => {
           </div>
         )}
 
-        
-
         {/* Scroll hint during pulsing phase */}
         {introPhase === "pulsing" && (
           <div
@@ -352,21 +350,66 @@ const LongScrollShowcase = () => {
         }
 
         @keyframes flicker {
-          0% { background-color: #f5f5dc; opacity: 1; }
-          3% { background-color: #ff0000; opacity: 0.1; }
-          7% { background-color: #d3d3e6; opacity: 1; }
-          12% { background-color: #000000; opacity: 0.3; }
-          18% { background-color: #8080b3; opacity: 1; }
-          25% { background-color: #ff00ff; opacity: 0.2; }
-          35% { background-color: #303080; opacity: 1; }
-          42% { background-color: #000000; opacity: 0.1; }
-          50% { background-color: #202060; opacity: 1; }
-          58% { background-color: #00ffff; opacity: 0.3; }
-          67% { background-color: #101040; opacity: 1; }
-          75% { background-color: #000000; opacity: 0.2; }
-          83% { background-color: #080820; opacity: 1; }
-          92% { background-color: #ff0000; opacity: 0.1; }
-          100% { background-color: #040410; opacity: 1; }
+          0% {
+            background-color: #f5f5dc;
+            opacity: 1;
+          }
+          3% {
+            background-color: #ff0000;
+            opacity: 0.1;
+          }
+          7% {
+            background-color: #d3d3e6;
+            opacity: 1;
+          }
+          12% {
+            background-color: #000000;
+            opacity: 0.3;
+          }
+          18% {
+            background-color: #8080b3;
+            opacity: 1;
+          }
+          25% {
+            background-color: #ff00ff;
+            opacity: 0.2;
+          }
+          35% {
+            background-color: #303080;
+            opacity: 1;
+          }
+          42% {
+            background-color: #000000;
+            opacity: 0.1;
+          }
+          50% {
+            background-color: #202060;
+            opacity: 1;
+          }
+          58% {
+            background-color: #00ffff;
+            opacity: 0.3;
+          }
+          67% {
+            background-color: #101040;
+            opacity: 1;
+          }
+          75% {
+            background-color: #000000;
+            opacity: 0.2;
+          }
+          83% {
+            background-color: #080820;
+            opacity: 1;
+          }
+          92% {
+            background-color: #ff0000;
+            opacity: 0.1;
+          }
+          100% {
+            background-color: #040410;
+            opacity: 1;
+          }
         }
 
         @keyframes pulse-warm {
