@@ -245,7 +245,7 @@ export default function QuestionnairePage() {
   const progress = (questionData.progress.current / questionData.progress.total) * 100;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+    <div className="min-h-screen bg-gradient-to-br from-green-950 via-slate-900 to-green-950" style={{backgroundColor: 'hsl(120, 100%, 3%)'}}>
       {/* Header */}
       <div className="sticky top-0 bg-slate-900/90 backdrop-blur-sm border-b border-slate-700 z-10">
         <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
@@ -288,7 +288,7 @@ export default function QuestionnairePage() {
               
               {/* Question text */}
               <div className="flex-1">
-                <div className="text-xl text-slate-100 leading-relaxed font-light">
+                <div className="text-xl text-slate-100 leading-relaxed question-text">
                   {questionData.question.text}
                 </div>
               </div>
@@ -300,14 +300,22 @@ export default function QuestionnairePage() {
               <label className="text-sm font-medium text-slate-300">
                 Craft your response here:
               </label>
-              <Textarea
-                value={currentAnswer}
-                onChange={(e) => handleAnswerChange(e.target.value)}
-                onBlur={handleBlur}
-                placeholder="Take your time to reflect and share your thoughts..."
-                className="min-h-32 text-base leading-relaxed resize-none bg-slate-700/50 border-slate-600 text-slate-100 placeholder:text-slate-400"
-                disabled={submitAnswerMutation.isPending}
-              />
+              <div className="relative">
+                <Textarea
+                  value={currentAnswer}
+                  onChange={(e) => handleAnswerChange(e.target.value)}
+                  onBlur={handleBlur}
+                  placeholder=""
+                  className={`min-h-32 text-base leading-relaxed resize-none bg-slate-700/50 border-slate-600 text-slate-100 ${currentAnswer === '' ? 'caret-transparent' : ''}`}
+                  disabled={submitAnswerMutation.isPending}
+                />
+                {currentAnswer === '' && (
+                  <div className="absolute top-3 left-3 pointer-events-none">
+                    <span className="text-transparent">|</span>
+                    <span className="text-yellow-500 font-bold animate-pulse">|</span>
+                  </div>
+                )}
+              </div>
               {hasUnsavedChanges && (
                 <div className="flex items-center gap-2 text-sm text-amber-400">
                   <Clock className="w-4 h-4" />
