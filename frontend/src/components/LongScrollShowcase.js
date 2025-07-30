@@ -6,14 +6,14 @@ const LongScrollShowcase = () => {
   const [introPhase, setIntroPhase] = useState("flickering"); // 'flickering', 'dark', 'pulsing', 'scrolled'
 
   useEffect(() => {
-    // Intro sequence timing
+    // Intro sequence timing - much faster, stranger sooner
     const flickerTimer = setTimeout(() => {
       setIntroPhase("dark");
-    }, 3000); // Flicker for 3 seconds
+    }, 800); // Flicker for less than a second
 
     const darkTimer = setTimeout(() => {
       setIntroPhase("pulsing");
-    }, 5500); // Dark for 2.5 seconds (3000 + 2500)
+    }, 1500); // Dark for only 0.7 seconds (800 + 700)
 
     return () => {
       clearTimeout(flickerTimer);
@@ -254,30 +254,30 @@ const LongScrollShowcase = () => {
             zIndex: 1,
             animation:
               introPhase === "flickering"
-                ? "flicker 0.15s infinite alternate"
+                ? "flicker 0.08s infinite linear"
                 : introPhase === "pulsing"
                   ? "pulse-warm 2s infinite ease-in-out"
                   : "none",
           }}
         />
 
-        {/* Persistent background text */}
+        {/* Persistent unsettling background element */}
         <div
           style={{
             position: "fixed",
             top: "50%",
             left: "50%",
-            transform: "translate(-50%, -50%)",
-            fontSize: "8rem",
-            color: "rgba(255,255,255,0.03)",
+            transform: `translate(-50%, -50%) rotate(${scrollProgress * 720}deg) scale(${1 + scrollProgress * 2})`,
+            fontSize: "12rem",
+            color: `rgba(255,0,255,${0.02 + scrollProgress * 0.08})`,
             zIndex: 2,
             textAlign: "center",
             pointerEvents: "none",
-            transform: `translate(-50%, -50%) rotate(${scrollProgress * 360}deg)`,
-            transition: "transform 0.1s ease-out",
+            transition: "transform 0.05s ease-out",
+            fontWeight: "100",
           }}
         >
-          प्रश्नाः
+          ?
         </div>
 
         {/* Floating particles */}
@@ -352,50 +352,21 @@ const LongScrollShowcase = () => {
         }
 
         @keyframes flicker {
-          0% {
-            background-color: #f5f5dc;
-            opacity: 1;
-          }
-          10% {
-            background-color: #e6e6fa;
-            opacity: 0.9;
-          }
-          20% {
-            background-color: #d3d3e6;
-            opacity: 1;
-          }
-          30% {
-            background-color: #b0b0d3;
-            opacity: 0.8;
-          }
-          40% {
-            background-color: #8080b3;
-            opacity: 1;
-          }
-          50% {
-            background-color: #5050a0;
-            opacity: 0.95;
-          }
-          60% {
-            background-color: #303080;
-            opacity: 1;
-          }
-          70% {
-            background-color: #202060;
-            opacity: 0.85;
-          }
-          80% {
-            background-color: #101040;
-            opacity: 1;
-          }
-          90% {
-            background-color: #080820;
-            opacity: 0.9;
-          }
-          100% {
-            background-color: #040410;
-            opacity: 1;
-          }
+          0% { background-color: #f5f5dc; opacity: 1; }
+          3% { background-color: #ff0000; opacity: 0.1; }
+          7% { background-color: #d3d3e6; opacity: 1; }
+          12% { background-color: #000000; opacity: 0.3; }
+          18% { background-color: #8080b3; opacity: 1; }
+          25% { background-color: #ff00ff; opacity: 0.2; }
+          35% { background-color: #303080; opacity: 1; }
+          42% { background-color: #000000; opacity: 0.1; }
+          50% { background-color: #202060; opacity: 1; }
+          58% { background-color: #00ffff; opacity: 0.3; }
+          67% { background-color: #101040; opacity: 1; }
+          75% { background-color: #000000; opacity: 0.2; }
+          83% { background-color: #080820; opacity: 1; }
+          92% { background-color: #ff0000; opacity: 0.1; }
+          100% { background-color: #040410; opacity: 1; }
         }
 
         @keyframes pulse-warm {
