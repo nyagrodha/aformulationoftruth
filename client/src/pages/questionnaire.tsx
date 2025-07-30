@@ -326,7 +326,7 @@ export default function QuestionnairePage() {
             <div className="flex items-center justify-between pt-4">
               {questionData.progress.current === 1 && (
                 <div className="text-xs text-slate-500 italic">
-                  Each response will be encrypted and stored securely.
+                  Each response is encrypted using industry-standard AES-256 encryption. The data you create is stored securely on the server in Finland, and will not be used or shared or in any way disseminated without your express consent.
                 </div>
               )}
               
