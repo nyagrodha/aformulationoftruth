@@ -124,8 +124,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (nextQuestionIndex < questionOrder.length) {
         await storage.updateSessionProgress(sessionId, nextQuestionIndex);
       } else {
+        // Check if user has completed questionnaire in last 2 months
+        const existingCompletions = await storage.getUserCompletedSessions(userId);
+        const twoMonthsAgo = new Date();
+        twoMonthsAgo.setMonth(twoMonthsAgo.getMonth() - 2);
+        
+        const recentCompletion = existingCompletions.find(session => 
+          session.completedAt && new Date(session.completedAt) > twoMonthsAgo
+        );
+
+        if (recentCompletion) {
+          return res.status(400).json({ 
+            message: 'You may only complete the questionnaire once every 2 months',
+            nextAvailable: new Date(new Date(recentCompletion.completedAt!).getTime() + (2 * 30 * 24 * 60 * 60 * 1000))
+          });
+        }
+
         // Complete session and generate PDF
-        await storage.completeSession(sessionId);
+        await storage.completeSession(sessionId, false);
         
         // Get user and all responses for PDF
         const user = await storage.getUser(userId);
@@ -133,7 +149,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         if (user?.email) {
           // Generate and send PDF
-          const pdfBuffer = await pdfService.generateQuestionnairePDF(
+          const pdfBuffer = await pdfService.generateFormulationOfTruthPDF(
             allResponses,
             session.questionOrder as number[]
           );
@@ -168,6 +184,67 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Complete questionnaire with reminder preference
+  app.post('/api/questionnaire/:sessionId/complete', isAuthenticated, async (req, res) => {
+    try {
+      const { sessionId } = req.params;
+      const { wantsReminder } = req.body;
+      const userId = req.user?.claims?.sub;
+
+      if (!userId) {
+        return res.status(401).json({ message: 'User not authenticated' });
+      }
+
+      // Check if user has completed questionnaire in last 2 months
+      const existingCompletions = await storage.getUserCompletedSessions(userId);
+      const twoMonthsAgo = new Date();
+      twoMonthsAgo.setMonth(twoMonthsAgo.getMonth() - 2);
+      
+      const recentCompletion = existingCompletions.find(session => 
+        session.completedAt && new Date(session.completedAt) > twoMonthsAgo
+      );
+
+      if (recentCompletion) {
+        return res.status(400).json({ 
+          message: 'You may only complete the questionnaire once every 2 months',
+          nextAvailable: new Date(new Date(recentCompletion.completedAt!).getTime() + (2 * 30 * 24 * 60 * 60 * 1000))
+        });
+      }
+
+      // Verify session belongs to user
+      const session = await storage.getSessionById(sessionId);
+      if (!session || session.userId !== userId) {
+        return res.status(404).json({ message: 'Session not found' });
+      }
+
+      if (session.completed) {
+        return res.status(400).json({ message: 'Session already completed' });
+      }
+
+      // Check if all questions are answered
+      const responses = await storage.getResponsesBySessionId(sessionId);
+      if (responses.length < 35) {
+        return res.status(400).json({ message: 'Not all questions have been answered' });
+      }
+
+      // Mark session as completed with reminder preference
+      await storage.completeSession(sessionId, wantsReminder);
+
+      // Generate and send PDF
+      const pdfBuffer = await pdfService.generateFormulationOfTruthPDF(responses, session.questionOrder as number[]);
+      
+      const user = await storage.getUser(userId);
+      if (user?.email) {
+        await emailService.sendCompletionEmail(user.email, pdfBuffer);
+      }
+
+      res.json({ message: 'Questionnaire completed successfully' });
+    } catch (error) {
+      console.error('Error completing questionnaire:', error);
+      res.status(500).json({ message: 'Failed to complete questionnaire' });
+    }
+  });
+
   // Download PDF (for completed sessions)
   app.get("/api/questionnaire/:sessionId/pdf", isAuthenticated, async (req: any, res) => {
     try {
@@ -180,7 +257,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const responses = await storage.getResponsesBySessionId(sessionId);
-      const pdfBuffer = await pdfService.generateQuestionnairePDF(
+      const pdfBuffer = await pdfService.generateFormulationOfTruthPDF(
         responses,
         session.questionOrder as number[]
       );

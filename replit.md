@@ -123,13 +123,15 @@ The application follows a modern full-stack architecture with clear separation b
 - `REPLIT_DOMAINS`: Deployment domain configuration
 
 ### Recent Changes: Latest modifications with dates
+- **2025-01-30**: Added 2-month completion limit with validation and user-friendly error messages
+- **2025-01-30**: Enhanced PDF service with philosophical content from Jacques Lacan and Sri Aurobindo teachings
+- **2025-01-30**: Implemented reminder system option allowing users to request email reminders after 2-month cooldown
+- **2025-01-30**: Updated completion flow with dedicated completion page featuring reminder preferences
+- **2025-01-30**: Added "May all your paths be auspicious" blessing to PDF and completion messages
 - **2025-01-29**: Updated to Garamond font, dark forest green background, golden blinking caret, and security message on first question only
 - **2025-01-29**: Fixed questionnaire completion validation error 
 - **2025-01-29**: Updated numerals to Kannada script (೧, ೨, ೩...)
 - **2025-01-26**: Removed "fixed question" references from questionnaire display
-- **2025-01-26**: Implemented procession of shlokas with Ganapati/Ganesh for first question
-- **2025-01-26**: Added shloka and deity fields to question interface
-- **2025-01-26**: Enhanced question display with shloka invocations in mystical styling
 
 ### Production Deployment
 The application will be deployed to a VPS hosted at `proust.aformulationoftruth.com` with Apple Mail SMTP servers configured for email delivery from `formitselfisemptiness@aformulationoftruth.com`, `eachmomenteverydayur@aformulationoftruth.com`, and root user emails.
