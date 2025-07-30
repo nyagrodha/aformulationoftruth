@@ -261,7 +261,7 @@ export default function QuestionnairePage() {
             className="text-slate-400 hover:text-slate-200"
           >
             <LogOut className="w-4 h-4 mr-2" />
-            Logout
+            Click to save now; return later
           </Button>
         </div>
         
