@@ -222,7 +222,9 @@ export default function CompletionPage() {
             </div>
 
             <h2 className="text-xl text-slate-100 mb-6 question-text text-center">
-              You have answered the Proust Questionnaire for the {user?.completionCount ? getOrdinal(user.completionCount + 1) : "first"} time, offering oneself as a formulation of truth.
+              You have answered the Proust Questionnaire for the {user?.completionCount ? getOrdinal(user.completionCount + 1) : "first"} time.
+              <br />
+              Offering oneself as a formulation of truth.
             </h2>
 
             <p className="text-slate-300 mb-8 text-center leading-relaxed">
