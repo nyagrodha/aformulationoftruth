@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { CheckCircle, Download, Mail, Clock, Loader2 } from "lucide-react";
+import { Download, Mail, Clock, Loader2 } from "lucide-react";
 
 // Helper function to convert number to ordinal
 function getOrdinal(num: number): string {
@@ -116,8 +116,32 @@ export default function CompletionPage() {
       <div className="min-h-screen bg-gradient-to-br from-green-950 via-slate-900 to-green-950 flex items-center justify-center px-4 py-8" style={{backgroundColor: 'hsl(120, 100%, 3%)'}}>
         <Card className="w-full max-w-2xl bg-slate-800/60 border-slate-700/50">
           <CardContent className="p-8 text-center">
-            <div className="w-16 h-16 bg-emerald-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
-              <CheckCircle className="w-8 h-8 text-emerald-500" />
+            <div className="w-16 h-16 bg-amber-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
+              <svg 
+                width="32" 
+                height="32" 
+                viewBox="0 0 32 32" 
+                className="text-amber-400"
+                fill="currentColor"
+              >
+                {/* Madeline cookie shape */}
+                <path d="M16 2C12 2 8 4 6 8C4 12 4 16 6 20C8 24 12 26 16 26C20 26 24 24 26 20C28 16 28 12 26 8C24 4 20 2 16 2Z" 
+                      fill="currentColor" 
+                      opacity="0.9"/>
+                {/* Shell ridges */}
+                <path d="M16 6C13 6 10 7 8 10C9 9 12 8 16 8C20 8 23 9 24 10C22 7 19 6 16 6Z" 
+                      fill="currentColor" 
+                      opacity="0.7"/>
+                <path d="M16 10C13 10 10 11 8 14C9 13 12 12 16 12C20 12 23 13 24 14C22 11 19 10 16 10Z" 
+                      fill="currentColor" 
+                      opacity="0.5"/>
+                <path d="M16 14C13 14 10 15 8 18C9 17 12 16 16 16C20 16 23 17 24 18C22 15 19 14 16 14Z" 
+                      fill="currentColor" 
+                      opacity="0.3"/>
+                <path d="M16 18C13 18 10 19 8 22C9 21 12 20 16 20C20 20 23 21 24 22C22 19 19 18 16 18Z" 
+                      fill="currentColor" 
+                      opacity="0.2"/>
+              </svg>
             </div>
             <h1 className="text-2xl font-semibold text-slate-100 mb-4 question-text">
               The Inquiry Concludes
@@ -169,8 +193,32 @@ export default function CompletionPage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="p-8">
-            <div className="w-16 h-16 bg-emerald-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
-              <CheckCircle className="w-8 h-8 text-emerald-500" />
+            <div className="w-16 h-16 bg-amber-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
+              <svg 
+                width="32" 
+                height="32" 
+                viewBox="0 0 32 32" 
+                className="text-amber-400"
+                fill="currentColor"
+              >
+                {/* Madeline cookie shape */}
+                <path d="M16 2C12 2 8 4 6 8C4 12 4 16 6 20C8 24 12 26 16 26C20 26 24 24 26 20C28 16 28 12 26 8C24 4 20 2 16 2Z" 
+                      fill="currentColor" 
+                      opacity="0.9"/>
+                {/* Shell ridges */}
+                <path d="M16 6C13 6 10 7 8 10C9 9 12 8 16 8C20 8 23 9 24 10C22 7 19 6 16 6Z" 
+                      fill="currentColor" 
+                      opacity="0.7"/>
+                <path d="M16 10C13 10 10 11 8 14C9 13 12 12 16 12C20 12 23 13 24 14C22 11 19 10 16 10Z" 
+                      fill="currentColor" 
+                      opacity="0.5"/>
+                <path d="M16 14C13 14 10 15 8 18C9 17 12 16 16 16C20 16 23 17 24 18C22 15 19 14 16 14Z" 
+                      fill="currentColor" 
+                      opacity="0.3"/>
+                <path d="M16 18C13 18 10 19 8 22C9 21 12 20 16 20C20 20 23 21 24 22C22 19 19 18 16 18Z" 
+                      fill="currentColor" 
+                      opacity="0.2"/>
+              </svg>
             </div>
 
             <h2 className="text-xl text-slate-100 mb-6 question-text text-center">
