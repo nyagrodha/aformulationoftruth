@@ -32,9 +32,10 @@ export interface IStorage {
   // Session operations
   getSessionByUserId(userId: string): Promise<QuestionnaireSession | undefined>;
   getSessionById(sessionId: string): Promise<QuestionnaireSession | undefined>;
+  getSessionByShareId(shareId: string): Promise<QuestionnaireSession | undefined>;
   createSession(session: InsertQuestionnaireSession): Promise<QuestionnaireSession>;
   updateSessionProgress(sessionId: string, questionIndex: number): Promise<void>;
-  completeSession(sessionId: string, wantsReminder?: boolean): Promise<void>;
+  completeSession(sessionId: string, wantsReminder?: boolean, wantsToShare?: boolean): Promise<string | null>;
   getUserCompletedSessions(userId: string): Promise<QuestionnaireSession[]>;
 
   // Response operations
@@ -153,16 +154,44 @@ export class DatabaseStorage implements IStorage {
       .where(eq(questionnaireSessions.id, sessionId));
   }
 
-  async completeSession(sessionId: string, wantsReminder: boolean = false): Promise<void> {
+  async completeSession(sessionId: string, wantsReminder: boolean = false, wantsToShare: boolean = false): Promise<string | null> {
+    const shareId = wantsToShare ? sql`gen_random_uuid()` : null;
+    
     await db
       .update(questionnaireSessions)
       .set({ 
         completed: true,
         completedAt: new Date(),
         wantsReminder,
+        isShared: wantsToShare,
+        shareId: shareId,
         updatedAt: new Date()
       })
       .where(eq(questionnaireSessions.id, sessionId));
+
+    if (wantsToShare) {
+      // Get the generated shareId
+      const [session] = await db
+        .select({ shareId: questionnaireSessions.shareId })
+        .from(questionnaireSessions)
+        .where(eq(questionnaireSessions.id, sessionId));
+      
+      return session?.shareId || null;
+    }
+    
+    return null;
+  }
+
+  async getSessionByShareId(shareId: string): Promise<QuestionnaireSession | undefined> {
+    const [session] = await db
+      .select()
+      .from(questionnaireSessions)
+      .where(and(
+        eq(questionnaireSessions.shareId, shareId),
+        eq(questionnaireSessions.isShared, true),
+        eq(questionnaireSessions.completed, true)
+      ));
+    return session || undefined;
   }
 
   async getUserCompletedSessions(userId: string): Promise<QuestionnaireSession[]> {

@@ -125,6 +125,31 @@ export default function CompletionPage() {
             <p className="text-slate-300 mb-6">
               Your {user?.completionCount ? getOrdinal(user.completionCount) : "first"} formulation of truth has been preserved and transmitted. The document contains reflections from depth psychology and integral philosophy.
             </p>
+            {shareLink && (
+              <div className="mb-6 p-4 bg-emerald-500/10 rounded-lg border border-emerald-500/30">
+                <p className="text-sm font-medium text-emerald-400 mb-2">Your shareable link:</p>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    value={shareLink}
+                    readOnly
+                    className="flex-1 bg-slate-700 border border-slate-600 rounded px-3 py-2 text-sm text-slate-200"
+                  />
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(shareLink);
+                      toast({
+                        title: "Link Copied",
+                        description: "The shareable link has been copied to your clipboard.",
+                      });
+                    }}
+                    className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm rounded"
+                  >
+                    Copy
+                  </button>
+                </div>
+              </div>
+            )}
             <p className="text-lg text-emerald-400 question-text">
               What was sought has been found.
             </p>
