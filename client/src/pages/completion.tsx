@@ -48,21 +48,21 @@ export default function CompletionPage() {
     onSuccess: () => {
       setIsCompleted(true);
       toast({
-        title: "Journey Complete",
-        description: "Your questionnaire has been completed and emailed to you. May all your paths be auspicious.",
+        title: "Inquiry Finalized",
+        description: "Your responses have been compiled and transmitted. What was sought has been found.",
       });
     },
     onError: (error: any) => {
       if (error.message.includes('2 months')) {
         toast({
-          title: "Already Completed",
-          description: "You may only complete the questionnaire once every 2 months.",
+          title: "Cycle Incomplete",
+          description: "The inquiry requires a two-month interval between completions.",
           variant: "destructive",
         });
       } else {
         toast({
-          title: "Completion Failed",
-          description: error.message || "Failed to complete questionnaire",
+          title: "Transmission Error",
+          description: error.message || "Unable to finalize the inquiry",
           variant: "destructive",
         });
       }
@@ -86,13 +86,13 @@ export default function CompletionPage() {
               <CheckCircle className="w-8 h-8 text-emerald-500" />
             </div>
             <h1 className="text-2xl font-semibold text-slate-100 mb-4 question-text">
-              Your Journey is Complete
+              The Inquiry Concludes
             </h1>
             <p className="text-slate-300 mb-6">
-              Your philosophical reflections have been sent to your email along with insights from Jacques Lacan and Sri Aurobindo.
+              Your responses have been preserved and transmitted. The document contains reflections from depth psychology and integral philosophy.
             </p>
             <p className="text-lg text-emerald-400 question-text">
-              May all your paths be auspicious.
+              What was sought has been found.
             </p>
           </CardContent>
         </Card>
@@ -106,7 +106,7 @@ export default function CompletionPage() {
         <Card className="bg-slate-800/60 border-slate-700/50">
           <CardHeader>
             <CardTitle className="text-2xl text-slate-100 question-text text-center">
-              Complete Your Journey
+              Finalize the Inquiry
             </CardTitle>
           </CardHeader>
           <CardContent className="p-8">
@@ -115,11 +115,11 @@ export default function CompletionPage() {
             </div>
 
             <h2 className="text-xl text-slate-100 mb-6 question-text text-center">
-              You have answered all 35 questions
+              The sequence of 35 responses is complete
             </h2>
 
             <p className="text-slate-300 mb-8 text-center leading-relaxed">
-              Your philosophical reflections are ready to be compiled into a beautiful PDF with insights from Jacques Lacan and Sri Aurobindo, then sent to your email.
+              Your answers will be assembled with commentary from psychoanalytic and philosophical traditions, then delivered to your email address.
             </p>
 
             {/* Reminder Option */}
@@ -136,10 +136,10 @@ export default function CompletionPage() {
                     htmlFor="reminder"
                     className="text-sm font-medium text-slate-200 cursor-pointer"
                   >
-                    Send me a reminder in 2 months
+                    Notify me when the next cycle begins
                   </label>
                   <p className="text-xs text-slate-400 mt-1">
-                    You may complete the questionnaire once every 2 months. We can remind you when you're eligible again.
+                    The inquiry may be undertaken once every two months. We can alert you when the waiting period concludes.
                   </p>
                 </div>
               </div>
@@ -157,7 +157,7 @@ export default function CompletionPage() {
                 ) : (
                   <Mail className="w-4 h-4 mr-2" />
                 )}
-                Complete & Email Results
+                Finalize & Transmit Document
               </Button>
             </div>
 
@@ -174,7 +174,7 @@ export default function CompletionPage() {
                 ) : (
                   <Download className="w-4 h-4 mr-2" />
                 )}
-                Download PDF Only
+                Retrieve Document Directly
               </Button>
             </div>
           </CardContent>
