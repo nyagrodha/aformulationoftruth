@@ -189,7 +189,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { sessionId } = req.params;
       const { wantsReminder } = req.body;
-      const userId = req.user?.claims?.sub;
+      const userId = (req.user as any)?.claims?.sub;
 
       if (!userId) {
         return res.status(401).json({ message: 'User not authenticated' });
@@ -230,12 +230,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Mark session as completed with reminder preference
       await storage.completeSession(sessionId, wantsReminder);
 
+      // Increment user completion count
+      const updatedUser = await storage.incrementUserCompletionCount(userId);
+
       // Generate and send PDF
       const pdfBuffer = await pdfService.generateFormulationOfTruthPDF(responses, session.questionOrder as number[]);
       
-      const user = await storage.getUser(userId);
-      if (user?.email) {
-        await emailService.sendCompletionEmail(user.email, pdfBuffer);
+      if (updatedUser?.email) {
+        await emailService.sendCompletionEmail(updatedUser.email, pdfBuffer);
       }
 
       res.json({ message: 'Questionnaire completed successfully' });
