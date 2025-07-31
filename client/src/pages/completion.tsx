@@ -228,7 +228,7 @@ export default function CompletionPage() {
             </h2>
 
             <p className="text-slate-300 mb-8 text-center leading-relaxed">
-              Offering oneself as a formulation of truth, your responses are secured and you alone may choose with whom to share your work.
+              ...your responses are secured and you alone may choose with whom to share your work.
             </p>
 
             {/* Options */}
