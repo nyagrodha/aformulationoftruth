@@ -82,7 +82,7 @@ class PDFService {
 
         doc.fontSize(14)
            .fillColor('#424242')
-           .text('"The very foundation of inter-human discourse is misunderstanding."', 50, yPosition, {
+           .text('"The very foundation of interhuman discourse is misunderstanding."', 50, yPosition, {
              width: 500,
              align: 'center',
              lineGap: 8
@@ -92,7 +92,7 @@ class PDFService {
 
         doc.fontSize(12)
            .fillColor('#666')
-           .text('— Jacques Lacan', 50, yPosition, { width: 500, align: 'center' });
+           .text('— Lacan, Seminar III, 184', 50, yPosition, { width: 500, align: 'center' });
 
         yPosition += 40;
 
