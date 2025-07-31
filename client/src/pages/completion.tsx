@@ -287,9 +287,12 @@ export default function CompletionPage() {
                 {completeQuestionnaireMutation.isPending ? (
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                 ) : (
-                  <Mail className="w-4 h-4 mr-2" />
+                  <div className="flex items-center">
+                    <span className="text-lg mr-2">ಓಂ</span>
+                    <span className="mx-2">Finalize & submit</span>
+                    <span className="text-lg ml-2">ௐ</span>
+                  </div>
                 )}
-                Finalize & Transmit Document
               </Button>
             </div>
 
