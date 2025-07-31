@@ -255,6 +255,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get user's completed questionnaires
+  app.get("/api/questionnaire/completed", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const completedSessions = await storage.getUserCompletedSessions(userId);
+      res.json(completedSessions);
+    } catch (error) {
+      console.error('Get completed sessions error:', error);
+      res.status(500).json({ message: "Failed to get completed sessions" });
+    }
+  });
+
   // Download PDF (for completed sessions)
   app.get("/api/questionnaire/:sessionId/pdf", isAuthenticated, async (req: any, res) => {
     try {
