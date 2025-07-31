@@ -228,8 +228,7 @@ export default function CompletionPage() {
             </h2>
 
             <p className="text-slate-300 mb-8 text-center leading-relaxed">
-              Each of your responses is saved, securely encrypted in the database @aformulationoftruth.com
-              You alone can choose with whom to share this work. Alternatively, you may elect to share your responses.
+              Offering oneself as a formulation of truth, your responses are secured and you alone may choose with whom to share your work.
             </p>
 
             {/* Options */}
