@@ -273,7 +273,7 @@ export default function CompletionPage() {
                       Generate a shareable link to my responses
                     </label>
                     <p className="text-xs text-slate-400 mt-1">
-                      Create a unique page that others can view without needing to register.
+                      Create a unique page at a that others can view upon registering.
                     </p>
                   </div>
                 </div>
