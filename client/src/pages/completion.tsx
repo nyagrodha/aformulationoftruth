@@ -270,7 +270,7 @@ export default function CompletionPage() {
                       htmlFor="share"
                       className="text-sm font-medium text-slate-200 cursor-pointer"
                     >
-                      Generate a shareable link to my responses
+                      Generate a shareable link to the responses I submitted.
                     </label>
                     <p className="text-xs text-slate-400 mt-1">
                       Create a unique page at a that others can view upon registering.
