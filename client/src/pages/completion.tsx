@@ -239,10 +239,10 @@ export default function CompletionPage() {
                       htmlFor="reminder"
                       className="text-sm font-medium text-slate-200 cursor-pointer"
                     >
-                      Notify me of future opportunities to submit responses.
+                      Notify me when I'm able to submit responses again.
                     </label>
                     <p className="text-xs text-slate-400 mt-1">
-                      The inquiry may be completed again in the future. You may choose to be notified when this becomes available.
+                      The inquiry may be completed once every so often. The precise interstitial period to remain unknown that you may forget (or not) these initial responses.
                     </p>
                   </div>
                 </div>
