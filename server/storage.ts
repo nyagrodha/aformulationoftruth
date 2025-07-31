@@ -14,7 +14,7 @@ import {
   type InsertResponse
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, gt, desc, sql } from "drizzle-orm";
+import { eq, and, gt, desc, sql, like, or, ilike } from "drizzle-orm";
 
 export interface IStorage {
   // User operations
@@ -43,6 +43,13 @@ export interface IStorage {
   createResponse(response: InsertResponse): Promise<Response>;
   updateResponse(sessionId: string, questionId: number, answer: string): Promise<Response>;
   getResponseBySessionAndQuestion(sessionId: string, questionId: number): Promise<Response | undefined>;
+
+  // Admin operations
+  searchUsers(query: string, limit?: number): Promise<User[]>;
+  getAllSessions(limit?: number, offset?: number): Promise<QuestionnaireSession[]>;
+  searchSessions(query: string, limit?: number): Promise<QuestionnaireSession[]>;
+  searchResponses(query: string, limit?: number): Promise<Response[]>;
+  getSessionsWithResponses(limit?: number, offset?: number): Promise<(QuestionnaireSession & { user: User; responses: Response[] })[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -266,30 +273,87 @@ export class DatabaseStorage implements IStorage {
       .from(questionnaireSessions)
       .where(and(
         eq(questionnaireSessions.completed, true),
-        eq(questionnaireSessions.wantsReminder, true),
-        eq(questionnaireSessions.reminderSent, false)
+        eq(questionnaireSessions.wantsReminder, true)
       ));
   }
 
-  async updateSessionReminderPeriod(sessionId: string, reminderPeriodMs: number): Promise<void> {
-    await db
-      .update(questionnaireSessions)
-      .set({ 
-        reminderPeriodMs,
-        updatedAt: new Date()
-      })
-      .where(eq(questionnaireSessions.id, sessionId));
+  // Admin operations
+  async searchUsers(query: string, limit: number = 50): Promise<User[]> {
+    return await db
+      .select()
+      .from(users)
+      .where(
+        or(
+          ilike(users.email, `%${query}%`),
+          ilike(users.firstName, `%${query}%`),
+          ilike(users.lastName, `%${query}%`),
+          ilike(users.id, `%${query}%`)
+        )
+      )
+      .limit(limit)
+      .orderBy(desc(users.createdAt));
   }
 
-  async markReminderSent(sessionId: string): Promise<void> {
-    await db
-      .update(questionnaireSessions)
-      .set({ 
-        reminderSent: true,
-        reminderSentAt: new Date(),
-        updatedAt: new Date()
+  async getAllSessions(limit: number = 50, offset: number = 0): Promise<QuestionnaireSession[]> {
+    return await db
+      .select()
+      .from(questionnaireSessions)
+      .limit(limit)
+      .offset(offset)
+      .orderBy(desc(questionnaireSessions.createdAt));
+  }
+
+  async searchSessions(query: string, limit: number = 50): Promise<QuestionnaireSession[]> {
+    return await db
+      .select()
+      .from(questionnaireSessions)
+      .where(
+        or(
+          ilike(questionnaireSessions.id, `%${query}%`),
+          ilike(questionnaireSessions.userId, `%${query}%`),
+          ilike(questionnaireSessions.shareId, `%${query}%`)
+        )
+      )
+      .limit(limit)
+      .orderBy(desc(questionnaireSessions.createdAt));
+  }
+
+  async searchResponses(query: string, limit: number = 50): Promise<Response[]> {
+    return await db
+      .select()
+      .from(responses)
+      .where(
+        or(
+          ilike(responses.answer, `%${query}%`),
+          ilike(responses.sessionId, `%${query}%`),
+          ilike(responses.id, `%${query}%`)
+        )
+      )
+      .limit(limit)
+      .orderBy(desc(responses.createdAt));
+  }
+
+  async getSessionsWithResponses(limit: number = 20, offset: number = 0): Promise<(QuestionnaireSession & { user: User; responses: Response[] })[]> {
+    const sessionsData = await db
+      .select({
+        session: questionnaireSessions,
+        user: users
       })
-      .where(eq(questionnaireSessions.id, sessionId));
+      .from(questionnaireSessions)
+      .leftJoin(users, eq(questionnaireSessions.userId, users.id))
+      .limit(limit)
+      .offset(offset)
+      .orderBy(desc(questionnaireSessions.createdAt));
+
+    const results = [];
+    for (const { session, user } of sessionsData) {
+      if (session && user) {
+        const responses = await this.getResponsesBySessionId(session.id);
+        results.push({ ...session, user, responses });
+      }
+    }
+    
+    return results;
   }
 }
 

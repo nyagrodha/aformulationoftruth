@@ -11,6 +11,7 @@ import QuestionnairePage from "@/pages/questionnaire";
 import CompletionPage from "@/pages/completion";
 import ReviewDeclinedPage from "@/pages/review-declined";
 import SharedQuestionnairePage from "@/pages/shared-questionnaire";
+import AdminPage from "@/pages/admin";
 import NotFoundPage from "@/pages/not-found";
 
 function Router() {
@@ -44,6 +45,7 @@ function Router() {
           <Route path="/questionnaire/:sessionId" component={QuestionnairePage} />
           <Route path="/review-declined/:sessionId" component={ReviewDeclinedPage} />
           <Route path="/complete/:sessionId" component={CompletionPage} />
+          <Route path="/admin" component={AdminPage} />
         </>
       )}
       <Route component={NotFoundPage} />

@@ -4,6 +4,23 @@ import { storage } from "./storage";
 import { z } from "zod";
 import { insertResponseSchema } from "@shared/schema";
 import { setupAuth, isAuthenticated } from "./replitAuth";
+
+// Admin authentication middleware
+const isAdmin = async (req: any, res: any, next: any) => {
+  if (!req.isAuthenticated()) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+  
+  // Check if user is admin (you can customize this logic)
+  const adminEmails = ['formitselfisemptiness@aformulationoftruth.com', 'eachmomenteverydayur@aformulationoftruth.com'];
+  const userEmail = req.user?.claims?.email;
+  
+  if (!userEmail || !adminEmails.includes(userEmail)) {
+    return res.status(403).json({ message: "Admin access required" });
+  }
+  
+  next();
+};
 import { emailService } from "./services/emailService";
 import { pdfService } from "./services/pdfService";
 import { questionService } from "./services/questionService";
@@ -301,6 +318,65 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Shared questionnaire error:', error);
       res.status(500).json({ message: "Failed to get shared questionnaire" });
+    }
+  });
+
+  // Admin routes
+  app.get("/api/admin/users", isAdmin, async (req, res) => {
+    try {
+      const { search, limit = 50 } = req.query;
+      let users;
+      
+      if (search && typeof search === 'string') {
+        users = await storage.searchUsers(search, parseInt(limit as string));
+      } else {
+        users = await storage.searchUsers('', parseInt(limit as string));
+      }
+      
+      res.json(users);
+    } catch (error) {
+      console.error('Admin users search error:', error);
+      res.status(500).json({ message: "Failed to search users" });
+    }
+  });
+
+  app.get("/api/admin/sessions", isAdmin, async (req, res) => {
+    try {
+      const { search, limit = 50, offset = 0 } = req.query;
+      let sessions;
+      
+      if (search && typeof search === 'string') {
+        sessions = await storage.searchSessions(search, parseInt(limit as string));
+      } else {
+        sessions = await storage.getAllSessions(parseInt(limit as string), parseInt(offset as string));
+      }
+      
+      res.json(sessions);
+    } catch (error) {
+      console.error('Admin sessions search error:', error);
+      res.status(500).json({ message: "Failed to search sessions" });
+    }
+  });
+
+  app.get("/api/admin/responses", isAdmin, async (req, res) => {
+    try {
+      const { search, limit = 50 } = req.query;
+      const responses = await storage.searchResponses(search as string || '', parseInt(limit as string));
+      res.json(responses);
+    } catch (error) {
+      console.error('Admin responses search error:', error);
+      res.status(500).json({ message: "Failed to search responses" });
+    }
+  });
+
+  app.get("/api/admin/sessions-with-data", isAdmin, async (req, res) => {
+    try {
+      const { limit = 20, offset = 0 } = req.query;
+      const sessions = await storage.getSessionsWithResponses(parseInt(limit as string), parseInt(offset as string));
+      res.json(sessions);
+    } catch (error) {
+      console.error('Admin sessions with data error:', error);
+      res.status(500).json({ message: "Failed to get sessions with data" });
     }
   });
 
