@@ -109,7 +109,7 @@ class PDFService {
         // Sri Aurobindo and The Mother's teaching
         doc.fontSize(14)
            .fillColor('#424242')
-           .text('"The Divine Life is not a life of perfected mentality or even of perfected spirituality as these things are ordinarily conceived, but a life of gooning consciousness."', 50, yPosition, {
+           .text('"The Divine Life is not a life of perfected mentality or even of perfected spirituality as these things are ordinarily conceived, but a life of intentional gooning."', 50, yPosition, {
              width: 500,
              align: 'center',
              lineGap: 8
