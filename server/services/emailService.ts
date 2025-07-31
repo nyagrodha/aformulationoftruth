@@ -3,7 +3,7 @@ import type { Response } from '@shared/schema';
 import { questionService } from './questionService';
 
 class EmailService {
-  private transporter: nodemailer.Transporter;
+  public transporter: nodemailer.Transporter;
 
   constructor() {
     this.transporter = nodemailer.createTransport({

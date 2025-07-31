@@ -259,6 +259,38 @@ export class DatabaseStorage implements IStorage {
       );
     return response || undefined;
   }
+
+  async getSessionsEligibleForReminders(): Promise<QuestionnaireSession[]> {
+    return await db
+      .select()
+      .from(questionnaireSessions)
+      .where(and(
+        eq(questionnaireSessions.completed, true),
+        eq(questionnaireSessions.wantsReminder, true),
+        eq(questionnaireSessions.reminderSent, false)
+      ));
+  }
+
+  async updateSessionReminderPeriod(sessionId: string, reminderPeriodMs: number): Promise<void> {
+    await db
+      .update(questionnaireSessions)
+      .set({ 
+        reminderPeriodMs,
+        updatedAt: new Date()
+      })
+      .where(eq(questionnaireSessions.id, sessionId));
+  }
+
+  async markReminderSent(sessionId: string): Promise<void> {
+    await db
+      .update(questionnaireSessions)
+      .set({ 
+        reminderSent: true,
+        reminderSentAt: new Date(),
+        updatedAt: new Date()
+      })
+      .where(eq(questionnaireSessions.id, sessionId));
+  }
 }
 
 export const storage = new DatabaseStorage();
