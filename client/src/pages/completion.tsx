@@ -250,7 +250,7 @@ export default function CompletionPage() {
                       Notify me when I'm able to submit responses again.
                     </label>
                     <p className="text-xs text-slate-400 mt-1">
-                      The inquiry may be undertaken once every two months. We can alert you when the waiting period concludes.
+                      The inquiry may be completed once every so often. The precise interstitial period to remain unknown that you may forget (or not) these inital responses.
                     </p>
                   </div>
                 </div>
