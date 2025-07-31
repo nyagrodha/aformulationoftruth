@@ -46,6 +46,8 @@ export const questionnaireSessions = pgTable("questionnaire_sessions", {
   reviewingDeclined: boolean("reviewing_declined").default(false).notNull(),
   completedAt: timestamp("completed_at"),
   wantsReminder: boolean("wants_reminder").default(false).notNull(),
+  isShared: boolean("is_shared").default(false).notNull(),
+  shareId: varchar("share_id").unique(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });

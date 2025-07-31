@@ -34,7 +34,9 @@ export default function CompletionPage() {
   const { sessionId } = useParams();
   const { toast } = useToast();
   const [wantsReminder, setWantsReminder] = useState(false);
+  const [wantsToShare, setWantsToShare] = useState(false);
   const [isCompleted, setIsCompleted] = useState(false);
+  const [shareLink, setShareLink] = useState<string | null>(null);
 
   // Fetch user data to get completion count
   const { data: user } = useQuery({
@@ -69,12 +71,16 @@ export default function CompletionPage() {
   const completeQuestionnaireMutation = useMutation({
     mutationFn: async () => {
       const response = await apiRequest('POST', `/api/questionnaire/${sessionId}/complete`, {
-        wantsReminder
+        wantsReminder,
+        wantsToShare
       });
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       setIsCompleted(true);
+      if (data.shareLink) {
+        setShareLink(data.shareLink);
+      }
       toast({
         title: "Inquiry Finalized",
         description: "Your responses have been compiled and transmitted. What was sought has been found.",
@@ -147,28 +153,55 @@ export default function CompletionPage() {
             </h2>
 
             <p className="text-slate-300 mb-8 text-center leading-relaxed">
-              Your answers will be assembled with commentary from psychoanalytic and philosophical traditions, then delivered to your email address.
+              Each of your responses is saved, securely encrypted in the database @aformulationoftruth.com
+              You alone can choose with whom to share this work. Alternatively, you may elect to share your responses.
             </p>
 
-            {/* Reminder Option */}
-            <div className="mb-8 p-4 bg-slate-700/30 rounded-lg border border-slate-600/50">
-              <div className="flex items-start space-x-3">
-                <Checkbox
-                  id="reminder"
-                  checked={wantsReminder}
-                  onCheckedChange={(checked) => setWantsReminder(checked as boolean)}
-                  className="mt-1"
-                />
-                <div className="flex-1">
-                  <label
-                    htmlFor="reminder"
-                    className="text-sm font-medium text-slate-200 cursor-pointer"
-                  >
-                    Notify me when the next cycle begins
-                  </label>
-                  <p className="text-xs text-slate-400 mt-1">
-                    The inquiry may be undertaken once every two months. We can alert you when the waiting period concludes.
-                  </p>
+            {/* Options */}
+            <div className="mb-8 space-y-4">
+              {/* Reminder Option */}
+              <div className="p-4 bg-slate-700/30 rounded-lg border border-slate-600/50">
+                <div className="flex items-start space-x-3">
+                  <Checkbox
+                    id="reminder"
+                    checked={wantsReminder}
+                    onCheckedChange={(checked) => setWantsReminder(checked as boolean)}
+                    className="mt-1"
+                  />
+                  <div className="flex-1">
+                    <label
+                      htmlFor="reminder"
+                      className="text-sm font-medium text-slate-200 cursor-pointer"
+                    >
+                      Notify me when the next cycle begins
+                    </label>
+                    <p className="text-xs text-slate-400 mt-1">
+                      The inquiry may be undertaken once every two months. We can alert you when the waiting period concludes.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Sharing Option */}
+              <div className="p-4 bg-slate-700/30 rounded-lg border border-slate-600/50">
+                <div className="flex items-start space-x-3">
+                  <Checkbox
+                    id="share"
+                    checked={wantsToShare}
+                    onCheckedChange={(checked) => setWantsToShare(checked as boolean)}
+                    className="mt-1"
+                  />
+                  <div className="flex-1">
+                    <label
+                      htmlFor="share"
+                      className="text-sm font-medium text-slate-200 cursor-pointer"
+                    >
+                      Generate a shareable link to my responses
+                    </label>
+                    <p className="text-xs text-slate-400 mt-1">
+                      Create a unique page that others can view without needing to register.
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
