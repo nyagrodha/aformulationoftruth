@@ -106,7 +106,7 @@ export default function CompletionPage() {
         <Card className="bg-slate-800/60 border-slate-700/50">
           <CardHeader>
             <CardTitle className="text-2xl text-slate-100 question-text text-center">
-              Finalize the Inquiry
+              Questionnaire completed
             </CardTitle>
           </CardHeader>
           <CardContent className="p-8">
