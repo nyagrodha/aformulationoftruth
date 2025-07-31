@@ -88,8 +88,8 @@ export default function CompletionPage() {
     },
     onError: (error: any) => {
       toast({
-        title: "Transmission Error",
-        description: error.message || "Unable to finalize the inquiry",
+        title: "Inquiry Unavailable",
+        description: "The formulation cannot be completed at this time. Please return later.",
         variant: "destructive",
       });
     },
