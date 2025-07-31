@@ -212,21 +212,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: 'User not authenticated' });
       }
 
-      // Check if user has completed questionnaire in last 2 months
-      const existingCompletions = await storage.getUserCompletedSessions(userId);
-      const twoMonthsAgo = new Date();
-      twoMonthsAgo.setMonth(twoMonthsAgo.getMonth() - 2);
-      
-      const recentCompletion = existingCompletions.find(session => 
-        session.completedAt && new Date(session.completedAt) > twoMonthsAgo
-      );
-
-      if (recentCompletion) {
-        return res.status(400).json({ 
-          message: 'You may only complete the questionnaire once every 2 months',
-          nextAvailable: new Date(new Date(recentCompletion.completedAt!).getTime() + (2 * 30 * 24 * 60 * 60 * 1000))
-        });
-      }
+      // Allow multiple completions without time restrictions
 
       // Verify session belongs to user
       const session = await storage.getSessionById(sessionId);
@@ -321,7 +307,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Admin routes
+  // Admin routes (temporarily disabled - storage methods need implementation)
+  /*
   app.get("/api/admin/users", isAdmin, async (req, res) => {
     try {
       const { search, limit = 50 } = req.query;
@@ -379,6 +366,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to get sessions with data" });
     }
   });
+  */
 
   const httpServer = createServer(app);
   return httpServer;
