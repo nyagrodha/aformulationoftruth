@@ -124,9 +124,9 @@ The application follows a modern full-stack architecture with clear separation b
 
 ### Recent Changes: Latest modifications with dates
 - **2025-01-31**: Fixed multilingual support - removed English-only validation that rejected non-Latin scripts (Russian Cyrillic, Arabic, Chinese, etc.)
-- **2025-01-31**: Removed all timing restrictions and references - users can complete questionnaire multiple times without waiting periods
-- **2025-01-31**: Updated completion flow to remove "2-month interval" and other time period references from UI and server logic
-- **2025-01-31**: Fixed completion button error by removing server-side timing validation
+- **2025-01-31**: Implemented silent timing restrictions - 5,688,000 second (66 day) interval enforced server-side without revealing timing information to users
+- **2025-01-31**: Updated error messages to be generic without exposing timing details
+- **2025-01-31**: Maintained mystical UI language while hiding backend timing logic from users
 - **2025-01-31**: Implemented comprehensive admin dashboard with database search functionality
 - **2025-01-31**: Added admin authentication middleware restricting access to specified email addresses
 - **2025-01-31**: Created admin interface at `/admin` with tabs for Users, Sessions, Responses, and Overview

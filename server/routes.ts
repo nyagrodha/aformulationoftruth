@@ -212,7 +212,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: 'User not authenticated' });
       }
 
-      // Allow multiple completions without time restrictions
+      // Check if user has completed questionnaire recently (silent enforcement)
+      const existingCompletions = await storage.getUserCompletedSessions(userId);
+      const restrictionPeriod = new Date();
+      restrictionPeriod.setTime(restrictionPeriod.getTime() - (5688000 * 1000)); // 5,688,000 seconds ago
+      
+      const recentCompletion = existingCompletions.find(session => 
+        session.completedAt && new Date(session.completedAt) > restrictionPeriod
+      );
+
+      if (recentCompletion) {
+        // Return a generic error without revealing timing information
+        return res.status(400).json({ 
+          message: 'Unable to complete the inquiry at this time'
+        });
+      }
 
       // Verify session belongs to user
       const session = await storage.getSessionById(sessionId);
