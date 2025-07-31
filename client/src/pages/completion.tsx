@@ -1,5 +1,5 @@
 import { useParams } from "wouter";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,11 +8,39 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { CheckCircle, Download, Mail, Clock, Loader2 } from "lucide-react";
 
+// Helper function to convert number to ordinal
+function getOrdinal(num: number): string {
+  const ordinals = ["first", "second", "third", "fourth", "fifth", "sixth", "seventh", "eighth", "ninth", "tenth"];
+  if (num <= 10) {
+    return ordinals[num - 1];
+  }
+  
+  const lastDigit = num % 10;
+  const lastTwoDigits = num % 100;
+  
+  if (lastTwoDigits >= 11 && lastTwoDigits <= 13) {
+    return num + "th";
+  }
+  
+  switch (lastDigit) {
+    case 1: return num + "st";
+    case 2: return num + "nd";  
+    case 3: return num + "rd";
+    default: return num + "th";
+  }
+}
+
 export default function CompletionPage() {
   const { sessionId } = useParams();
   const { toast } = useToast();
   const [wantsReminder, setWantsReminder] = useState(false);
   const [isCompleted, setIsCompleted] = useState(false);
+
+  // Fetch user data to get completion count
+  const { data: user } = useQuery({
+    queryKey: ["/api/auth/user"],
+    retry: false,
+  }) as { data: { completionCount?: number } | undefined };
 
   const downloadPDFMutation = useMutation({
     mutationFn: async () => {
@@ -89,7 +117,7 @@ export default function CompletionPage() {
               The Inquiry Concludes
             </h1>
             <p className="text-slate-300 mb-6">
-              Your responses have been preserved and transmitted. The document contains reflections from depth psychology and integral philosophy.
+              Your {user?.completionCount ? getOrdinal(user.completionCount) : "first"} formulation of truth has been preserved and transmitted. The document contains reflections from depth psychology and integral philosophy.
             </p>
             <p className="text-lg text-emerald-400 question-text">
               What was sought has been found.
@@ -115,7 +143,7 @@ export default function CompletionPage() {
             </div>
 
             <h2 className="text-xl text-slate-100 mb-6 question-text text-center">
-              The sequence of 35 responses is complete
+              You have answered the Proust Questionnaire for the {user?.completionCount ? getOrdinal(user.completionCount + 1) : "first"} time, offering oneself as a formulation of truth.
             </h2>
 
             <p className="text-slate-300 mb-8 text-center leading-relaxed">

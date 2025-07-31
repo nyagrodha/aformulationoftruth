@@ -123,6 +123,9 @@ The application follows a modern full-stack architecture with clear separation b
 - `REPLIT_DOMAINS`: Deployment domain configuration
 
 ### Recent Changes: Latest modifications with dates
+- **2025-01-30**: Implemented completion count tracking system with ordinal display (first, second, third, etc.)
+- **2025-01-30**: Updated completion subtitle to show: "You have answered the Proust Questionnaire for the [ordinal] time, offering oneself as a formulation of truth"
+- **2025-01-30**: Added completionCount field to users table and increment logic on completion
 - **2025-01-30**: Redesigned completion flow with formal, scholarly language replacing mystical terminology
 - **2025-01-30**: Updated landing page text with Tamil "அகம்" and refined philosophical phrasing
 - **2025-01-30**: Changed completion messages: "Journey" → "Inquiry", "May all paths be auspicious" → "What was sought has been found"

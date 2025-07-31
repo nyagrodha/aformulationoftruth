@@ -14,7 +14,7 @@ import {
   type InsertResponse
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, gt, desc } from "drizzle-orm";
+import { eq, and, gt, desc, sql } from "drizzle-orm";
 
 export interface IStorage {
   // User operations
@@ -22,6 +22,7 @@ export interface IStorage {
   getUserByEmail(email: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   upsertUser(user: UpsertUser): Promise<User>;
+  incrementUserCompletionCount(userId: string): Promise<User>;
 
   // Magic link operations
   createMagicLink(magicLink: InsertMagicLink): Promise<MagicLink>;
@@ -73,6 +74,18 @@ export class DatabaseStorage implements IStorage {
           updatedAt: new Date(),
         },
       })
+      .returning();
+    return user;
+  }
+
+  async incrementUserCompletionCount(userId: string): Promise<User> {
+    const [user] = await db
+      .update(users)
+      .set({ 
+        completionCount: sql`${users.completionCount} + 1`,
+        updatedAt: new Date(),
+      })
+      .where(eq(users.id, userId))
       .returning();
     return user;
   }
