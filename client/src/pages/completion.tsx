@@ -46,7 +46,7 @@ export default function CompletionPage() {
 
   const downloadPDFMutation = useMutation({
     mutationFn: async () => {
-      const response = await fetch(`/api/questionnaire/${sessionId}/pdf`);
+      const response = await apiRequest('GET', `/api/questionnaire/${sessionId}/pdf`);
       if (!response.ok) throw new Error('Failed to download PDF');
       
       const blob = await response.blob();
