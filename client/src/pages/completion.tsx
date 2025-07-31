@@ -247,7 +247,7 @@ export default function CompletionPage() {
                       htmlFor="reminder"
                       className="text-sm font-medium text-slate-200 cursor-pointer"
                     >
-                      Notify me when the next cycle begins
+                      Notify me when I'm able to submit responses again.
                     </label>
                     <p className="text-xs text-slate-400 mt-1">
                       The inquiry may be undertaken once every two months. We can alert you when the waiting period concludes.
