@@ -10,6 +10,7 @@ import AuthCallbackPage from "@/pages/auth-callback";
 import QuestionnairePage from "@/pages/questionnaire";
 import CompletionPage from "@/pages/completion";
 import ReviewDeclinedPage from "@/pages/review-declined";
+import SharedQuestionnairePage from "@/pages/shared-questionnaire";
 import NotFoundPage from "@/pages/not-found";
 
 function Router() {
@@ -28,8 +29,9 @@ function Router() {
 
   return (
     <Switch>
-      {/* Auth callback route - always available */}
+      {/* Public routes - always available */}
       <Route path="/auth-callback" component={AuthCallbackPage} />
+      <Route path="/shared/:shareId" component={SharedQuestionnairePage} />
       
       {!isAuthenticated ? (
         <>

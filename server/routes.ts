@@ -188,7 +188,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/questionnaire/:sessionId/complete', isAuthenticated, async (req, res) => {
     try {
       const { sessionId } = req.params;
-      const { wantsReminder } = req.body;
+      const { wantsReminder, wantsToShare } = req.body;
       const userId = (req.user as any)?.claims?.sub;
 
       if (!userId) {
@@ -227,8 +227,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: 'Not all questions have been answered' });
       }
 
-      // Mark session as completed with reminder preference
-      await storage.completeSession(sessionId, wantsReminder);
+      // Mark session as completed with reminder preference and sharing
+      const shareId = await storage.completeSession(sessionId, wantsReminder, wantsToShare);
 
       // Increment user completion count
       const updatedUser = await storage.incrementUserCompletionCount(userId);
@@ -240,7 +240,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         await emailService.sendCompletionEmail(updatedUser.email, pdfBuffer);
       }
 
-      res.json({ message: 'Questionnaire completed successfully' });
+      const result: any = { message: 'Questionnaire completed successfully' };
+      if (shareId) {
+        result.shareLink = `${req.protocol}://${req.hostname}/shared/${shareId}`;
+      }
+
+      res.json(result);
     } catch (error) {
       console.error('Error completing questionnaire:', error);
       res.status(500).json({ message: 'Failed to complete questionnaire' });
@@ -270,6 +275,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('PDF download error:', error);
       res.status(500).json({ message: "Failed to generate PDF" });
+    }
+  });
+
+  // Public route to view shared questionnaires (no authentication required)
+  app.get("/api/shared/:shareId", async (req, res) => {
+    try {
+      const { shareId } = req.params;
+      
+      const session = await storage.getSessionByShareId(shareId);
+      if (!session) {
+        return res.status(404).json({ message: "Shared questionnaire not found" });
+      }
+
+      const responses = await storage.getResponsesBySessionId(session.id);
+      
+      res.json({
+        session: {
+          id: session.id,
+          completedAt: session.completedAt,
+          questionOrder: session.questionOrder
+        },
+        responses
+      });
+    } catch (error) {
+      console.error('Shared questionnaire error:', error);
+      res.status(500).json({ message: "Failed to get shared questionnaire" });
     }
   });
 
