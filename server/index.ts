@@ -68,7 +68,7 @@ app.use((req, res, next) => {
     reusePort: true,
   }, () => {
     log(`serving on port ${port}`);
-    
+
     // Start the reminder service
     reminderService.start();
   });
