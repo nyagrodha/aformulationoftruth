@@ -37,7 +37,8 @@ class EmailService {
           </div>
           
           <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; color: #999; font-size: 14px; text-align: center;">
-            <p>om shree ganapataye namah • a practice in self-inquiry revealing the formulation of truth within</p>
+            <p>om shree ganapataye namah • நான் யார் (who am I?) • a practice in self-inquiry revealing the formulation of truth within</p>
+            <p style="font-style: italic; margin-top: 10px;">This I-I perceive and upon it all that I know and all that I touch and all that I taste and all I create as though a projection</p>
           </div>
         </div>
       `,
