@@ -152,6 +152,21 @@ export default function AuthPage() {
             />
           </div>
         </div>
+
+        {/* Subtle email contact, placed unobtrusively */}
+        <div className="absolute top-8 left-8 opacity-25 hover:opacity-60 transition-opacity duration-700">
+          <span
+            className="text-xs font-light tracking-wide"
+            style={{
+              fontFamily: '"Playfair Display", serif',
+              color: "#2d1810",
+              textShadow: "0 0 3px rgba(0,255,255,0.3), 0 0 6px rgba(255,0,255,0.2)",
+              fontSize: "10px"
+            }}
+          >
+            formitselfisemptiness@aformulationoftruth.com
+          </span>
+        </div>
       </div>
     </div>
   );
