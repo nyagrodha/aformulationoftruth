@@ -24,6 +24,7 @@ const isAdmin = async (req: any, res: any, next: any) => {
 import { emailService } from "./services/emailService";
 import { pdfService } from "./services/pdfService";
 import { questionService } from "./services/questionService";
+import { vpsStorageService } from "./services/vpsStorageService";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
@@ -257,6 +258,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         await emailService.sendCompletionEmail(updatedUser.email, pdfBuffer);
       }
 
+      // Securely backup to VPS (non-blocking)
+      vpsStorageService.backupQuestionnaire(sessionId).catch(error => 
+        console.error('VPS backup failed:', error)
+      );
+
       const result: any = { message: 'Questionnaire completed successfully' };
       if (shareId) {
         result.shareLink = `${req.protocol}://${req.hostname}/shared/${shareId}`;
@@ -330,6 +336,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Shared questionnaire error:', error);
       res.status(500).json({ message: "Failed to get shared questionnaire" });
+    }
+  });
+
+  // VPS Storage API endpoints
+  app.post("/api/vps/backup/:sessionId", isAuthenticated, async (req: any, res) => {
+    try {
+      const { sessionId } = req.params;
+      const userId = req.user.claims.sub;
+      
+      // Verify session belongs to user
+      const session = await storage.getSessionById(sessionId);
+      if (!session || session.userId !== userId) {
+        return res.status(404).json({ message: "Session not found" });
+      }
+
+      const success = await vpsStorageService.backupQuestionnaire(sessionId);
+      
+      if (success) {
+        res.json({ message: "Questionnaire backed up securely" });
+      } else {
+        res.status(500).json({ message: "Backup failed" });
+      }
+    } catch (error) {
+      console.error('VPS backup error:', error);
+      res.status(500).json({ message: "Backup failed" });
+    }
+  });
+
+  app.get("/api/vps/health", isAuthenticated, async (req, res) => {
+    try {
+      const isHealthy = await vpsStorageService.healthCheck();
+      res.json({ healthy: isHealthy });
+    } catch (error) {
+      res.json({ healthy: false });
     }
   });
 
