@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="sa">
+<head>
+  <meta charset="UTF-8">
+  <title>Animated Mangala Kavya (Updated)</title>
+  <style>
+    body {
+      background-color: #111;
+      color: #eee;
+      font-family: Georgia, serif;
+      text-align: center;
+      padding: 2rem;
+      overflow-x: hidden;
+    }
+    .syllable {
+      display: inline-block;
+      opacity: 1;
+      transform: translate(0, 0) rotate(0deg);
+      will-change: transform, opacity;
+    }
+    .verse {
+      font-size: 1.8rem;
+      line-height: 2.8rem;
+      margin-bottom: 1.5rem;
+    }
+    .translation {
+      font-size: 1rem;
+      color: #ccc;
+      margin-top: 1.5rem;
+    }
+    @keyframes ashFall {
+      to {
+        transform: translate(var(--x-move), var(--y-move)) rotate(var(--angle));
+        opacity: 0;
+        color: #440000;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="verse">
+    <!-- Updated Sanskrit verse, syllable-wrapped -->
+    <span class="syllable">a</span><span class="syllable">pa</span><span class="syllable">re</span><span class="syllable"> </span>
+    <span class="syllable">kaa</span><span class="syllable">vya</span><span class="syllable">saM</span><span class="syllable">saa</span><span class="syllable">re</span><span class="syllable"> </span>
+    <span class="syllable">ka</span><span class="syllable">vi</span><span class="syllable">re</span><span class="syllable">va</span><span class="syllable"> </span>
+    <span class="syllable">pra</span><span class="syllable">jaa</span><span class="syllable">pa</span><span class="syllable">ti</span><span class="syllable">h|</span><span class="syllable"> </span>
+    <span class="syllable">ya</span><span class="syllable">thaa</span><span class="syllable">s</span><span class="syllable">mai</span><span class="syllable"> </span>
+    <span class="syllable">ro</span><span class="syllable">ca</span><span class="syllable">te</span><span class="syllable"> </span>
+    <span class="syllable">vi</span><span class="syllable">shva</span><span class="syllable">M</span><span class="syllable"> </span>
+    <span class="syllable">ta</span><span class="syllable">the</span><span class="syllable">dam</span><span class="syllable"> </span>
+    <span class="syllable">paa</span><span class="syllable">ri</span><span class="syllable">var</span><span class="syllable">ta</span><span class="syllable">te</span><span class="syllable">||</span>
+  </div>
+
+  <div class="translation">
+    In the limitless world of poetry, the poet alone is the lord of creation.<br>
+    Just as he enjoys the world so, too, he transforms it.
+  </div>
+    For every reader finds himself. The writer's work is merely a kind of<br>
+    optical instrument that makes it possible for the reader to discern<br>
+    what, without this piece, he would, perhaps, never have seen in himself.
+   </div>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const syllables = document.querySelectorAll(".syllable");
+      syllables.forEach((span) => {
+        const delay  = (Math.random() * 1.5).toFixed(2) + 's';
+        const duration = (1.5 + Math.random()).toFixed(2) + 's';
+        const angle  = (Math.random() * 60 - 30).toFixed(1) + 'deg';
+        const xMove  = (Math.random() * 60 - 30).toFixed(1) + 'px';
+        const yMove  = (50 + Math.random() * 100).toFixed(1) + 'px';
+
+        span.style.animation = `ashFall ${duration} ease-in ${delay} forwards`;
+        span.style.setProperty('--angle', angle);
+        span.style.setProperty('--x-move', xMove);
+        span.style.setProperty('--y-move', yMove);
+      });
+    });
+  </script>
+</body>
+</html>
