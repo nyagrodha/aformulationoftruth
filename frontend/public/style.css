@@ -1,7 +1,8 @@
 body {
   margin: 0;
   padding: 0;
-  background-color: #000;
+  background: linear-gradient(to bottom, #0d0f25, #1a3b40 60%, #faebd7);
+  background-attachment: fixed;
   font-family: 'Orbitron', sans-serif;
   color: #00ffff;
   overflow: hidden;
