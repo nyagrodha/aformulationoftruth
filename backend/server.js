@@ -60,28 +60,40 @@ app.get('/', (req, res) => {
   res.send('Hello worlds from /');
 });
 
-// Initialize SQLite database
-import sqlite3Pkg from 'sqlite3';
-const sqlite3 = sqlite3Pkg.verbose();
-const db = new sqlite3.Database('./database.sqlite', (err) => {
-  if (err) {
-    console.error('Failed to open database:', err.message);
-  } else {
-    db.run(`CREATE TABLE IF NOT EXISTS users (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      email TEXT UNIQUE,
-      token TEXT
-    );`);
+// Initialize PostgreSQL database
+import { Client } from 'pg';
 
-    db.run(`CREATE TABLE IF NOT EXISTS responses (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      user_id INTEGER,
-      question TEXT,
-      answer TEXT,
-      FOREIGN KEY(user_id) REFERENCES users(id)
-    );`);
-  }
+const client = new Client({
+  connectionString: process.env.DATABASE_URL
 });
+
+client.connect()
+  .then(() => {
+    console.log('Connected to PostgreSQL database');
+    
+    // Create tables if they don't exist
+    return client.query(`
+      CREATE TABLE IF NOT EXISTS users (
+        id SERIAL PRIMARY KEY,
+        email TEXT UNIQUE,
+        token TEXT
+      );
+    `);
+  })
+  .then(() => {
+    return client.query(`
+      CREATE TABLE IF NOT EXISTS responses (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER,
+        question TEXT,
+        answer TEXT,
+        FOREIGN KEY(user_id) REFERENCES users(id)
+      );
+    `);
+  })
+  .catch(err => {
+    console.error('Database connection error:', err);
+  });
 
 
 // email transport (replace with real credentials)
@@ -106,14 +118,15 @@ app.post('/auth/request', (req, res) => {
   const token = generateToken(email);
   const link = `http://localhost:${PORT}/auth/verify?token=${token}`;
 
-  db.run('INSERT OR IGNORE INTO users (email, token) VALUES (?, ?)', [email, token], (err) => {
-    if (err) {
-      return res.status(500).json({ error: 'Database error' });
-    }
-
-console.log(`🔗 Magic login link for ${email}: ${link}`);
-res.json({ message: 'Magic link (simulated)', link });
-  });
+  client.query('INSERT INTO users (email, token) VALUES ($1, $2) ON CONFLICT (email) DO UPDATE SET token = $2', [email, token])
+    .then(() => {
+      console.log(`🔗 Magic login link for ${email}: ${link}`);
+      res.json({ message: 'Magic link (simulated)', link });
+    })
+    .catch(err => {
+      console.error('Database error:', err);
+      res.status(500).json({ error: 'Database error' });
+    });
 });
 
 // Verify token
@@ -122,12 +135,17 @@ app.get('/auth/verify', (req, res) => {
 
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
-    db.get('SELECT * FROM users WHERE email = ?', [decoded.email], (err, user) => {
-      if (err || !user) {
-        return res.status(400).json({ error: 'Invalid user' });
-      }
-      res.json({ message: 'Logged in', user });
-    });
+    client.query('SELECT * FROM users WHERE email = $1', [decoded.email])
+      .then(result => {
+        if (result.rows.length === 0) {
+          return res.status(400).json({ error: 'Invalid user' });
+        }
+        res.json({ message: 'Logged in', user: result.rows[0] });
+      })
+      .catch(err => {
+        console.error('Database error:', err);
+        res.status(400).json({ error: 'Invalid user' });
+      });
   } catch (err) {
     res.status(401).json({ error: 'Invalid or expired token' });
   }
@@ -137,23 +155,26 @@ app.get('/auth/verify', (req, res) => {
 app.post('/proust', (req, res) => {
   const { email, responses } = req.body;
 
-  db.get('SELECT id FROM users WHERE email = ?', [email], (err, user) => {
-    if (err || !user) {
-      return res.status(400).json({ error: 'User not found' });
-    }
-
-    const stmt = db.prepare('INSERT INTO responses (user_id, question, answer) VALUES (?, ?, ?)');
-    for (const { question, answer } of responses) {
-      stmt.run(user.id, question, answer);
-    }
-
-    stmt.finalize((err) => {
-      if (err) {
-        return res.status(500).json({ error: 'Error saving responses' });
+  client.query('SELECT id FROM users WHERE email = $1', [email])
+    .then(result => {
+      if (result.rows.length === 0) {
+        return res.status(400).json({ error: 'User not found' });
       }
+
+      const userId = result.rows[0].id;
+      const insertPromises = responses.map(({ question, answer }) => 
+        client.query('INSERT INTO responses (user_id, question, answer) VALUES ($1, $2, $3)', [userId, question, answer])
+      );
+
+      return Promise.all(insertPromises);
+    })
+    .then(() => {
       res.json({ message: 'Responses saved' });
+    })
+    .catch(err => {
+      console.error('Database error:', err);
+      res.status(500).json({ error: 'Error saving responses' });
     });
-  });
 });
 
 //added to prevent crash
