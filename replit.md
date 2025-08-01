@@ -123,6 +123,7 @@ The application follows a modern full-stack architecture with clear separation b
 - `REPLIT_DOMAINS`: Deployment domain configuration
 
 ### Recent Changes: Latest modifications with dates
+- **2025-08-01**: Fixed PDF generation issues: removed duplicate questions by deduplicating responses, fixed emoji encoding corruption by replacing with safe characters, maintained Sri Aurobindo quote as requested
 - **2025-02-01**: Implemented secure VPS storage API with AES-256-GCM encryption for Flokinet VPS hosting
 - **2025-02-01**: Added automatic questionnaire backup to VPS upon completion with integrity verification
 - **2025-02-01**: Created VPS health monitoring and manual backup endpoints for authenticated users
