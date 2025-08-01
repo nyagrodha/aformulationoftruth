@@ -12,7 +12,7 @@ const isAdmin = async (req: any, res: any, next: any) => {
   }
   
   // Check if user is admin (you can customize this logic)
-  const adminEmails = ['formitselfisemptiness@aformulationoftruth.com', 'eachmomenteverydayur@aformulationoftruth.com'];
+  const adminEmails = ['formitselfisemptiness@aformulationoftruth.com', 'eachmomenteverydayur@aformulationoftruth.com', 'thoughtlessness@aformulationoftruth.com'];
   const userEmail = req.user?.claims?.email;
   
   if (!userEmail || !adminEmails.includes(userEmail)) {
