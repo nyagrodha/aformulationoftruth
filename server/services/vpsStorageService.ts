@@ -18,6 +18,7 @@ interface SecureResponse {
 
 export class VPSStorageService {
   private config: VPSStorageConfig;
+  private isConfigured: boolean;
   
   constructor() {
     this.config = {
@@ -26,9 +27,8 @@ export class VPSStorageService {
       encryptionKey: process.env.VPS_ENCRYPTION_KEY || ''
     };
     
-    if (!this.config.vpsEndpoint || !this.config.apiKey || !this.config.encryptionKey) {
-      console.warn('VPS storage configuration incomplete. Check environment variables.');
-    }
+    // VPS storage is optional - only log if explicitly requested
+    this.isConfigured = !!(this.config.vpsEndpoint && this.config.apiKey && this.config.encryptionKey);
   }
 
   // AES-256-GCM encryption for maximum security
@@ -69,6 +69,10 @@ export class VPSStorageService {
 
   // Store encrypted response on VPS
   async storeResponse(sessionId: string, questionId: number, answer: string): Promise<boolean> {
+    if (!this.isConfigured) {
+      return false; // Silently skip if VPS not configured
+    }
+    
     try {
       const encryptedData = this.encrypt(answer);
       const timestamp = new Date().toISOString();
@@ -187,7 +191,9 @@ export class VPSStorageService {
       // Store session (with proper type casting)
       const sessionStored = await this.storeSession({
         ...session,
-        questionOrder: session.questionOrder as number[]
+        questionOrder: session.questionOrder as number[],
+        completedAt: session.completedAt || undefined,
+        shareId: session.shareId || undefined
       });
       
       // Store all responses
