@@ -19,6 +19,7 @@ interface SecureResponse {
 export class VPSStorageService {
   private config: VPSStorageConfig;
   private isConfigured: boolean;
+  private derivedKey: Buffer | null = null;
   
   constructor() {
     this.config = {
@@ -29,12 +30,21 @@ export class VPSStorageService {
     
     // VPS storage is optional - only log if explicitly requested
     this.isConfigured = !!(this.config.vpsEndpoint && this.config.apiKey && this.config.encryptionKey);
+    
+    // Derive proper 32-byte key for AES-256-GCM if configured
+    if (this.isConfigured) {
+      this.derivedKey = crypto.scryptSync(this.config.encryptionKey, 'salt', 32);
+    }
   }
 
   // AES-256-GCM encryption for maximum security
   private encrypt(text: string): { encrypted: string; iv: string; tag: string } {
+    if (!this.derivedKey) {
+      throw new Error('Encryption key not available');
+    }
+    
     const iv = crypto.randomBytes(16);
-    const cipher = crypto.createCipher('aes-256-gcm', this.config.encryptionKey);
+    const cipher = crypto.createCipheriv('aes-256-gcm', this.derivedKey, iv);
     cipher.setAAD(Buffer.from('formulation-of-truth', 'utf8'));
     
     let encrypted = cipher.update(text, 'utf8', 'hex');
@@ -50,7 +60,12 @@ export class VPSStorageService {
   }
 
   private decrypt(encryptedData: { encrypted: string; iv: string; tag: string }): string {
-    const decipher = crypto.createDecipher('aes-256-gcm', this.config.encryptionKey);
+    if (!this.derivedKey) {
+      throw new Error('Encryption key not available');
+    }
+    
+    const iv = Buffer.from(encryptedData.iv, 'hex');
+    const decipher = crypto.createDecipheriv('aes-256-gcm', this.derivedKey, iv);
     decipher.setAAD(Buffer.from('formulation-of-truth', 'utf8'));
     decipher.setAuthTag(Buffer.from(encryptedData.tag, 'hex'));
     
@@ -62,7 +77,10 @@ export class VPSStorageService {
 
   // Generate secure hash for integrity verification
   private generateHash(data: string): string {
-    return crypto.createHmac('sha256', this.config.encryptionKey)
+    if (!this.derivedKey) {
+      throw new Error('Encryption key not available');
+    }
+    return crypto.createHmac('sha256', this.derivedKey)
       .update(data)
       .digest('hex');
   }
