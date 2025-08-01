@@ -1,5 +1,5 @@
 // backend/routes/questions.js
-const express = require('express');
+import express from 'express';
 const router  = express.Router();
 
 const questions = [
@@ -13,4 +13,4 @@ router.get('/', (req, res) => {
   res.json({ questions });
 });
 
-module.exports = router;
+export default router;
