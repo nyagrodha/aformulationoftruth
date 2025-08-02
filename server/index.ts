@@ -69,7 +69,8 @@ app.use((req, res, next) => {
   }, () => {
     log(`serving on port ${port}`);
 
-    // Start the reminder service
-    reminderService.start();
+    // Temporarily disable reminder service to fix startup issue
+    // reminderService.start();
+    console.log('Server started successfully');
   });
 })();
