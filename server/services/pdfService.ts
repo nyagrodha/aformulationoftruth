@@ -32,21 +32,8 @@ class PDFService {
 
         let yPosition = 160;
 
-        // Remove duplicates and sort responses by display order
-        const uniqueResponses = responses.reduce((acc, response) => {
-          const existingIndex = acc.findIndex(r => r.questionId === response.questionId);
-          if (existingIndex >= 0) {
-            // Keep the more recent response (higher ID or later timestamp)
-            if (response.id > acc[existingIndex].id) {
-              acc[existingIndex] = response;
-            }
-          } else {
-            acc.push(response);
-          }
-          return acc;
-        }, [] as typeof responses);
-
-        const sortedResponses = uniqueResponses.sort((a, b) => {
+        // Sort responses by display order
+        const sortedResponses = responses.sort((a, b) => {
           const aOrder = questionService.getQuestionDisplayOrder(a.questionId);
           const bOrder = questionService.getQuestionDisplayOrder(b.questionId);
           return aOrder - bOrder;
@@ -70,22 +57,16 @@ class PDFService {
 
           yPosition += 30;
 
-          // Answer - clean text for PDF compatibility
-          const cleanAnswer = response.answer
-            // Replace common emojis with a placeholder
-            .replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, '◯')
-            // Replace other potentially problematic Unicode characters
-            .replace(/[^\u0000-\u007F\u00A0-\u00FF\u0100-\u017F\u0180-\u024F]/g, '?');
-
+          // Answer
           doc.fontSize(12)
              .fillColor('#424242')
-             .text(cleanAnswer, 50, yPosition, {
+             .text(response.answer, 50, yPosition, {
                width: 500,
                align: 'justify',
                lineGap: 5
              });
 
-          yPosition += doc.heightOfString(cleanAnswer, { width: 500, lineGap: 5 }) + 40;
+          yPosition += doc.heightOfString(response.answer, { width: 500, lineGap: 5 }) + 40;
         });
 
         // Add philosophical reflections page

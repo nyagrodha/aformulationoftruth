@@ -75,11 +75,11 @@
 }
 
 .neon-frame {
-  animation: pulse-glow 4.2s infinite alternate ease-in-out;
+  animation: pulse-glow 2.5s infinite alternate ease-in-out;
 }
 
 .neon-background {
-  animation: neon-background-pulse 14s infinite ease-in-out;
+  animation: neon-background-pulse 8s infinite ease-in-out;
 }
 
 @keyframes om-to-emerald {
@@ -96,12 +96,12 @@
 
 .om-symbol {
   display: inline-block;
-  animation: om-to-emerald 17s infinite ease-in-out;
+  animation: om-to-emerald 10s infinite ease-in-out;
 }
 
 .at-symbol {
   display: inline-block;
-  animation: at-to-gold 17s infinite ease-in-out;
+  animation: at-to-gold 10s infinite ease-in-out;
 }
 
 
