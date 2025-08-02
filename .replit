@@ -38,4 +38,4 @@ waitForPort = 5000
 localPort = 5000
 
 [agent]
-integrations = ["javascript_log_in_with_replit==1.0.0", "javascript_sendgrid==1.0.0"]
+integrations = ["javascript_object_storage==1.0.0", "javascript_log_in_with_replit==1.0.0", "javascript_sendgrid==1.0.0"]

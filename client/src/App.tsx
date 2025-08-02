@@ -13,6 +13,7 @@ import ReviewDeclinedPage from "@/pages/review-declined";
 import SharedQuestionnairePage from "@/pages/shared-questionnaire";
 import AdminPage from "@/pages/admin";
 import NotFoundPage from "@/pages/not-found";
+import AatmaarpanastutiPage from "@/pages/aatmaarpanastuti";
 
 function Router() {
   const { isAuthenticated, isLoading, error } = useAuth();
@@ -33,6 +34,7 @@ function Router() {
       {/* Public routes - always available */}
       <Route path="/auth-callback" component={AuthCallbackPage} />
       <Route path="/shared/:shareId" component={SharedQuestionnairePage} />
+      <Route path="/aatmaarpanastuti" component={AatmaarpanastutiPage} />
       
       {!isAuthenticated ? (
         <>
