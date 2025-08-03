@@ -1,3 +1,4 @@
+
 # Dependencies
 node_modules
 npm-debug.log*
@@ -11,6 +12,7 @@ build
 
 # Environment variables
 .env
+.env.*
 .env.local
 .env.development.local
 .env.test.local
