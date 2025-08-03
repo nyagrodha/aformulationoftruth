@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 
 # Dependencies
 node_modules
@@ -77,3 +78,12 @@ vps-server.js
 
 # Attached assets (likely temporary uploads)
 attached_assets/
+=======
+cat <<EOF > .gitignore
+node_modules/
+*.log
+*.sqlite
+.env
+.DS_Store
+EOF
+>>>>>>> e871c56b0f8ed39adbefe0e36112abf283611c64

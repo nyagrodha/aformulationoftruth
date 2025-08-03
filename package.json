@@ -1,7 +1,10 @@
 {
   "dependencies": {
     "express": "^4.21.2",
+<<<<<<< HEAD
     "keycloak-connect": "^23.0.7",
+=======
+>>>>>>> e871c56b0f8ed39adbefe0e36112abf283611c64
     "nodemailer": "^7.0.5"
   }
 }

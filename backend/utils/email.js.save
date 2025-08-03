@@ -1,0 +1,55 @@
+//Apotropaic Link email.js
+import nodemailer from 'nodemailer';
+import { readFileSync } from 'fs';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+import dotenv from 'dotenv';
+
+//load environment variables
+dotenv.config();
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+
+// Transporter using variables defined in .env
+const transporter = nodemailer.createTransport({
+  host: 'smtp.mail.me.com',
+  port: 587,
+  secure: false, // this is to be upddated to encrypted later
+  auth: {
+    user: process.env.ICLOUD_USER,
+    pass: process.env.ICLOUD_PASS
+  }
+});
+
+export async function sendMagicLink(toEmail, token) {
+  const templatePath = join(__dirname, '../templates/magicLink.html');
+  let htmlBody = readFileSync(templatePath, 'utf8');
+
+  const magicLinkUrl = `https://aformulationoftruth.com/auth/verify?token=${token}`;
+  const formattedDate = new Date().toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
+
+  const currentHour = new Date().getHours();
+  const morningMessage = currentHour < 12
+  const currentMinute = new Date().getMinutes();
+
+  
+  htmlBody = htmlBody
+    .replace('$MAGIC_LINK', magicLinkUrl)
+    .replace('$DATE', formattedDate)
+    .replace('$MORNING_MESSAGE', morningMessage);
+
+  const info = await transporter.sendMail({
+    from: `"Karuppacāmi Nirmeyappōr" <${process.env.ICLOUD_USER}>`,
+    to: toEmail,
+    subject: 'the apotropaic link ✨🕳️ requested',
+    html: htmlBody
+  });
+
+  return info;
+}

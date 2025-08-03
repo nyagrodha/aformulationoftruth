@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 
 {
   "name": "proust-questionnaire-backend",
@@ -32,3 +33,27 @@
     "drizzle-kit": "^0.20.6"
   }
 }
+=======
+{
+  "name": "proust-app",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}{
+  "name": "proust-app",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}
+}
+>>>>>>> e871c56b0f8ed39adbefe0e36112abf283611c64
