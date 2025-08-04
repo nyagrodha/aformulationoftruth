@@ -2,61 +2,63 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>site under construction</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>this page is under construction</title>
   <style>
-    /* Page styling */
+    /* Full-page dark green bordering on black */
     html, body {
       margin: 0;
       padding: 0;
       height: 100%;
-      background: #001a00; /* almost black with green tint */
+      background: #011; /* almost black with a hint of green */
       display: flex;
-      align-items: center;
       justify-content: center;
-      flex-direction: column;
-    }
-    body {
-      border: 10px solid #003300; /* dark green border */
-      box-sizing: border-box;
+      align-items: center;
+      overflow: hidden;
     }
 
-    /* Main title */
-    .title {
-      font-family: 'Courier New', monospace;
-      font-size: 10vw;
-      color: #00ff00; /* neon green */
-      text-shadow: 0 0 20px #00ff00;
+    /* Huge, blocky, almost-black letters with a faint neon backlight */
+    h1 {
+      font-family: 'Impact', 'Arial Black', sans-serif;
+      font-size: 8vw;
+      color: #011; /* match the background */
+      text-shadow:
+        0 0 6px rgba(57,255,20,0.15),
+        0 0 12px rgba(57,255,20,0.15);
       margin: 0;
-      white-space: nowrap;
+      line-height: 1;
+      text-transform: uppercase;
+      letter-spacing: 0.5vw;
     }
 
-    /* Scrolling mantra */
-    .scroll-container {
-      position: relative;
+    /* Small scrolling mantra along the bottom */
+    .scrolling-mantra {
+      position: absolute;
+      bottom: 2vh;
       width: 100%;
       overflow: hidden;
-      height: 2.5rem;
-      margin-top: 1rem;
-    }
-    .scroll-text {
-      position: absolute;
       white-space: nowrap;
-      font-family: 'Noto Serif Devanagari', serif;
-      font-size: 2rem;
-      color: #009900;
-      animation: scroll-left 8s linear infinite;
     }
+    .scrolling-mantra span {
+      display: inline-block;
+      font-family: 'Noto Serif Devanagari', serif;
+      font-size: 2.8rem;
+      color: #39ff14;
+      opacity: 0.75;
+      animation: scroll-left 12s linear infinite;
+    }
+
     @keyframes scroll-left {
-      0%   { transform: translateX(100%); }
-      100% { transform: translateX(-100%); }
+      from { transform: translateX(100%); }
+      to   { transform: translateX(-100%); }
     }
   </style>
 </head>
 <body>
-  <h1 class="title">aformulationoftruth</h1>
-  <div class="scroll-container">
-    <div class="scroll-text">ॐ कालभैरवाय नमः OM BHAIRAVA ॐ कालभैरवाय नमः BHAIRAVA OM ॐ कालभैरवाय नमः</div>
+  <h1>aformulationoftruth</h1>
+
+  <div class="scrolling-mantra">
+    <span>ॐ&nbsp;कालभैरवाय&nbsp;नमः&nbsp;BHAIRAVA&nbsp;OM&nbsp;ॐ&nbsp;कालभैरवाय नमः&nbsp;OM&nbsp;BHAIRAVA&nbsp;ॐ कालभैरवाय नमः&nbsp;</span>
   </div>
 </body>
 </html>
