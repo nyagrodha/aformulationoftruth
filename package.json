@@ -1,10 +1,19 @@
 {
   "dependencies": {
+    "@replit/vite-plugin-runtime-error-modal": "^0.0.3",
+    "@vitejs/plugin-react": "^4.7.0",
+    "connect-pg-simple": "^10.0.0",
+    "drizzle-orm": "^0.44.4",
+    "drizzle-zod": "^0.8.2",
     "express": "^4.21.2",
-<<<<<<< HEAD
+    "express-session": "^1.18.2",
     "keycloak-connect": "^23.0.7",
-=======
->>>>>>> e871c56b0f8ed39adbefe0e36112abf283611c64
-    "nodemailer": "^7.0.5"
+    "memoizee": "^0.4.17",
+    "nodemailer": "^7.0.5",
+    "openid-client": "^6.6.2",
+    "passport": "^0.7.0",
+    "pdfkit": "^0.17.1",
+    "pg": "^8.16.3",
+    "vite": "^7.0.6"
   }
 }

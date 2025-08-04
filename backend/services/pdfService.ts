@@ -24,13 +24,15 @@ class PDFService {
 
       // Responses
       responses.forEach((response, index) => {
+      if (response.questionId !== null) {  
         const question = questionService.getQuestion(response.questionId);
         if (!question) return;
 
-        doc.fontSize(12).font('Helvetica-Bold').text(`${index + 1}. ${question.text}`);
+	doc.fontSize(11).font('Helvetica').text(response.answer || '', { indent: 20 });
         doc.moveDown(0.5);
-        doc.fontSize(11).font('Helvetica').text(response.answer, { indent: 20 });
+        doc.fontSize(11).font('Helvetica').text(response.answer || '', { indent: 20 });
         doc.moveDown(1.5);
+     }
 
         if (doc.y > 700) {
           doc.addPage();

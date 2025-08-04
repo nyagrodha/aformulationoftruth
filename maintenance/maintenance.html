@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>site under construction</title>
+  <style>
+    /* Page styling */
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      background: #001a00; /* almost black with green tint */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+    }
+    body {
+      border: 10px solid #003300; /* dark green border */
+      box-sizing: border-box;
+    }
+
+    /* Main title */
+    .title {
+      font-family: 'Courier New', monospace;
+      font-size: 10vw;
+      color: #00ff00; /* neon green */
+      text-shadow: 0 0 20px #00ff00;
+      margin: 0;
+      white-space: nowrap;
+    }
+
+    /* Scrolling mantra */
+    .scroll-container {
+      position: relative;
+      width: 100%;
+      overflow: hidden;
+      height: 2.5rem;
+      margin-top: 1rem;
+    }
+    .scroll-text {
+      position: absolute;
+      white-space: nowrap;
+      font-family: 'Noto Serif Devanagari', serif;
+      font-size: 2rem;
+      color: #009900;
+      animation: scroll-left 8s linear infinite;
+    }
+    @keyframes scroll-left {
+      0%   { transform: translateX(100%); }
+      100% { transform: translateX(-100%); }
+    }
+  </style>
+</head>
+<body>
+  <h1 class="title">aformulationoftruth</h1>
+  <div class="scroll-container">
+    <div class="scroll-text">ॐ कालभैरवाय नमः OM BHAIRAVA ॐ कालभैरवाय नमः BHAIRAVA OM ॐ कालभैरवाय नमः</div>
+  </div>
+</body>
+</html>
