@@ -1,105 +1,32 @@
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital@0;1&family=Orbitron:wght@400;700&display=swap');
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>a formultion of truth</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Noto+Serif+Devanagari&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+  <nav>
+    <ul>
+      <li><a href="/about">a reflection on transmission of texts through time</a></li>
+      <li><a href="/contact">if you'd like a word, or to advertize, or in any other way support</a></li>
+      <li><a href="/hidden">shibboleths</a></li>
+      <li><a href="/login">goon on</a></li>
+    </ul>
+  </nav>
 
-/* GLOBAL RESET */
-* { margin: 0; padding: 0; box-sizing: border-box; }
+  <main>
+    <section class="hero">
+      <h1>@aformulationoftruth.com</h1>
+      <p>∞ a slow experiment ∞</p>
+      <a href="/about" class="cta">Discover</a>
+    </section>
+  </main>
 
-/* BASE BACKGROUND */
-html, body {
-  height: 100%;
-  overflow-x: hidden;
-  background: #111 url('images/damask-bg.jpg') center/cover no-repeat;
-  font-family: 'Playfair Display', serif;
-  color: #f7f3e8;
-}
-
-/* HERO SECTION (FULL VIEWPORT) */
-.hero {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 100vh;
-}
-
-/* NEON-ROCOCO FRAME */
-.frame {
-  position: relative;
-  padding: 3rem 5rem;
-  background: rgba(0,0,0,0.6);
-  border: 12px solid #d4af37;         /* burnished gold */
-  border-radius: 16px;
-  box-shadow:
-    0 0 20px #00ffff,                 /* neon aqua */
-    inset 0 0 15px #ff00ff,           /* neon pink */
-    0 0 30px #9400d3;                 /* blacklight purple */
-  cursor: pointer;
-  animation: pulse-glow 2.5s infinite alternate ease-in-out;
-}
-
-.frame::before, .frame::after {
-  content: '';
-  position: absolute;
-  top: -8px; left: -8px; right: -8px; bottom: -8px;
-  border-radius: 20px;
-  border: 4px solid transparent;
-  pointer-events: none;
-}
-.frame::before {
-  border-image: linear-gradient(#00ffff, #00ffff) 1;
-}
-.frame::after {
-  border-image: linear-gradient(#ff00ff, #ff00ff) 1;
-}
-
-.frame-text {
-  font-size: 2.5rem;
-  text-transform: lowercase;
-  text-shadow:
-    0 0 8px #00ffff,
-    0 0 12px #ff00ff;
-}
-
-/* PULSING ANIMATION */
-@keyframes pulse-glow {
-  from {
-    box-shadow:
-      0 0 15px #00ffff,
-      inset 0 0 10px #ff00ff,
-      0 0 25px #9400d3;
-  }
-  to {
-    box-shadow:
-      0 0 30px #00ffff,
-      inset 0 0 20px #ff00ff,
-      0 0 45px #9400d3;
-  }
-}
-
-/* DISABLE NEON */
-.frame.no-glow {
-  animation: none !important;
-  box-shadow: none !important;
-}
-.frame.no-glow::before,
-.frame.no-glow::after {
-  border-image: none !important;
-  border-color: transparent !important;
-}
-
-/* ABOUT SECTION */
-.about {
-  background: rgba(0,0,0,0.75);
-  padding: 4rem 2rem;
-  line-height: 1.6;
-}
-.about h2 {
-  font-family: 'Orbitron', sans-serif;
-  font-size: 2rem;
-  letter-spacing: 0.1em;
-  color: #ccff00;    /* bright earth tone */
-  text-transform: uppercase;
-  margin-bottom: 1rem;
-}
-.about p {
-  max-width: 700px;
-  margin-bottom: 1.5rem;
-}
+  <footer>
+    <p>© 2025 a formulation of truth</p>
+  </footer>
+</body>
+</html>

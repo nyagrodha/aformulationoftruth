@@ -1,64 +1,200 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>this page is under construction</title>
-  <style>
-    /* Full-page dark green bordering on black */
-    html, body {
-      margin: 0;
-      padding: 0;
-      height: 100%;
-      background: #011; /* almost black with a hint of green */
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      overflow: hidden;
-    }
+ <meta charset="UTF-8">
+ <meta name="viewport" content="width=device-width,initial-scale=1">
+ <title>this page is under construction</title>
+ <!-- Import handwritten Tamil fonts and Lacquer from Google Fonts -->
+ <link href="https://fonts.googleapis.com/css2?family=Kalam:wght@300;400;700&family=Noto+Sans+Tamil:wght@400;700&family=Mukti:wght@400&display=swap" rel="stylesheet">
+ <link href="https://fonts.googleapis.com/css2?family=Lacquer&display=swap" rel="stylesheet">
+ <style>
+/* Full-page dark green bordering on black */
+html, body {
+ margin: 0;
+ padding: 0;
+ height: 100%;
+ background: #011; /* almost black with a hint of green */
+ color: #011;
+ font-family: 'Lacquer', sans-serif;
+ display: flex;
+ justify-content: center;
+ align-items: center;
+ overflow: hidden;
+ flex-direction: column;
+ position: relative;
+ }
 
-    /* Huge, blocky, almost-black letters with a faint neon backlight */
-    h1 {
-      font-family: 'Impact', 'Arial Black', sans-serif;
-      font-size: 8vw;
-      color: #011; /* match the background */
-      text-shadow:
-        0 0 6px rgba(57,255,20,0.15),
-        0 0 12px rgba(57,255,20,0.15);
-      margin: 0;
-      line-height: 1;
-      text-transform: uppercase;
-      letter-spacing: 0.5vw;
-    }
+/* Tamil watermark background */
+.tamil-watermark {
+ position: absolute;
+ top: 15%;
+ left: 50%;
+ transform: translate(-50%, -50%);
+ font-family: 'Kalam', 'Noto Sans Tamil', cursive;
+ font-size: 7vw;
+ color: transparent;
+ z-index: 1;
+ pointer-events: none;
+ white-space: nowrap;
+ background: linear-gradient(90deg, 
+   #ff4500 0%, #ff8c00 15%, #ff1493 30%, #00bfff 45%, #32cd32 60%,
+   #ffff00 75%, #ff4500 90%, #ff8c00 100%);
+ background-size: 400% 400%;
+ -webkit-background-clip: text;
+ background-clip: text;
+ -webkit-text-fill-color: transparent;
+ animation: tamilColorFlow 12s ease-in-out infinite;
+ text-shadow: 
+   -1px -1px 0 rgba(255,69,0,0.3),
+   1px -1px 0 rgba(255,69,0,0.3),
+   -1px 1px 0 rgba(255,69,0,0.3),
+   1px 1px 0 rgba(255,69,0,0.3);
+ opacity: 0.6;
+ font-weight: 400;
+ }
 
-    /* Small scrolling mantra along the bottom */
-    .scrolling-mantra {
-      position: absolute;
-      bottom: 2vh;
-      width: 100%;
-      overflow: hidden;
-      white-space: nowrap;
-    }
-    .scrolling-mantra span {
-      display: inline-block;
-      font-family: 'Noto Serif Devanagari', serif;
-      font-size: 2.8rem;
-      color: #39ff14;
-      opacity: 0.75;
-      animation: scroll-left 12s linear infinite;
-    }
+@keyframes tamilColorFlow {
+ 0%, 100% { background-position: 0% 50%; }
+ 50% { background-position: 100% 50%; }
+}
+/* Huge, blocky, almost-black letters with a faint neon backlight */
+h1 {
+ font-family: 'Lacquer', 'Impact', sans-serif;
+ font-size: 6vw;
+ font-weight: bold;
+ color: transparent;
+ background: linear-gradient(45deg, 
+   #ff8800 0%, #ff6600 10%, #888 20%, #ff3366 30%, #6699ff 40%,
+   #ff8800 50%, #888 60%, #ff3366 70%, #6699ff 80%, #ff6600 90%, #ff8800 100%);
+ background-size: 300% 300%;
+ -webkit-background-clip: text;
+ background-clip: text;
+ -webkit-text-fill-color: transparent;
+ animation: colorShift 8s ease-in-out infinite;
+ margin: 8vh 0 6vh 0;
+ line-height: 1.1;
+ text-transform: lowercase;
+ letter-spacing: 0.2vw;
+ text-align: center;
+ position: relative;
+ z-index: 2;
+ text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+ }
 
-    @keyframes scroll-left {
-      from { transform: translateX(100%); }
-      to   { transform: translateX(-100%); }
-    }
-  </style>
+@keyframes colorShift {
+ 0%, 100% { background-position: 0% 50%; }
+ 50% { background-position: 100% 50%; }
+}
+
+/* Subtitle paragraph styling */
+p {
+ font-family: 'Lacquer', 'Kalam', sans-serif;
+ font-size: 4vw;
+ font-weight: normal;
+ color: transparent;
+ background: linear-gradient(225deg, 
+   #0077ff 0%, #3366ff 10%, #777 20%, #cc3399 30%, #8866ff 40%,
+   #0077ff 50%, #777 60%, #cc3399 70%, #8866ff 80%, #3366ff 90%, #0077ff 100%);
+ background-size: 300% 300%;
+ -webkit-background-clip: text;
+ background-clip: text;
+ -webkit-text-fill-color: transparent;
+ animation: colorShiftReverse 8s ease-in-out infinite reverse;
+ margin-top: 6vh;
+ text-align: center;
+ line-height: 1.2;
+ position: relative;
+ z-index: 2;
+ text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+ }
+
+/* Special styling for the word "absence" */
+p .absence {
+ animation: absenceFade 25s ease-in-out forwards;
+ display: inline-block;
+}
+
+@keyframes absenceFade {
+ 0% { 
+   color: transparent;
+   background: linear-gradient(225deg, #0077ff, #3366ff, #777, #cc3399, #8866ff);
+   -webkit-background-clip: text;
+   background-clip: text;
+   -webkit-text-fill-color: transparent;
+ }
+ 20% { 
+   color: #011;
+   background: none;
+   -webkit-text-fill-color: #011;
+ }
+ 40% { 
+   color: #00ffff;
+   background: none;
+   -webkit-text-fill-color: #00ffff;
+   text-shadow: 0 0 12px rgba(0,255,255,0.8), 0 0 24px rgba(0,255,255,0.6);
+ }
+ 80% { 
+   color: #00ffff;
+   background: none;
+   -webkit-text-fill-color: #00ffff;
+   text-shadow: 0 0 12px rgba(0,255,255,0.8), 0 0 24px rgba(0,255,255,0.6);
+ }
+ 100% { 
+   color: #00ffff;
+   background: none;
+   -webkit-text-fill-color: #00ffff;
+   text-shadow: 0 0 6px rgba(0,255,255,0.4), 0 0 12px rgba(0,255,255,0.2);
+   opacity: 0.3;
+ }
+}
+
+@keyframes colorShiftReverse {
+ 0%, 100% { background-position: 100% 50%; }
+ 50% { background-position: 0% 50%; }
+}
+
+/* Small scrolling mantra along the bottom */
+.scrolling-mantra {
+ position: absolute;
+ bottom: 2vh;
+ width: 100%;
+ overflow: hidden;
+ white-space: nowrap;
+ z-index: 2;
+ }
+.scrolling-mantra span {
+ display: inline-block;
+ font-family: 'Kalam', 'Noto Sans Tamil', cursive;
+ font-size: 2.8rem;
+ color: #39ff14;
+ opacity: 0.75;
+ animation: scroll-left 12s linear infinite;
+ }
+
+/* Tamil text in the scrolling mantra */
+.tamil-text {
+ font-family: 'Kalam', 'Noto Sans Tamil', cursive;
+ font-weight: 400;
+}
+
+@keyframes scroll-left {
+ from { transform: translateX(100%); }
+ to { transform: translateX(-100%); }
+ }
+</style>
 </head>
 <body>
-  <h1>aformulationoftruth</h1>
-
-  <div class="scrolling-mantra">
-    <span>ॐ&nbsp;कालभैरवाय&nbsp;नमः&nbsp;BHAIRAVA&nbsp;OM&nbsp;ॐ&nbsp;कालभैरवाय नमः&nbsp;OM&nbsp;BHAIRAVA&nbsp;ॐ कालभैरवाय नमः&nbsp;</span>
-  </div>
+ <!-- Tamil watermark background -->
+ <div class="tamil-watermark">
+  சத்தியத்தின் உருவாக்கம்
+ </div>
+ 
+ <h1>just as around an inside cl4y the emptiness of a pot</h1>
+ 
+ <p>So may3s recognize the self as an <span class="absence">absence</span> that words alone create the possibility for</p>
+ 
+ <div class="scrolling-mantra">
+ <span>ॐ&nbsp;कालभैरवाय&nbsp;नमः&nbsp;அருவமே உருவம்; உருவமே அருவம்.&nbsp;அருவமே உருவம்; உருவமே அருவம்.&nbsp;<span class="tamil-text">ஓம்&nbsp;அருவமே உருவம்; உருவமே அருவம்.&nbsp;அருவமே உருவம்; உருவமே அருவம்.ः</span>&nbsp;ॐ&nbsp;कालभैरवाय नमः&nbsp;அருவமே உருவம்; உருவமே அருவம்.&nbsp;அருவமே உருவம்; உருவமே அருவம்.&nbsp;ॐ कालभैरवाय नमः&nbsp;</span>
+ </div>
 </body>
 </html>
