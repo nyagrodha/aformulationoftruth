@@ -1,24 +1,15 @@
+// ecosystem.config.cjs
 module.exports = {
   apps: [{
-    name: 'backend-server',
-    script: './backend/server.js',
+    name: 'a4mulagupta',
+    cwd: '/var/www/aformulationoftruth/backend',
+    script: './src/server.js',       // ✅ not dist
+    node_args: '--enable-source-maps',
+    exec_mode: 'fork',
     instances: 1,
-    env: {
-      NODE_ENV: 'production',
-      PORT: 3000
-    },
-    log_file: '/var/log/nodeapp/backend.log',
-    error_file: '/var/log/nodeapp/backend-error.log'
-  }, {
-    name: 'vps-storage',
-    script: './vps-server.js',
-    instances: 1,
-    env: {
-      NODE_ENV: 'production',
-      PORT: 3001,
-      VPS_API_KEY: 'D3C9A1CEF965DCFA7C541FB250B42E3F'
-    },
-    log_file: '/var/log/nodeapp/vps.log',
-    error_file: '/var/log/nodeapp/vps-error.log'
+    env: { NODE_ENV: 'production', PORT: '3000' },
+    error_file: '/var/log/pm2/a4m.err.log',
+    out_file:   '/var/log/pm2/a4m.out.log',
+    time: true
   }]
-};
+}

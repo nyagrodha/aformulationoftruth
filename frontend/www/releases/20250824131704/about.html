@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>a formulation of truth — About</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <style>
+    /* Embed SaiIndira Tamil font */
+    @font-face {
+      font-family: 'SaiIndira';
+      src: url('/assets/fonts/SaiIndira.ttf') format('truetype');
+      font-display: swap;
+    }
+    /* Embed RampartOne font */
+    @font-face {
+      font-family: 'RampartOne';
+      src: url('/assets/fonts/RampartOne-Regular.ttf') format('truetype');
+      font-display: swap;
+    }
+
+    :root{
+      --c1:#1b1b1b;
+      --c2:#393967;
+      --c3:#aaaaaa;
+      --c4:#570827;
+      --c5:#063921;
+      --c6:#3c00d2;
+      --c7:#ffcc33;
+
+      --bg:var(--c1);
+      --fg:var(--c3);
+      --muted:var(--c2);
+      --accent:var(--c6);
+      --danger:var(--c4);
+      --success:var(--c5);
+
+      --card:#202020;
+      --border:#2a2a2a;
+      --radius:20px;
+      --shadow:0 10px 30px rgba(0,0,0,.4);
+    }
+
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; background:var(--bg); color:var(--fg);
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, 'Helvetica Neue', Arial, sans-serif;
+    }
+    a{color:var(--accent); text-decoration:none; transition: all 0.3s ease;}
+    a:focus{outline:none}
+
+    .nav a:hover{
+      color: var(--fg);
+      text-shadow: 0 0 6px var(--danger), 0 0 16px var(--danger), 2px 2px 6px var(--danger);
+    }
+
+    .tamil{ font-family: 'SaiIndira', serif; color: var(--c7); display:block; font-size: clamp(2.5rem, 6vw, 5rem); line-height:1.2; text-align:center; text-shadow:0 0 8px var(--c7), 0 0 20px var(--c7); }
+    .gold-flash{ color:var(--c7); text-shadow:0 0 6px var(--c7), 0 0 14px var(--c7) }
+    .blurb{ color:#cfcfcf; opacity:.92; line-height:1.7; margin:8px 0 0 }
+
+    .brand-text {
+      font-family: 'SaiIndira', 'RampartOne', Orbitron, sans-serif;
+      font-size: 2.2rem;
+      font-weight: normal;
+      color: var(--accent);
+      text-shadow: 0 0 8px var(--accent), 0 0 16px var(--accent);
+    }
+
+    header.nav{position:sticky; top:0; z-index:10; background: linear-gradient(180deg, rgba(27,27,27,.95), rgba(27,27,27,.75)); border-bottom:1px solid #232323;}
+    .nav-wrap{max-width:1100px; margin:0 auto; padding:12px 18px; display:flex; align-items:center; gap:18px}
+    .brand{display:flex; align-items:center; gap:10px;}
+    .brand-badge{width:14px; height:14px; border-radius:50%; background:var(--accent); box-shadow:0 0 10px var(--accent), 0 0 20px var(--accent)}
+    .nav-spacer{flex:1}
+    .nav a{opacity:.9}
+    main{display:grid; place-items:stretch}
+  </style>
+</head>
+<body>
+  <div class="site">
+    <header class="nav">
+      <div class="nav-wrap">
+        <div class="brand" aria-label="site brand">
+          <span class="brand-badge" aria-hidden="true"></span>
+          <span class="brand-text">a formulation of truth</span>
+        </div>
+        <div class="nav-spacer"></div>
+        <nav class="nav" aria-label="primary">
+          <a href="/" style="margin-right:14px">Home</a>
+          <a href="/about" aria-current="page" style="margin-right:14px">About</a>
+          <a href="/contact" style="margin-right:14px">Contact</a>
+          <a href="/login">Login</a>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div class="hero-card">
+          <div class="copy">
+            <div class="eyebrow">About the questionnaire</div>
+            <h1>
+              <span class="tamil">அருவமே உருவம் — உருவமே அருவம்</span>
+            </h1>
+            <h2 style="text-align:center">form itself is emptiness — emptiness alone is form</h2>
+            <p class="blurb">
+              Working in a hard-hearts-not-necessary zone this project bears imprint the impossibility I discover as a crackhead attempting to project a<em>unified self</em> coherent on any given day. Since in this life alone I seems to be handily six to seven versions itself. I-I witness this slow marinating in flesh one wrestle  with being a person— to act as one ought, to live up to the <a href="/Categorical_imp.html">categorical imperative</a>. Yet what is it to be a self through time? Having risked saying something thoughtless, we may not want to identify a self as unified or coherent in any singular person. How do I become such different persons in life, yet am still called by the same name? Who is this self, this I am? I call myself a self‑inquisitive intellect operator working in a hard‑hearts‑not‑necessary zone. Righteousness, embodiment, and imagination intertwine: the bonafide tool belt of building, the staircase in abstract space, the democratic tongue that gives voice. A <span class="tamil">शब्दार्थमर्मज्ञः</span> — memory‑intimate architect of sound and meaning — trespass here, please, earthenware being, smile‑thrower.
+            </p>
+            <div class="cta-row">
+              <a class="btn alt" href="/login">Login</a>
+              <a class="btn ghost" href="/a4m_public.asc" download>GPG Key</a>
+            </div>
+          </div>
+
+          <div class="copy" role="complementary">
+            <h2 style="margin:0 0 8px; font-family:Orbitron, sans-serif; color:var(--fg)">What to expect</h2>
+            <hr class="rule"/>
+            <div class="features">
+              <div class="feature"><span class="dot"></span><div class="muted">With industry-standard SHA-256 your webmaster takes as legitimate anyone's right to privacy.encryption protects each user's responses</div></div>
+              <div class="feature"><span class="dot"></span><div class="muted">Magic‑link login; no passwords. Keys can be published <em>or</em> kept private.</div></div>
+              <div class="feature"><span class="dot"></span><div class="muted">SQLite/Postgres storage with explicit consent paths; data portability first.</div></div>
+              <div class="feature"><span class="dot"></span><div class="muted">A living <em>About</em>: we assure control over your responses and choice over who may read them.</div></div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section class="section"> ... </section>
+    </main>
+
+    <footer> ... </footer>
+  </div>
+  <a class="proceed" href="/login" title="Proceed to login" aria-label="Proceed to login"> ... </a>
+  <script>document.getElementById('year').textContent=new Date().getFullYear();</script>
+</body>
+</html>

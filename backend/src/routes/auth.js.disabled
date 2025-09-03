@@ -1,0 +1,108 @@
+// backend/src/auth/auth.js (ESM)
+import express from 'express';
+import crypto from 'node:crypto';
+import { sendMagicLink } from '../utils/email.js'; // mailer (Postfix/iCloud)
+
+const router = express.Router();
+
+// --- helpers ---------------------------------------------------------------
+function b64u(x)  { return Buffer.from(x).toString('base64url'); }
+function ub64u(x) { return Buffer.from(x, 'base64url').toString(); }
+
+const SECRET = process.env.MAGIC_LINK_SECRET || process.env.SESSION_SECRET;
+if (!SECRET) throw new Error('MAGIC_LINK_SECRET missing');
+
+function sign(data) {
+  return crypto.createHmac('sha256', SECRET).update(data).digest('base64url');
+}
+
+// Light but sane validator; tighten as desired
+const EMAIL_RX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/i;
+// Optional: block throwaway domains
+const DISPOSABLE_RX = /\b(maildrop\.cc|10minutemail|guerrillamail|tempmail|sharklasers|trashmail)\b/i;
+
+// --- 1) start: accept email, send magic link --------------------------------
+router.post('/start', async (req, res) => {
+  const raw = String(req.body?.email || '').trim();
+  const email = raw.toLowerCase();
+
+  if (!EMAIL_RX.test(raw) || DISPOSABLE_RX.test(email)) {
+    console.warn('auth.start: reject email', { email });
+    return res.status(400).json({ ok: false, error: 'bad_email' });
+  }
+
+  const expMs = 15 * 60 * 1000; // 15 minutes
+  const exp = Date.now() + expMs;
+  const data = `${b64u(email)}.${exp}`;
+  const token = `${data}.${sign(data)}`;
+
+  // Bind browser -> verify step with short-lived cookie
+  const preSid = crypto.randomUUID();
+  res.cookie('sid', preSid, {
+    httpOnly: true, secure: true, sameSite: 'Lax', path: '/', maxAge: expMs,
+  });
+
+  const verifyUrl = `https://aformulationoftruth.com/api/auth/verify?token=${token}`;
+
+  try {
+    console.log('auth.start: SENDING', { to: email, verifyUrl });
+    await sendMagicLink({ toEmail: raw, magicLink: verifyUrl });
+    console.log('auth.start: mail accepted', { to: email });
+    return res.status(200).json({ ok: true });
+  } catch (err) {
+    console.error('auth.start: mail error', {
+      to: email,
+      code: err?.code,
+      command: err?.command,
+      responseCode: err?.responseCode,
+      message: err?.message,
+    });
+    return res.status(502).json({ ok: false, error: 'mail_send_failed' });
+  }
+});
+
+// --- 2) verify: consume token, set logged-in cookie, redirect ----------------
+router.get('/verify', (req, res) => {
+  const token = String(req.query.token || '');
+  const [eB64, expStr, sig] = token.split('.');
+  if (!eB64 || !expStr || !sig) {
+    console.warn('auth.verify: bad token structure');
+    return res.status(400).send('Bad token');
+  }
+
+  const data = `${eB64}.${expStr}`;
+  const want = sign(data);
+
+  const okSig = crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(want));
+  if (!okSig) {
+    console.warn('auth.verify: invalid signature');
+    return res.status(401).send('Invalid signature');
+  }
+
+  const exp = Number(expStr);
+  if (!Number.isFinite(exp) || Date.now() > exp) {
+    console.warn('auth.verify: expired token');
+    return res.status(401).send('Expired');
+  }
+
+  const email = ub64u(eB64);
+
+  // TODO: upsert user + create session record
+  const sessionId = crypto.randomUUID();
+
+  res.cookie('sid', sessionId, {
+    httpOnly: true, secure: true, sameSite: 'Lax', path: '/', maxAge: 7 * 24 * 60 * 60 * 1000,
+  });
+
+  console.log('auth.verify: session issued', { email, sessionId });
+  return res.redirect(303, '/questionnaire');
+});
+
+// --- 3) me: reflect current user (stub) -------------------------------------
+router.get('/me', async (req, res) => {
+  const sid = req.cookies?.sid || null;
+  // TODO: load session by sid
+  return res.json({ ok: true, user: sid ? { email: 'placeholder@example.com' } : null });
+});
+
+export default router;

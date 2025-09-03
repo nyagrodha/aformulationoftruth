@@ -1,7 +1,7 @@
 
 import nodemailer from 'nodemailer';
-import type { Response } from '../shared/schema';
-import { questionService } from './questionService';
+import type { Response } from '../shared/schema.js';
+import { questionService } from './questionService.js';
 
 class EmailService {
   public transporter: nodemailer.Transporter;

@@ -1,38 +1,170 @@
-.App {
-  text-align: center;
-}
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Neon Space Background</title>
+<style>
+  :root{
+    --c1: #071a3d;   /* deep navy */
+    --c2: #0a2254;   /* mid navy */
+    --c3: #2a1f61;   /* indigo */
+    --c4: #3a2a7a;   /* violet */
+    --neon-pink: #ff00ff;
+    --neon-cyan: #00ffff;
+    --neon-lime: #ccff00;
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
+    /* tune these to taste */
+    --twinkle-min: 0.35;
+    --twinkle-max: 0.9;
+    --star-count-small: 220;
+    --star-count-medium: 90;
+    --star-count-large: 35;
   }
-}
 
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
-}
-
-.App-link {
-  color: #61dafb;
-}
-
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
+  /* Reset */
+  html, body { height:100%; }
+  body{
+    margin:0;
+    overflow:hidden;    /* background is full canvas */
+    background:#000;
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
   }
-  to {
-    transform: rotate(360deg);
+
+  /* ===== BACKDROP ===== */
+  .bg{
+    position:fixed;
+    inset:0;
+    z-index:-1;
+    /* layered gradients for the blue→violet glow */
+    background:
+      radial-gradient(1200px 700px at 70% 10%, rgba(255,255,255,0.05), transparent 60%),
+      radial-gradient(900px 600px at 25% 35%, rgba(0, 255, 255, 0.06), transparent 70%),
+      radial-gradient(600px 400px at 75% 80%, rgba(204, 255, 0, 0.05), transparent 70%),
+      linear-gradient(160deg, var(--c1) 0%, var(--c2) 40%, var(--c3) 70%, var(--c4) 100%);
+    /* soft vignette */
+    box-shadow: inset 0 0 200px 80px rgba(0,0,0,0.55);
   }
+
+  /* Subtle aurora band along bottom (like your screenshot) */
+  .bg::after{
+    content:"";
+    position:absolute; inset:auto 0 0 0; height:9vmin;
+    background:
+      radial-gradient(60% 120% at 50% 170%, rgba(0,255,255,0.25), transparent 60%),
+      radial-gradient(60% 120% at 30% 160%, rgba(255,0,255,0.25), transparent 60%),
+      radial-gradient(60% 120% at 70% 160%, rgba(204,255,0,0.22), transparent 60%);
+    filter: blur(18px);
+    opacity:.85;
+    pointer-events:none;
+  }
+
+  /* Neon edge rails (magenta glow) */
+  .neon-edges::before,
+  .neon-edges::after{
+    content:"";
+    position:absolute; top:0; bottom:0; width:3px;
+    background: linear-gradient(180deg, var(--neon-pink), var(--neon-cyan));
+    box-shadow:
+      0 0 10px   var(--neon-pink),
+      0 0 22px   var(--neon-pink),
+      0 0 44px   var(--neon-cyan);
+    opacity:.85;
+  }
+  .neon-edges::before{ left:0; }
+  .neon-edges::after { right:0; }
+
+  /* ===== STARFIELDS ===== */
+  .stars, .stars2, .stars3{
+    position:absolute; inset:0;
+    background-repeat: repeat;
+    pointer-events:none;
+  }
+
+  /* We make “dot textures” with radial-gradients, then tile them with background-size */
+  .stars{
+    background-image:
+      radial-gradient(1px 1px at 14px 19px, rgba(255,255,255,.9), transparent 40%),
+      radial-gradient(1px 1px at 45px 72px, rgba(255,255,255,.85), transparent 40%),
+      radial-gradient(1px 1px at 84px 33px, rgba(255,255,255,.7), transparent 40%),
+      radial-gradient(1px 1px at 22px 98px, rgba(255,255,255,.8), transparent 40%);
+    background-size: 100px 100px;
+    opacity:.7;
+    animation: twinkle 6.8s linear infinite;
+  }
+  .stars2{
+    background-image:
+      radial-gradient(1.5px 1.5px at 30px 20px, rgba(255,255,255,.95), transparent 45%),
+      radial-gradient(1.5px 1.5px at 10px 80px, rgba(255,255,255,.85), transparent 45%),
+      radial-gradient(1.5px 1.5px at 70px 55px, rgba(255,255,255,.9), transparent 45%);
+    background-size: 120px 120px;
+    opacity:.75;
+    animation: twinkle 9s linear infinite reverse;
+  }
+  .stars3{
+    background-image:
+      radial-gradient(2px 2px at 40px 40px, rgba(255,255,255,1), transparent 50%),
+      radial-gradient(2px 2px at 80px 10px, rgba(255,255,255,.9), transparent 50%);
+    background-size: 140px 140px;
+    opacity:.65;
+    animation: twinkle 12s linear infinite;
+  }
+
+  /* A slow parallax drift to keep it alive */
+  .stars{    animation-name: twinkle, drift1; animation-duration: 6.8s, 120s; }
+  .stars2{   animation-name: twinkle, drift2; animation-duration: 9s,   180s; }
+  .stars3{   animation-name: twinkle, drift3; animation-duration: 12s,  240s; }
+
+  @keyframes twinkle{
+    0%, 100%{ opacity: var(--twinkle-min); }
+    50%     { opacity: var(--twinkle-max); }
+  }
+  @keyframes drift1{
+    0%{ background-position: 0 0;   }
+    100%{ background-position: -4000px -2000px; }
+  }
+  @keyframes drift2{
+    0%{ background-position: 0 0;   }
+    100%{ background-position: 3000px -2500px; }
+  }
+  @keyframes drift3{
+    0%{ background-position: 0 0;   }
+    100%{ background-position: -2000px 3000px; }
+  }
+
+  /* Optional: a faint overall neon bloom for extra vibe */
+  .glow{
+    position:absolute; inset:0;
+    box-shadow:
+      inset 0 0 120px rgba(255,0,255,0.12),
+      inset 0 0 200px rgba(0,255,255,0.10);
+    mix-blend-mode: screen;
+    pointer-events:none;
+  }
+</style>
+</head>
+ <body>
+  <!-- Background canvas -->
+  <div class="bg neon-edges">
+    <div class="stars"></div>
+    <div class="stars2"></div>
+    <div class="stars3"></div>
+    <div class="glow"></div>
+  </div>
+function Login() {
+   return (
+    <>
+      <div className="bg neon-edges">
+        <div className="stars"></div>
+        <div className="stars2"></div>
+        <div className="stars3"></div>
+        <div className="glow"></div>
+      </div>
+      <div className="login-container">
+        {/* your login form or auth UI here */}
+      </div>
+    </>
+  );
 }
+ </body>
+</html>

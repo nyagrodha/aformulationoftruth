@@ -1,0 +1,20 @@
+import app from "./app.js";
+const port = Number(process.env.PORT || 5000);
+app.listen(port, () => console.log(`Server listening on ${port}`));
+
+/* === A4M AUTH START === */
+import authRouter from "./routes/auth.js";
+import express from "express"; // ensure express import is present at top if not already
+
+// If not already present earlier in the file:
+if (!global.__A4M_JSON_WIRED__) {
+  try {
+    // @ts-ignore - guard to avoid duplicate middleware if appended twice
+    const app = (globalThis.app ||= undefined);
+    // if you keep your app in a different var, ignore this guard; just make sure:
+    //   app.use(express.json()); app.use(express.urlencoded({ extended: true }));
+  } catch {}
+}
+/* === A4M AUTH END === */
+
+// Mount (duplicate mounting is harmless, but try to place near your other routes)

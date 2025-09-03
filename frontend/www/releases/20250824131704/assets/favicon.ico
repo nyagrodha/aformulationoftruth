@@ -1,0 +1,93 @@
+  <!-- Background circle -->
+  <circle cx="128" cy="128" r="120" fill="#2a2a3e" stroke="#eee" stroke-width="2"/>
+
+  <!-- Seven rays of light emanating downward -->
+
+  <defs>
+    <!-- Seven different gradients for rainbow rays -->
+    <!-- Violet -->
+    <linearGradient id="ray1" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#8b00ff;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#8b00ff;stop-opacity:0.1" />
+    </linearGradient>
+    <!-- Indigo -->
+    <linearGradient id="ray2" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#4b0082;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#4b0082;stop-opacity:0.1" />
+    </linearGradient>
+    <!-- Blue -->
+    <linearGradient id="ray3" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#0066ff;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0066ff;stop-opacity:0.1" />
+    </linearGradient>
+    <!-- Green -->
+    <linearGradient id="ray4" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#00ff00;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#00ff00;stop-opacity:0.1" />
+    </linearGradient>
+    <!-- Yellow -->
+    <linearGradient id="ray5" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#ffff00;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#ffff00;stop-opacity:0.1" />
+    </linearGradient>
+    <!-- Orange -->
+    <linearGradient id="ray6" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#ff8800;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#ff8800;stop-opacity:0.1" />
+    </linearGradient>
+    <!-- Red -->
+    <linearGradient id="ray7" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#ff0000;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#ff0000;stop-opacity:0.1" />
+    </linearGradient>
+
+```
+<!-- Single ray path (no fill specified here) -->
+<path id="ray" d="M -4,-5 L -3,80 L -6,95 L 0,105 L 6,95 L 3,80 L 4,-5 Z" />
+```
+
+  </defs>
+
+  <!-- Group for all seven rays -->
+
+  <g transform="translate(128, 140)">
+    <!-- Ray 1: Violet (leftmost) -->
+    <use href="#ray" transform="rotate(-30)" fill="url(#ray1)" opacity="1"/>
+    <!-- Ray 2: Indigo -->
+    <use href="#ray" transform="rotate(-20)" fill="url(#ray2)" opacity="1"/>
+    <!-- Ray 3: Blue -->
+    <use href="#ray" transform="rotate(-10)" fill="url(#ray3)" opacity="1"/>
+    <!-- Ray 4: Green (center) -->
+    <use href="#ray" transform="rotate(0)" fill="url(#ray4)" opacity="1"/>
+    <!-- Ray 5: Yellow -->
+    <use href="#ray" transform="rotate(10)" fill="url(#ray5)" opacity="1"/>
+    <!-- Ray 6: Orange -->
+    <use href="#ray" transform="rotate(20)" fill="url(#ray6)" opacity="1"/>
+    <!-- Ray 7: Red (rightmost) -->
+    <use href="#ray" transform="rotate(30)" fill="url(#ray7)" opacity="1"/>
+  </g>
+
+  <!-- Tamil number 2 (௨) -->
+
+<text x="128" y="135"
+font-family="'Noto Sans Tamil', 'Tamil Sangam MN', serif"
+font-size="110"
+font-weight="bold"
+text-anchor="middle"
+fill="#ffffff"
+stroke="#ffd700"
+stroke-width="2.5">௨</text>
+
+  <!-- Subtle glow effect around the number -->
+
+<text x="128" y="135"
+font-family="'Noto Sans Tamil', 'Tamil Sangam MN', serif"
+font-size="110"
+font-weight="bold"
+text-anchor="middle"
+fill="none"
+stroke="#ffd700"
+stroke-width="4"
+opacity="0.4"
+filter="blur(3px)">௨</text>
+</svg>

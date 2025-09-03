@@ -1,0 +1,78 @@
+// backend/src/app.js
+import express from 'express';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+import session from 'express-session';
+
+import SQLiteStoreFactory from 'connect-sqlite3';
+
+import ensureQuestionOrder from './middleware/questionOrder.js';
+import questionsRouter from './routes/questions.js';
+import answersRouter   from './routes/answers.js'; // keep yours if present
+// backend/src/app.js
+
+
+const SQLiteStore = connectSqlite3(session);
+
+// import authRouter   from './routes/auth.js';    // keep yours if present
+
+const SQLiteStore = SQLiteStoreFactory(session);
+
+// ── App init ──────────────────────────────────────────────────────────────
+const app = express();
+
+// ✅ Place these TWO lines immediately after creating `app`
+app.disable('x-powered-by');
+app.set('trust proxy', 1);
+
+// Core middleware
+app.use(express.json());
+
+// (optional) If you use CORS or compression, mount them here
+import cors from 'cors'; import compression from 'compression';
+app.use(cors()); app.use(compression());
+
+// ── Sessions (before anything that uses req.session) ──────────────────────
+app.use(session({
+  store: new SQLiteStore({ db: 'sessions.sqlite', dir: './.data' }),
+  secret: process.env.SESSION_SECRET || 'dev-secret-change-me',
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    httpOnly: true,
+    sameSite: 'lax',
+    secure: process.env.NODE_ENV === 'production', // send only over HTTPS in prod
+    maxAge: 1000 * 60 * 60 * 24 // 1 day
+  }
+}));
+
+// ── Question ordering (must run before /api/questions) ───────────────────
+app.use(ensureQuestionOrder);
+
+// ── API routes ───────────────────────────────────────────────────────────
+app.use('/api/questions', questionsRouter);
+app.use('/api/answers',   answersRouter);
+// app.use('/auth', authRouter);
+
+// ── Static landing page / SPA fallback ───────────────────────────────────
+// Point this to wherever your landing page's index.html lives.
+// If you’re serving a simple static page: backend/public/index.html
+// If you’re serving a React build: frontend/build/index.html
+const __filename = fileURLToPath(import.meta.url);
+const __dirname  = path.dirname(__frontend/build/index.html);
+
+// OPTION A: simple static in backend/public
+//  const publicDir = path.join(__dirname, '../public');
+//   app.use(express.static(publicDir));
+
+// OPTION B (React build): uncomment and point to your built frontend
+const publicDir = path.join(__dirname, '../../frontend/build');
+app.use(express.static(publicDir));
+
+// Single-page-app / catch-all: send index.html for non-API routes
+app.get('*', (_req, res) => {
+  res.sendFile(path.join(publicDir, 'index.html'));
+});
+
+export default app;

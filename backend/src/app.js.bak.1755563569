@@ -1,0 +1,79 @@
+// backend/src/app.js
+import express from 'express';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+import session from 'express-session';
+import SQLiteStoreFactory from 'connect-sqlite3';
+
+import ensureQuestionOrder from './middleware/questionOrder.js';
+import questionsRouter from './routes/questions.js';
+import answersRouter   from './routes/answers.js'; // keep yours if present
+// import authRouter   from './routes/auth.js';    // keep yours if present
+
+const SQLiteStore = SQLiteStoreFactory(session);
+
+// ── App init ──────────────────────────────────────────────────────────────
+const app = express();
+
+// ✅ Place these TWO lines immediately after creating `app`
+app.disable('x-powered-by');
+app.set('trust proxy', 1);
+
+// Core middleware
+app.use(express.json());
+
+// Load and stash questions (0..34 ids)
+const questionList = (Array.isArray(rawQuestions) ? rawQuestions : (rawQuestions?.questions || []))
+  .map(q => ({ ...q, id: Number(q.id) }))
+  .sort((a, b) => a.id - b.id);
+app.set('questions', questionList);
+
+// Load and stash questions (0..34 ids)
+const questionList = (Array.isArray(rawQuestions) ? rawQuestions : (rawQuestions?.questions || []))
+  .map(q => ({ ...q, id: Number(q.id) }))
+  .sort((a, b) => a.id - b.id);
+app.set('questions', questionList);
+
+// ── Sessions (before anything that uses req.session) ──────────────────────
+app.use(session({
+  store: new SQLiteStore({ db: 'sessions.sqlite', dir: './.data' }),
+  secret: process.env.SESSION_SECRET || '51194b2bdd2c2c19e70cffef5988a477280143d6c797e357aebaa2e70d00a587f924ca10ce4c0c86f9029cb39f6178530a226e89d4b8e3929eee934984ea13a9',
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    httpOnly: true,
+    sameSite: 'lax',
+    secure: process.env.NODE_ENV === 'production', // send only over HTTPS in prod
+    maxAge: 1000 * 60 * 60 * 24 // 1 day
+  }
+}));
+
+// ── Question ordering (must run before /api/questions) ───────────────────
+app.use(ensureQuestionOrder);
+
+// ── API routes ───────────────────────────────────────────────────────────
+app.use('/api/questions', questionsRouter);
+app.use('/api/answers',   answersRouter);
+// app.use('/auth', authRouter);
+
+// ── Static landing page / SPA fallback ───────────────────────────────────
+// Point this to wherever your landing page's index.html lives.
+// If you’re serving a simple static page: backend/public/index.html
+// If you’re serving a React build: frontend/build/index.html
+const __filename = fileURLToPath(import.meta.url);
+const __dirname  = path.dirname('/var/www/aformulationoftruth/frontend/build/index.html');
+
+// OPTION A: simple static in backend/public
+//  const publicDir = path.join('/var/www/aformulationoftruth/frontend/public');   app.use(express.static(publicDir));
+
+// OPTION B (React build): uncomment and point to your built frontend
+const publicDir = path.join(__dirname, 'var/www/aformulationoftruth/frontend/build');
+// app.use(express.static(publicDir));
+
+// Single-page-app / catch-all: send index.html for non-API routes
+app.get('*', (_req, res) => {
+  res.sendFile(path.join(publicDir, 'index.html'));
+});
+
+export default app;

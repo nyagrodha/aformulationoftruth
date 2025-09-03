@@ -1,0 +1,19 @@
+export default function About() {
+  return (
+    <section className="panel">
+      <h1>About</h1>
+      <p>
+        This site has been a long while in the making. A minimal, evolving experiment in self‑inquiry. The interface stays quiet;
+        your answers carry the color.
+      </p>
+      <ul>
+        <li>No tracking. No ads.</li>
+        <li>Export available. Keep your key.</li>
+        <li>Questions rotate; a few are fixed.</li>
+      </ul>
+      <p className="muted">
+        PGP: <a href="/a4m_public.asc">a4m_public.asc</a>
+      </p>
+    </section>
+  );
+}

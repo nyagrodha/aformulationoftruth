@@ -1,14 +1,10 @@
 import axios from 'axios';
 
+// Same-origin calls, send session cookie
 const api = axios.create({
-  baseURL: process.env.REACT_APP_API_URL || 'http://localhost:3000',
-});
-
-// If a JWT is stored, send it on each request
-api.interceptors.request.use(config => {
-  const token = localStorage.getItem('token');
-  if (token) config.headers.Authorization = `Bearer ${token}`;
-  return config;
+  baseURL: 'var/www/questionnaire/frontend/did somebody ',                 // hits your Express app via the same domain
+  withCredentials: true,
+  headers: { 'Content-Type': 'application/json' }
 });
 
 export default api;

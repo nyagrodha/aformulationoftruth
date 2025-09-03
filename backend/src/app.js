@@ -1,28 +1,40 @@
-// backend/src/app.js
+// backend/src/app.js (ESM)
 import express from 'express';
-import path from 'path';
-import { fileURLToPath } from 'url';
-
-// ← Add these two lines
-import questionsRouter from '../routes/questions.js';
-import answersRouter   from '../routes/answers.js';
+import authRouter from './auth/auth.js';
 
 const app = express();
 
-//parse JSON bodies
+// trust proxy when behind Apache
+app.set('trust proxy', 1);
+
+// Security + body parsing
+app.disable('x-powered-by');
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname  = path.dirname(__filename);
-const publicDir = path.join(__dirname, '../public');
+// Mount API routers BEFORE any static/catchall
+// We mount at BOTH /auth and /api/auth for compatibility with old calls.
+app.use('/auth', authRouter);
+app.use('/api/auth', authRouter);
 
-// ← Now these routers are defined!
-app.use('/api/questions', questionsRouter);
-app.use('/api/answers',   answersRouter);
+// Lightweight health probe
+app.get('/api/health', (req, res) => {
+  res.json({ ok: true, service: 'a4mula', env: process.env.NODE_ENV || 'development' });
+});
 
-//3 akk other GETs -> serve React's index.html
-app.get('*', (req, res) => {
-  res.sendFile(path.join(publicDir, 'index.html'));
+// Debug: list top-level routes/methods (helps confirm mounts)
+app.get('/api/__routes', (_req, res) => {
+  const out = [];
+  for (const layer of app._router?.stack || []) {
+    if (layer.route?.path) {
+      const methods = Object.keys(layer.route.methods || {})
+        .filter((m) => layer.route.methods[m])
+        .map((m) => m.toUpperCase())
+        .sort();
+      out.push({ path: layer.route.path, methods });
+    }
+  }
+  res.json(out);
 });
 
 export default app;

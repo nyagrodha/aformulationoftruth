@@ -1,13 +1,150 @@
-body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+/* src/index.css */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* optional: theme variables relying on ThemeProvider's html.dark/html.neon */
+html.light { --bg: #fdfdfd; --fg: #111; }
+html.dark  { --bg: #0b0b0f; --fg: #e8e8ef; }
+html.neon  { --bg: #000; --fg: #ccff00; font-family: 'Orbitron', system-ui, sans-serif; }
+
+body { background: var(--bg); color: var(--fg); }
+
+/* Fonts (Orbitron for neon headings; Inter fallback) */
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@400;600&display=swap');
+
+@layer base {
+  :root {
+    --elec-cyan: #00ffff;
+    --elec-magenta: #ff00ff;
+    --elec-lime: #ccff00;
+    --panel: #0f0e22f0;
+    --stroke: #ffffff22;
+  }
+
+  html, body { height: 100%; }
+  body {
+    @apply relative overflow-x-hidden bg-[#0c0a1d] text-slate-200;
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+  }
+
+  /* Starfield (depth) */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      radial-gradient(ellipse at center, rgba(255,255,255,0.10) 0%, transparent 40%),
+      radial-gradient(circle at 12% 18%, rgba(255,255,255,0.08) 0%, transparent 30%),
+      radial-gradient(circle at 85% 76%, rgba(255,255,255,0.08) 0%, transparent 30%);
+    background-size: 110px 110px, 300px 300px, 400px 400px;
+    z-index: -2;
+    pointer-events: none;
+  }
+
+  /* Nebula (animated color wash) */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse at 70% 30%, #ff00ff30, transparent 55%),
+      radial-gradient(ellipse at 30% 70%, #ff8c0020, transparent 55%),
+      radial-gradient(ellipse at center,  #00ffff20, transparent 65%);
+    animation: nebula-glow 27s ease-in-out infinite alternate;
+    z-index: -1;
+    pointer-events: none;
+    filter: saturate(1.3);
+  }
+
+  @keyframes nebula-glow {
+    0%   { transform: translate3d(0,0,0) scale(1);   filter: hue-rotate(0deg) blur(0px);   }
+    50%  { transform: translate3d(-1%,1%,0) scale(1.03); filter: hue-rotate(25deg) blur(1px); }
+    100% { transform: translate3d(1%,-1%,0) scale(1.06); filter: hue-rotate(-20deg) blur(0.5px); }
+  }
 }
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+/* Components */
+@layer components {
+  .font-orbitron { font-family: Orbitron, Inter, ui-sans-serif, system-ui; }
+
+  .card-glass {
+    @apply relative rounded-2xl p-6 sm:p-8;
+    background: var(--panel);
+    box-shadow:
+      0 10px 40px rgba(0,0,0,.55),
+      0 0 0 1px var(--stroke) inset;
+    backdrop-filter: blur(6px);
+  }
+
+  .neon-head {
+    @apply font-orbitron text-3xl sm:text-4xl font-black tracking-wide text-center;
+    background: radial-gradient(circle at 30% 50%, var(--elec-cyan), var(--elec-magenta), var(--elec-lime));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    text-shadow:
+      0 0 10px rgba(0,255,255,.35),
+      0 0 18px rgba(255,0,255,.25);
+  }
+
+  .neon-sub {
+    @apply text-center text-sm sm:text-base text-slate-300;
+    text-shadow: 0 0 10px rgba(0,255,255,.15);
+  }
+
+  .input-neon {
+    @apply w-full rounded-lg px-4 py-3 bg-[#0b0b1d] text-slate-100 outline-none;
+    border: 1px solid #2a2944;
+    box-shadow:
+      0 0 0 0 rgba(0,255,255,0),
+      inset 0 0 0 1px rgba(255,255,255,0.05);
+    transition: box-shadow .2s, border-color .2s, transform .06s;
+  }
+  .input-neon:focus {
+    border-color: #2df5ff;
+    box-shadow:
+      0 0 15px rgba(0,255,255,.25),
+      0 0 45px rgba(255,0,255,.15);
+    transform: translateY(-1px);
+  }
+
+  .btn-neon {
+    @apply inline-flex items-center justify-center rounded-lg px-5 py-3 font-semibold;
+    color: #0b0b0b;
+    background: linear-gradient(90deg, var(--elec-cyan), var(--elec-magenta), var(--elec-lime));
+    background-size: 200% 100%;
+    border: 1px solid #00f5ff44;
+    box-shadow:
+      0 8px 28px rgba(0,255,255,.25),
+      0 0 0 1px rgba(255,255,255,.08) inset;
+    transition: transform .08s ease, filter .2s ease, background-position .4s ease;
+  }
+  .btn-neon:hover {
+    background-position: 100% 0;
+    filter: saturate(1.1) brightness(1.03);
+    transform: translateY(-1px);
+  }
+  .btn-neon:active { transform: translateY(0); }
+
+  .hint { @apply text-xs text-slate-400 text-center mt-3; }
+
+  /* thin glowing border wrapper */
+  .glow-wrap { position: relative; }
+  .glow-wrap::before {
+    content:'';
+    position: absolute; inset: -2px;
+    border-radius: 20px;
+    pointer-events: none;
+    background: conic-gradient(from 0deg,
+      rgba(0,255,255,.0),
+      rgba(0,255,255,.35),
+      rgba(255,0,255,.25),
+      rgba(204,255,0,.25),
+      rgba(0,255,255,.0)
+    );
+    filter: blur(14px);
+    opacity: .65;
+    z-index: -1;
+  }
 }

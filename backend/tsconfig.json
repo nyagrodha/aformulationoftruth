@@ -1,21 +1,19 @@
-
 {
-  "include": ["**/*"],
-  "exclude": ["node_modules", "build", "dist"],
   "compilerOptions": {
-    "incremental": true,
-    "noEmit": true,
-    "module": "ESNext",
+    "target": "ES2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "lib": ["ES2023"],
     "strict": true,
-    "lib": ["esnext"],
     "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,
-    "allowImportingTsExtensions": true,
-    "moduleResolution": "bundler",
-    "baseUrl": ".",
+    "resolveJsonModule": true,
+    "outDir": "dist",
+    "rootDir": ".",
     "types": ["node"],
-    "paths": {
-      "@shared/*": ["./shared/*"]
-    }
-  }
+    "sourceMap": true
+  },
+  "include": ["./**/*.ts", "./**/*.tsx"],
+  "exclude": ["dist", "node_modules", "tests", "smoke-test.ts"]
 }

@@ -1,7 +1,7 @@
 
 import PDFDocument from 'pdfkit';
-import type { Response } from '../shared/schema';
-import { questionService } from './questionService';
+import type { Response } from '../shared/schema.js';
+import { questionService } from './questionService.js';
 
 class PDFService {
   async generateFormulationOfTruthPDF(responses: Response[], questionOrder: number[]): Promise<Buffer> {
@@ -12,7 +12,7 @@ class PDFService {
       });
 
       const chunks: Buffer[] = [];
-      doc.on('data', (chunk) => chunks.push(chunk));
+      doc.on('data', (chunk: Buffer) => chunks.push(chunk));
       doc.on('end', () => resolve(Buffer.concat(chunks)));
       doc.on('error', reject);
 

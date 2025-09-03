@@ -1,423 +1,399 @@
-import { db } from './db';
-import { users, questionnaireSessions, responses } from './shared/schema';
-import { eq, and, desc } from 'drizzle-orm';
-import { v4 as uuidv4 } from 'uuid';
-import crypto from 'crypto';
+// ─────────────────────────────────────────────────────────────
+// SECTION: imports (top of file)
+// ─────────────────────────────────────────────────────────────
+import { db } from './db.js'
+import {
+  users,
+  questionnaireSessions,
+  responses as responsesTable,
+} from './shared/schema.js'
+import { eq, and, desc } from 'drizzle-orm'
+import { v4 as uuidv4 } from 'uuid'
+import crypto from 'crypto'
 
-/**
- * Enhanced Storage Service with Integrated Encryption
- * 
- * This service extends your existing PostgreSQL storage to include
- * transparent encryption for response content. The beauty of this approach
- * is that your application logic remains unchanged while gaining the security
- * benefits of encrypted storage.
- * 
- * Think of this as adding a security layer that sits between your application
- * and the database, automatically encrypting sensitive content.
- */
-
+// ─────────────────────────────────────────────────────────────
+// SECTION: local types
+// ─────────────────────────────────────────────────────────────
 interface EncryptedData {
-  encrypted: string;
-  iv: string;
-  tag: string;
+  encrypted: string   // base64
+  iv: string          // base64 (12-byte)
+  tag: string         // base64 (16-byte auth tag)
 }
 
-interface EncryptedResponse {
-  id: string;
-  sessionId: string;
-  questionId: number;
-  encryptedAnswer: string; // This contains the JSON-serialized EncryptedData
-  hash: string; // Integrity verification
-  createdAt: Date;
-  updatedAt: Date;
-}
+type AnyRow = Record<string, unknown> & { id?: string | number; answer?: string | null }
 
 class EnhancedStorage {
-  private encryptionKey: string;
-  private isInitialized: boolean = false;
+  private encryptionKey: string
+  private isInitialized = false
 
   constructor() {
-    // Use the same encryption key pattern as before
-    this.encryptionKey = process.env.VPS_ENCRYPTION_KEY || this.generateSecureKey();
+    const envKey = process.env.VPS_ENCRYPTION_KEY?.trim()
+    this.encryptionKey = envKey && envKey.length > 0
+      ? envKey
+      : EnhancedStorage.generateSecureKey()
   }
 
-  /**
-   * Initialize the encryption service
-   * This ensures we have proper encryption capabilities
-   */
+  private static generateSecureKey(): string {
+    const key = crypto.randomBytes(32).toString('hex')
+    console.warn(
+      '[storage] Generated DEV encryption key. Store VPS_ENCRYPTION_KEY securely:',
+      key
+    )
+    return key
+  }
+
+  // ───────────────────────────────────────────────────────────
+  // SECTION: one-time init
+  // ───────────────────────────────────────────────────────────
   private async initialize(): Promise<void> {
-    if (this.isInitialized) return;
-    
+    if (this.isInitialized) return
     if (!this.encryptionKey) {
-      throw new Error('Encryption key not configured. Set VPS_ENCRYPTION_KEY environment variable.');
+      throw new Error('Encryption key not configured. Set VPS_ENCRYPTION_KEY.')
     }
-    
-    this.isInitialized = true;
-    console.log('Enhanced storage with encryption initialized');
+    this.isInitialized = true
+    console.log('[storage] encryption initialized')
   }
 
-  /**
-   * Generate a secure encryption key if none is provided
-   */
-  private generateSecureKey(): string {
-    const key = crypto.randomBytes(32).toString('hex');
-    console.warn('Generated new encryption key. Store this securely in your environment variables:', key);
-    return key;
-  }
+  // ───────────────────────────────────────────────────────────
+  // SECTION: key helpers (exactly ONE getKey)
+  // ───────────────────────────────────────────────────────────
+  private getKey(): Buffer {
+    const raw = this.encryptionKey.trim()
+    // Accept base64 or hex; else utf8 padded/trimmed to 32 bytes (dev)
+    if (raw.startsWith('hex:')) {
+	const h = raw.slice(4);
+	const buf = Buffer.from(h, 'hex');
+	if (buf.length !== 32) throw new Error('hex key must be 32 bytes (64 hex chars).');
+	return buf;
+    }
+    if (/^[0-9a-fA-F]{64}$/.test(raw)) return Buffer.from(raw, 'hex');
+    if (/^[A-Za-z0-9+/=]{43,}$/.test(raw)) {
+	const buf = Buffer.from(raw, 'base64');
+	if (buf.length === 32) return buf;
+    }
+    const utf8 = Buffer.from(raw, 'utf8');
+    if (utf8.length < 32) {
+	return Buffer.concat([utf8, crypto.randomBytes(32 - utf8.length)]).subarray(0, 32);
+    }
+    return utf8.subarray( 0, 32);
+}
 
-  /**
-   * Encrypt response text using AES-256-GCM
-   * This provides both confidentiality and authenticity
-   */
-  private encryptResponse(text: string): EncryptedData {
-    const iv = crypto.randomBytes(16);
-    const cipher = crypto.createCipher('aes-256-gcm', this.encryptionKey);
-    
-    // Set Additional Authenticated Data for extra security context
-    cipher.setAAD(Buffer.from('formulation-of-truth-responses', 'utf8'));
-    
-    let encrypted = cipher.update(text, 'utf8', 'hex');
-    encrypted += cipher.final('hex');
-    
-    const tag = cipher.getAuthTag();
-    
+  // ───────────────────────────────────────────────────────────
+  // SECTION: crypto (AES-256-GCM with 12-byte IV)
+  // ───────────────────────────────────────────────────────────
+  private encryptResponse(plain: string): EncryptedData {
+    const key = this.getKey()
+    const iv = crypto.randomBytes(12) // 96-bit IV per GCM guidance
+    const cipher = crypto.createCipheriv('aes-256-gcm', key, iv)
+    cipher.setAAD(Buffer.from('formulation-of-truth-responses', 'utf8'))
+
+    const enc = Buffer.concat([cipher.update(plain, 'utf8'), cipher.final()])
+    const tag = cipher.getAuthTag()
+
     return {
-      encrypted,
-      iv: iv.toString('hex'),
-      tag: tag.toString('hex')
-    };
+      encrypted: enc.toString('base64'),
+      iv: iv.toString('base64'),
+      tag: tag.toString('base64'),
+    }
   }
 
-  /**
-   * Decrypt response text and verify integrity
-   */
-  private decryptResponse(encryptedData: EncryptedData): string {
-    const decipher = crypto.createDecipher('aes-256-gcm', this.encryptionKey);
-    decipher.setAAD(Buffer.from('formulation-of-truth-responses', 'utf8'));
-    decipher.setAuthTag(Buffer.from(encryptedData.tag, 'hex'));
-    
-    let decrypted = decipher.update(encryptedData.encrypted, 'hex', 'utf8');
-    decrypted += decipher.final('utf8');
-    
-    return decrypted;
+  private decryptResponse(payload: EncryptedData): string {
+    const key = this.getKey()
+    const iv = Buffer.from(payload.iv, 'base64')
+    const tag = Buffer.from(payload.tag, 'base64')
+
+    const decipher = crypto.createDecipheriv('aes-256-gcm', key, iv)
+    decipher.setAAD(Buffer.from('formulation-of-truth-responses', 'utf8'))
+    decipher.setAuthTag(tag)
+
+    const dec = Buffer.concat([
+      decipher.update(Buffer.from(payload.encrypted, 'base64')),
+      decipher.final(),
+    ])
+    return dec.toString('utf8')
   }
 
-  /**
-   * Generate integrity hash for tamper detection
-   */
-  private generateIntegrityHash(sessionId: string, questionId: number, encryptedAnswer: string): string {
-    const dataToHash = `${sessionId}:${questionId}:${encryptedAnswer}`;
-    return crypto.createHmac('sha256', this.encryptionKey)
-      .update(dataToHash)
-      .digest('hex');
+  // Optional: HMAC for extra integrity (over the already-authed ciphertext)
+  private generateIntegrityHash(
+    sessionId: string,
+    questionId: number,
+    encryptedAnswer: string
+  ): string {
+    return crypto
+      .createHmac('sha256', this.getKey())
+      .update(`${sessionId}:${questionId}:${encryptedAnswer}`)
+      .digest('hex')
   }
 
-  /**
-   * Verify integrity hash
-   */
-  private verifyIntegrityHash(sessionId: string, questionId: number, encryptedAnswer: string, expectedHash: string): boolean {
-    const actualHash = this.generateIntegrityHash(sessionId, questionId, encryptedAnswer);
-    return actualHash === expectedHash;
-  }
-
-  // ============================================================================
-  // USER MANAGEMENT (unchanged from your original storage)
-  // ============================================================================
-
+  // ───────────────────────────────────────────────────────────
+  // SECTION: Users (unchanged)
+  // ───────────────────────────────────────────────────────────
   async getUser(id: string) {
-    const result = await db.select().from(users).where(eq(users.id, id));
-    return result[0] || null;
+    const rows = await db.select().from(users).where(eq(users.id, id))
+    return rows[0] || null
   }
 
   async createUser(userData: { id: string; email: string; name?: string }) {
-    const result = await db.insert(users).values(userData).returning();
-    return result[0];
+    const rows = await db.insert(users).values(userData).returning()
+    return rows[0]
   }
 
-  // ============================================================================
-  // SESSION MANAGEMENT (unchanged from your original storage)
-  // ============================================================================
-
+  // ───────────────────────────────────────────────────────────
+  // SECTION: Sessions (unchanged)
+  // ───────────────────────────────────────────────────────────
   async createSession(sessionData: { userId: string; questionOrder: number[] }) {
-    const id = uuidv4();
-    const result = await db.insert(questionnaireSessions).values({
-      id,
-      ...sessionData,
-    }).returning();
-    return result[0];
+    const id = uuidv4()
+    const rows = await db
+      .insert(questionnaireSessions)
+      .values({ id, ...sessionData })
+      .returning()
+    return rows[0]
   }
 
   async getSessionByUserId(userId: string) {
-    const result = await db.select()
+    const rows = await db
+      .select()
       .from(questionnaireSessions)
-      .where(and(
-        eq(questionnaireSessions.userId, userId),
-        eq(questionnaireSessions.completed, false)
-      ));
-    return result[0] || null;
+      .where(
+        and(
+          eq(questionnaireSessions.userId, userId),
+          eq(questionnaireSessions.completed, false)
+        )
+      )
+    return rows[0] || null
   }
 
   async getSessionById(id: string) {
-    const result = await db.select().from(questionnaireSessions).where(eq(questionnaireSessions.id, id));
-    return result[0] || null;
+    const rows = await db
+      .select()
+      .from(questionnaireSessions)
+      .where(eq(questionnaireSessions.id, id))
+    return rows[0] || null
   }
 
   async updateSessionProgress(sessionId: string, currentQuestionIndex: number) {
-    const result = await db.update(questionnaireSessions)
+    const rows = await db
+      .update(questionnaireSessions)
       .set({ currentQuestionIndex })
       .where(eq(questionnaireSessions.id, sessionId))
-      .returning();
-    return result[0];
+      .returning()
+    return rows[0]
   }
 
-  async completeSession(sessionId: string, wantsReminder: boolean, wantsToShare: boolean = false) {
-    const shareId = wantsToShare ? uuidv4() : null;
-    
-    const result = await db.update(questionnaireSessions)
-      .set({ 
-        completed: true, 
+  async completeSession(
+    sessionId: string,
+    wantsReminder: boolean,
+    wantsToShare = false
+  ) {
+    const shareId = wantsToShare ? uuidv4() : null
+    await db
+      .update(questionnaireSessions)
+      .set({
+        completed: true,
         completedAt: new Date(),
         wantsReminder,
         isShared: wantsToShare,
-        shareId
+        shareId,
       })
       .where(eq(questionnaireSessions.id, sessionId))
-      .returning();
-    
-    return shareId;
+      .returning()
+    return shareId
   }
 
   async getUserCompletedSessions(userId: string) {
-    return await db.select()
+    return db
+      .select()
       .from(questionnaireSessions)
-      .where(and(
-        eq(questionnaireSessions.userId, userId),
-        eq(questionnaireSessions.completed, true)
-      ))
-      .orderBy(desc(questionnaireSessions.completedAt));
+      .where(
+        and(
+          eq(questionnaireSessions.userId, userId),
+          eq(questionnaireSessions.completed, true)
+        )
+      )
+      .orderBy(desc(questionnaireSessions.completedAt))
   }
 
   async getSessionByShareId(shareId: string) {
-    const result = await db.select()
+    const rows = await db
+      .select()
       .from(questionnaireSessions)
-      .where(and(
-        eq(questionnaireSessions.shareId, shareId),
-        eq(questionnaireSessions.isShared, true)
-      ));
-    return result[0] || null;
+      .where(
+        and(
+          eq(questionnaireSessions.shareId, shareId),
+          eq(questionnaireSessions.isShared, true)
+        )
+      )
+    return rows[0] || null
   }
 
-  // ============================================================================
-  // ENCRYPTED RESPONSE MANAGEMENT (enhanced with encryption)
-  // ============================================================================
+  // ───────────────────────────────────────────────────────────
+  // SECTION: Encrypted responses
+  // ───────────────────────────────────────────────────────────
+  async createResponse(input: {
+    sessionId: string
+    questionId: number
+    answer: string
+  }) {
+    await this.initialize()
 
-  /**
-   * Create encrypted response
-   * 
-   * This method transparently encrypts the response before storing it in PostgreSQL.
-   * From your application's perspective, it works exactly like before, but now
-   * the actual response content is encrypted in the database.
-   */
-  async createResponse(responseData: { sessionId: string; questionId: number; answer: string }) {
-    await this.initialize();
+    const enc = this.encryptResponse(input.answer)
+    const encryptedAnswer = JSON.stringify(enc)
+    // const hash = this.generateIntegrityHash(input.sessionId, input.questionId, encryptedAnswer)
 
-    try {
-      // Encrypt the response content
-      const encryptedData = this.encryptResponse(responseData.answer);
-      const encryptedAnswer = JSON.stringify(encryptedData);
-      
-      // Generate integrity hash
-      const hash = this.generateIntegrityHash(
-        responseData.sessionId,
-        responseData.questionId,
-        encryptedAnswer
-      );
+    const rows = await db
+      .insert(responsesTable)
+      .values({
+        sessionId: input.sessionId,
+        questionId: input.questionId,
+        answer: encryptedAnswer, // store encrypted JSON blob
+      })
+      .returning()
 
-      // Store in database with encrypted content
-      const result = await db.insert(responses).values({
-        sessionId: responseData.sessionId,
-        questionId: responseData.questionId,
-        answer: encryptedAnswer, // This now contains encrypted data
-        // Note: We'll store the hash in a metadata field or as part of the encrypted data
-        // For now, we'll embed it in the encrypted JSON structure
-      }).returning();
-
-      // Return the response with decrypted answer for immediate use
-      return {
-        ...result[0],
-        answer: responseData.answer, // Return original answer for application use
-        isEncrypted: true
-      };
-    } catch (error) {
-      console.error('Error creating encrypted response:', error);
-      throw error;
+    return {
+      ...rows[0],
+      answer: input.answer,
+      isEncrypted: true as const,
     }
   }
 
-  /**
-   * Update encrypted response
-   * 
-   * This method handles updating an existing response while maintaining encryption
-   */
   async updateResponse(sessionId: string, questionId: number, answer: string) {
-    await this.initialize();
+    await this.initialize()
 
-    try {
-      // Encrypt the new answer
-      const encryptedData = this.encryptResponse(answer);
-      const encryptedAnswer = JSON.stringify(encryptedData);
-      
-      // Generate new integrity hash
-      const hash = this.generateIntegrityHash(sessionId, questionId, encryptedAnswer);
+    const enc = this.encryptResponse(answer)
+    const encryptedAnswer = JSON.stringify(enc)
 
-      const result = await db.update(responses)
-        .set({ 
-          answer: encryptedAnswer, // Store encrypted version
-          updatedAt: new Date() 
-        })
-        .where(and(
-          eq(responses.sessionId, sessionId),
-          eq(responses.questionId, questionId)
-        ))
-        .returning();
+    const rows = await db
+      .update(responsesTable)
+      .set({ answer: encryptedAnswer, updatedAt: new Date() })
+      .where(
+        and(
+          eq(responsesTable.sessionId, sessionId),
+          eq(responsesTable.questionId, questionId)
+        )
+      )
+      .returning()
 
-      // Return with decrypted answer for immediate use
-      return {
-        ...result[0],
-        answer: answer, // Return original answer
-        isEncrypted: true
-      };
-    } catch (error) {
-      console.error('Error updating encrypted response:', error);
-      throw error;
+    return {
+      ...rows[0],
+      answer,
+      isEncrypted: true as const,
     }
   }
 
-  /**
-   * Get response by session and question with automatic decryption
-   */
   async getResponseBySessionAndQuestion(sessionId: string, questionId: number) {
-    const result = await db.select()
-      .from(responses)
-      .where(and(
-        eq(responses.sessionId, sessionId),
-        eq(responses.questionId, questionId)
-      ));
-    
-    if (!result[0]) return null;
-
-    return this.decryptResponseRecord(result[0]);
+    const rows = await db
+      .select()
+      .from(responsesTable)
+      .where(
+        and(
+          eq(responsesTable.sessionId, sessionId),
+          eq(responsesTable.questionId, questionId)
+        )
+      )
+    if (!rows[0]) return null
+    return this.decryptResponseRecord(rows[0] as AnyRow)
   }
 
-  /**
-   * Get all responses for a session with automatic decryption
-   * 
-   * This method retrieves all responses for a session and automatically
-   * decrypts them for your application's use. The encryption/decryption
-   * is completely transparent to your existing code.
-   */
   async getResponsesBySessionId(sessionId: string) {
-    const encryptedResponses = await db.select().from(responses).where(eq(responses.sessionId, sessionId));
-    
-    // Decrypt all responses
-    const decryptedResponses = [];
-    for (const encryptedResponse of encryptedResponses) {
+    const respRows = await db
+      .select()
+      .from(responsesTable)
+      .where(eq(responsesTable.sessionId, sessionId))
+
+    const out: AnyRow[] = []
+    for (const row of respRows as AnyRow[]) {
       try {
-        const decrypted = this.decryptResponseRecord(encryptedResponse);
-        decryptedResponses.push(decrypted);
-      } catch (error) {
-        console.error(`Failed to decrypt response ${encryptedResponse.id}:`, error);
-        // You might want to handle this differently - skip corrupted responses
-        // or throw an error depending on your security requirements
+        out.push(this.decryptResponseRecord(row))
+      } catch (err) {
+        console.error(`[storage] decrypt failed for response ${row.id}:`, err)
+        out.push({
+          ...row,
+          answer: '[DECRYPTION_ERROR]',
+          isEncrypted: true as const,
+          decryptionError: true as const,
+        })
       }
     }
-    
-    return decryptedResponses;
+    return out
   }
 
-  /**
-   * Helper method to decrypt a single response record
-   */
-  private decryptResponseRecord(encryptedRecord: any) {
+  // Centralized, safe decryptor used by both getters
+  private decryptResponseRecord<T extends { answer?: string | null }>(record: T) {
+    const raw = record.answer ?? null
+    const enc: EncryptedData | null = raw ? (JSON.parse(raw) as EncryptedData) : null
+
+    if (!enc) {
+      return {
+        ...record,
+        answer: null,
+        isEncrypted: true as const,
+      }
+    }
+
     try {
-      // Parse the encrypted data from the answer field
-      const encryptedData: EncryptedData = JSON.parse(encryptedRecord.answer);
-      
-      // Decrypt the actual answer
-      const decryptedAnswer = this.decryptResponse(encryptedData);
-      
-      // Verify integrity if we have hash verification implemented
-      // (This would require schema changes to store the hash separately)
-      
+      const dec = this.decryptResponse(enc)
       return {
-        ...encryptedRecord,
-        answer: decryptedAnswer,
-        isEncrypted: true // Flag to indicate this was decrypted
-      };
-    } catch (error) {
-      console.error('Error decrypting response record:', error);
-      // Return the record with an error indicator rather than crashing
+        ...record,
+        answer: dec,
+        isEncrypted: true as const,
+      }
+    } catch {
       return {
-        ...encryptedRecord,
+        ...record,
         answer: '[DECRYPTION_ERROR]',
-        isEncrypted: true,
-        decryptionError: true
-      };
-    }
-  }
-
-  // ============================================================================
-  // SECURITY AND VERIFICATION METHODS
-  // ============================================================================
-
-  /**
-   * Verify the integrity of encrypted responses
-   * Use this method to check that your encrypted data hasn't been tampered with
-   */
-  async verifyResponseIntegrity(sessionId: string): Promise<{ 
-    valid: number; 
-    invalid: number; 
-    errors: string[] 
-  }> {
-    const responses = await db.select().from(responses).where(eq(responses.sessionId, sessionId));
-    
-    let validCount = 0;
-    let invalidCount = 0;
-    const errors: string[] = [];
-
-    for (const response of responses) {
-      try {
-        // Try to decrypt - if this succeeds, the response is valid
-        const encryptedData: EncryptedData = JSON.parse(response.answer);
-        this.decryptResponse(encryptedData);
-        validCount++;
-      } catch (error) {
-        invalidCount++;
-        errors.push(`Response ${response.id}: ${error}`);
+        isEncrypted: true as const,
+        decryptionError: true as const,
       }
     }
-
-    return { valid: validCount, invalid: invalidCount, errors };
   }
 
-  /**
-   * Health check for the encryption system
-   */
-  async encryptionHealthCheck(): Promise<boolean> {
-    try {
-      await this.initialize();
-      
-      // Test encryption/decryption cycle
-      const testData = 'Test response for encryption verification';
-      const encrypted = this.encryptResponse(testData);
-      const decrypted = this.decryptResponse(encrypted);
-      
-      return testData === decrypted;
-    } catch (error) {
-      console.error('Encryption health check failed:', error);
-      return false;
+  // ───────────────────────────────────────────────────────────
+  // SECTION: Security diagnostics
+  // ───────────────────────────────────────────────────────────
+  async verifyResponseIntegrity(sessionId: string): Promise<{
+    valid: number; invalid: number; errors: string[];
+  }> {
+    const respRows = await db
+      .select()
+      .from(responsesTable)
+      .where(eq(responsesTable.sessionId, sessionId))
+
+    let valid = 0
+    let invalid = 0
+    const errors: string[] = []
+
+    for (const row of respRows as AnyRow[]) {
+      try {
+        const raw = (row.answer ?? null) as string | null
+        if (!raw) {
+          invalid++
+          errors.push(`response ${row.id}: answer is null`)
+          continue
+        }
+        const enc = JSON.parse(raw) as EncryptedData
+        // GCM auth will throw if tampered:
+        this.decryptResponse(enc)
+        valid++
+      } catch (e: any) {
+        invalid++
+        errors.push(`response ${row.id}: ${e?.message ?? String(e)}`)
+      }
     }
+    return { valid, invalid, errors }
   }
-}
 
-export const storage = new EnhancedStorage();
+  async encryptionHealthCheck(): Promise<boolean> {
+    await this.initialize()
+    const probe = 'Test response for encryption verification'
+    const enc = this.encryptResponse(probe)
+    const dec = this.decryptResponse(enc)
+    return probe === dec
+  }
+} // <— end of class
+
+// ─────────────────────────────────────────────────────────────
+// SECTION: exports (top-level, outside the class)
+// ─────────────────────────────────────────────────────────────
+const storageInstance = new EnhancedStorage()
+export const storage = storageInstance
+export default storageInstance
