@@ -1,89 +1,35 @@
-<<<<<<< HEAD
-
 # Dependencies
-node_modules
+/node_modules
+
+# Ignore compiled JS + sourcemaps from shared TS
+apps/src/shared/**/*.js
+apps/src/shared/**/*.js.map
+
+# Ignore backend build output
+apps/backend/dist/
+
+# Ignore all build outputs in apps
+apps/*/dist/
+
+# Ignore TypeScript build info
+*.tsbuildinfo
+
+# Ignore compiled JS/JS.map everywhere under apps/src
+apps/src/**/*.js
+apps/src/**/*.js.map
+
+# Ignore frontend build output
+apps/frontend/dist/
+
+# Logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# Build outputs
-dist
-build
-.vite
-
-# Environment variables
+# Environment Variables
 .env
-.env.*
 .env.local
-.env.development.local
-.env.test.local
-.env.production.local
 
-# Database
-*.db
-*.sqlite
-*.sqlite3
-
-# Logs
-logs
-*.log
-
-# Runtime data
-pids
-*.pid
-*.seed
-*.pid.lock
-
-# Coverage directory used by tools like istanbul
-coverage
-*.lcov
-
-# OS generated files
+# IDE & OS files
 .DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
-Thumbs.db
-
-# Editor directories and files
-.vscode/*
-!.vscode/extensions.json
-.idea
-*.swp
-*.swo
-*~
-
-# Temporary files
-*.tmp
-*.temp
-
-# Replit specific
-.replit_env
-.upm
-
-# Server public files
-server/public
-
-# Vite config temp files
-vite.config.ts.*
-
-# Archives
-*.tar.gz
-*.zip
-
-# VPS server file (contains sensitive info)
-vps-server.js
-
-# Attached assets (likely temporary uploads)
-attached_assets/
-=======
-cat <<EOF > .gitignore
-node_modules/
-*.log
-*.sqlite
-.env
-.DS_Store
-EOF
->>>>>>> e871c56b0f8ed39adbefe0e36112abf283611c64
+.vscode/
