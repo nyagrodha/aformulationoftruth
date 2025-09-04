@@ -1,6 +1,6 @@
 
 import nodemailer from 'nodemailer';
-import type { Response } from '../shared/schema.js';
+import type { Response } from '@shared/schema.js'
 import { questionService } from './questionService.js';
 
 class EmailService {

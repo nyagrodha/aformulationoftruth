@@ -1,6 +1,6 @@
 
 import PDFDocument from 'pdfkit';
-import type { Response } from '../shared/schema.js';
+import type { Response } from '@shared/schema.js'
 import { questionService } from './questionService.js';
 
 class PDFService {

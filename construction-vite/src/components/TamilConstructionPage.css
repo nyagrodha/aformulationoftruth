@@ -5,7 +5,8 @@
  min-height: 100vh; /* Ensure full viewport height */
  background: #011; /* almost black with a hint of green */
  color: #011;
- font-family: 'Lacquer', sans-serif;
+ /* Updated Font: Replaced Lacquer with Orbitron */
+ font-family: 'Orbitron', sans-serif;
  display: flex;
  justify-content: center;
  align-items: center;
@@ -14,7 +15,7 @@
  position: relative;
 }
 
-/* Base styling for Tamil watermarks */
+/* Base styling for Tamil watermarks (Remains Kalam) */
 .tamil-watermark {
  position: absolute;
  font-family: 'Kalam', 'Noto Sans Tamil', cursive;
@@ -71,9 +72,10 @@
 }
 /* Huge, blocky, almost-black letters with a faint neon backlight */
 h1 {
- font-family: 'Lacquer', 'Impact', sans-serif;
+ /* Updated Font: Replaced Lacquer with Orbitron */
+ font-family: 'Orbitron', 'Impact', sans-serif;
  font-size: 6vw;
- font-weight: bold;
+ font-weight: 900; /* Using the heaviest weight (Black) for impact */
  color: transparent;
  background: linear-gradient(45deg, 
    #ff8800 0%, #ff6600 10%, #888 20%, #ff3366 30%, #6699ff 40%,
@@ -101,9 +103,10 @@ h1 {
 
 /* Subtitle paragraph styling */
 p {
- font-family: 'Lacquer', 'Kalam', sans-serif;
+ /* Updated Font: Replaced Lacquer with Orbitron */
+ font-family: 'Orbitron', 'Kalam', sans-serif;
  font-size: 4vw;
- font-weight: normal;
+ font-weight: 700; /* Using bold weight */
  color: transparent;
  background: linear-gradient(225deg, 
    #0077ff 0%, #3366ff 10%, #777 20%, #cc3399 30%, #8866ff 40%,
@@ -167,7 +170,7 @@ p .absence {
  50% { background-position: 0% 50%; }
 }
 
-/* Small scrolling mantra along the bottom */
+/* Small scrolling mantra along the bottom (Remains Noto Serif Devanagari/Kalam) */
 .scrolling-mantra {
  position: absolute;
  bottom: 2vh;
