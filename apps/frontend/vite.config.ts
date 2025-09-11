@@ -1,21 +1,19 @@
-import { defineConfig } from "vite";
-import react from "@vitejs/plugin-react";
-import path from "path";
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+import { fileURLToPath, URL } from 'node:url';
+
+const root = fileURLToPath(new URL('./', import.meta.url));
 
 export default defineConfig({
+  root,
   plugins: [react()],
   resolve: {
-    alias: { "@": path.resolve(__dirname, "src") },
+    alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },
   },
-  server: {
-    port: 5173,
-    strictPort: true,
-  },
-  // ⬇️ Keep Vite focused on the one true entry
-  optimizeDeps: { entries: ["index.html"] },
+  envPrefix: 'VITE_',
   build: {
-    rollupOptions: {
-      input: path.resolve(__dirname, "index.html"),
-    },
+    outDir: 'dist',
+    emptyOutDir: true,
   },
+  base: '/',
 });

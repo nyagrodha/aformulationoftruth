@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="en">
+<head>
+ <meta charset="UTF-8">
+ <meta name="viewport" content="width=device-width,initial-scale=1">
+ <title>this page is under construction</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;700&family=Noto+Sans+Kannada:wght@400;700&family=Noto+Sans+Tamil:wght@400;700&display=swap" rel="stylesheet">
+<style>
+/* Full-page dark green bordering on black */
+html, body {
+ margin: 0;
+ padding: 0;
+ height: 100%;
+ background: #011; /* almost black with a hint of green */
+ color: bg-[#C58917]/20;
+ font-family: 'Lacquer', sans-serif;amil watermark background */
+.tamil-watermark {
+ position: absolute;
+ top: 25%;
+ left: 15%;
+ transform: translate(-50%, -50%);
+ font-family: 'Kalam', 'Noto Sans Tamil', cursive;
+ font-size: 25vw;
+ color: bg-[#C58917]/20;
+ z-index: 1;
+ pointer-events: none;
+ white-space: nowrap;
+ background: linear-gradient(90deg, 
+   #ff4500 0%, #ff8c00 15%, #ff1493 30%, #00bfff 45%, #32cd32 60%,
+   #ffff00 75%, #ff4500 90%, #ff8c00 100%);
+ background-size: 400% 400%;
+ -webkit-background-clip: text;
+ background-clip: text;
+ -webkit-text-fill-color: transparent;
+ animation: tamilColorFlow 12s ease-in-out infinite;
+ text-shadow: 
+   -6px -6px 0 rgba(255,69,0,0.3),
+   1px -1px 0 rgba(255,69,0,0.3),
+   -4px 4px 0 rgba(255,69,0,0.3),
+   1px -1px 0 rgba(255,69,0,0.3);
+ opacity: 0.6;
+ font-weight: 700;
+ }
+
+@keyframes tamilColorFlow {
+ 0%, 100% { background-position: 0% 50%; }
+ 50% { background-position: 100% 50%; }
+}
+/* Huge, blocky, almost-black letters with a faint neon backlight */
+h1 {
+ font-family: 'Lacquer', 'Impact', sans-serif;
+ font-size: 6vw;
+ font-weight: bold;
+ color: transparent;
+ background: linear-gradient(45deg, 
+   #ff8800 0%, #ff6600 10%, #888 20%, #ff3366 30%, #6699ff 40%,
+   #ff8800 50%, #888 60%, #ff3366 70%, #6699ff 80%, #ff6600 90%, #ff8800 100%);
+ background-size: 300% 300%;
+ -webkit-background-clip: text;
+ background-clip: text;
+ -webkit-text-fill-color: transparent;
+ animation: colorShift 8s ease-in-out infinite;
+ margin: 8vh 0 6vh 0;
+ line-height: 1.1;
+ text-transform: lowercase;
+ letter-spacing: 0.2vw;
+ text-align: center;
+ position: relative;
+ z-index: 2;
+ text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+ }
+
+@keyframes colorShift {
+ 0%, 100% { background-position: 0% 50%; }
+ 25% { background-position: 100% 30%; }
+}
+
+/* Subtitle paragraph styling */
+p {
+ font-family: 'Lacquer', 'Kalam', sans-serif;
+ font-size: 8.5rem;
+ font-weight: normal;
+ color: transparent;
+ background: linear-gradient(225deg, 
+   #0077ff 0%, #3366ff 10%, #777 20%, #cc3399 30%, #8866ff 40%,
+   #0077ff 50%, #777 60%, #cc3399 70%, #8866ff 80%, #3366ff 90%, #0077ff 100%);
+ background-size: 300% 300%;
+ -webkit-background-clip: text;
+ background-clip: text;
+ -webkit-text-fill-color: transparent;
+ animation: colorShiftReverse 14s ease-in-out infinite reverse;
+ margin-top: 6rem;
+ text-align: center;
+ line-height: 1.2;
+ position: relative;
+ z-index: 2;
+ text-shadow: 2px 4px 8px rgba(0,0.125,0.3,0.6);
+ }
+
+/* Special styling for the word "absence" */
+p .absence {
+ animation: absenceFade 25s ease-in-out forwards;
+ display: inline-block;
+}
+
+@keyframes absenceFade {
+ 0% { 
+   color: transparent;
+   background: linear-gradient(225deg, #0077ff, #3366ff, #777, #cc3399, #8866ff);
+   -webkit-background-clip: text;
+   background-clip: text;
+   -webkit-text-fill-color: transparent;
+ }
+ 20% { 
+   color: #011;
+   background: none;
+   -webkit-text-fill-color: #011;
+ }
+ 40% { 
+   color: #00ffff;
+   background: none;
+   -webkit-text-fill-color: #00ffff;
+   text-shadow: 0 0 12px rgba(0,255,255,0.8), 0 0 24px rgba(0,255,255,0.6);
+ }
+ 80% { 
+   color: #00ffff;
+   background: none;
+   -webkit-text-fill-color: #00ffff;
+   text-shadow: 0 0 12px rgba(0,255,255,0.8), 0 0 24px rgba(0,255,255,0.6);
+ }
+ 100% { 
+   color: #00ffff;
+   background: none;
+   -webkit-text-fill-color: #00ffff;
+   text-shadow: 0 0 6px rgba(0,255,255,0.4), 0 0 12px rgba(0,255,255,0.2);
+   opacity: 0.3;
+ }
+}
+
+@keyframes colorShiftReverse {
+ 0%, 100% { background-position: 100% 50%; }
+ 50% { background-position: 0% 50%; }
+}
+
+/* Small scrolling mantra along the bottom */
+.scrolling-mantra {
+ position: absolute;
+ bottom: 4rem;
+ width: 100%;
+ overflow: hidden;
+ white-space: nowrap;
+ z-index: 2;
+ }
+.scrolling-mantra span {
+ display: inline-block;
+ font-family: 'Noto Sans Tamil Supplement', 'Noto Serif Devanagari', 'Kalam';
+ font-size: 4.5rem;
+ color: #39ff14;
+ opacity: 0.75;
+ animation: scroll-left 28s linear infinite;
+ }
+
+/* Tamil text in the scrolling mantra */
+.tamil-text {
+ font-family: 'Noto Sans Tamil Supplement', cursive;
+ font-weight: 500;
+}
+
+@keyframes scroll-left {
+ from { transform: translateX(100%); }
+ to { transform: translateX(-100%); }
+ }
+</style>
+</head>
+<body>
+ <main class="relative flex h-screen w-full flex-col items-center justify-center overflow-hidden bg-[#011]">
+   <div class="pointer-events-none absolute top-[25%] left-1/2 z-10 -translate-x-1/2 -translate-y-1/2 whitespace-nowrap bg-gradient-to-r from-orange-500 via-pink-500 to-yellow-300 bg-clip-text font-tamil text-[12vw] text-transparent">
+ <!-- Tamil watermark background -->
+   உண்மை சூத்திரம்
+ </div>
+  <p class="relative z-20 mt-[6vh] animate-color-shift bg-[length:300%_300%] bg-gradient-to-bl from-blue-500 via-gray-400 to-purple-500 bg-clip-text text-center font-lacquer text-[4vw] leading-[1.2] text-transparent">
+    the poet's mind is a forest of bliss
+ <h1>just as around an inside cl4y the emptiness of a pot</h1>
+ 
+ <p>So, too, recognize the self as an <span class="absence">absence</span> that words alone create the possibility for</p>
+ words we cogitate, act, love, and hurt by</p>
+ <div class="scrolling-mantra">
+ <span>ॐ&nbsp;कालभैरवाय&nbsp;नमः&nbsp;BHAIRAVA&nbsp;OM&nbsp;<span class="tamil-text">ஓம்&nbsp;காலபைரவாய&nbsp;நமः</span>&nbsp;ॐ&nbsp;कालभैरवाय नमः&nbsp;OM&nbsp;BHAIRAVA&nbsp;ॐ कालभैरवाय नमः&nbsp;</span>
+</main> 
+</div>
+</body>
+</html>

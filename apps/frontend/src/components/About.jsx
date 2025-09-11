@@ -53,7 +53,7 @@ export default function About() {
       </header>
 
       <p style={styles.paragraph}>
-        This questionnaire is more than a collection of answers; it is an instrument for autochthonous excavation. It invites upon users a reflective state of awareness with which to ponder the past, but the past not as a static record, but a living, fleeting landscape within. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+        This questionnaire is more than a collection of answers; it is an instrument for autochthonous excavation. Truth resides in the reconstuction of events without precedent, in a world where nothing happens the same way twice. Where sense comes from the association of memories. Respondents, therefore, turn their gazes inward. The past is not a static record, but a living, fleeting landscape within.
       </p>
 
       <blockquote style={styles.quoteBlock}>
@@ -62,7 +62,7 @@ export default function About() {
       </blockquote>
 
       <p style={styles.paragraph}>
-        Each question provokes such an image—seize upon it as it "flashes up at a moment of danger." The danger here is not external, but the internal risk of self-revelation. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. What is the self but a constellation of these fleeting images, a story told and retold?
+        Each question provokes some such image or another—seize upon it as it "flashes up at a moment of danger." The danger here is not external, but the internal risk of self-revelation. What is the self but a constellation of these fleeting images, a story told and retold?
       </p>
 
       <blockquote style={styles.quoteBlock}>
@@ -75,7 +75,7 @@ export default function About() {
       </p>
 
       <blockquote style={styles.quoteBlock}>
-        <p>"The unconscious is that chapter of my history which is marked by a blank or occupied by a falsehood: it is the censored chapter. But the truth can be rediscovered; most often it has already been written down elsewhere... in slips of the tongue, in the jokes he tells."</p>
+        <p>"The unconscious is that chapter of my history which is marked by a blank or occupied by a falsehood: it is the censored chapter. But this truth can be rediscovered; most often it has already been written down elsewhere... in slips of the tongue, in the jokes he tells."</p>
         <cite style={styles.cite}>— Jacques Lacan, The Function and Field of Speech and Language in Psychoanalysis</cite>
       </blockquote>
 
@@ -89,9 +89,10 @@ export default function About() {
       </blockquote>
 
       <p style={styles.paragraph}>
-        We invite you to step into this capacious theater of consciousness, one's self-awareness. Answering is translating for to answer you become both archaeologist and storyteller, uncovering the interred experiences of your own. In this space, you are not merely recalling facts, but a formulation of truth that is uniquely yours and yet made from the same awareness 'I'.
+        We invite you to step into this capacious theater of consciousness, one's self-awareness. Answering is translating for to answer you become both archaeologist and storyteller, uncovering the interred experiences of your own. In this space, you are not merely recalling facts, but a formulation of truth that is uniquely yours and yet made from our self-same awareness 'I'.
       </p>
-
+      <p style={styles.paragraph}>
+      "Time passes, and little by little everything that we have spoken in falsehood becomes true used to tell this story about the origin of these questions. I could not tell you wherefrom I learned those 
        <blockquote style={styles.quoteBlock}>
         <p>"The storyteller takes what he tells from experience—his own or that reported by others. And he in turn makes it the experience of those who are listening to his tale."</p>
         <cite style={styles.cite}>— Walter Benjamin, The Storyteller</cite>

@@ -1,14 +1,14 @@
+import "dotenv/config";
 import { defineConfig } from "drizzle-kit";
 
 if (!process.env.DATABASE_URL) {
-  throw new Error("DATABASE_URL, ensure the database is provisioned");
+  throw new Error("DATABASE_URL must be set in your environment variables.");
 }
 
 export default defineConfig({
-  out: "./migrations",
-  schema: "./shared/schema.ts",
   dialect: "postgresql",
-  driver: "pg",
+  out: "./drizzle", // It's common practice to name the output folder 'drizzle'
+  schema: "./apps/shared/src/schema.ts", // <-- The corrected path
   dbCredentials: {
     connectionString: process.env.DATABASE_URL,
   },

@@ -1,0 +1,14 @@
+{
+  "name": "a-formulation-of-truth-monorepo",
+  "private": true,
+  "scripts": {
+    "dev:backend": "pnpm --filter backend dev",
+    "dev:frontend": "pnpm --filter frontend dev",
+    "build": "pnpm -r build"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0",
+    "prettier": "^3.0.0",
+    "@types/node": "latest"
+  }
+}

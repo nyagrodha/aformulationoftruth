@@ -5,6 +5,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Neon Space Background</title>
 <style>
+
+@font-face {
+  font-family: 'SaiIndira';
+  src: url('/fonts/SaiIndira.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+
   :root{
     --c1: #071a3d;   /* deep navy */
     --c2: #0a2254;   /* mid navy */
@@ -12,7 +21,7 @@
     --c4: #3a2a7a;   /* violet */
     --neon-pink: #ff00ff;
     --neon-cyan: #00ffff;
-    --neon-lime: #ccff00;
+apache2ctl -M | grep cache    --neon-lime: #ccff00;
 
     /* tune these to taste */
     --twinkle-min: 0.35;

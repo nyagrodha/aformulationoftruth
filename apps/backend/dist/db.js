@@ -1,12 +1,11 @@
-import { drizzle } from 'drizzle-orm/postgres-js';
-import postgres from 'postgres';
-import * as schema from '@shared/schema';
-const connectionString = process.env.DATABASE_URL;
-if (!connectionString) {
-    throw new Error('DATABASE_URL environment variable is not set.');
-}
-// This creates the connection pool to your PostgreSQL database.
-const client = postgres(connectionString);
-// This wraps the connection with Drizzle ORM and attaches your database schema.
-export const db = drizzle(client, { schema });
+import postgres from "postgres";
+import { drizzle } from "drizzle-orm/postgres-js";
+const sql = postgres({
+    host: process.env.PGHOST || "/var/run/postgresql",
+    port: process.env.PGPORT ? Number(process.env.PGPORT) : 5432,
+    user: process.env.PGUSER || "marcel",
+    database: process.env.PGDATABASE || "a4m_db",
+    ssl: false,
+});
+export const db = drizzle(sql);
 //# sourceMappingURL=db.js.map

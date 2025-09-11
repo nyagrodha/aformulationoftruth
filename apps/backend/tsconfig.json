@@ -1,17 +1,32 @@
 {
-  "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    "outDir": "dist",
-    "module": "NodeNext",
     "target": "ES2022",
+    "lib": [
+      "ES2022"
+    ],
+    "module": "NodeNext",
     "moduleResolution": "NodeNext",
+    "moduleDetection": "force",
+    "verbatimModuleSyntax": true,
+    "rootDir": "./src",
+    "outDir": "./dist",
     "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
     "resolveJsonModule": true,
     "sourceMap": true,
     "skipLibCheck": true,
-    "paths": {
-      "@shared/*": ["../../shared/src/*"]
-    }
+    "strict": true,
+    "types": [
+      "node"
+    ],
+    "baseUrl": "./src",
+    "paths": {}
   },
-  "include": ["src/**/*"]
+  "include": [
+    "src/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist"
+  ]
 }

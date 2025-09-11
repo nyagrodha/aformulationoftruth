@@ -9,10 +9,13 @@
   },
   "dependencies": {
     "connect-pg-simple": "^9.0.1",
+    "connect-redis": "^9.0.0",
     "cors": "^2.8.5",
-    "drizzle-orm": "^0.32.1",
+    "drizzle-orm": "^0.32.2",
     "express": "^4.19.2",
-    "express-session": "^1.18.0",
+    "express-session": "^1.18.2",
+    "ioredis": "^5.7.0",
+    "nodemailer": "^7.0.6",
     "postgres": "^3.4.4"
   },
   "devDependencies": {
@@ -21,6 +24,7 @@
     "@types/express": "^4.17.21",
     "@types/express-session": "^1.18.0",
     "@types/node": "^20.14.12",
+    "@types/nodemailer": "^7.0.1",
     "typescript": "^5.5.4"
   }
 }
