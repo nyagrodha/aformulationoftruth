@@ -2,8 +2,16 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { reminderService } from "./services/reminderService";
+import { setupSecurity, healthCheck } from "./middleware/security";
 
 const app = express();
+
+// Apply security middleware first
+setupSecurity(app);
+
+// Add health check endpoints
+healthCheck(app);
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
