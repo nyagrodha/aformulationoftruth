@@ -4,9 +4,11 @@
     "@vitejs/plugin-react": "^4.7.0",
     "body-parser": "^2.2.0",
     "connect-pg-simple": "^10.0.0",
+    "cors": "^2.8.5",
     "drizzle-orm": "^0.44.4",
     "drizzle-zod": "^0.8.2",
     "express": "^4.21.2",
+    "express-rate-limit": "^8.1.0",
     "express-session": "^1.18.2",
     "helmet": "^8.1.0",
     "keycloak-connect": "^23.0.7",
@@ -25,7 +27,21 @@
   "description": "",
   "main": "ecosystem.config.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "tsx server/index.ts",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "start": "node dist/server/index.js",
+    "test": "jest",
+    "test:unit": "jest --config jest.config.ts",
+    "test:e2e": "playwright test",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "lint": "eslint server client/src --ext .ts,.tsx,.js,.jsx",
+    "lint:fix": "eslint server client/src --ext .ts,.tsx,.js,.jsx --fix",
+    "type-check": "tsc --noEmit",
+    "db:generate": "drizzle-kit generate",
+    "db:push": "drizzle-kit push",
+    "db:studio": "drizzle-kit studio"
   },
   "repository": {
     "type": "git",
@@ -38,5 +54,12 @@
   "bugs": {
     "url": "https://github.com/nyagrodha/aformulationoftruth/issues"
   },
-  "homepage": "https://github.com/nyagrodha/aformulationoftruth#readme"
+  "homepage": "https://github.com/nyagrodha/aformulationoftruth#readme",
+  "devDependencies": {
+    "@playwright/test": "^1.55.0",
+    "@types/node": "^24.3.1",
+    "playwright": "^1.55.0",
+    "tsx": "^4.20.5",
+    "typescript": "^5.9.2"
+  }
 }
