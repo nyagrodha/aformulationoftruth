@@ -58,3 +58,16 @@ router.get('/', (req, res) => {
 });
 
 export default router;
+
+// Route to get the next question for a user
+// For now, this just returns a random question
+router.get('/next', (req, res) => {
+  // Simple implementation: return a random question
+  const randomIndex = Math.floor(Math.random() * questions.length);
+  const question = {
+    id: randomIndex,
+    text: questions[randomIndex]
+  };
+  
+  res.json(question);
+});
