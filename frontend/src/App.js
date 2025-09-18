@@ -1,5 +1,6 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { Analytics } from '@vercel/analytics/react';
 import Login        from './components/Login';
 import Callback     from './components/Callback';
 import Questionnaire from './components/Questionnaire';
@@ -14,6 +15,7 @@ export default function App() {
         <Route path="/questions" element={<Questionnaire />} />
         <Route path="/showcase" element={<LongScrollShowcase />} />
       </Routes>
+      <Analytics />
     </BrowserRouter>
   );
 }
