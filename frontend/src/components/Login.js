@@ -40,26 +40,28 @@ export default function Login() {
         </button>
         {message && <p>{message}</p>}
       </form>
-//{/* 🌸 Optional Link to Kavya */}
-//      <div style={{ marginTop: '2rem' }}>
-//        <a
-//          href="/mangala_kavya_animated.html"
-//          target="_blank"
-//          rel="noopener noreferrer"
-//          style={{
-//            display: 'inline-block',
-//            padding: '0.6rem 1.2rem',
-//            background: '#ff00ff',
-//            color: '#000',
-//            textDecoration: 'none',
-//            borderRadius: '6px',
-//            boxShadow: '0 0 10px #ff00ff',
-//            fontWeight: 'bold'
-//          }}
-//        >
-//          🌺 View Animated Kavya
-//        </a>
-//      </div>
+
+      {/* 🌸 Optional Link to Kavya 
+      <div style={{ marginTop: '2rem' }}>
+        <a
+          href="/mangala_kavya_animated.html"
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{
+            display: 'inline-block',
+            padding: '0.6rem 1.2rem',
+            background: '#ff00ff',
+            color: '#000',
+            textDecoration: 'none',
+            borderRadius: '6px',
+            boxShadow: '0 0 10px #ff00ff',
+            fontWeight: 'bold'
+          }}
+        >
+          🌺 View Animated Kavya
+        </a>
+      </div>
+      */}
 
       {/* 🌌 Optional Iframe Embed */}
       <div style={{ marginTop: '2rem' }}>
