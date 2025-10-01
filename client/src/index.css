@@ -1,0 +1,168 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital@0;1&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --primary: hsl(207, 90%, 54%);
+  --primary-foreground: hsl(0, 0%, 100%);
+  --secondary: hsl(210, 11%, 26%);
+  --secondary-foreground: hsl(0, 0%, 100%);
+  --accent: hsl(122, 39%, 49%);
+  --accent-foreground: hsl(0, 0%, 100%);
+  --background: hsl(120, 100%, 3%);
+  --foreground: hsl(210, 11%, 26%);
+  --surface: hsl(0, 0%, 100%);
+  --muted: hsl(210, 11%, 71%);
+  --muted-foreground: hsl(210, 11%, 46%);
+  --border: hsl(214, 32%, 91%);
+  --input: hsl(214, 32%, 91%);
+  --card: hsl(0, 0%, 100%);
+  --card-foreground: hsl(210, 11%, 26%);
+  --popover: hsl(0, 0%, 100%);
+  --popover-foreground: hsl(210, 11%, 26%);
+  --destructive: hsl(0, 84%, 60%);
+  --destructive-foreground: hsl(0, 0%, 100%);
+  --ring: hsl(207, 90%, 54%);
+  --radius: 0.5rem;
+}
+
+/* Landing page neon glow animations */
+@keyframes pulse-glow {
+  from {
+    box-shadow:
+      0 0 15px #00ffff,
+      inset 0 0 10px #ff00ff,
+      0 0 25px #9400d3;
+  }
+  to {
+    box-shadow:
+      0 0 30px #00ffff,
+      inset 0 0 20px #ff00ff,
+      0 0 45px #9400d3;
+  }
+}
+
+@keyframes neon-background-pulse {
+  0% {
+    filter: brightness(1) hue-rotate(0deg);
+  }
+  25% {
+    filter: brightness(1.2) hue-rotate(90deg);
+  }
+  50% {
+    filter: brightness(1.4) hue-rotate(180deg);
+  }
+  75% {
+    filter: brightness(1.2) hue-rotate(270deg);
+  }
+  100% {
+    filter: brightness(1) hue-rotate(360deg);
+  }
+}
+
+/* Golden blinking caret animation */
+@keyframes blink-caret {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+/* Question font styling */
+.question-text {
+  font-family: 'EB Garamond', serif;
+  font-weight: 500;
+}
+
+.neon-frame {
+  animation: pulse-glow 2.5s infinite alternate ease-in-out;
+}
+
+.neon-background {
+  animation: neon-background-pulse 8s infinite ease-in-out;
+}
+
+@keyframes om-to-emerald {
+  0% { color: #d4af37; text-shadow: 0 0 15px #d4af37; }
+  50% { color: #228b22; text-shadow: 0 0 12px #228b22; }
+  100% { color: #006400; text-shadow: 0 0 15px #006400; }
+}
+
+@keyframes at-to-gold {
+  0% { color: #006400; text-shadow: 0 0 15px #006400; }
+  50% { color: #228b22; text-shadow: 0 0 12px #228b22; }
+  100% { color: #d4af37; text-shadow: 0 0 15px #d4af37; }
+}
+
+.om-symbol {
+  display: inline-block;
+  animation: om-to-emerald 10s infinite ease-in-out;
+}
+
+.at-symbol {
+  display: inline-block;
+  animation: at-to-gold 10s infinite ease-in-out;
+}
+
+
+
+.dark {
+  --primary: hsl(207, 90%, 54%);
+  --primary-foreground: hsl(0, 0%, 100%);
+  --secondary: hsl(210, 11%, 15%);
+  --secondary-foreground: hsl(0, 0%, 100%);
+  --accent: hsl(122, 39%, 49%);
+  --accent-foreground: hsl(0, 0%, 100%);
+  --background: hsl(210, 11%, 6%);
+  --foreground: hsl(0, 0%, 98%);
+  --surface: hsl(210, 11%, 13%);
+  --muted: hsl(210, 11%, 21%);
+  --muted-foreground: hsl(210, 11%, 61%);
+  --border: hsl(210, 11%, 21%);
+  --input: hsl(210, 11%, 21%);
+  --card: hsl(210, 11%, 13%);
+  --card-foreground: hsl(0, 0%, 98%);
+  --popover: hsl(210, 11%, 13%);
+  --popover-foreground: hsl(0, 0%, 98%);
+  --destructive: hsl(0, 62%, 30%);
+  --destructive-foreground: hsl(0, 0%, 98%);
+  --ring: hsl(207, 90%, 54%);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply font-sans antialiased bg-background text-foreground;
+    font-family: 'Inter', sans-serif;
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes progress {
+  from { width: 0%; }
+  to { width: var(--progress-width); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+.animate-slide-up {
+  animation: slideUp 0.4s ease-out;
+}
+
+.progress-bar {
+  transition: width 0.3s ease-out;
+}
