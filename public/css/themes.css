@@ -1,0 +1,468 @@
+/* A Formulation of Truth - Three Theme System */
+/* Arctic Glow | Cyber Mint | Carbon Glow */
+
+/* ============================================ */
+/* BASE RESET & COMMON STYLES */
+/* ============================================ */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  /* Theme transition */
+  --transition-speed: 0.3s;
+}
+
+body {
+  font-family: 'Georgia', serif;
+  min-height: 100vh;
+  transition: background-color var(--transition-speed) ease,
+              color var(--transition-speed) ease;
+}
+
+/* ============================================ */
+/* ARCTIC GLOW THEME (Default Light) */
+/* ============================================ */
+
+body[data-theme="arctic"],
+body:not([data-theme]) {
+  --bg-primary: #F5F7FA;
+  --bg-secondary: #E8ECF1;
+  --bg-card: rgba(255, 255, 255, 0.8);
+  --text-primary: #1A1F3A;
+  --text-secondary: #4A5568;
+  --accent-1: #0080FF;
+  --accent-2: #39FF14;
+  --accent-3: #FF006E;
+  --border-color: rgba(0, 128, 255, 0.2);
+  --shadow-color: rgba(26, 31, 58, 0.1);
+  --glow-1: rgba(0, 128, 255, 0.3);
+  --glow-2: rgba(57, 255, 20, 0.3);
+  --glow-3: rgba(255, 0, 110, 0.3);
+
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+/* ============================================ */
+/* CYBER MINT THEME */
+/* ============================================ */
+
+body[data-theme="mint"] {
+  --bg-primary: #F8F9FA;
+  --bg-secondary: #ECEFF1;
+  --bg-card: rgba(255, 255, 255, 0.85);
+  --text-primary: #2A2A2A;
+  --text-secondary: #5A5A5A;
+  --accent-1: #00F0FF;
+  --accent-2: #FF00FF;
+  --accent-3: #00FFB3;
+  --border-color: rgba(0, 240, 255, 0.25);
+  --shadow-color: rgba(42, 42, 42, 0.1);
+  --glow-1: rgba(0, 240, 255, 0.4);
+  --glow-2: rgba(255, 0, 255, 0.4);
+  --glow-3: rgba(0, 255, 179, 0.4);
+
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+/* ============================================ */
+/* CARBON GLOW THEME (Dark) */
+/* ============================================ */
+
+body[data-theme="carbon"] {
+  --bg-primary: #0D0D0D;
+  --bg-secondary: #1A1A1A;
+  --bg-card: rgba(26, 26, 26, 0.8);
+  --text-primary: #F5F5F5;
+  --text-secondary: #C0C0C0;
+  --accent-1: #FF6600;
+  --accent-2: #FF0080;
+  --accent-3: #CCFF00;
+  --border-color: rgba(255, 102, 0, 0.3);
+  --shadow-color: rgba(0, 0, 0, 0.5);
+  --glow-1: rgba(255, 102, 0, 0.5);
+  --glow-2: rgba(255, 0, 128, 0.5);
+  --glow-3: rgba(204, 255, 0, 0.5);
+
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+/* ============================================ */
+/* THEME TOGGLE BUTTON */
+/* ============================================ */
+
+.theme-toggle {
+  position: fixed;
+  top: 1.5rem;
+  right: 1.5rem;
+  z-index: 1000;
+  background: var(--bg-card);
+  border: 2px solid var(--border-color);
+  border-radius: 50px;
+  padding: 0.5rem;
+  display: flex;
+  gap: 0.5rem;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 12px var(--shadow-color);
+}
+
+.theme-btn {
+  background: transparent;
+  border: 2px solid transparent;
+  padding: 0.5rem 1rem;
+  border-radius: 25px;
+  cursor: pointer;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  color: var(--text-secondary);
+}
+
+.theme-btn:hover {
+  transform: scale(1.05);
+}
+
+.theme-btn.active {
+  color: var(--text-primary);
+  border-color: var(--accent-1);
+  box-shadow: 0 0 10px var(--glow-1);
+}
+
+/* Arctic Glow button colors */
+body[data-theme="arctic"] .theme-btn[data-theme="arctic"],
+body:not([data-theme]) .theme-btn[data-theme="arctic"] {
+  color: #0080FF;
+  border-color: #0080FF;
+  box-shadow: 0 0 10px rgba(0, 128, 255, 0.4);
+}
+
+/* Cyber Mint button colors */
+body[data-theme="mint"] .theme-btn[data-theme="mint"] {
+  color: #00F0FF;
+  border-color: #00F0FF;
+  box-shadow: 0 0 10px rgba(0, 240, 255, 0.5);
+}
+
+/* Carbon Glow button colors */
+body[data-theme="carbon"] .theme-btn[data-theme="carbon"] {
+  color: #FF6600;
+  border-color: #FF6600;
+  box-shadow: 0 0 10px rgba(255, 102, 0, 0.6);
+}
+
+/* ============================================ */
+/* TYPOGRAPHY */
+/* ============================================ */
+
+h1, h2, h3 {
+  font-family: 'Orbitron', sans-serif;
+}
+
+h1 {
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+h2 {
+  font-size: clamp(1.5rem, 3.5vw, 2.5rem);
+  font-weight: 600;
+}
+
+h3 {
+  font-size: clamp(1.2rem, 2.5vw, 1.8rem);
+  font-weight: 600;
+}
+
+p {
+  line-height: 1.8;
+  font-size: 1.1rem;
+}
+
+a {
+  color: var(--accent-1);
+  text-decoration: none;
+  transition: all 0.3s ease;
+}
+
+a:hover {
+  text-shadow: 0 0 8px var(--glow-1);
+}
+
+/* ============================================ */
+/* HERO SECTION */
+/* ============================================ */
+
+.hero {
+  display: grid;
+  place-items: center;
+  min-height: 100vh;
+  padding: 4rem 1rem;
+  position: relative;
+}
+
+/* Arctic Glow gradient */
+body[data-theme="arctic"] .hero,
+body:not([data-theme]) .hero {
+  background: radial-gradient(
+    1200px 600px at 50% 10%,
+    rgba(0, 128, 255, 0.15) 0%,
+    transparent 60%
+  );
+}
+
+/* Cyber Mint gradient */
+body[data-theme="mint"] .hero {
+  background: radial-gradient(
+    1200px 600px at 50% 10%,
+    rgba(0, 240, 255, 0.15) 0%,
+    transparent 60%
+  );
+}
+
+/* Carbon Glow gradient */
+body[data-theme="carbon"] .hero {
+  background: radial-gradient(
+    1200px 600px at 50% 10%,
+    rgba(255, 102, 0, 0.15) 0%,
+    transparent 60%
+  );
+}
+
+.hero-title {
+  text-align: center;
+  margin: 0 0 0.5rem;
+  text-shadow: 0 0 16px var(--glow-1);
+}
+
+/* ============================================ */
+/* OM SYMBOLS */
+/* ============================================ */
+
+.oms {
+  display: flex;
+  justify-content: center;
+  gap: 0.6rem;
+  margin: 0.5rem 0 1.5rem;
+  font-size: clamp(1.2rem, 2.6vw, 1.8rem);
+  font-weight: 700;
+}
+
+.om {
+  font-weight: bold;
+  color: var(--accent-2);
+  filter: drop-shadow(0 0 6px var(--glow-2));
+  animation: pulse 3s ease-in-out infinite;
+}
+
+.oms .sup {
+  position: relative;
+  top: -0.4em;
+}
+
+.oms .sub {
+  position: relative;
+  top: 0.4em;
+}
+
+.oms .at {
+  color: var(--accent-1);
+  filter: drop-shadow(0 0 6px var(--glow-1));
+}
+
+.irendu {
+  position: relative;
+  top: -0.6em;
+  font-size: 2rem;
+  color: var(--accent-3);
+  filter: drop-shadow(0 0 8px var(--glow-3));
+}
+
+/* ============================================ */
+/* LOCKUP SECTION */
+/* ============================================ */
+
+.lockup {
+  position: relative;
+  display: grid;
+  place-items: center;
+  margin: 1.5rem 0;
+  padding: 2.5rem 1rem;
+}
+
+.lockup-center {
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 800;
+  text-align: center;
+  font-size: clamp(1.4rem, 3.8vw, 2.5rem);
+  line-height: 1.15;
+  white-space: nowrap;
+  text-shadow: 0 0 10px var(--glow-1);
+}
+
+.lockup-tamil {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform: translate(4px, -8px);
+  font-family: 'Noto Sans Tamil', sans-serif;
+  font-weight: 700;
+  font-size: clamp(1rem, 2.1vw, 1.3rem);
+  color: var(--accent-2);
+  opacity: 0.95;
+  text-shadow: 0 0 8px var(--glow-2);
+}
+
+.lockup-ukr {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  transform: translate(-4px, 8px);
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 700;
+  font-size: clamp(0.95rem, 1.9vw, 1.2rem);
+  color: var(--accent-3);
+  text-shadow: 0 0 8px var(--glow-3);
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.flag-ua {
+  width: 28px;
+  height: 18px;
+  display: inline-block;
+  border-radius: 2px;
+  background: linear-gradient(#0057b7 0 50%, #ffd700 50% 100%);
+  box-shadow: 0 0 10px var(--glow-1);
+  animation: flag-wave 2.2s ease-in-out infinite;
+}
+
+/* ============================================ */
+/* CARDS & GRID */
+/* ============================================ */
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 2rem;
+  margin-top: 3rem;
+  max-width: 1000px;
+  width: 100%;
+  padding: 0 1rem;
+}
+
+.card {
+  display: block;
+  padding: 2.5rem 2rem;
+  background: var(--bg-card);
+  backdrop-filter: blur(12px);
+  border: 2px solid var(--border-color);
+  border-radius: 16px;
+  color: var(--text-primary);
+  text-decoration: none;
+  text-align: center;
+  font-weight: 600;
+  min-height: 200px;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 16px var(--shadow-color);
+}
+
+.card:hover {
+  border-color: var(--accent-1);
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 8px 32px var(--glow-1);
+}
+
+.card h3 {
+  color: var(--accent-1);
+  margin-bottom: 1rem;
+}
+
+/* ============================================ */
+/* BUTTONS */
+/* ============================================ */
+
+.btn {
+  display: inline-block;
+  padding: 1rem 2rem;
+  background: var(--bg-card);
+  border: 2px solid var(--accent-1);
+  border-radius: 50px;
+  color: var(--accent-1);
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
+}
+
+.btn:hover {
+  background: var(--accent-1);
+  color: var(--bg-primary);
+  box-shadow: 0 0 20px var(--glow-1);
+  transform: scale(1.05);
+}
+
+.btn-primary {
+  background: var(--accent-1);
+  color: var(--bg-primary);
+}
+
+.btn-primary:hover {
+  background: transparent;
+  color: var(--accent-1);
+}
+
+/* ============================================ */
+/* ANIMATIONS */
+/* ============================================ */
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.8; transform: scale(1.05); }
+}
+
+@keyframes flag-wave {
+  0%, 100% { transform: rotate(0deg) skewY(0deg); }
+  50% { transform: rotate(-4deg) skewY(-2deg); }
+}
+
+/* ============================================ */
+/* RESPONSIVE */
+/* ============================================ */
+
+@media (max-width: 768px) {
+  .theme-toggle {
+    top: 1rem;
+    right: 1rem;
+    padding: 0.4rem;
+    gap: 0.3rem;
+  }
+
+  .theme-btn {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.75rem;
+  }
+
+  .lockup {
+    padding: 2rem 0.5rem;
+  }
+
+  .lockup-tamil,
+  .lockup-ukr {
+    font-size: 0.85rem;
+  }
+
+  .grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+}

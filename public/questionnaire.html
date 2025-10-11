@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Questionnaire - A Formulation of Truth</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;800&family=Noto+Sans+Tamil:wght@400;700&display=swap" rel="stylesheet">
+
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="/css/themes.css">
+    <link rel="stylesheet" href="/css/questionnaire.css">
+
+    <meta name="description" content="Begin your journey of self-discovery through the Proust Questionnaire">
+</head>
+<body>
+    <!-- Theme Toggle -->
+    <div class="theme-toggle">
+        <button class="theme-btn active" data-theme="arctic" aria-label="Arctic Glow theme">Arctic</button>
+        <button class="theme-btn" data-theme="mint" aria-label="Cyber Mint theme">Mint</button>
+        <button class="theme-btn" data-theme="carbon" aria-label="Carbon Glow theme">Carbon</button>
+    </div>
+
+    <div class="questionnaire-container">
+        <!-- Header -->
+        <div class="header">
+            <h1><a href="/" style="text-decoration: none; color: inherit;">A Formulation of Truth</a></h1>
+            <p>Explore the depths of your consciousness through introspective questions</p>
+        </div>
+
+        <!-- Progress Bar -->
+        <div class="progress-bar">
+            <div class="progress-fill" id="progress-fill"></div>
+        </div>
+
+        <!-- Authentication Section -->
+        <div id="auth-section" class="section">
+            <h2>Begin Your Journey</h2>
+            <p style="margin: 1.5rem 0;">Enter your email to start the questionnaire. Your responses will be saved privately.</p>
+
+            <form id="auth-form" class="auth-form">
+                <input
+                    type="email"
+                    id="email"
+                    placeholder="your.email@example.com"
+                    required
+                    class="form-input"
+                >
+                <button type="submit" class="btn btn-primary" style="width: 100%;">Begin</button>
+            </form>
+
+            <div id="auth-message" class="message" style="display: none;"></div>
+        </div>
+
+        <!-- Question Section (Hidden by default) -->
+        <div id="question-section" class="section" style="display: none;">
+            <div class="question-card">
+                <span class="question-number" id="question-number">Question 1</span>
+                <h2 class="question-text" id="question-text">What is your most treasured possession?</h2>
+
+                <form id="answer-form">
+                    <textarea
+                        id="answer-textarea"
+                        placeholder="Your answer..."
+                        class="form-textarea"
+                    ></textarea>
+
+                    <div class="form-actions">
+                        <button type="button" id="prev-btn" class="btn btn-secondary">Previous</button>
+                        <button type="submit" class="btn btn-primary">Next</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Completion Section (Hidden by default) -->
+        <div id="completion-section" class="section" style="display: none;">
+            <h2 style="text-align: center;">Thank You</h2>
+            <p style="text-align: center; margin: 1.5rem 0;">
+                Your questionnaire is complete. Your responses have been saved and reflect a unique formulation of truth—yours.
+            </p>
+
+            <div class="completion-actions">
+                <button id="download-pdf" class="btn btn-primary">Download Responses</button>
+                <button id="start-over" class="btn btn-secondary">Start Over</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="/js/theme-toggle.js"></script>
+    <script>
+        // Fisher-Yates Shuffle - Keep questions 0-2 fixed, randomize 3-34
+        // Handles partial completion across sessions
+        (function() {
+            // Fisher-Yates shuffle algorithm
+            function fisherYatesShuffle(array) {
+                const shuffled = [...array];
+                for (let i = shuffled.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+                }
+                return shuffled;
+            }
+
+            // Get answered questions from localStorage
+            function getAnsweredQuestions() {
+                const session = localStorage.getItem('a4ot-session');
+                if (session) {
+                    const data = JSON.parse(session);
+                    const answers = data.answers || {};
+                    // Return array of question indices that have been answered
+                    return Object.keys(answers).map(Number).filter(idx => answers[idx] && answers[idx].trim() !== '');
+                }
+                return [];
+            }
+
+            // Initialize or update question order
+            function initializeQuestionOrder() {
+                const fixedQuestions = [0, 1, 2]; // First 3 questions always stay in order
+                const answeredQuestions = getAnsweredQuestions();
+
+                // Get existing order from sessionStorage if available
+                let existingOrder = sessionStorage.getItem('questionOrder');
+                if (existingOrder) {
+                    existingOrder = JSON.parse(existingOrder);
+                }
+
+                // Separate answered and unanswered questions from the shuffleable range (3-34)
+                const answeredShuffleable = [];
+                const unansweredShuffleable = [];
+
+                for (let i = 3; i < 35; i++) {
+                    if (answeredQuestions.includes(i)) {
+                        answeredShuffleable.push(i);
+                    } else {
+                        unansweredShuffleable.push(i);
+                    }
+                }
+
+                // If we have an existing order in this session, preserve answered questions' positions
+                if (existingOrder && existingOrder.length === 35) {
+                    // Keep the existing order but re-shuffle only unanswered questions
+                    const preservedOrder = existingOrder.filter(idx =>
+                        idx < 3 || answeredQuestions.includes(idx)
+                    );
+
+                    // Shuffle the unanswered questions
+                    const newlyShuffled = fisherYatesShuffle(unansweredShuffleable);
+
+                    // Reconstruct the order
+                    const questionOrder = [...fixedQuestions];
+                    let shuffledIdx = 0;
+
+                    for (let i = 3; i < 35; i++) {
+                        const posInExisting = existingOrder.indexOf(i);
+                        if (answeredQuestions.includes(i) && posInExisting >= 3) {
+                            // Keep answered questions in their original position
+                            questionOrder[posInExisting] = i;
+                        }
+                    }
+
+                    // Fill remaining slots with newly shuffled unanswered questions
+                    for (let i = 3; i < questionOrder.length; i++) {
+                        if (questionOrder[i] === undefined) {
+                            questionOrder[i] = newlyShuffled[shuffledIdx++];
+                        }
+                    }
+
+                    sessionStorage.setItem('questionOrder', JSON.stringify(questionOrder));
+                } else {
+                    // First time or new session: create fresh order
+                    // Keep answered questions if any, shuffle unanswered
+                    const shuffledUnanswered = fisherYatesShuffle(unansweredShuffleable);
+
+                    // For first time: just shuffle all questions 3-34
+                    if (answeredQuestions.length === 0) {
+                        const allShuffleable = [];
+                        for (let i = 3; i < 35; i++) {
+                            allShuffleable.push(i);
+                        }
+                        const shuffled = fisherYatesShuffle(allShuffleable);
+                        const questionOrder = [...fixedQuestions, ...shuffled];
+                        sessionStorage.setItem('questionOrder', JSON.stringify(questionOrder));
+                    } else {
+                        // Mix answered and shuffled unanswered
+                        const combined = fisherYatesShuffle([...answeredShuffleable, ...shuffledUnanswered]);
+                        const questionOrder = [...fixedQuestions, ...combined];
+                        sessionStorage.setItem('questionOrder', JSON.stringify(questionOrder));
+                    }
+                }
+            }
+
+            // Initialize on page load
+            initializeQuestionOrder();
+
+            // Re-initialize when storage changes (e.g., answer submitted)
+            window.addEventListener('storage', initializeQuestionOrder);
+        })();
+    </script>
+    <script src="/questionnaire-shuffled.js"></script>
+</body>
+</html>

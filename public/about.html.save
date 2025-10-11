@@ -1,0 +1,143 @@
+bsit<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About - A Formulation of Truth</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;800&family=Noto+Sans+Tamil:wght@400;700&display=swap" rel="stylesheet">
+
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="/css/themes.css">
+
+    <meta name="description" content="Learn about the Proust Questionnaire and the practice of self-inquiry">
+
+    <style>
+        .about-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 3rem 1rem;
+            min-height: 100vh;
+        }
+
+        .about-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .about-header h1 {
+            margin-bottom: 1rem;
+        }
+
+        .about-content {
+            background: var(--bg-card);
+            backdrop-filter: blur(12px);
+            border: 2px solid var(--border-color);
+            border-radius: 20px;
+            padding: 3rem 2.5rem;
+            box-shadow: 0 8px 24px var(--shadow-color);
+            margin-bottom: 2rem;
+        }
+
+        .about-content h2 {
+            color: var(--accent-1);
+            margin: 2rem 0 1rem;
+            font-size: 1.8rem;
+        }
+
+        .about-content h2:first-child {
+            margin-top: 0;
+        }
+
+        .about-content p {
+            margin-bottom: 1.5rem;
+            line-height: 1.8;
+        }
+
+        .about-content ul {
+            margin: 1rem 0 1.5rem 2rem;
+            line-height: 1.8;
+        }
+
+        .about-content li {
+            margin-bottom: 0.5rem;
+        }
+
+        .about-content em {
+            color: var(--accent-2);
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-top: 2rem;
+        }
+
+        @media (max-width: 768px) {
+            .about-content {
+                padding: 2rem 1.5rem;
+            }
+        }
+ 83     </style>
+ 84 </head>
+ 85 <body>
+ 86     <!-- Theme Toggle -->
+ 87     <div class="theme-toggle">
+ 88         <button class="theme-btn active" data-theme="arctic" aria-label="Arctic Glow theme">Arctic</button>
+ 89         <button class="theme-btn" data-theme="mint" aria-label="Cyber Mint theme">Mint</button>
+ 90         <button class="theme-btn" data-theme="carbon" aria-label="Carbon Glow theme">Carbon</button>
+ 91     </div>
+ 92
+ 93     <div class="about-container">
+ 94         <!-- Header -->
+ 95         <div class="about-header">
+ 96             <h1>first and form: the name</h1>
+ 97             <p style="color: var(--text-secondary);">a bit on the creator's vidyātīrtha</p>
+ 98         </div>
+ 99			
+100         <!-- Content -->
+101         <div class="about-content">                                                                                                                                                                                                                                                                                             
+102             <h2>what is a formulation of truth?</h2>                                                                                                                                                                                                                                                                            
+103             <p>                                                                                                                                                                                                                                                                                                                 
+104                 It may indicate as bellwether the declining currency in honesty that aformulationoftruth.com still existed to register as a domain. Th And there is a lot in the name of truth. I make no claim with regard to this questionnaire and its ability to discover something essential within or about us.             
+105      The phrase 'a formulation of truth' was ascertained from a seminar I attended as a graduate student of Sanskrit literature with below-average intelligence relative to the peers within the group. The professor, JB, and the class translated brahmā, the nominative singular form of brahman, a neuter noun -an ending n 
+    oun in Sanskrit, as 'a formulation of truth'. </p>                                                                                                                                                                                                                                                                              
+106                                                                                                                                                                                                                                                                                                                                 
+107             <h2>vividhā racanā: variegated composition</h2>                                                                                                                                                                                                                                                                     
+108                                                                                                                                                                                                                                                                                                                                 
+109       <p> This website serves the Proust questionnaire dba karuppacāmi keḷvittaḷ. For a number of reasons I chose the name karuppacāmi: because it translates into ஆங்கலம்(āngalaṁ) s something like  'dark lord' and darkness appeals to me;  to appeal to Tamil culture;  out of devotion to bhairava, and and as comic relief  
+    in  memorium a kōzhikkunjiI raised on handground pulses the summer of 2013. </p>                                                                                                                                                                                                                                                
+110 <p>Howsoever distinct the dark protector of boundaries from the  incarnation of śiva as the  horror of time, Kāla bhairava, for time consumes everything, I have cultivated a sense of self within the Sanskrit language for over half a  lifetime. Being a perpetual outsider to a culture and way of life infinitely more app 
+    ealing to the heartmind than this culture into which I was born and the kuladeva, or family god I know, my take is  more irreverent at times. And intentionally so the mixing of reverence antonym with heady truths concerning the nature of reality.</p>                                                                      
+111                                                                                                                                                                                                                                                                                                                                 
+112 As much  the Sanskrit literature, casual interaction with these qusestiuons  have gained precious ins ight about the contemporary nature of being human simply interacting with these 35 questio                                                                                                                                
+113     ns sporadically over the years.tI  intend to spread awarness and get  a name for that chick, Karupacami Ayengar combines the surname Ayengar--culturally understood as a "high" caste, ostensibly well-bred brāman--with a lowly yet powerful Tamil folk deity that protects boundaries.    French author Marcel Proust who 
+    se eponymous questionnaire that's not his creation this site serves is a framework for self-understanding the website's creator has enjoyed. I have gained precious insight about the contemporary nature of being human simply interacting with these 35 questions sporadically over the years.to the some amongs i n the word 
+     to appreciate As knowledge and action are mutually inseparable so also the creator and what, in this instance, he/they create(s). So this idea to serve the Proust questionnaire arose in the awareness the 'I-I' know some eight or so years ago. This I-I know  as the subject of the actions their body daily makes; it is  
+    who to me I know more intimately familiar than any other subject. And yet this I remains greater a mystery possessed of curiosity than a knower or possessor of truth.  The creator's creation may be as much for the need of the creator to express their formulation of truth, thereby translating from concept into reality  
+    what's created.                                                                                                                                                                                                                                                                                                                 
+114 The burden of meaning can be oppressive. For centuries power deployed in like manner, has systematically librated us from hope for a free society wherein folks differ respectfully. We genuflect in the presence of god  the authors of the four agreements remind us that we be impeccable with our word. Because with practc 
+    e, just as likely oppression, the burden of meaning suggests liberation. This gift of language some traditions mistake as reason enough to distinguish ourselves from the larger kingdoms Animaliaumans, then, are gifted to be as languge knowers, to be mortal. Whatwithal the flaws inherent each one of us, the subtle powe 
+    r of language and a human subject's capacity for memory endow us  with an ability to create in a manner not dissimilar to brahm                                                                                                                                                                                                 
+115 alter the natural orders in ways not conceivable to our fellow creatures. creation the word is your power of creation. f-inquiry (<em>அகம்</em> in Tamil, meaning "interior" or "inner") is an ancient practice of turning one's attention inward to explore the nature of consciousness and identity. Through reflective questi 
+    ons, we examine:                                                                                                                                                                                                                                                                                                                
+116             </p>                    
+            <h2>The Beauty of Joy</h2>
+            <p style="font-style: italic; opacity: 0.9;">
+                "It has been said that beauty brings a promise of happiness, but it could be otherwise that the possibility of joy is the beginning of beauty. So have fun and, if you wish, share what you create so joy may ever await you."
+            </p>
+        </div>
+
+        <!-- Back Link -->
+        <div style="text-align: center;">
+            <a href="/" class="btn btn-primary back-link">Return Home</a>
+            <a href="/questionnaire.html" class="btn btn-secondary back-link" style="margin-left: 1rem;">Begin Questionnaire</a>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="/js/theme-toggle.js"></script>
+</body>
+</html>

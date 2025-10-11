@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>a formulation of truth</title><!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;800&family=Noto+Sans+Tamil:wght@400;700&family=Noto+Sans+Devanagari:wght@400;700&display=swap" rel="stylesheet"><!-- Stylesheets -->
+  <link rel="stylesheet" href="/css/themes.css">
+  <style>
+    /* Remove @ symbol glow */
+    .oms .at {
+      filter: none !important;
+    }
+
+    /* Scrolling animation container */
+    .oms {
+      overflow: hidden;
+      position: relative;
+      width: 100%;
+      display: block;
+    }
+
+    .oms-inner {
+      display: inline-flex;
+      gap: 0.6rem;
+      font-size: clamp(1.2rem, 2.6vw, 1.8rem);
+      font-weight: 700;
+      animation: scrollCycle 102s linear infinite;
+      white-space: nowrap;
+    }
+
+    @keyframes scrollCycle {
+      /* Scroll RIGHT for 37 seconds (0% to 36.27%) */
+      0% {
+        transform: translateX(0);
+      }
+      36.27% {
+        transform: translateX(50vw);
+      }
+
+      /* Scroll LEFT for 45 seconds (36.27% to 80.39%) */
+      80.39% {
+        transform: translateX(-50vw);
+      }
+
+      /* PAUSE for 20 seconds (80.39% to 100%) */
+      100% {
+        transform: translateX(-50vw);
+      }
+    }
+  </style>
+  <meta name="description" content="a Proust questionnaire dba Karupacami kelvittal">
+</head>
+<body>
+  <!-- Theme Toggle -->
+  <div class="theme-toggle">
+    <button class="theme-btn active" data-theme="arctic" aria-label="Arctic Glow theme">Arctic</button> <button class="theme-btn" data-theme="mint" aria-label="Cyber Mint theme">Mint</button> <button class="theme-btn" data-theme="carbon" aria-label="Carbon Glow theme">Carbon</button>
+  </div><!-- Hero Section -->
+  <section class="hero">
+    <h1 class="hero-title">you are this moment</h1><!-- Om Symbols -->
+    <div class="oms" aria-hidden="true">
+      <div class="oms-inner">
+        <span class="om sup">ஓம்</span> <span class="at">@</span> <span class="om sub">ॐ</span> <span class="at">@</span> <span class="irendu">&#3048;</span> <span class="at">@</span> <span class="om sup">ஓம்</span> <span class="at">@</span> <span class="om sub">ॐ</span>
+      </div>
+    </div><!-- Lockup -->
+    <div class="lockup">
+      <div class="lockup-center">
+        || a formulation of truth ||
+      </div>
+      <div class="lockup-tamil">
+        உண்மையை சூத்திரம்
+      </div>
+      <div class="lockup-ukr">
+        формулювання істини
+      </div>
+    </div><!-- Description -->
+    <p style="max-width: 800px; margin: 2rem auto; padding: 0 1rem;">A practice in <a href="https://www.davidgodman.org/the-practice-of-self-enquiry/" target="_blank">self-inquiry</a> these questions invite upon users reflective states of awareness. Persons' crafted responses (or a non-response!) reveal something interior (<a href="http://whatismyip.akamai.com" target="_blank">அகம்</a>)--the idiosyncratic machinations that vivify oneself, as such, a person and a formulation of truth.</p><!-- Navigation Cards -->
+    <div class="grid">
+      <a class="card" href="/questionnaire.html">
+      <h3>Begin Questionnaire</h3>
+      <p>a slow experiment</p></a> <a class="card" href="/about.html">
+      <h3>About</h3>
+      <p>more about self-inquiry</p></a>
+    </div><!-- Footer Quote -->
+    <p style="margin-top: 2rem; font-style: italic; opacity: 0.9; max-width: 700px; padding: 0 1rem;">It has been said that beauty brings a promise of happiness, but it could be otherwise that the possibility of joy is the beginning of beauty. So have fun and, if you wish, share what you create so joy may ever await you.</p>
+  </section><!-- Theme Toggle Script -->
+  <a href="https://billing.flokinet.is/aff.php?aff=543"><img src=https://flokinet.is/images/floki_logo.svg width="542" height="161" border="0"></a> 
+ <script src="/js/theme-toggle.js"></script>
+</body>
+</html>
