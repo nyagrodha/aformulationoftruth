@@ -79,39 +79,51 @@
   }
 
   // Check for magic link authentication
-  function checkMagicLinkAuth() {
+  async function checkMagicLinkAuth() {
     const urlParams = new URLSearchParams(window.location.search);
-    const auth = urlParams.get('auth');
     const token = urlParams.get('token');
-    const email = urlParams.get('email');
 
-    if (auth === 'success' && token && email) {
-      // Store authentication data
-      localStorage.setItem('a4ot-auth-token', token);
-      userEmail = decodeURIComponent(email);
+    if (token) {
+      try {
+        // Verify token with backend
+        const response = await fetch(`/api/auth/verify?token=${encodeURIComponent(token)}`);
+        const data = await response.json();
 
-      // Initialize session if not exists
-      const saved = localStorage.getItem('a4ot-session');
-      if (!saved) {
-        currentPosition = 0;
-        answers = {};
-        saveSession();
+        if (response.ok && data.ok && data.user) {
+          // Store authentication data
+          localStorage.setItem('a4ot-auth-token', token);
+          userEmail = data.user.email;
+
+          // Initialize session if not exists
+          const saved = localStorage.getItem('a4ot-session');
+          if (!saved) {
+            currentPosition = 0;
+            answers = {};
+            saveSession();
+          }
+
+          // Clean URL (remove token parameter)
+          window.history.replaceState({}, document.title, window.location.pathname);
+
+          return true;
+        } else {
+          console.error('Token verification failed:', data.error);
+          showMessage('Authentication failed. Please try again.', 'error');
+        }
+      } catch (error) {
+        console.error('Error verifying token:', error);
+        showMessage('Authentication error. Please try again.', 'error');
       }
-
-      // Clean URL (remove auth parameters)
-      window.history.replaceState({}, document.title, window.location.pathname);
-
-      return true;
     }
     return false;
   }
 
   // Initialize
-  function init() {
+  async function init() {
     questionOrder = getQuestionOrder();
 
     // Check for magic link authentication first
-    const hasAuth = checkMagicLinkAuth();
+    const hasAuth = await checkMagicLinkAuth();
 
     loadSavedSession();
     setupEventListeners();
