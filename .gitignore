@@ -1,0 +1,77 @@
+# Dependencies
+node_modules/
+package-lock.json
+
+# Environment variables
+.env
+.env.save
+.env.local
+.env.*.local
+
+# Build outputs
+dist/
+build/
+
+# IDE & Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Claude Code
+.claude/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+cache/
+tmp/
+
+# Keys and certificates
+keys/
+*.key
+*.pem
+
+# Uploads and storage
+uploads/
+vps-storage/
+
+# Backups
+*.backup
+*.bak
+public.backup.*/
+
+# Generated files
+.eslintrc.js
+
+# Symlinks (tracked separately)
+backend
+frontend
+www/
+
+# Application-specific
+apps/
+assets/
+attached_assets/
+archived_html/
+construction-vite/
+drizzle/
+maintenance/
+packages/
+scripts/
+services/
+shared/
+src/
+static/
+tests/
+
+# Config files (managed separately)
+Caddyfile
+package.json
+
+# Documentation (can be added selectively)
+*.md
+!README.md
