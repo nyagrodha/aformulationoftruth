@@ -78,11 +78,49 @@
     return Array.from({length: QUESTIONS.length}, (_, i) => i);
   }
 
+  // Check for magic link authentication
+  function checkMagicLinkAuth() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const auth = urlParams.get('auth');
+    const token = urlParams.get('token');
+    const email = urlParams.get('email');
+
+    if (auth === 'success' && token && email) {
+      // Store authentication data
+      localStorage.setItem('a4ot-auth-token', token);
+      userEmail = decodeURIComponent(email);
+
+      // Initialize session if not exists
+      const saved = localStorage.getItem('a4ot-session');
+      if (!saved) {
+        currentPosition = 0;
+        answers = {};
+        saveSession();
+      }
+
+      // Clean URL (remove auth parameters)
+      window.history.replaceState({}, document.title, window.location.pathname);
+
+      return true;
+    }
+    return false;
+  }
+
   // Initialize
   function init() {
     questionOrder = getQuestionOrder();
+
+    // Check for magic link authentication first
+    const hasAuth = checkMagicLinkAuth();
+
     loadSavedSession();
     setupEventListeners();
+
+    // If authenticated via magic link, show questionnaire
+    if (hasAuth && userEmail) {
+      showQuestionSection();
+      displayQuestion();
+    }
   }
 
   // Load saved session from localStorage
