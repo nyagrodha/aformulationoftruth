@@ -1,19 +1,28 @@
 /**
- * Three-Way Theme Toggle System
- * Arctic Glow | Cyber Mint | Carbon Glow
+ * Four-Way Theme Toggle System
+ * System | Tamas | Nīla | Uruvam
  */
 
 (function() {
   'use strict';
 
   // Theme configuration
-  const THEMES = ['arctic', 'mint', 'carbon'];
+  const THEMES = ['system', 'tamas', 'nila', 'uruvam'];
   const STORAGE_KEY = 'a4ot-theme';
 
-  // Get saved theme or default to 'arctic'
+  // Detect system color scheme preference
+  function getSystemTheme() {
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      return 'tamas'; // Dark theme
+    } else {
+      return 'uruvam'; // Light theme
+    }
+  }
+
+  // Get saved theme or default to 'system'
   function getSavedTheme() {
     const saved = localStorage.getItem(STORAGE_KEY);
-    return THEMES.includes(saved) ? saved : 'arctic';
+    return THEMES.includes(saved) ? saved : 'system';
   }
 
   // Save theme to localStorage
@@ -23,8 +32,15 @@
 
   // Apply theme to document
   function applyTheme(theme) {
-    document.body.setAttribute('data-theme', theme);
-    updateActiveButton(theme);
+    let actualTheme = theme;
+
+    // If theme is 'system', detect the actual theme from system preferences
+    if (theme === 'system') {
+      actualTheme = getSystemTheme();
+    }
+
+    document.body.setAttribute('data-theme', actualTheme);
+    updateActiveButton(theme); // Update button for the selected theme (not resolved theme)
     saveTheme(theme);
   }
 
@@ -57,15 +73,33 @@
     });
   }
 
+  // Listen for system theme changes
+  function setupSystemThemeListener() {
+    if (window.matchMedia) {
+      const darkModeQuery = window.matchMedia('(prefers-color-scheme: dark)');
+
+      // Listen for changes in system color scheme
+      darkModeQuery.addEventListener('change', function() {
+        const savedTheme = getSavedTheme();
+        // Only react if user has selected 'system' theme
+        if (savedTheme === 'system') {
+          applyTheme('system');
+        }
+      });
+    }
+  }
+
   // Initialize when DOM is ready
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', function() {
       initTheme();
       setupEventListeners();
+      setupSystemThemeListener();
     });
   } else {
     initTheme();
     setupEventListeners();
+    setupSystemThemeListener();
   }
 
 })();

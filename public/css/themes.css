@@ -1,5 +1,5 @@
 /* A Formulation of Truth - Three Theme System */
-/* Arctic Glow | Cyber Mint | Carbon Glow */
+/* Tamas | Nīla | Uruvam */
 
 /* ============================================ */
 /* BASE RESET & COMMON STYLES */
@@ -24,70 +24,70 @@ body {
 }
 
 /* ============================================ */
-/* ARCTIC GLOW THEME (Default Light) */
+/* TAMAS THEME (Default Dark) */
 /* ============================================ */
 
-body[data-theme="arctic"],
+body[data-theme="tamas"],
 body:not([data-theme]) {
-  --bg-primary: #F5F7FA;
-  --bg-secondary: #E8ECF1;
-  --bg-card: rgba(255, 255, 255, 0.8);
-  --text-primary: #1A1F3A;
-  --text-secondary: #4A5568;
-  --accent-1: #0080FF;
-  --accent-2: #39FF14;
-  --accent-3: #FF006E;
-  --border-color: rgba(0, 128, 255, 0.2);
-  --shadow-color: rgba(26, 31, 58, 0.1);
-  --glow-1: rgba(0, 128, 255, 0.3);
-  --glow-2: rgba(57, 255, 20, 0.3);
-  --glow-3: rgba(255, 0, 110, 0.3);
+  --bg-primary: #1a1d29;      /* Deep midnight */
+  --bg-secondary: #252837;    /* Navy surface */
+  --bg-card: rgba(37, 40, 55, 0.8);
+  --text-primary: #a9b8e8;    /* Light blue-grey */
+  --text-secondary: #82aaff;  /* Bright blue */
+  --accent-1: #82aaff;        /* Bright blue */
+  --accent-2: #c792ea;        /* Soft purple */
+  --accent-3: #ff757f;        /* Salmon pink */
+  --border-color: rgba(130, 170, 255, 0.2);
+  --shadow-color: rgba(26, 29, 41, 0.5);
+  --glow-1: rgba(130, 170, 255, 0.4);
+  --glow-2: rgba(199, 146, 234, 0.4);
+  --glow-3: rgba(255, 117, 127, 0.4);
 
   background-color: var(--bg-primary);
   color: var(--text-primary);
 }
 
 /* ============================================ */
-/* CYBER MINT THEME */
+/* NĪLA THEME */
 /* ============================================ */
 
-body[data-theme="mint"] {
-  --bg-primary: #F8F9FA;
-  --bg-secondary: #ECEFF1;
-  --bg-card: rgba(255, 255, 255, 0.85);
-  --text-primary: #2A2A2A;
-  --text-secondary: #5A5A5A;
-  --accent-1: #00F0FF;
-  --accent-2: #FF00FF;
-  --accent-3: #00FFB3;
-  --border-color: rgba(0, 240, 255, 0.25);
-  --shadow-color: rgba(42, 42, 42, 0.1);
-  --glow-1: rgba(0, 240, 255, 0.4);
-  --glow-2: rgba(255, 0, 255, 0.4);
-  --glow-3: rgba(0, 255, 179, 0.4);
+body[data-theme="nila"] {
+  --bg-primary: #3b4252;      /* Nord polar night */
+  --bg-secondary: #434c5e;    /* Lighter polar */
+  --bg-card: rgba(67, 76, 94, 0.85);
+  --text-primary: #eceff4;    /* Snow storm */
+  --text-secondary: #d8dee9;
+  --accent-1: #88c0d0;        /* Frost cyan */
+  --accent-2: #a3be8c;        /* Aurora green */
+  --accent-3: #bf616a;        /* Aurora red */
+  --border-color: rgba(136, 192, 208, 0.25);
+  --shadow-color: rgba(59, 66, 82, 0.4);
+  --glow-1: rgba(136, 192, 208, 0.5);
+  --glow-2: rgba(163, 190, 140, 0.5);
+  --glow-3: rgba(191, 97, 106, 0.5);
 
   background-color: var(--bg-primary);
   color: var(--text-primary);
 }
 
 /* ============================================ */
-/* CARBON GLOW THEME (Dark) */
+/* URUVAM THEME (Deep Void) */
 /* ============================================ */
 
-body[data-theme="carbon"] {
-  --bg-primary: #0D0D0D;
-  --bg-secondary: #1A1A1A;
-  --bg-card: rgba(26, 26, 26, 0.8);
-  --text-primary: #F5F5F5;
-  --text-secondary: #C0C0C0;
-  --accent-1: #FF6600;
-  --accent-2: #FF0080;
-  --accent-3: #CCFF00;
-  --border-color: rgba(255, 102, 0, 0.3);
-  --shadow-color: rgba(0, 0, 0, 0.5);
-  --glow-1: rgba(255, 102, 0, 0.5);
-  --glow-2: rgba(255, 0, 128, 0.5);
-  --glow-3: rgba(204, 255, 0, 0.5);
+body[data-theme="uruvam"] {
+  --bg-primary: #0a0e14;      /* Deep void blue-black */
+  --bg-secondary: #151a21;    /* Slightly elevated */
+  --bg-card: rgba(21, 26, 33, 0.8);
+  --text-primary: #c5cdd9;    /* Light grey-blue */
+  --text-secondary: #95b8d1;  /* Soft blue */
+  --accent-1: #95b8d1;        /* Soft blue */
+  --accent-2: #b8bb26;        /* Muted lime */
+  --accent-3: #f07178;        /* Soft coral */
+  --border-color: rgba(149, 184, 209, 0.3);
+  --shadow-color: rgba(10, 14, 20, 0.6);
+  --glow-1: rgba(149, 184, 209, 0.5);
+  --glow-2: rgba(184, 187, 38, 0.5);
+  --glow-3: rgba(240, 113, 120, 0.5);
 
   background-color: var(--bg-primary);
   color: var(--text-primary);
@@ -135,26 +135,26 @@ body[data-theme="carbon"] {
   box-shadow: 0 0 10px var(--glow-1);
 }
 
-/* Arctic Glow button colors */
-body[data-theme="arctic"] .theme-btn[data-theme="arctic"],
-body:not([data-theme]) .theme-btn[data-theme="arctic"] {
-  color: #0080FF;
-  border-color: #0080FF;
-  box-shadow: 0 0 10px rgba(0, 128, 255, 0.4);
+/* Tamas button colors */
+body[data-theme="tamas"] .theme-btn[data-theme="tamas"],
+body:not([data-theme]) .theme-btn[data-theme="tamas"] {
+  color: #82aaff;
+  border-color: #82aaff;
+  box-shadow: 0 0 10px rgba(130, 170, 255, 0.5);
 }
 
-/* Cyber Mint button colors */
-body[data-theme="mint"] .theme-btn[data-theme="mint"] {
-  color: #00F0FF;
-  border-color: #00F0FF;
-  box-shadow: 0 0 10px rgba(0, 240, 255, 0.5);
+/* Nīla button colors */
+body[data-theme="nila"] .theme-btn[data-theme="nila"] {
+  color: #88c0d0;
+  border-color: #88c0d0;
+  box-shadow: 0 0 10px rgba(136, 192, 208, 0.6);
 }
 
-/* Carbon Glow button colors */
-body[data-theme="carbon"] .theme-btn[data-theme="carbon"] {
-  color: #FF6600;
-  border-color: #FF6600;
-  box-shadow: 0 0 10px rgba(255, 102, 0, 0.6);
+/* Uruvam button colors */
+body[data-theme="uruvam"] .theme-btn[data-theme="uruvam"] {
+  color: #59c2ff;
+  border-color: #59c2ff;
+  box-shadow: 0 0 10px rgba(89, 194, 255, 0.6);
 }
 
 /* ============================================ */
@@ -208,30 +208,30 @@ a:hover {
   position: relative;
 }
 
-/* Arctic Glow gradient */
-body[data-theme="arctic"] .hero,
+/* Tamas gradient */
+body[data-theme="tamas"] .hero,
 body:not([data-theme]) .hero {
   background: radial-gradient(
     1200px 600px at 50% 10%,
-    rgba(0, 128, 255, 0.15) 0%,
+    rgba(130, 170, 255, 0.15) 0%,
     transparent 60%
   );
 }
 
-/* Cyber Mint gradient */
-body[data-theme="mint"] .hero {
+/* Nīla gradient */
+body[data-theme="nila"] .hero {
   background: radial-gradient(
     1200px 600px at 50% 10%,
-    rgba(0, 240, 255, 0.15) 0%,
+    rgba(136, 192, 208, 0.15) 0%,
     transparent 60%
   );
 }
 
-/* Carbon Glow gradient */
-body[data-theme="carbon"] .hero {
+/* Uruvam gradient */
+body[data-theme="uruvam"] .hero {
   background: radial-gradient(
     1200px 600px at 50% 10%,
-    rgba(255, 102, 0, 0.15) 0%,
+    rgba(149, 184, 209, 0.15) 0%,
     transparent 60%
   );
 }
@@ -291,8 +291,10 @@ body[data-theme="carbon"] .hero {
 
 .lockup {
   position: relative;
-  display: grid;
-  place-items: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
   margin: 1.5rem 0;
   padding: 2.5rem 1rem;
 }
@@ -308,31 +310,26 @@ body[data-theme="carbon"] .hero {
 }
 
 .lockup-tamil {
-  position: absolute;
-  left: 0;
-  top: 0;
-  transform: translate(4px, -8px);
   font-family: 'Noto Sans Tamil', sans-serif;
   font-weight: 700;
-  font-size: clamp(1rem, 2.1vw, 1.3rem);
+  font-size: clamp(1.2rem, 3.2vw, 2.1rem);
   color: var(--accent-2);
+  text-align: center;
   opacity: 0.95;
-  text-shadow: 0 0 8px var(--glow-2);
+  text-shadow: 0 0 10px var(--glow-2);
 }
 
 .lockup-ukr {
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  transform: translate(-4px, 8px);
   font-family: 'Orbitron', sans-serif;
   font-weight: 700;
-  font-size: clamp(0.95rem, 1.9vw, 1.2rem);
+  font-size: clamp(1.1rem, 3vw, 2rem);
   color: var(--accent-3);
-  text-shadow: 0 0 8px var(--glow-3);
+  text-align: center;
+  text-shadow: 0 0 10px var(--glow-3);
   display: flex;
   gap: 0.5rem;
   align-items: center;
+  justify-content: center;
 }
 
 .flag-ua {

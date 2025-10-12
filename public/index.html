@@ -9,46 +9,13 @@
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;800&family=Noto+Sans+Tamil:wght@400;700&family=Noto+Sans+Devanagari:wght@400;700&display=swap" rel="stylesheet"><!-- Stylesheets -->
   <link rel="stylesheet" href="/css/themes.css">
   <style>
-    /* Remove @ symbol glow */
-    .oms .at {
-      filter: none !important;
-    }
-
-    /* Scrolling animation container */
-    .oms {
-      overflow: hidden;
-      position: relative;
+    /* Om Wave SVG */
+    .om-wave-svg {
       width: 100%;
+      max-width: 1400px;
+      height: 150px;
+      margin: 1.5rem auto;
       display: block;
-    }
-
-    .oms-inner {
-      display: inline-flex;
-      gap: 0.6rem;
-      font-size: clamp(1.2rem, 2.6vw, 1.8rem);
-      font-weight: 700;
-      animation: scrollCycle 102s linear infinite;
-      white-space: nowrap;
-    }
-
-    @keyframes scrollCycle {
-      /* Scroll RIGHT for 37 seconds (0% to 36.27%) */
-      0% {
-        transform: translateX(0);
-      }
-      36.27% {
-        transform: translateX(50vw);
-      }
-
-      /* Scroll LEFT for 45 seconds (36.27% to 80.39%) */
-      80.39% {
-        transform: translateX(-50vw);
-      }
-
-      /* PAUSE for 20 seconds (80.39% to 100%) */
-      100% {
-        transform: translateX(-50vw);
-      }
     }
   </style>
   <meta name="description" content="a Proust questionnaire dba Karupacami kelvittal">
@@ -56,21 +23,60 @@
 <body>
   <!-- Theme Toggle -->
   <div class="theme-toggle">
-    <button class="theme-btn active" data-theme="arctic" aria-label="Arctic Glow theme">Arctic</button> <button class="theme-btn" data-theme="mint" aria-label="Cyber Mint theme">Mint</button> <button class="theme-btn" data-theme="carbon" aria-label="Carbon Glow theme">Carbon</button>
+    <button class="theme-btn" data-theme="system" aria-label="System theme">System</button> <button class="theme-btn active" data-theme="tamas" aria-label="Tamas theme">Tamas</button> <button class="theme-btn" data-theme="nila" aria-label="Nīla theme">Nīla</button> <button class="theme-btn" data-theme="uruvam" aria-label="Uruvam theme">Uruvam</button>
   </div><!-- Hero Section -->
   <section class="hero">
-    <h1 class="hero-title">you are this moment</h1><!-- Om Symbols -->
-    <div class="oms" aria-hidden="true">
-      <div class="oms-inner">
-        <span class="om sup">ஓம்</span> <span class="at">@</span> <span class="om sub">ॐ</span> <span class="at">@</span> <span class="irendu">&#3048;</span> <span class="at">@</span> <span class="om sup">ஓம்</span> <span class="at">@</span> <span class="om sub">ॐ</span>
-      </div>
-    </div><!-- Lockup -->
+   <div style="font-family: 'Noto Sans Tamil', sans-serif; font-size: clamp(2rem, 5vw, 3rem); font-weight: 700; text-align: center; margin-bottom: 0.5rem; color: var(--accent-1); text-shadow: 0 0 10px var(--glow-1);">௨</div>
+    <h1 class="hero-title">you are this moment</h1><!-- Om Wave SVG -->
+    <svg class="om-wave-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 150">
+      <defs>
+        <path id="wave" d="M0,75 Q350,20 700,75 T1400,75" />
+        <filter id="neon-glow">
+          <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+          <feMerge>
+            <feMergeNode in="coloredBlur"/>
+            <feMergeNode in="SourceGraphic"/>
+          </feMerge>
+        </filter>
+      </defs>
+      <text font-size="32" font-weight="700" filter="url(#neon-glow)">
+        <textPath href="#wave" startOffset="0%">
+          <tspan fill="#c792ea" style="text-shadow: 0 0 3px #c792ea, 0 0 6px #c792ea;">ஓம்</tspan>
+          <tspan fill="#ff6b9d" style="text-shadow: 0 0 3px #ff6b9d, 0 0 6px #ff6b9d;"> ॐ</tspan>
+          <tspan fill="var(--accent-1)"> @ </tspan>
+          <tspan fill="#c792ea" style="text-shadow: 0 0 3px #c792ea, 0 0 6px #c792ea;"> ૐ</tspan>
+          <tspan fill="#ff6b9d" style="text-shadow: 0 0 3px #ff6b9d, 0 0 6px #ff6b9d;"> ௐ</tspan>
+          <tspan fill="#c792ea" style="text-shadow: 0 0 3px #c792ea, 0 0 6px #c792ea;"> ଓଁ</tspan>
+          <tspan fill="var(--accent-1)"> |</tspan>
+          <tspan fill="#ff6b9d" style="text-shadow: 0 0 3px #ff6b9d, 0 0 6px #ff6b9d;">ஓம் சிவனேப் போற்றி</tspan>
+          <tspan fill="var(--accent-1)">| </tspan>
+          <tspan fill="#c792ea" style="text-shadow: 0 0 3px #c792ea, 0 0 6px #c792ea;">ॐ</tspan>
+          <tspan fill="#ff6b9d" style="text-shadow: 0 0 3px #ff6b9d, 0 0 6px #ff6b9d;"> @ </tspan>
+          <tspan fill="#c792ea" style="text-shadow: 0 0 3px #c792ea, 0 0 6px #c792ea;">ૐ </tspan>
+          <tspan fill="#ff6b9d" style="text-shadow: 0 0 3px #ff6b9d, 0 0 6px #ff6b9d;"> ௐ</tspan>
+          <tspan fill="#c792ea" style="text-shadow: 0 0 3px #c792ea, 0 0 6px #c792ea;"> ଓଁ</tspan>
+          <tspan fill="var(--accent-1)"> |</tspan>
+          <tspan fill="#ff6b9d" style="text-shadow: 0 0 3px #ff6b9d, 0 0 6px #ff6b9d;">ஓம் சிவனேப் போற்றி</tspan>
+          <tspan fill="var(--accent-1)">| </tspan>
+          <tspan fill="#c792ea" style="text-shadow: 0 0 3px #c792ea, 0 0 6px #c792ea;">ॐ</tspan>
+          <tspan fill="#ff6b9d" style="text-shadow: 0 0 3px #ff6b9d, 0 0 6px #ff6b9d;"> @ </tspan>
+          <tspan fill="#c792ea" style="text-shadow: 0 0 3px #c792ea, 0 0 6px #c792ea;"> ૐ </tspan>
+          <tspan fill="#ff6b9d" style="text-shadow: 0 0 3px #ff6b9d, 0 0 6px #ff6b9d;"> ௐ</tspan>
+          <tspan fill="#c792ea" style="text-shadow: 0 0 3px #c792ea, 0 0 6px #c792ea;"> ଓଁ</tspan>
+          <tspan fill="var(--accent-1)"> |</tspan>
+          <tspan fill="#ff6b9d" style="text-shadow: 0 0 3px #ff6b9d, 0 0 6px #ff6b9d;">ஓம் சிவனேப் போற்றி</tspan>
+          <tspan fill="var(--accent-1)">| </tspan>
+          <tspan fill="#c792ea" style="text-shadow: 0 0 3px #c792ea, 0 0 6px #c792ea;">ॐ</tspan>
+          <tspan fill="#ff6b9d" style="text-shadow: 0 0 3px #ff6b9d, 0 0 6px #ff6b9d;"> @</tspan>
+        </textPath>
+      </text>
+    </svg><!-- Lockup -->
     <div class="lockup">
-      <div class="lockup-center">
-        || a formulation of truth ||
-      </div>
       <div class="lockup-tamil">
         உண்மையை சூத்திரம்
+      </div>
+      <div class="lockup-center">
+        || a formulation of truth ||
       </div>
       <div class="lockup-ukr">
         формулювання істини
@@ -78,15 +84,101 @@
     </div><!-- Description -->
     <p style="max-width: 800px; margin: 2rem auto; padding: 0 1rem;">A practice in <a href="https://www.davidgodman.org/the-practice-of-self-enquiry/" target="_blank">self-inquiry</a> these questions invite upon users reflective states of awareness. Persons' crafted responses (or a non-response!) reveal something interior (<a href="http://whatismyip.akamai.com" target="_blank">அகம்</a>)--the idiosyncratic machinations that vivify oneself, as such, a person and a formulation of truth.</p><!-- Navigation Cards -->
     <div class="grid">
-      <a class="card" href="/questionnaire.html">
-      <h3>Begin Questionnaire</h3>
-      <p>a slow experiment</p></a> <a class="card" href="/about.html">
-      <h3>About</h3>
-      <p>more about self-inquiry</p></a>
+      <div class="card">
+        <h3>Begin Questionnaire</h3>
+        <p style="margin-bottom: 1rem;">Enter your email to receive a magic link</p>
+
+        <form id="auth-form" style="margin-top: 1rem;">
+          <input
+            type="email"
+            id="email-input"
+            placeholder="your.email@example.com"
+            required
+            style="width: 100%; padding: 0.75rem; border: 1px solid var(--accent-1); background: var(--bg-color); color: var(--text-color); border-radius: 4px; margin-bottom: 0.75rem; font-family: 'Orbitron', monospace;"
+          >
+          <button type="submit" style="width: 100%; padding: 0.75rem; background: var(--accent-1); color: var(--bg-color); border: none; border-radius: 4px; font-family: 'Orbitron', monospace; font-weight: 600; cursor: pointer; transition: all 0.3s ease;">
+            Begin
+          </button>
+        </form>
+
+        <div id="auth-message" style="margin-top: 1rem; padding: 0.75rem; border-radius: 4px; display: none;"></div>
+      </div>
+
+      <a class="card" href="/about.html">
+        <h3>About</h3>
+        <p>more about the site</p>
+      </a>
     </div><!-- Footer Quote -->
     <p style="margin-top: 2rem; font-style: italic; opacity: 0.9; max-width: 700px; padding: 0 1rem;">It has been said that beauty brings a promise of happiness, but it could be otherwise that the possibility of joy is the beginning of beauty. So have fun and, if you wish, share what you create so joy may ever await you.</p>
   </section><!-- Theme Toggle Script -->
-  <a href="https://billing.flokinet.is/aff.php?aff=543"><img src=https://flokinet.is/images/floki_logo.svg width="542" height="161" border="0"></a> 
+  <a href="https://billing.flokinet.is/aff.php?aff=543"><img src=https://flokinet.is/images/floki_logo.svg width="542" height="161" border="0"></a>
  <script src="/js/theme-toggle.js"></script>
+ <script>
+  // Handle magic link request
+  (function() {
+    const authForm = document.getElementById('auth-form');
+    const emailInput = document.getElementById('email-input');
+    const authMessage = document.getElementById('auth-message');
+
+    authForm.addEventListener('submit', async function(e) {
+      e.preventDefault();
+
+      const email = emailInput.value.trim();
+      if (!email) {
+        showMessage('Please enter your email', 'error');
+        return;
+      }
+
+      // Disable form while processing
+      emailInput.disabled = true;
+      authForm.querySelector('button').disabled = true;
+      showMessage('Sending magic link...', 'info');
+
+      try {
+        const response = await fetch('/auth/request', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ email })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          showMessage('✅ Check your email! Click the magic link to begin the questionnaire.', 'success');
+          emailInput.value = '';
+        } else {
+          showMessage(data.error || 'Failed to send magic link. Please try again.', 'error');
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        showMessage('Network error. Please try again.', 'error');
+      } finally {
+        emailInput.disabled = false;
+        authForm.querySelector('button').disabled = false;
+      }
+    });
+
+    function showMessage(text, type) {
+      authMessage.textContent = text;
+      authMessage.style.display = 'block';
+      authMessage.style.background = type === 'error' ? 'rgba(239, 68, 68, 0.2)' :
+                                      type === 'success' ? 'rgba(34, 197, 94, 0.2)' :
+                                      'rgba(59, 130, 246, 0.2)';
+      authMessage.style.border = type === 'error' ? '1px solid #ef4444' :
+                                  type === 'success' ? '1px solid #22c55e' :
+                                  '1px solid #3b82f6';
+      authMessage.style.color = 'var(--text-color)';
+
+      // Auto-hide error/info messages after 5 seconds, but keep success visible
+      if (type !== 'success') {
+        setTimeout(() => {
+          authMessage.style.display = 'none';
+        }, 5000);
+      }
+    }
+  })();
+ </script>
 </body>
 </html>
