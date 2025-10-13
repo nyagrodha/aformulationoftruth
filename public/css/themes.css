@@ -29,42 +29,44 @@ body {
 
 body[data-theme="tamas"],
 body:not([data-theme]) {
-  --bg-primary: #1a1d29;      /* Deep midnight */
-  --bg-secondary: #252837;    /* Navy surface */
-  --bg-card: rgba(37, 40, 55, 0.8);
-  --text-primary: #a9b8e8;    /* Light blue-grey */
-  --text-secondary: #82aaff;  /* Bright blue */
-  --accent-1: #82aaff;        /* Bright blue */
-  --accent-2: #c792ea;        /* Soft purple */
-  --accent-3: #ff757f;        /* Salmon pink */
-  --border-color: rgba(130, 170, 255, 0.2);
-  --shadow-color: rgba(26, 29, 41, 0.5);
-  --glow-1: rgba(130, 170, 255, 0.4);
-  --glow-2: rgba(199, 146, 234, 0.4);
-  --glow-3: rgba(255, 117, 127, 0.4);
+  --bg-primary: #000000;      /* Pure black void */
+  --bg-secondary: #0a0a0a;    /* Near-black surface */
+  --bg-card: rgba(10, 10, 10, 0.9);
+  --text-primary: #e0e0ff;    /* Very light lavender */
+  --text-secondary: #00d9ff;  /* Electric blue */
+  --accent-1: #00d9ff;        /* Electric blue */
+  --accent-2: #8b00ff;        /* Deep psychedelic purple */
+  --accent-3: #00ff41;        /* Toxic neon green */
+  --border-color: rgba(0, 217, 255, 0.3);
+  --shadow-color: rgba(0, 0, 0, 0.9);
+  --glow-1: rgba(0, 217, 255, 0.8);
+  --glow-2: rgba(139, 0, 255, 0.8);
+  --glow-3: rgba(0, 255, 65, 0.8);
 
   background-color: var(--bg-primary);
   color: var(--text-primary);
 }
 
 /* ============================================ */
-/* NĪLA THEME */
+/* NĪLA THEME - Neon Electric */
 /* ============================================ */
 
 body[data-theme="nila"] {
-  --bg-primary: #3b4252;      /* Nord polar night */
-  --bg-secondary: #434c5e;    /* Lighter polar */
-  --bg-card: rgba(67, 76, 94, 0.85);
-  --text-primary: #eceff4;    /* Snow storm */
-  --text-secondary: #d8dee9;
-  --accent-1: #88c0d0;        /* Frost cyan */
-  --accent-2: #a3be8c;        /* Aurora green */
-  --accent-3: #bf616a;        /* Aurora red */
-  --border-color: rgba(136, 192, 208, 0.25);
-  --shadow-color: rgba(59, 66, 82, 0.4);
-  --glow-1: rgba(136, 192, 208, 0.5);
-  --glow-2: rgba(163, 190, 140, 0.5);
-  --glow-3: rgba(191, 97, 106, 0.5);
+  --bg-primary: #0a0a0a;      /* Deep black for neon contrast */
+  --bg-secondary: #1a1a1a;    /* Elevated black */
+  --bg-card: rgba(26, 26, 26, 0.9);
+  --text-primary: #ffffff;    /* Pure white for readability */
+  --text-secondary: #e0e0e0;  /* Slightly dimmed white */
+  --accent-1: #00FFFF;        /* Electric cyan */
+  --accent-2: #FF0080;        /* Hot pink/magenta */
+  --accent-3: #FF5500;        /* Neon orange */
+  --accent-4: #CCFF00;        /* Neon yellow-lime */
+  --border-color: rgba(0, 255, 255, 0.3);
+  --shadow-color: rgba(0, 0, 0, 0.8);
+  --glow-1: rgba(0, 255, 255, 0.8);
+  --glow-2: rgba(255, 0, 128, 0.8);
+  --glow-3: rgba(255, 85, 0, 0.8);
+  --glow-4: rgba(204, 255, 0, 0.8);
 
   background-color: var(--bg-primary);
   color: var(--text-primary);
@@ -138,16 +140,18 @@ body[data-theme="uruvam"] {
 /* Tamas button colors */
 body[data-theme="tamas"] .theme-btn[data-theme="tamas"],
 body:not([data-theme]) .theme-btn[data-theme="tamas"] {
-  color: #82aaff;
-  border-color: #82aaff;
-  box-shadow: 0 0 10px rgba(130, 170, 255, 0.5);
+  color: #00d9ff;
+  border-color: #00d9ff;
+  box-shadow: 0 0 20px rgba(0, 217, 255, 1);
+  text-shadow: 0 0 10px rgba(0, 217, 255, 0.8);
 }
 
-/* Nīla button colors */
+/* Nīla button colors - Neon cyan */
 body[data-theme="nila"] .theme-btn[data-theme="nila"] {
-  color: #88c0d0;
-  border-color: #88c0d0;
-  box-shadow: 0 0 10px rgba(136, 192, 208, 0.6);
+  color: #00FFFF;
+  border-color: #00FFFF;
+  box-shadow: 0 0 20px rgba(0, 255, 255, 1);
+  text-shadow: 0 0 10px rgba(0, 255, 255, 0.8);
 }
 
 /* Uruvam button colors */
@@ -208,22 +212,25 @@ a:hover {
   position: relative;
 }
 
-/* Tamas gradient */
+/* Tamas gradient - Psychedelic void */
 body[data-theme="tamas"] .hero,
 body:not([data-theme]) .hero {
   background: radial-gradient(
     1200px 600px at 50% 10%,
-    rgba(130, 170, 255, 0.15) 0%,
-    transparent 60%
+    rgba(139, 0, 255, 0.3) 0%,
+    rgba(0, 217, 255, 0.2) 40%,
+    rgba(0, 255, 65, 0.1) 60%,
+    transparent 80%
   );
 }
 
-/* Nīla gradient */
+/* Nīla gradient - Electric neon glow */
 body[data-theme="nila"] .hero {
   background: radial-gradient(
     1200px 600px at 50% 10%,
-    rgba(136, 192, 208, 0.15) 0%,
-    transparent 60%
+    rgba(0, 255, 255, 0.25) 0%,
+    rgba(255, 0, 128, 0.15) 40%,
+    transparent 70%
   );
 }
 
@@ -430,6 +437,49 @@ body[data-theme="uruvam"] .hero {
 @keyframes flag-wave {
   0%, 100% { transform: rotate(0deg) skewY(0deg); }
   50% { transform: rotate(-4deg) skewY(-2deg); }
+}
+
+/* ============================================ */
+/* NĪLA THEME SPECIFIC OVERRIDES */
+/* ============================================ */
+
+/* "you are this moment" - Neon orange */
+body[data-theme="nila"] .hero-title {
+  color: #FF5500;
+  text-shadow: 0 0 20px rgba(255, 85, 0, 1), 0 0 40px rgba(255, 85, 0, 0.6);
+}
+
+/* Tamil text "உண்மையை சூத்திரம்" - Hot pink/magenta */
+body[data-theme="nila"] .lockup-tamil {
+  color: #FF0080;
+  text-shadow: 0 0 20px rgba(255, 0, 128, 1), 0 0 40px rgba(255, 0, 128, 0.6);
+}
+
+/* "|| a formulation of truth ||" - Electric cyan */
+body[data-theme="nila"] .lockup-center {
+  color: #00FFFF;
+  text-shadow: 0 0 20px rgba(0, 255, 255, 1), 0 0 40px rgba(0, 255, 255, 0.6);
+}
+
+/* Ukrainian text "формулювання істини" - Neon yellow-lime */
+body[data-theme="nila"] .lockup-ukr {
+  color: #CCFF00;
+  text-shadow: 0 0 20px rgba(204, 255, 0, 1), 0 0 40px rgba(204, 255, 0, 0.6);
+}
+
+/* Top Tamil/Devanagari symbol ௨ - Hot pink to match energy */
+body[data-theme="nila"] .hero div[style*="Noto Sans Tamil"] {
+  color: #FF69B4 !important;
+  text-shadow: 0 0 20px rgba(255, 105, 180, 1), 0 0 40px rgba(255, 105, 180, 0.6) !important;
+}
+
+/* Links - Neon cyan */
+body[data-theme="nila"] a {
+  color: #00FFFF;
+}
+
+body[data-theme="nila"] a:hover {
+  text-shadow: 0 0 15px rgba(0, 255, 255, 1);
 }
 
 /* ============================================ */
