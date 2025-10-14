@@ -16,6 +16,5 @@ Just as consciousness (cit) operates with complete independence, our network acc
 
 ### Ports by Service:
 - 22: SSH access
-- 80/443: Web application (frontend/backend)
-- 5000: Express server (as per server.js)
+- 443: Web application (frontend/backend)
 - 5432: PostgreSQL (if using DB_URL)
