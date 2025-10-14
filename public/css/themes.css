@@ -73,23 +73,25 @@ body[data-theme="nila"] {
 }
 
 /* ============================================ */
-/* URUVAM THEME (Deep Void) */
+/* URUVAM THEME (Electrified Neon Void) */
 /* ============================================ */
 
 body[data-theme="uruvam"] {
-  --bg-primary: #0a0e14;      /* Deep void blue-black */
-  --bg-secondary: #151a21;    /* Slightly elevated */
-  --bg-card: rgba(21, 26, 33, 0.8);
-  --text-primary: #c5cdd9;    /* Light grey-blue */
-  --text-secondary: #95b8d1;  /* Soft blue */
-  --accent-1: #95b8d1;        /* Soft blue */
-  --accent-2: #b8bb26;        /* Muted lime */
-  --accent-3: #f07178;        /* Soft coral */
-  --border-color: rgba(149, 184, 209, 0.3);
-  --shadow-color: rgba(10, 14, 20, 0.6);
-  --glow-1: rgba(149, 184, 209, 0.5);
-  --glow-2: rgba(184, 187, 38, 0.5);
-  --glow-3: rgba(240, 113, 120, 0.5);
+  --bg-primary: #050508;      /* Deepest void - almost true black */
+  --bg-secondary: #0a0a0f;    /* Elevated void */
+  --bg-card: rgba(10, 10, 15, 0.85);
+  --text-primary: #e8e8ff;    /* Very light lavender */
+  --text-secondary: #b8b8d8;  /* Dimmed lavender */
+  --accent-1: #9d4edd;        /* Electric purple */
+  --accent-2: #ffea00;        /* Electric yellow */
+  --accent-3: #00ff66;        /* Deep electric green */
+  --accent-4: #ff1744;        /* Deep electric red */
+  --border-color: rgba(157, 78, 221, 0.4);
+  --shadow-color: rgba(5, 5, 8, 0.9);
+  --glow-1: rgba(157, 78, 221, 0.9);     /* Purple glow */
+  --glow-2: rgba(255, 234, 0, 0.9);      /* Yellow glow */
+  --glow-3: rgba(0, 255, 102, 0.9);      /* Green glow */
+  --glow-4: rgba(255, 23, 68, 0.9);      /* Red glow */
 
   background-color: var(--bg-primary);
   color: var(--text-primary);
@@ -154,11 +156,12 @@ body[data-theme="nila"] .theme-btn[data-theme="nila"] {
   text-shadow: 0 0 10px rgba(0, 255, 255, 0.8);
 }
 
-/* Uruvam button colors */
+/* Uruvam button colors - Electric purple */
 body[data-theme="uruvam"] .theme-btn[data-theme="uruvam"] {
-  color: #59c2ff;
-  border-color: #59c2ff;
-  box-shadow: 0 0 10px rgba(89, 194, 255, 0.6);
+  color: #9d4edd;
+  border-color: #9d4edd;
+  box-shadow: 0 0 20px rgba(157, 78, 221, 1);
+  text-shadow: 0 0 10px rgba(157, 78, 221, 0.8);
 }
 
 /* ============================================ */
@@ -234,12 +237,15 @@ body[data-theme="nila"] .hero {
   );
 }
 
-/* Uruvam gradient */
+/* Uruvam gradient - Electrified neon void */
 body[data-theme="uruvam"] .hero {
   background: radial-gradient(
     1200px 600px at 50% 10%,
-    rgba(149, 184, 209, 0.15) 0%,
-    transparent 60%
+    rgba(157, 78, 221, 0.3) 0%,
+    rgba(255, 234, 0, 0.15) 30%,
+    rgba(0, 255, 102, 0.1) 50%,
+    rgba(255, 23, 68, 0.08) 65%,
+    transparent 80%
   );
 }
 
@@ -480,6 +486,49 @@ body[data-theme="nila"] a {
 
 body[data-theme="nila"] a:hover {
   text-shadow: 0 0 15px rgba(0, 255, 255, 1);
+}
+
+/* ============================================ */
+/* URUVAM THEME SPECIFIC OVERRIDES */
+/* ============================================ */
+
+/* "you are this moment" - Electric yellow */
+body[data-theme="uruvam"] .hero-title {
+  color: #ffea00;
+  text-shadow: 0 0 20px rgba(255, 234, 0, 1), 0 0 40px rgba(255, 234, 0, 0.6);
+}
+
+/* Tamil text "உண்மையை சூத்திரம்" - Electric purple */
+body[data-theme="uruvam"] .lockup-tamil {
+  color: #9d4edd;
+  text-shadow: 0 0 20px rgba(157, 78, 221, 1), 0 0 40px rgba(157, 78, 221, 0.6);
+}
+
+/* "|| a formulation of truth ||" - Deep electric green */
+body[data-theme="uruvam"] .lockup-center {
+  color: #00ff66;
+  text-shadow: 0 0 20px rgba(0, 255, 102, 1), 0 0 40px rgba(0, 255, 102, 0.6);
+}
+
+/* Ukrainian text "формулювання істини" - Deep electric red */
+body[data-theme="uruvam"] .lockup-ukr {
+  color: #ff1744;
+  text-shadow: 0 0 20px rgba(255, 23, 68, 1), 0 0 40px rgba(255, 23, 68, 0.6);
+}
+
+/* Top Tamil/Devanagari symbol ௨ - Electric purple to match energy */
+body[data-theme="uruvam"] .hero div[style*="Noto Sans Tamil"] {
+  color: #c77dff !important;
+  text-shadow: 0 0 20px rgba(199, 125, 255, 1), 0 0 40px rgba(199, 125, 255, 0.6) !important;
+}
+
+/* Links - Electric purple */
+body[data-theme="uruvam"] a {
+  color: #9d4edd;
+}
+
+body[data-theme="uruvam"] a:hover {
+  text-shadow: 0 0 15px rgba(157, 78, 221, 1);
 }
 
 /* ============================================ */
