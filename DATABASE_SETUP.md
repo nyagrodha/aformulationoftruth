@@ -19,7 +19,17 @@ cp .env.example .env
 Edit `.env` so that `DATABASE_URL` points to your PostgreSQL instance. For example, a local connection string might look like:
 
 ```
-DATABASE_URL=postgres://a4ot:localpassword@localhost:5432/a4ot
+DATABASE_URL=postgresql://a4ot:localpassword@localhost:5432/a4ot
+```
+
+If you prefer to provide discrete PostgreSQL settings, you can set the standard environment variables instead of a URL:
+
+```
+PGHOST=localhost
+PGPORT=5432
+PGDATABASE=a4ot
+PGUSER=a4ot
+PGPASSWORD=localpassword
 ```
 
 If you are connecting to a managed provider that requires TLS (e.g., Supabase, Render), set `PGSSLMODE=require`.
