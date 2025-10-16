@@ -8,6 +8,10 @@ const config: Config = {
   transform: {
     '^.+\\.(ts|tsx)$': 'ts-jest',
   },
+  moduleNameMapper: {
+    '^@/(.*)$': '<rootDir>/client/src/$1',
+    '^@shared/(.*)$': '<rootDir>/shared/$1',
+  },
   collectCoverageFrom: [
     'server/**/*.(ts|js)',
     'client/src/**/*.(ts|tsx)',
