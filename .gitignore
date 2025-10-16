@@ -1,6 +1,5 @@
 # Dependencies
 node_modules/
-package-lock.json
 
 # Environment variables
 .env
@@ -62,6 +61,7 @@ drizzle/
 maintenance/
 packages/
 scripts/
+!server/scripts/
 services/
 shared/
 src/
@@ -70,8 +70,14 @@ tests/
 
 # Config files (managed separately)
 Caddyfile
-package.json
 
-# Documentation (can be added selectively)
+# Documentation (ignored by default)
 *.md
 !README.md
+!DATABASE_SETUP.md
+!NETWORK_SETUP.md
+!public/SHUFFLE-IMPLEMENTATION.md
+
+# Allow project configuration tracked in this repository
+!package.json
+!package-lock.json
