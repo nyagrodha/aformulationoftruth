@@ -1,0 +1,23 @@
+{
+  "name": "aformulationoftruth-server",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Backend server for A Formulation of Truth questionnaire with PostgreSQL persistence.",
+  "main": "server/index.js",
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "nodemon server/index.js",
+    "db:init": "node server/scripts/init-db.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "pg": "^8.11.5"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.4"
+  }
+}
