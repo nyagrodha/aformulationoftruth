@@ -1,12 +1,126 @@
+import { useCallback, useEffect, useState, type FormEvent } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { useLocation } from "wouter";
 
-export default function AuthPage() {
-  const { isLoading } = useAuth();
-  const [, setLocation] = useLocation();
+type AuthStatus = "idle" | "sending" | "sent" | "error" | "verifying";
 
-  const handleLogin = () => {
-    window.location.href = "/api/login";
+export default function AuthPage() {
+  const { isLoading, isAuthenticated } = useAuth();
+  const queryClient = useQueryClient();
+  const [, setLocation] = useLocation();
+  const [email, setEmail] = useState("");
+  const [status, setStatus] = useState<AuthStatus>("idle");
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [infoMessage, setInfoMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      setLocation("/");
+    }
+  }, [isAuthenticated, setLocation]);
+
+  const verifyToken = useCallback(
+    async (token: string) => {
+      setStatus("verifying");
+      setErrorMessage(null);
+      setInfoMessage("Verifying your link...");
+
+      try {
+        const response = await fetch("/api/auth/magic-link/verify", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ token }),
+        });
+
+        if (!response.ok) {
+          const body = await response.json().catch(() => ({ message: "Failed to verify magic link" }));
+          throw new Error(body.message || "Failed to verify magic link");
+        }
+
+        await queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+        setStatus("sent");
+        setInfoMessage("Authentication complete. Redirecting...");
+
+        const url = new URL(window.location.href);
+        url.searchParams.delete("token");
+        url.searchParams.delete("portal");
+        window.history.replaceState({}, "", url.toString());
+
+        setTimeout(() => {
+          setLocation("/auth-callback");
+        }, 800);
+      } catch (error) {
+        setStatus("error");
+        setInfoMessage(null);
+
+        const message = error instanceof Error ? error.message : "Failed to verify magic link";
+        setErrorMessage(message);
+
+        const url = new URL(window.location.href);
+        url.searchParams.delete("token");
+        url.searchParams.delete("portal");
+        window.history.replaceState({}, "", url.toString());
+      }
+    },
+    [queryClient, setLocation],
+  );
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get("token");
+    if (token) {
+      verifyToken(token);
+    }
+  }, [verifyToken]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("portal") === "1") {
+      setInfoMessage("The portal hums softly—enter your email to proceed.");
+      params.delete("portal");
+
+      if (!params.get("token")) {
+        const newSearch = params.toString();
+        const newUrl = newSearch ? `${window.location.pathname}?${newSearch}` : window.location.pathname;
+        window.history.replaceState({}, "", newUrl);
+      }
+    }
+  }, []);
+
+  const handleSubmit = async (event: FormEvent) => {
+    event.preventDefault();
+
+    if (!email) {
+      setErrorMessage("Please enter an email address.");
+      return;
+    }
+
+    setStatus("sending");
+    setErrorMessage(null);
+    setInfoMessage(null);
+
+    try {
+      const response = await fetch("/api/auth/magic-link", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ email }),
+      });
+
+      if (!response.ok) {
+        const body = await response.json().catch(() => ({ message: "Failed to send magic link" }));
+        throw new Error(body.message || "Failed to send magic link");
+      }
+
+      setStatus("sent");
+      setInfoMessage("Check your email for the apotropaic link to continue.");
+    } catch (error) {
+      setStatus("error");
+      const message = error instanceof Error ? error.message : "Failed to send magic link";
+      setErrorMessage(message);
+    }
   };
 
   if (isLoading) {
@@ -31,8 +145,7 @@ export default function AuthPage() {
       }}
     >
       <div
-        className="relative px-12 py-8 cursor-pointer neon-frame"
-        onClick={handleLogin}
+        className="relative px-12 py-8 neon-frame"
         style={{
           background: "rgba(212, 175, 55, 0.8)",
           border: "12px solid #8B4513",
@@ -109,47 +222,65 @@ export default function AuthPage() {
         </p>
 
         {/* Interactive mystical entry point */}
-        <div className="flex justify-center">
-          <div
-            onClick={() => setLocation("/auth-portal")}
-            className="relative cursor-pointer group transition-all duration-500 hover:scale-105"
-            style={{
-              background:
-                "linear-gradient(45deg, rgba(0,255,255,0.2), rgba(255,0,255,0.2), rgba(255,255,0,0.2))",
-              border: "2px solid",
-              borderImage:
-                "linear-gradient(45deg, #00ffff, #ff00ff, #ffff00) 1",
-              borderRadius: "50px",
-              padding: "20px 40px",
-              boxShadow: `
-                0 0 20px rgba(0,255,255,0.3),
-                inset 0 0 10px rgba(255,0,255,0.2)
-              `,
-            }}
-          >
-            <span
-              className="text-2xl font-medium tracking-wider group-hover:tracking-widest transition-all duration-300"
-              style={{
-                fontFamily: '"Playfair Display", serif',
-                color: "#2d1810",
-                textShadow: `
-                  0 0 8px rgba(0,255,255,0.6),
-                  0 0 12px rgba(255,0,255,0.4)
-                `,
-              }}
-            >
-              ⟐ Begin the questionnaire ⟐
-            </span>
-
-            {/* Subtle pulsing border effect */}
-            <div
-              className="absolute inset-0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+        <div className="mt-12">
+          <form onSubmit={handleSubmit} className="max-w-xl mx-auto space-y-4">
+            <label className="block text-left">
+              <span
+                className="block text-lg mb-2"
+                style={{
+                  fontFamily: '"Playfair Display", serif',
+                  color: "#2d1810",
+                }}
+              >
+                Enter your email to receive the apotropaic link:
+              </span>
+              <input
+                type="email"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+                className="w-full px-4 py-3 rounded-lg border border-[#8B4513]/40 focus:outline-none focus:ring-2 focus:ring-cyan-400 bg-white/80 text-[#2d1810]"
+                placeholder="you@example.com"
+                required
+                disabled={status === "sending" || status === "verifying"}
+              />
+            </label>
+            <button
+              type="submit"
+              className="w-full py-3 rounded-full text-xl font-semibold transition-all duration-300"
               style={{
                 background:
-                  "linear-gradient(45deg, rgba(0,255,255,0.1), rgba(255,0,255,0.1))",
-                filter: "blur(8px)",
+                  "linear-gradient(45deg, rgba(0,255,255,0.6), rgba(255,0,255,0.6))",
+                color: "#111",
+                textShadow: "0 0 6px rgba(0,0,0,0.2)",
+                boxShadow: "0 10px 30px rgba(0, 0, 0, 0.25)",
+                opacity: status === "sending" || status === "verifying" ? 0.7 : 1,
               }}
-            />
+              disabled={status === "sending" || status === "verifying"}
+            >
+              {status === "sending" ? "Summoning link..." : status === "verifying" ? "Verifying..." : "Send me the link"}
+            </button>
+          </form>
+
+          <div className="mt-6 text-center space-y-2">
+            {infoMessage && (
+              <p className="text-[#2d1810]" style={{ fontFamily: '"Playfair Display", serif' }}>
+                {infoMessage}
+              </p>
+            )}
+            {errorMessage && (
+              <p className="text-red-800" style={{ fontFamily: '"Playfair Display", serif' }}>
+                {errorMessage}
+              </p>
+            )}
+            {!infoMessage && status !== "verifying" && (
+              <button
+                type="button"
+                onClick={() => setLocation("/auth-portal")}
+                className="text-sm uppercase tracking-[0.3em] text-[#4d2316] hover:text-[#2d1810] transition-colors"
+              >
+                Enter through the mystical portal instead →
+              </button>
+            )}
           </div>
         </div>
       </div>
