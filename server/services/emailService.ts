@@ -1,6 +1,7 @@
 import nodemailer from 'nodemailer';
 import type { Response } from '@shared/schema';
 import { questionService } from './questionService';
+import { getPublicAppUrl } from '../utils/env';
 
 class EmailService {
   public transporter: nodemailer.Transporter;
@@ -18,13 +19,14 @@ class EmailService {
   }
 
   async sendMagicLink(email: string, token: string): Promise<void> {
+    const baseUrl = getPublicAppUrl();
+
     if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
-      console.log(`Magic link for ${email}: ${process.env.REPLIT_DOMAINS?.split(',')[0] || 'localhost:5000'}/auth?token=${token}`);
+      console.log(`Magic link for ${email}: ${baseUrl}/auth?token=${token}`);
       return;
     }
 
-    const baseUrl = process.env.REPLIT_DOMAINS?.split(',')[0] || 'localhost:5000';
-    const magicLink = `https://${baseUrl}/auth?token=${token}`;
+    const magicLink = `${baseUrl}/auth?token=${token}`;
 
     const mailOptions = {
       from: process.env.FROM_EMAIL || process.env.SMTP_USER,

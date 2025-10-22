@@ -1,6 +1,7 @@
 
 import { storage } from '../storage';
 import { emailService } from './emailService';
+import { getPublicAppUrl } from '../utils/env';
 
 class ReminderService {
   private isRunning = false;
@@ -68,13 +69,14 @@ class ReminderService {
   }
 
   private async sendReminderEmail(email: string, firstName: string): Promise<void> {
+    const baseUrl = getPublicAppUrl();
+
     if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
       console.log(`Reminder ready for ${email}`);
       return;
     }
 
-    const baseUrl = process.env.REPLIT_DOMAINS?.split(',')[0] || 'localhost:5000';
-    const questionnaireLinkUrl = `https://${baseUrl}/`;
+    const questionnaireLinkUrl = `${baseUrl}/`;
 
     const mailOptions = {
       from: process.env.SMTP_USER,

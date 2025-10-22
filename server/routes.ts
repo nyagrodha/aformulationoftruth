@@ -3,22 +3,28 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { z } from "zod";
 import { insertResponseSchema } from "@shared/schema";
-import { setupAuth, isAuthenticated } from "./replitAuth";
+import { setupAuth, isAuthenticated } from "./auth";
 
 // Admin authentication middleware
 const isAdmin = async (req: any, res: any, next: any) => {
-  if (!req.isAuthenticated()) {
+  const sessionUserId = req.session?.userId;
+
+  if (!sessionUserId) {
     return res.status(401).json({ message: "Unauthorized" });
   }
-  
+
+  if (!req.user) {
+    req.user = await storage.getUser(sessionUserId);
+  }
+
   // Check if user is admin (you can customize this logic)
   const adminEmails = ['formitselfisemptiness@aformulationoftruth.com', 'eachmomenteverydayur@aformulationoftruth.com', 'thoughtlessness@aformulationoftruth.com'];
-  const userEmail = req.user?.claims?.email;
-  
+  const userEmail = req.user?.email;
+
   if (!userEmail || !adminEmails.includes(userEmail)) {
     return res.status(403).json({ message: "Admin access required" });
   }
-  
+
   next();
 };
 import { emailService } from "./services/emailService";
@@ -33,7 +39,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Auth routes
   app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
       const user = await storage.getUser(userId);
       res.json(user);
     } catch (error) {
@@ -45,8 +55,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get or create questionnaire session for authenticated user
   app.get("/api/questionnaire/session", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
-      
+      const userId = req.user?.id;
+
+      if (!userId) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
       // Get existing session or create new one
       let session = await storage.getSessionByUserId(userId);
       if (!session) {
@@ -68,7 +82,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/questionnaire/:sessionId/current", isAuthenticated, async (req: any, res) => {
     try {
       const { sessionId } = req.params;
-      const userId = req.user.claims.sub;
+      const userId = req.user?.id;
+
+      if (!userId) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
       
       const session = await storage.getSessionById(sessionId);
       if (!session || session.userId !== userId) {
@@ -99,7 +117,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/questionnaire/:sessionId/answer", isAuthenticated, async (req: any, res) => {
     try {
       const { sessionId } = req.params;
-      const userId = req.user.claims.sub;
+      const userId = req.user?.id;
+
+      if (!userId) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
       const { questionId, answer } = insertResponseSchema.omit({ sessionId: true }).parse(req.body);
       
       const session = await storage.getSessionById(sessionId);
@@ -187,7 +209,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/questionnaire/:sessionId/responses", isAuthenticated, async (req: any, res) => {
     try {
       const { sessionId } = req.params;
-      const userId = req.user.claims.sub;
+      const userId = req.user?.id;
+
+      if (!userId) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
       
       const session = await storage.getSessionById(sessionId);
       if (!session || session.userId !== userId) {
@@ -207,7 +233,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { sessionId } = req.params;
       const { wantsReminder, wantsToShare } = req.body;
-      const userId = (req.user as any)?.claims?.sub;
+      const userId = req.user?.id;
 
       if (!userId) {
         return res.status(401).json({ message: 'User not authenticated' });
@@ -278,7 +304,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get user's completed questionnaires
   app.get("/api/questionnaire/completed", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user?.id;
+
+      if (!userId) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
       const completedSessions = await storage.getUserCompletedSessions(userId);
       res.json(completedSessions);
     } catch (error) {
@@ -291,7 +321,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/questionnaire/:sessionId/pdf", isAuthenticated, async (req: any, res) => {
     try {
       const { sessionId } = req.params;
-      const userId = req.user.claims.sub;
+      const userId = req.user?.id;
+
+      if (!userId) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
       
       const session = await storage.getSessionById(sessionId);
       if (!session || session.userId !== userId || !session.completed) {
@@ -343,7 +377,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/vps/backup/:sessionId", isAuthenticated, async (req: any, res) => {
     try {
       const { sessionId } = req.params;
-      const userId = req.user.claims.sub;
+      const userId = req.user?.id;
+
+      if (!userId) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
       
       // Verify session belongs to user
       const session = await storage.getSessionById(sessionId);
