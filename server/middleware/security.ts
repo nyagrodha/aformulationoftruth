@@ -94,9 +94,9 @@ export function setupSecurity(app: Express) {
   app.use(limiter);
   
   // Apply stricter rate limiting to auth endpoints
-  app.use('/api/login', authLimiter);
-  app.use('/api/callback', authLimiter);
-  app.use('/api/auth', authLimiter);
+  app.use('/api/auth/magic-link', authLimiter);
+  app.use('/api/auth/magic-link/verify', authLimiter);
+  app.use('/api/auth/logout', authLimiter);
   
   // Trust proxy for accurate IP detection
   app.set('trust proxy', 1);
