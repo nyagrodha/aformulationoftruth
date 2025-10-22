@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import { useLocation } from "wouter";
 
 export default function AuthPortalPage() {
   const { isLoading, isAuthenticated } = useAuth();
+  const [, setLocation] = useLocation();
   const [phase, setPhase] = useState<'entering' | 'transitioning' | 'authenticating'>('entering');
   const [portalText, setPortalText] = useState('');
 
@@ -38,7 +40,7 @@ export default function AuthPortalPage() {
         setPhase('authenticating');
         // Redirect to actual auth after mystical transition
         setTimeout(() => {
-          window.location.href = "/api/login";
+          setLocation("/auth?portal=1");
         }, 1500);
       }, 2000);
     }, 8000);
