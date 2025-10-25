@@ -1,1 +1,673 @@
-<!doctype html><html lang="ta"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"/><title>a formulation of truth</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Noto+Serif+Devanagari&family=Noto+Sans+Tamil&display=swap" rel="stylesheet"><style>body,html{margin:0;padding:0;height:100%;background:#000;color:#0ff;font-family:Orbitron,'Noto Serif Devanagari','Noto Sans Tamil',Georgia,serif,sans-serif;overflow-x:hidden}.layer{position:relative;width:100vw;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:1}.om-tamil{font-family:'Noto Sans Tamil','Noto Serif Devanagari',Georgia,serif;font-size:12vw;color:#cf0;text-shadow:0 0 30px #0ff,0 0 60px #f0f,0 0 90px #cf0;letter-spacing:.1em;animation:pulse 2.7s infinite alternate cubic-bezier(.68,-.55,.27,1.55);margin-bottom:0;margin-top:0;user-select:none;z-index:5}@keyframes pulse{0%{text-shadow:0 0 15px #0ff,0 0 20px #f0f,0 0 50px #cf0;transform:scale(1)}100%{text-shadow:0 0 60px #f0f,0 0 120px #cf0,0 0 30px #0ff;transform:scale(1.07)}}.sticky-layer{position:sticky;top:0;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;will-change:transform}.layer1{z-index:2}.layer2{z-index:3}.layer3{z-index:4}.verse{font-size:2rem;color:#fff;text-shadow:0 0 10px #0ff,0 0 20px #f0f;margin-bottom:1.5rem;margin-top:1.5rem;font-family:'Noto Serif Devanagari','Noto Sans Tamil',Georgia,serif}.translation{font-size:1.1rem;color:#cf0;margin-bottom:2.5rem;text-shadow:0 0 6px #f0f}.quote{font-size:1.3rem;color:#f0f;max-width:700px;margin:1.5rem auto;text-shadow:0 0 4px #0ff;line-height:1.7}::-webkit-scrollbar{width:0;height:0}body{scrollbar-width:none}@media (max-width:600px){.verse{font-size:1.1rem}.quote,.translation{font-size:.96rem}.om-tamil{font-size:18vw}}</style><script defer="defer" src="/static/js/main.8fe1f806.js"></script><link href="/static/css/main.e6c13ad2.css" rel="stylesheet"></head><body><div id="root"></div><audio id="chant-audio" loop><source src="/assets/01+Lalitha+Sahasranamam.mp3" type="audio/mpeg">Your browser does not support the audio element.</audio><div class="layer layer1 sticky-layer" style="z-index:10"><div class="om-tamil">ஓம்</div></div><div class="layer layer2 sticky-layer"><div class="translation">Amidst limitless imagination of verse<br>a poet is the lord of creation.<br>Just as they enjoy the world, so, too, she transforms it.</div></div><div class="layer layer3 sticky-layer"><div class="quote">truth resides in the reconstruction<br>of events without precedent<br>in a world where nothing<br>repeats itself exactly; where one's sense<br>comes from the association of memory.</div><div class="quote">to be a person, to act as one ought,<br/>to act according to the categorical imperative,<br/>in other words, to be oneself cohesive through time (having said something thoughtless)<br/>one may not want to identify a 'self' as unified in any 'person'</div></div><script>document.addEventListener("DOMContentLoaded",function(){var e=document.getElementById("chant-audio");function t(){e.volume=.33,e.play(),document.removeEventListener("click",t),document.removeEventListener("keydown",t)}document.addEventListener("click",t),document.addEventListener("keydown",t)}),window.addEventListener("scroll",function(){const e=window.scrollY;document.querySelector(".layer1").style.transform=`translateY(${.2*e}px)`,document.querySelector(".layer2").style.transform=`translateY(${.4*e}px)`,document.querySelector(".layer3").style.transform=`translateY(${.7*e}px)`})</script><soscript>JavaScript must be enabled to run this webApp.<div id="root"></div></soscript></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>a formulation of truth | सत्य निरूपण | உண்மையின் வடிவம்</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,400;0,600;1,400&family=Noto+Sans+Tamil:wght@300;400;600&family=Noto+Sans+Devanagari:wght@300;400;600&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Crimson Text', serif;
+            background: #1a1510;
+            color: #f4f1e8;
+            overflow-x: hidden;
+            line-height: 1.7;
+        }
+
+        /* Main container with changing fog overlays */
+        .scroll-container {
+            position: relative;
+            min-height: 2000vh;
+        }
+
+        /* Dynamic fog overlays that change color during scroll */
+        .fog-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            pointer-events: none;
+            transition: all 0.3s ease;
+            z-index: 1;
+        }
+
+        .fog-phase-1 {
+            background: radial-gradient(circle at 20% 30%, 
+                rgba(139, 69, 19, 0.3) 0%,
+                rgba(101, 67, 33, 0.5) 40%,
+                rgba(62, 39, 35, 0.7) 100%);
+        }
+
+        .fog-phase-2 {
+            background: radial-gradient(circle at 70% 40%, 
+                rgba(75, 0, 130, 0.4) 0%,
+                rgba(72, 61, 139, 0.6) 50%,
+                rgba(25, 25, 112, 0.8) 100%);
+        }
+
+        .fog-phase-3 {
+            background: radial-gradient(circle at 50% 60%, 
+                rgba(178, 34, 34, 0.4) 0%,
+                rgba(139, 0, 0, 0.6) 40%,
+                rgba(85, 107, 47, 0.8) 100%);
+        }
+
+        .fog-phase-4 {
+            background: radial-gradient(circle at 30% 70%, 
+                rgba(255, 140, 0, 0.3) 0%,
+                rgba(255, 165, 0, 0.5) 30%,
+                rgba(184, 134, 11, 0.7) 100%);
+        }
+
+        .fog-phase-5 {
+            background: radial-gradient(circle at 60% 30%, 
+                rgba(138, 43, 226, 0.4) 0%,
+                rgba(75, 0, 130, 0.6) 40%,
+                rgba(25, 25, 112, 0.8) 100%);
+        }
+
+        .fog-phase-6 {
+            background: linear-gradient(45deg,
+                rgba(0, 139, 139, 0.4) 0%,
+                rgba(72, 209, 204, 0.6) 50%,
+                rgba(32, 178, 170, 0.8) 100%);
+        }
+
+        .fog-phase-7 {
+            background: radial-gradient(circle at 40% 80%, 
+                rgba(220, 20, 60, 0.3) 0%,
+                rgba(178, 34, 34, 0.5) 40%,
+                rgba(139, 0, 0, 0.7) 100%);
+        }
+
+        .fog-phase-8 {
+            background: linear-gradient(135deg,
+                rgba(255, 215, 0, 0.5) 0%,
+                rgba(255, 140, 0, 0.7) 50%,
+                rgba(255, 69, 0, 0.9) 100%);
+        }
+
+        /* Content sections randomly positioned */
+        .content-section {
+            position: absolute;
+            background: rgba(20, 20, 20, 0.85);
+            border: 2px solid rgba(218, 165, 32, 0.6);
+            border-radius: 15px;
+            padding: 2rem;
+            max-width: 600px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            z-index: 2;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .content-section:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(218, 165, 32, 0.3);
+        }
+
+        .section-title {
+            font-family: 'Noto Sans Devanagari', sans-serif;
+            font-size: 1.8rem;
+            color: #daa520;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .section-text {
+            font-size: 1.1rem;
+            margin-bottom: 1.5rem;
+            text-align: justify;
+        }
+
+        .tamil-text {
+            font-family: 'Noto Sans Tamil', sans-serif;
+            font-size: 1.3rem;
+            color: #ff6b6b;
+            text-align: center;
+            margin: 1rem 0;
+        }
+
+        .sanskrit-text {
+            font-family: 'Noto Sans Devanagari', sans-serif;
+            font-size: 1.2rem;
+            color: #4ecdc4;
+            text-align: center;
+            margin: 1rem 0;
+            font-style: italic;
+        }
+
+        /* Gallery images embedded throughout */
+        .gallery-image {
+            position: absolute;
+            border-radius: 10px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
+            transition: transform 0.4s ease, filter 0.4s ease;
+            z-index: 2;
+        }
+
+        .gallery-image:hover {
+            transform: scale(1.05);
+            filter: sepia(20%) saturate(150%) brightness(1.3);
+        }
+
+        .image-small {
+            width: 200px;
+            height: 300px;
+            object-fit: cover;
+        }
+
+        .image-medium {
+            width: 350px;
+            height: 250px;
+            object-fit: cover;
+        }
+
+        .image-large {
+            width: 500px;
+            height: 350px;
+            object-fit: cover;
+        }
+
+        /* Fixed bottom text */
+        .bottom-text {
+            position: sticky;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-family: 'Noto Sans Tamil', sans-serif;
+            font-size: 1.5rem;
+            color: #daa520;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+            white-space: nowrap;
+            z-index: 10;
+            animation: gentleGlow 3s ease-in-out infinite alternate;
+        }
+
+        @keyframes gentleGlow {
+            from { text-shadow: 3px 5px 7px rgba(0, 0, 0, 0.8), 0 0 10px rgba(218, 165, 32, 0.3); }
+            to { text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8), 0 0 20px rgba(218, 165, 32, 0.6); }
+        }
+
+        /* Header section */
+        .header {
+            position: relative;
+            height: 195vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            z-index: 3;
+        }
+
+        .main-title {
+            font-size: 3.5rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: #daa520;
+            text-shadow: 5px 5px 9px rgba(0, 0, 0, 0.7);
+        }
+
+        .subtitle {
+            font-size: 1.5rem;
+            color: #f4f1e8;
+            margin-bottom: 2rem;
+        }
+
+        .scroll-hint {
+            position: absolute;
+            bottom: 50px;
+            color: rgb(244, 241, 232);
+            font-size: 1.1rem;
+            animation: pulse 15s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.85; }
+            60% { opacity: 1; }
+        }
+
+        /* Quote sections */
+        .quote-section {
+            font-style: italic;
+            border-left: 4px solid #daa520;
+            padding-left: 1.5rem;
+            margin: 1.5rem 0;
+            color: #e6d7b8;
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .main-title { font-size: 4rem; }
+            .content-section { max-width: 90%; padding: 1.25rem; }
+            .bottom-text { font-size: 2.1rem; }
+            .gallery-image { transform: scale(0.8); }
+        }
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700&display=swap');
+
+    body {
+      margin: 0;
+      background: #000;
+      font-family: 'Orbitron', sans-serif;
+      display: flex;
+      align-items: normal;
+      justify-content: center;
+      min-height: 200vh;
+      padding: 2rem;
+      color: #fff;
+    }
+
+    .glow-text {
+      font-size: 2.5rem;
+      line-height: 2rem;
+      max-width: 800px;
+      text-align: center;
+      animation: glowPulse 15s infinite;
+      filter: drop-shadow(0 0 4px currentColor);
+    }
+
+    @keyframes glowPulse {
+      0%   { color: #00ffff; }   /* Aqua (cyan) */
+      20%  { color: #ff1fff; }   /* Magenta */
+      40%  { color: #d4ff28; }   /* Chartreuse */
+      60%  { color: #ff642b; }   /* Neon Orange (orangered) */
+      80%  { color: #ff00f7; }   /* Hot Pink */
+      100% { color: #30fc29; }   /* Back to Aqua */
+    }
+
+    /* Optional neon borders or glow frame */
+    .frame {
+      border: 4px solid;
+      border-radius: 25px;
+      padding: 4rem;
+      animation: borderGlow 25s infinite;
+    }
+
+    @keyframes borderGlow {
+      0%   { border-color: #00ffff; box-shadow: 0 0 12px #00ffff; }
+      25%  { border-color: #ccff00; box-shadow: 0 0 12px #ccff00; }
+      50%  { border-color: #ff00ff; box-shadow: 0 0 12px #ff00ff; }
+      75%  { border-color: #ff4500; box-shadow: 0 0 12px #ff4500; }
+      100% { border-color: #00ffff; box-shadow: 0 0 12px #00ffff; }
+    }
+    </style>
+</head>
+<body>
+    <div class="scroll-container">
+        <!-- Dynamic fog overlays -->
+        <div class="fog-overlay fog-phase-1" id="fog1"></div>
+        <div class="fog-overlay fog-phase-2" id="fog2"></div>
+        <div class="fog-overlay fog-phase-3" id="fog3"></div>
+        <div class="fog-overlay fog-phase-4" id="fog4"></div>
+        <div class="fog-overlay fog-phase-5" id="fog5"></div>
+        <div class="fog-overlay fog-phase-6" id="fog6"></div>
+        <div class="fog-overlay fog-phase-7" id="fog7"></div>
+        <div class="fog-overlay fog-phase-8" id="fog8"></div>
+
+        <!-- Header section -->
+        <div class="header">
+            <h1 class="main-title">a formulation of truth</h1>
+            <p class="subtitle">truth resides in the reconstruction of events in a world where nothing ever happens the same way twice</p>
+            <div class="sanskrit-text">நினைவுகளின் இணைப்பிலிருந்து பொருள் உருவாகும் உலகம்</div>
+            <div class="scroll-hint">↓ Scroll down ↓</div>
+        </div>
+
+        <!-- Randomly positioned content sections -->
+        <div class="content-section" style="top: 120vh; left: 10%;">
+            <h2 class="section-title">a slow experiment</h2>
+            <p class="section-text">
+                In my wanderings through the corridors of memory, I discovered that time, like the sacred rivers of India, flows not in straight lines but in endless spirals. The madeleine that unlocked my childhood was no different from the sacred प्रसाद that dissolves on the tongue, releasing floods of divine remembrance.
+            </p>
+            <div class="tamil-text">நேரம் என்பது ஒரு சக்கரம், திரும்பும் பாதை</div>
+        </div>
+
+        <div class="content-section" style="top: 180vh; right: 8%;">
+            <h2 class="section-title">भावनाओं का जाल</h2>
+            <div class="quote-section">
+                "The real voyage of discovery consists not in seeking new landscapes, but in having new eyes—eyes that have gazed upon the infinite forms of the divine, from the temples of Tamil Nadu to the ghats of Varanasi."
+            </div>
+            <p class="section-text">
+                Each emotion, I learned, is like a raga—a musical mode that colors the entire landscape of experience. Love, jealousy, desire: they are not mere feelings but cosmic principles, देवताs that govern the theater of consciousness.
+            </p>
+        </div>
+
+        <div class="content-section" style="top: 280vh; left: 15%;">
+            <h2 class="section-title">Maya and Memory</h2>
+            <p class="section-text">
+                What the Vedantins call माया, I recognized in the perpetual dance between memory and reality. The past is neither lost nor preserved—it exists in a realm beyond time, accessible only through the sacred act of remembrance, like the temple dancer who embodies the eternal through the temporal.
+            </p>
+            <div class="tamil-text">மாயை என்பது நினைவின் அழகிய பிரம்மை</div>
+            <div class="sanskrit-text">माया स्मृतिर्ब्रह्म</div>
+        </div>
+
+        <div class="content-section" style="top: 380vh; right: 12%;">
+            <h2 class="section-title">The Eternal Return</h2>
+            <p class="section-text">
+                In the cyclical philosophy of India, I found the key to understanding why certain moments return to us with such vivid intensity. They are not mere memories but eternal forms—प्लातिक ideals that manifest repeatedly across the wheel of time.
+            </p>
+            <div class="quote-section">
+                "Time regained is not time remembered, but time recognized as having never been lost."
+            </div>
+        </div>
+
+        <div class="content-section" style="top: 450vh; left: 20%;">
+            <h2 class="section-title">सत्चितानंद</h2>
+            <p class="section-text">
+                The trinity of existence-consciousness-bliss that forms the foundation of Vedantic thought mirrors the structure of artistic creation. In writing, we seek not merely to exist (सत्), but to become conscious (चित्) of existence, and through that consciousness, to touch the bliss (आनंद) of pure being.
+            </p>
+            <div class="tamil-text">உண்மை, அறிவு, ஆனந்தம் - கலையின் முத்தொகுதி</div>
+        </div>
+
+        <div class="content-section" style="top: 520vh; right: 25%;">
+            <h2 class="section-title">काव्य और कर्म</h2>
+            <p class="section-text">
+                In the Bhagavad Gita's teaching of निष्काम कर्म, I found the secret of artistic creation. To write without attachment to result, to let the words flow like the sacred Ganga, carrying all impurities away while remaining eternally pure in their source.
+            </p>
+            <div class="quote-section">
+                "The artist, like Krishna's flute, must become empty to be filled with divine music."
+            </div>
+            <div class="sanskrit-text">कविता ही प्रार्थना है</div>
+        </div>
+
+        <div class="content-section" style="top: 590vh; left: 12%;">
+            <h2 class="section-title">The Dance of Shiva</h2>
+            <p class="section-text">
+                Memory itself performs the eternal dance of Nataraja—creation, preservation, destruction, and renewal. Each recalled moment dies to be reborn, more vivid than its original incarnation. The cosmic dancer's drum beats the rhythm of remembrance.
+            </p>
+            <div class="tamil-text">நடராஜரின் நடனம் நினைவுகளின் லீலை</div>
+        </div>
+
+        <div class="content-section" style="top: 670vh; right: 18%;">
+            <h2 class="section-title">अध्यात्म और साहित्य</h2>
+            <p class="section-text">
+                The great Tamil poets knew what I discovered through my literary wanderings: that the soul's geography cannot be mapped with external coordinates. The inner landscape has its own seasons, its own monsoons of memory, its own harvests of meaning.
+            </p>
+            <div class="quote-section">
+                "Every work of art is a spiritual autobiography written in symbols only the heart can decipher."
+            </div>
+        </div>
+
+        <div class="content-section" style="top: 750vh; left: 8%;">
+            <h2 class="section-title">समाधि और स्मृति</h2>
+            <p class="section-text">
+                The yogic state of समाधि and the Proustian moment of total recall are identical phenomena—the dissolution of time's tyranny, the merger of subject and object, the recognition that consciousness itself is the only true reality.
+            </p>
+            <div class="tamil-text">தியானம் மற்றும் நினைவு - ஒரே உண்மையின் இரு முகங்கள்</div>
+            <div class="sanskrit-text">स्मृतिस्समाधिः</div>
+        </div>
+
+        <div class="content-section" style="top: 820vh; right: 15%;">
+            <h2 class="section-title">The Eternal Beloved</h2>
+            <p class="section-text">
+                Albertine was never a person but a principle—the same divine feminine that the Tamil poets called தையல், that the Sanskrit mystics knew as प्रकृति. She was माया made manifest, the eternal play of consciousness with itself through the medium of love and loss.
+            </p>
+            <div class="quote-section">
+                "Love is the recognition of the Self in the apparent Other, jealousy the forgetting of this truth."
+            </div>
+        </div>
+
+        <div class="content-section" style="top: 900vh; left: 22%;">
+            <h2 class="section-title">वेदान्त और Verlaine</h2>
+            <p class="section-text">
+                The Upanishadic truth "तत् त्वम् असि" echoes through all great poetry. Verlaine's symbolism, like Kalidasa's imagery, points beyond the veil of appearances to the unified field of consciousness where poet, poem, and reader merge into one luminous awareness.
+            </p>
+            <div class="tamil-text">அந்த உண்மையே நீ - பண்டையத் தமிழரின் பாடல்</div>
+        </div>
+
+        <div class="content-section" style="top: 980vh; right: 10%;">
+            <h2 class="section-title">Time as Serpent</h2>
+            <p class="section-text">
+                The serpent Shesha upon whom Vishnu reclines is time itself—not linear progression but eternal recurrence, the ouroboros of memory consuming and creating itself. Past and future coexist in the eternal now of artistic vision.
+            </p>
+            <div class="sanskrit-text">कालसर्प योग स्मृति</div>
+        </div>
+
+        <div class="content-section" style="top: 1060vh; left: 16%;">
+            <h2 class="section-title">The Upanishads of Involuntary Memory</h2>
+            <p class="section-text">
+                What I called "involuntary memory" the rishis knew as स्वप्न—not mere dreams but glimpses of the eternal truth that underlies the parade of phenomena. The madeleine was my श्रुति, my heard revelation, as potent as any Vedic hymn.
+            </p>
+            <div class="quote-section">
+                "Truth is not discovered but remembered; the soul knows what it has always known."
+            </div>
+            <div class="tamil-text">உண்மை என்பது மறந்த நினைவின் திரும்புதல்</div>
+        </div>
+
+        <div class="content-section" style="top: 1140vh; right: 20%;">
+            <h2 class="section-title">रसावाद</h2>
+            <p class="section-text">
+                The Sanskrit theory of रस explains what Western aesthetics fumbles toward—that art's purpose is not representation but the evocation of fundamental emotions that connect us to the cosmic order. Each sentence must carry its rasa like a temple carrying its deity.
+            </p>
+            <div class="sanskrit-text">शांत रस सर्वोत्तम</div>
+        </div>
+
+        <div class="content-section" style="top: 1220vh; left: 25%;">
+            <h2 class="section-title">The Geography of the Soul</h2>
+            <p class="section-text">
+                Combray was never in France but in the चक्र system of memory—the thousand-petaled lotus where all places and times converge. The temple bells of Tamil Nadu ring with the same frequency as those imagined church bells of my childhood.
+            </p>
+            <div class="tamil-text">ஆன்மாவின் புவியியல் - எல்லா இடங்களும் ஒன்றே</div>
+        </div>
+
+        <div class="content-section" style="top: 1300vh; right: 12%;">
+            <h2 class="section-title">अद्वैत और Art</h2>
+            <p class="section-text">
+                Shankara's non-dualism illuminates the artistic process: the observer and observed, the writer and written, reveal themselves as modifications of one consciousness. Literature becomes a form of meditation, a technology for recognizing the Self.
+            </p>
+            <div class="quote-section">
+                "The highest art erases the boundary between creator and creation, revealing the seamless fabric of being."
+            </div>
+        </div>
+
+        <div class="content-section" style="top: 1380vh; left: 8%;">
+            <h2 class="section-title">Sacred Jealousy</h2>
+            <p class="section-text">
+                Even jealousy, that tormented passion, revealed itself as a spiritual practice when seen through Vedantic eyes. It is the ego's desperate attempt to possess what can only be experienced—like trying to capture the moon's reflection in water.
+            </p>
+            <div class="tamil-text">பொறாமை என்பது மாயையின் கடைசி ஆடல்</div>
+            <div class="sanskrit-text">ईर्श्या माया अंतिम नृत्य</div>
+        </div>
+
+        <div class="content-section" style="top: 1460vh; right: 18%;">
+            <h2 class="section-title">The Mandala of Narrative</h2>
+            <p class="section-text">
+                Every great novel is a मंडल—a sacred circle containing infinite patterns within patterns. The structure mirrors the cosmos itself: wheels within wheels, stories within stories, all revolving around the central emptiness that contains everything.
+            </p>
+        </div>
+
+        <div class="content-section" style="top: 1540vh; left: 20%;">
+            <h2 class="section-title">प्राण और प्रोज़</h2>
+            <p class="section-text">
+                The breath that sustains life is the same rhythm that sustains prose. Each sentence breathes in possibility and breathes out meaning. The paragraph becomes a pranayama practice, the entire work a meditation on the breath of consciousness.
+            </p>
+            <div class="tamil-text">சுவாசம் மற்றும் சொற்கள் - இரண்டும் வாழ்வின் தாளம்</div>
+        </div>
+
+        <div class="content-section" style="top: 1620vh; right: 15%;">
+            <h2 class="section-title">The Bhakti of Literature</h2>
+            <p class="section-text">
+                Writing, I discovered, is a form of bhakti—devotional surrender to the infinite through the finite medium of words. Each sentence becomes an offering, each paragraph a prayer, the entire work a temple erected to the unknown god of meaning.
+            </p>
+            <div class="quote-section">
+                "The writer is both priest and sacrifice in the ritual of creation."
+            </div>
+        </div>
+
+        <div class="content-section" style="top: 1700vh; left: 10%;">
+            <h2 class="section-title">सत्यम् शिवम् सुन्दरम्</h2>
+            <p class="section-text">
+                Truth, consciousness, beauty—the ancient trinity revealed itself in every authentic literary moment. What appears as aesthetic experience is actually spiritual recognition, the soul remembering its true nature through the mirror of art.
+            </p>
+            <div class="tamil-text">உண்மை, நன்மை, அழகு - கலையின் மூன்று முகங்கள்</div>
+            <div class="sanskrit-text">सत्यं शिवं सुन्दरं सर्वत्र</div>
+        </div>
+
+        <div class="content-section" style="top: 1780vh; right: 22%;">
+            <h2 class="section-title">The Final Recognition</h2>
+            <p class="section-text">
+                In the end, I understood that my search for lost time was the eternal human quest that the Upanishads call आत्मविचार—self-inquiry. Time is never lost because the Self exists beyond time. Memory is not retrieval but recognition of what we have always been.
+            </p>
+            <div class="quote-section">
+                "The past exists not behind us but within us, not as history but as eternity."
+            </div>
+            <div class="tamil-text">நேரம் இழக்கப்படவில்லை, மறைக்கப்பட்டது மட்டுமே</div>
+        </div>
+
+        <!-- Gallery images scattered throughout -->
+        <img src="https://images.unsplash.com/photo-1604661542391-13457d6ba2e6?w=400" alt="Tamil temple" class="gallery-image image-small" style="top: 140vh; right: 20%;">
+        
+        <img src="https://images.unsplash.com/photo-1532664189809-02133fee698d?w=400" alt="Sanskrit manuscript" class="gallery-image image-medium" style="top: 200vh; left: 5%;">
+        
+        <img src="https://images.unsplash.com/photo-1545048702-79362596cdc9?w=500" alt="Meditation" class="gallery-image image-large" style="top: 260vh; right: 5%;">
+        
+        <img src="https://images.unsplash.com/photo-1581833971358-2c8b550f87b3?w=400" alt="Indian classical dance" class="gallery-image image-medium" style="top: 320vh; left: 8%;">
+        
+        <img src="https://images.unsplash.com/photo-1524492412937-b28074a5d7da?w=400" alt="Lotus temple" class="gallery-image image-small" style="top: 370vh; right: 15%;">
+        
+        <img src="https://images.unsplash.com/photo-1598300042247-d088f8ab3a91?w=500" alt="Ganga aarti" class="gallery-image image-large" style="top: 420vh; left: 12%;">
+        
+        <img src="https://images.unsplash.com/photo-1609501676725-7186f1e83903?w=400" alt="Tamil literature" class="gallery-image image-medium" style="top: 480vh; right: 8%;">
+    </div>
+
+    <!-- Fixed bottom text -->
+    <div class="bottom-text">
+      அருவமே உருவம் உருவமே அருவம்
+    </div>
+
+    <script>
+        function initScrollEffects() {
+            const fog1 = document.getElementById('fog1');
+            const fog2 = document.getElementById('fog2');
+            const fog3 = document.getElementById('fog3');
+            const fog4 = document.getElementById('fog4');
+            const fog5 = document.getElementById('fog5');
+            const fog6 = document.getElementById('fog6');
+            const fog7 = document.getElementById('fog7');
+            const fog8 = document.getElementById('fog8');
+
+            window.addEventListener('scroll', function() {
+                const scrollTop = window.pageYOffset;
+                const windowHeight = window.innerHeight;
+                const documentHeight = document.documentElement.scrollHeight;
+                const scrollPercent = scrollTop / (documentHeight - windowHeight);
+
+                // Reset all fog layers
+                [fog1, fog2, fog3, fog4, fog5, fog6, fog7, fog8].forEach(fog => fog.style.opacity = 0);
+
+                // Phase 1: Earthen/Brown tones (0-12.5%)
+                if (scrollPercent <= 0.125) {
+                    const intensity = scrollPercent * 2;
+                    fog1.style.opacity = intensity * 0.7;
+                }
+                // Phase 2: Purple/Indigo tones (12.5-25%)
+                else if (scrollPercent <= 0.25) {
+                    const intensity = (scrollPercent - 0.125) * 4;
+                    fog1.style.opacity = (1 - intensity) * 0.7;
+                    fog2.style.opacity = intensity * 0.8;
+                }
+                // Phase 3: Red/Green mystical tones (25-37.5%)
+                else if (scrollPercent <= 0.375) {
+                    const intensity = (scrollPercent - 0.25) * 7;
+                    fog2.style.opacity = (1 - intensity) * 0.8;
+                    fog3.style.opacity = intensity * 0.6;
+                }
+                // Phase 4: Golden/Saffron tones (37.5-50%)
+                else if (scrollPercent <= 0.5) {
+                    const intensity = (scrollPercent - 0.375) * 8;
+                    fog3.style.opacity = (1 - intensity) * 0.6;
+                    fog4.style.opacity = intensity * 0.9;
+                }
+                // Phase 5: Deep purple mystic (50-62.5%)
+                else if (scrollPercent <= 0.625) {
+                    const intensity = (scrollPercent - 0.5) * 10;
+                    fog4.style.opacity = (1 - intensity) * 0.9;
+                    fog5.style.opacity = intensity * 0.8;
+                }
+                // Phase 6: Turquoise/Cyan (62.5-75%)
+                else if (scrollPercent <= 0.75) {
+                    const intensity = (scrollPercent - 0.625) * 8;
+                    fog5.style.opacity = (1 - intensity) * 0.8;
+                    fog6.style.opacity = intensity * 0.7;
+                }
+                // Phase 7: Deep red/crimson (75-87.5%)
+                else if (scrollPercent <= 0.875) {
+                    const intensity = (scrollPercent - 0.75) * 8;
+                    fog6.style.opacity = (1 - intensity) * 0.7;
+                    fog7.style.opacity = intensity * 0.6;
+                }
+                // Phase 8: Final golden enlightenment (87.5-100%)
+                else {
+                    const intensity = (scrollPercent - 0.875) * 8;
+                    fog7.style.opacity = (1 - intensity) * 0.6;
+                    fog8.style.opacity = intensity * 1.0;
+                }
+
+                // Enhanced parallax effect for gallery images
+                const images = document.querySelectorAll('.gallery-image');
+                images.forEach((img, index) => {
+                    const rate = (index % 5 + 1) * 0.15;
+                    const yPos = -(scrollTop * rate);
+                    const rotation = Math.sin(scrollPercent * Math.PI * 4 + index) * 3;
+                    img.style.transform = `translateY(${yPos}px) rotate(${rotation}deg)`;
+                });
+
+                // More dramatic rotation for content sections
+                const sections = document.querySelectorAll('.content-section');
+                sections.forEach((section, index) => {
+                    const rotation = Math.sin(scrollPercent * Math.PI * 6 + index) * 4;
+                    const scale = 1 + Math.sin(scrollPercent * Math.PI * 2 + index) * 0.05;
+                    section.style.transform = `rotate(${rotation}deg) scale(${scale})`;
+                });
+            });
+        }
+
+        // Smooth scroll behavior
+        function initSmoothScroll() {
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const target = document.querySelector(this.getAttribute('href'));
+                    if (target) {
+                        target.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'start'
+                        });
+                    }
+                });
+            });
+        }
+
+        // Initialize effects when DOM is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            initScrollEffects();
+            initSmoothScroll();
+            
+            // Add subtle floating animation to gallery images
+            const images = document.querySelectorAll('.gallery-image');
+            images.forEach((img, index) => {
+                img.style.animationDelay = `${index * 0.5}s`;
+                img.style.animation = 'float 16s ease-in-out infinite';
+            });
+        });
+
+        // Add floating keyframes
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes float {
+                0%, 100% { transform: translateY(0px); }
+                50% { transform: translateY(-10px); }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>
