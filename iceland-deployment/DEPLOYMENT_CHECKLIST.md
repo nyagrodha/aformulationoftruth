@@ -8,8 +8,8 @@ Use this checklist to ensure all steps are completed successfully.
 ## Pre-Deployment
 
 ### DNS Configuration
-- [ ] Point `gimbal.fobdongle.com` A record to `185.146.234.144`
-- [ ] Wait for DNS propagation (test with `dig gimbal.fobdongle.com`)
+- [ ] Point `gimbal.fobdongle.is` A record to `185.146.234.144`
+- [ ] Wait for DNS propagation (test with `dig gimbal.fobdongle.is`)
 - [ ] Verify reverse DNS (optional but recommended)
 
 ### Server Access
@@ -76,7 +76,7 @@ Use this checklist to ensure all steps are completed successfully.
 ### Verify HTTPS
 - [ ] HTTPS accessible from external network
   ```bash
-  curl https://gimbal.fobdongle.com/health
+  curl https://gimbal.fobdongle.is/health
   ```
 - [ ] Certificate valid (check browser or openssl)
 - [ ] HTTP redirects to HTTPS
@@ -134,7 +134,7 @@ Use this checklist to ensure all steps are completed successfully.
 - [ ] Backup current `.env` file
 - [ ] Add VPS configuration to proust `.env`:
   ```bash
-  VPS_ENDPOINT=https://gimbal.fobdongle.com
+  VPS_ENDPOINT=https://gimbal.fobdongle.is
   VPS_API_KEY=<API_KEY_FROM_ICELAND>
   VPS_ENCRYPTION_KEY=<ENCRYPTION_KEY_FROM_ICELAND>
   ```
@@ -328,7 +328,7 @@ wg show
 
 # API health
 curl http://localhost:3001/health
-curl https://gimbal.fobdongle.com/health
+curl https://gimbal.fobdongle.is/health
 
 # Logs
 journalctl -u gimbal-storage -f
@@ -349,8 +349,8 @@ wg show
 ping 10.8.0.1
 
 # Test API
-curl https://gimbal.fobdongle.com/health
-curl -H "Authorization: Bearer $API_KEY" https://gimbal.fobdongle.com/api/stats
+curl https://gimbal.fobdongle.is/health
+curl -H "Authorization: Bearer $API_KEY" https://gimbal.fobdongle.is/api/stats
 
 # Application logs
 journalctl -u aformulationoftruth -f

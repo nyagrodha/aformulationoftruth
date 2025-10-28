@@ -1,5 +1,5 @@
 # Encrypted Link Implementation Plan
-## proust.aformulationoftruth.com ↔ gimbal.fobdongle.com
+## proust.aformulationoftruth.com ↔ gimbal.fobdongle.is
 
 **Status**: Ready for Deployment
 **Date**: 2025-10-28
@@ -12,7 +12,7 @@
 This document outlines the complete plan to establish a secure, encrypted communication channel between:
 
 - **proust.aformulationoftruth.com** (Client) - Questionnaire application server
-- **gimbal.fobdongle.com** (Iceland Server - 185.146.234.144) - Encrypted storage and VPN server
+- **gimbal.fobdongle.is** (Iceland Server - 185.146.234.144) - Encrypted storage and VPN server
 
 ### Architecture Overview
 
@@ -33,7 +33,7 @@ This document outlines the complete plan to establish a secure, encrypted commun
         ╚═══════════════════════════════════════╝
                           ↓
 ┌─────────────────────────────────────────────────────────────┐
-│ gimbal.fobdongle.com (185.146.234.144)                     │
+│ gimbal.fobdongle.is (185.146.234.144)                     │
 │                                                             │
 │  • Caddy (TLS termination, reverse proxy)                  │
 │  • WireGuard VPN Server (10.8.0.1)                         │
@@ -46,7 +46,7 @@ This document outlines the complete plan to establish a secure, encrypted commun
 
 ## Network Configuration
 
-### Iceland Server (gimbal.fobdongle.com)
+### Iceland Server (gimbal.fobdongle.is)
 - **Public IPv4**: 185.146.234.144
 - **Subnet**: 255.255.255.0 (185.146.234.0/24)
 - **Gateway**: 185.146.234.254
@@ -55,8 +55,8 @@ This document outlines the complete plan to establish a secure, encrypted commun
 
 ### Proust Server
 - **VPN IP**: 10.8.0.2 (WireGuard client)
-- **Connects to**: gimbal.fobdongle.com:51820 (WireGuard)
-- **API Endpoint**: https://gimbal.fobdongle.com (HTTPS)
+- **Connects to**: gimbal.fobdongle.is:51820 (WireGuard)
+- **API Endpoint**: https://gimbal.fobdongle.is (HTTPS)
 
 ---
 
@@ -130,12 +130,12 @@ iceland-deployment/
 
 ```bash
 # Required DNS record
-gimbal.fobdongle.com  A  185.146.234.144  (TTL: 300 or lower)
+gimbal.fobdongle.is  A  185.146.234.144  (TTL: 300 or lower)
 ```
 
 **Verification**:
 ```bash
-dig gimbal.fobdongle.com
+dig gimbal.fobdongle.is
 # Should return: 185.146.234.144
 ```
 
@@ -205,7 +205,7 @@ ping 10.8.0.1
 3. **Update proust environment variables**:
 ```bash
 # Add to /home/runner/aformulationoftruth/.env
-VPS_ENDPOINT=https://gimbal.fobdongle.com
+VPS_ENDPOINT=https://gimbal.fobdongle.is
 VPS_API_KEY=<API_KEY_FROM_ICELAND>
 VPS_ENCRYPTION_KEY=<ENCRYPTION_KEY_FROM_ICELAND>
 ```
@@ -301,7 +301,7 @@ curl -X POST \
     "answer": "My answer",
     "timestamp": 1234567890
   }' \
-  https://gimbal.fobdongle.com/api/responses
+  https://gimbal.fobdongle.is/api/responses
 ```
 
 ---
@@ -411,7 +411,7 @@ wg show
 
 # Test connectivity
 ping 10.8.0.1
-curl https://gimbal.fobdongle.com/health
+curl https://gimbal.fobdongle.is/health
 
 # Application logs
 journalctl -u aformulationoftruth -f
@@ -475,7 +475,7 @@ curl http://localhost:3001/health
 **Certificate issues**:
 ```bash
 systemctl restart caddy
-curl -v https://gimbal.fobdongle.com/health
+curl -v https://gimbal.fobdongle.is/health
 ```
 
 **Complete restart**:
@@ -614,7 +614,7 @@ After deployment, verify:
 
 ### Next Steps
 
-1. **Configure DNS**: Point `gimbal.fobdongle.com` to `185.146.234.144`
+1. **Configure DNS**: Point `gimbal.fobdongle.is` to `185.146.234.144`
 2. **Transfer package**: `scp -r iceland-deployment/ root@185.146.234.144:/root/`
 3. **Run deployment**: `./iceland-deployment/scripts/deploy-iceland.sh`
 4. **Configure proust**: Follow Phase 3 instructions
@@ -650,7 +650,7 @@ WireGuard       51820   Public
 
 ```bash
 # Required for encrypted backup
-VPS_ENDPOINT=https://gimbal.fobdongle.com
+VPS_ENDPOINT=https://gimbal.fobdongle.is
 VPS_API_KEY=<64-hex-char-api-key>
 VPS_ENCRYPTION_KEY=<64-hex-char-encryption-key>
 ```
@@ -665,7 +665,7 @@ ENCRYPTION_KEY=<64-hex-char-encryption-key>
 NODE_ENV=production
 PORT=3001
 HOST=0.0.0.0
-DOMAIN=gimbal.fobdongle.com
+DOMAIN=gimbal.fobdongle.is
 ```
 
 ---

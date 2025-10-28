@@ -1,5 +1,5 @@
 # Manual Deployment Guide
-## gimbal.fobdongle.com (Iceland Server)
+## gimbal.fobdongle.is (Iceland Server)
 
 This guide provides step-by-step manual deployment instructions if you prefer not to use the automated deployment script.
 
@@ -7,7 +7,7 @@ This guide provides step-by-step manual deployment instructions if you prefer no
 
 - Ubuntu 22.04 or 24.04 LTS
 - Root access to server at 185.146.234.144
-- DNS A record: `gimbal.fobdongle.com` → `185.146.234.144`
+- DNS A record: `gimbal.fobdongle.is` → `185.146.234.144`
 - Basic knowledge of Linux administration
 
 ## Part 1: System Preparation
@@ -220,7 +220,7 @@ ENCRYPTION_KEY=$ENCRYPTION_KEY
 NODE_ENV=production
 PORT=3001
 HOST=0.0.0.0
-DOMAIN=gimbal.fobdongle.com
+DOMAIN=gimbal.fobdongle.is
 EOF
 
 chmod 600 /opt/gimbal-storage/.env
@@ -301,7 +301,7 @@ apt-get install -y caddy
 
 ```bash
 cat > /etc/caddy/Caddyfile <<EOF
-gimbal.fobdongle.com {
+gimbal.fobdongle.is {
     tls {
         protocols tls1.3
     }
@@ -326,7 +326,7 @@ gimbal.fobdongle.com {
     }
 }
 
-http://gimbal.fobdongle.com {
+http://gimbal.fobdongle.is {
     redir https://{host}{uri} permanent
 }
 EOF
@@ -347,7 +347,7 @@ systemctl enable caddy
 
 # Verify
 systemctl status caddy
-curl https://gimbal.fobdongle.com/health
+curl https://gimbal.fobdongle.is/health
 ```
 
 ## Part 6: Firewall Configuration
@@ -393,7 +393,7 @@ curl http://localhost:3001/health
 
 # Caddy
 systemctl status caddy
-curl https://gimbal.fobdongle.com/health
+curl https://gimbal.fobdongle.is/health
 
 # Firewall
 ufw status numbered
@@ -403,11 +403,11 @@ ufw status numbered
 
 ```bash
 # Should fail (no auth)
-curl https://gimbal.fobdongle.com/api/stats
+curl https://gimbal.fobdongle.is/api/stats
 
 # Should succeed
 curl -H "Authorization: Bearer $API_KEY" \
-     https://gimbal.fobdongle.com/health
+     https://gimbal.fobdongle.is/health
 ```
 
 ### 7.3 View Logs
@@ -456,7 +456,7 @@ ping 10.8.0.1
 
 On proust server, add to `.env`:
 ```bash
-VPS_ENDPOINT=https://gimbal.fobdongle.com
+VPS_ENDPOINT=https://gimbal.fobdongle.is
 VPS_API_KEY=<API_KEY_FROM_ICELAND>
 VPS_ENCRYPTION_KEY=<ENCRYPTION_KEY_FROM_ICELAND>
 ```
@@ -488,14 +488,14 @@ bash /path/to/test-encrypted-link.sh
 ping 10.8.0.1
 
 # Test DNS
-dig gimbal.fobdongle.com
+dig gimbal.fobdongle.is
 
 # Test HTTPS
-curl -v https://gimbal.fobdongle.com/health
+curl -v https://gimbal.fobdongle.is/health
 
 # Test API
 curl -H "Authorization: Bearer $API_KEY" \
-     https://gimbal.fobdongle.com/api/stats
+     https://gimbal.fobdongle.is/api/stats
 ```
 
 ## Troubleshooting
@@ -539,10 +539,10 @@ curl http://localhost:3001/health
 journalctl -u caddy -n 100
 
 # Verify DNS
-dig gimbal.fobdongle.com
+dig gimbal.fobdongle.is
 
 # Test certificate
-openssl s_client -connect gimbal.fobdongle.com:443
+openssl s_client -connect gimbal.fobdongle.is:443
 ```
 
 ### Firewall Issues

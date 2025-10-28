@@ -1,7 +1,7 @@
 # Iceland Server Deployment Package
-## gimbal.fobdongle.com (185.146.234.144)
+## gimbal.fobdongle.is (185.146.234.144)
 
-This package contains everything needed to deploy the Iceland server as the encrypted storage endpoint and VPN server for the proust.aformulationoftruth.com ↔ gimbal.fobdongle.com encrypted link.
+This package contains everything needed to deploy the Iceland server as the encrypted storage endpoint and VPN server for the proust.aformulationoftruth.com ↔ gimbal.fobdongle.is encrypted link.
 
 ## Server Specifications
 
@@ -9,7 +9,7 @@ This package contains everything needed to deploy the Iceland server as the encr
 - **Subnet Mask**: 255.255.255.0
 - **Gateway**: 185.146.234.254
 - **IPv6 Range**: 2a06:1700:2:20c::3804:466a/64
-- **Domain**: gimbal.fobdongle.com
+- **Domain**: gimbal.fobdongle.is
 - **Role**: VPN Server + Encrypted Storage API
 
 ## Architecture
@@ -24,7 +24,7 @@ This package contains everything needed to deploy the Iceland server as the encr
             WireGuard VPN Tunnel (ChaCha20-Poly1305)
                           ↓
 ┌─────────────────────────────────────────────────────────────┐
-│ gimbal.fobdongle.com (Iceland Server - 185.146.234.144)    │
+│ gimbal.fobdongle.is (Iceland Server - 185.146.234.144)    │
 │                                                             │
 │  ┌───────────────────────────────────────────────────────┐ │
 │  │ Layer 1: Caddy (Port 443)                             │ │
@@ -53,7 +53,7 @@ This package contains everything needed to deploy the Iceland server as the encr
 
 ### Prerequisites
 1. Root access to Iceland server (185.146.234.144)
-2. DNS A record: `gimbal.fobdongle.com` → `185.146.234.144`
+2. DNS A record: `gimbal.fobdongle.is` → `185.146.234.144`
 3. Ubuntu 22.04 or 24.04 LTS installed
 
 ### Quick Deployment
@@ -78,7 +78,7 @@ The deployment script will:
 - Configure firewall (UFW)
 - Set up WireGuard VPN server on 10.8.0.1
 - Deploy encrypted storage API
-- Configure TLS certificates for gimbal.fobdongle.com
+- Configure TLS certificates for gimbal.fobdongle.is
 - Create systemd services for auto-start
 - Generate WireGuard client config for proust server
 
@@ -155,7 +155,7 @@ curl http://localhost:3001/health
 
 # Check Caddy
 systemctl status caddy
-curl https://gimbal.fobdongle.com/health
+curl https://gimbal.fobdongle.is/health
 ```
 
 ### Monitor VPN
@@ -215,7 +215,7 @@ gpg --symmetric --cipher-algo AES256 /root/backups/gimbal-$(date +%Y%m%d).sql
 wg show
 
 # Check API health
-curl https://gimbal.fobdongle.com/health
+curl https://gimbal.fobdongle.is/health
 
 # Check disk space
 df -h
@@ -229,8 +229,8 @@ journalctl -u gimbal-storage --since "1 hour ago"
 For issues or questions:
 1. Check [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md)
 2. Review logs: `journalctl -xe`
-3. Verify DNS: `dig gimbal.fobdongle.com`
-4. Test connectivity: `curl -v https://gimbal.fobdongle.com/health`
+3. Verify DNS: `dig gimbal.fobdongle.is`
+4. Test connectivity: `curl -v https://gimbal.fobdongle.is/health`
 
 ## License
 

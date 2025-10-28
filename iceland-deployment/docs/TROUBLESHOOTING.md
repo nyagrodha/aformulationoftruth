@@ -40,10 +40,10 @@ systemctl status wg-quick@wg0
 ping 10.8.0.1
 
 # Test DNS
-dig gimbal.fobdongle.com
+dig gimbal.fobdongle.is
 
 # Test HTTPS
-curl -v https://gimbal.fobdongle.com/health
+curl -v https://gimbal.fobdongle.is/health
 
 # Check environment
 grep VPS_ /home/runner/aformulationoftruth/.env
@@ -182,14 +182,14 @@ ss -ulpn | grep 51820
 ### Issue: Certificate not issued
 
 **Symptoms:**
-- `curl https://gimbal.fobdongle.com` fails with certificate error
+- `curl https://gimbal.fobdongle.is` fails with certificate error
 - Caddy logs show ACME errors
 
 **Solutions:**
 
 1. Verify DNS is correct:
 ```bash
-dig gimbal.fobdongle.com
+dig gimbal.fobdongle.is
 # Should return 185.146.234.144
 ```
 
@@ -201,7 +201,7 @@ ufw allow 80/tcp
 3. Verify domain is accessible externally:
 ```bash
 # From different network
-curl http://gimbal.fobdongle.com
+curl http://gimbal.fobdongle.is
 ```
 
 4. Check Caddy logs:
@@ -217,7 +217,7 @@ caddy run --config /etc/caddy/Caddyfile
 ```
 
 6. Check for rate limiting (Let's Encrypt):
-- Visit: https://crt.sh/?q=gimbal.fobdongle.com
+- Visit: https://crt.sh/?q=gimbal.fobdongle.is
 - If many recent certificates, wait or use staging
 
 ---
@@ -232,17 +232,17 @@ caddy run --config /etc/caddy/Caddyfile
 
 1. Test certificate:
 ```bash
-openssl s_client -connect gimbal.fobdongle.com:443 -showcerts
+openssl s_client -connect gimbal.fobdongle.is:443 -showcerts
 ```
 
 2. Verify certificate matches domain:
 ```bash
-curl -vI https://gimbal.fobdongle.com 2>&1 | grep -i "subject:"
+curl -vI https://gimbal.fobdongle.is 2>&1 | grep -i "subject:"
 ```
 
 3. Check certificate expiry:
 ```bash
-echo | openssl s_client -connect gimbal.fobdongle.com:443 2>/dev/null | \
+echo | openssl s_client -connect gimbal.fobdongle.is:443 2>/dev/null | \
   openssl x509 -noout -dates
 ```
 
@@ -364,7 +364,7 @@ grep VPS_API_KEY /home/runner/aformulationoftruth/.env
 ```bash
 # Correct format
 curl -H "Authorization: Bearer YOUR_KEY_HERE" \
-     https://gimbal.fobdongle.com/health
+     https://gimbal.fobdongle.is/health
 ```
 
 3. Verify no extra whitespace in .env:
@@ -440,7 +440,7 @@ console.log('Decrypted:', dec);
 ```bash
 grep "^VPS_" /home/runner/aformulationoftruth/.env
 # Should show:
-# VPS_ENDPOINT=https://gimbal.fobdongle.com
+# VPS_ENDPOINT=https://gimbal.fobdongle.is
 # VPS_API_KEY=...
 # VPS_ENCRYPTION_KEY=...
 ```
@@ -466,7 +466,7 @@ curl -X POST \
     "answer": "test",
     "timestamp": '$(date +%s)'
   }' \
-  https://gimbal.fobdongle.com/api/responses
+  https://gimbal.fobdongle.is/api/responses
 ```
 
 4. Review proust application logs:
@@ -477,7 +477,7 @@ journalctl -u aformulationoftruth -n 200 | grep -i vps
 5. Check for network issues:
 ```bash
 # From proust
-curl -v https://gimbal.fobdongle.com/health
+curl -v https://gimbal.fobdongle.is/health
 ```
 
 ---
@@ -535,7 +535,7 @@ watch -n 1 wg show wg0
 ### Issue: DNS not resolving
 
 **Symptoms:**
-- `dig gimbal.fobdongle.com` returns NXDOMAIN
+- `dig gimbal.fobdongle.is` returns NXDOMAIN
 - Cannot reach domain by name
 
 **Solutions:**
@@ -543,19 +543,19 @@ watch -n 1 wg show wg0
 1. Check DNS propagation:
 ```bash
 # Try different DNS servers
-dig @8.8.8.8 gimbal.fobdongle.com
-dig @1.1.1.1 gimbal.fobdongle.com
+dig @8.8.8.8 gimbal.fobdongle.is
+dig @1.1.1.1 gimbal.fobdongle.is
 ```
 
 2. Check authoritative nameservers:
 ```bash
 dig NS fobdongle.com
-dig @ns1.fobdongle.com gimbal.fobdongle.com
+dig @ns1.fobdongle.com gimbal.fobdongle.is
 ```
 
 3. Verify A record:
 ```bash
-dig A gimbal.fobdongle.com +short
+dig A gimbal.fobdongle.is +short
 # Should return: 185.146.234.144
 ```
 
@@ -570,7 +570,7 @@ sudo resolvectl flush-caches
 
 5. Test from external resolver:
 - Visit: https://www.whatsmydns.net/
-- Enter: gimbal.fobdongle.com
+- Enter: gimbal.fobdongle.is
 
 ---
 
