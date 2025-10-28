@@ -14,7 +14,7 @@ BLUE='\033[0;34m'
 NC='\033[0m'
 
 # Configuration
-GIMBAL_DOMAIN="${GIMBAL_DOMAIN:-gimbal.fobdongle.com}"
+GIMBAL_DOMAIN="${GIMBAL_DOMAIN:-gimbal.fobdongle.is}"
 GIMBAL_IP="${GIMBAL_IP:-185.146.234.144}"
 VPN_SERVER_IP="${VPN_SERVER_IP:-10.8.0.1}"
 

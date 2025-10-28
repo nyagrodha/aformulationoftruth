@@ -1,10 +1,10 @@
 #!/bin/bash
 ################################################################################
-# Iceland Server (gimbal.fobdongle.com) Deployment Script
+# Iceland Server (gimbal.fobdongle.is) Deployment Script
 # Automated deployment of WireGuard VPN + Encrypted Storage API
 #
 # Server: 185.146.234.144
-# Domain: gimbal.fobdongle.com
+# Domain: gimbal.fobdongle.is
 # Role: VPN Server + Encrypted Storage Endpoint
 ################################################################################
 
@@ -19,7 +19,7 @@ NC='\033[0m' # No Color
 
 # Configuration
 SERVER_IP="185.146.234.144"
-DOMAIN="gimbal.fobdongle.com"
+DOMAIN="gimbal.fobdongle.is"
 WG_PORT="51820"
 WG_NETWORK="10.8.0.0/24"
 WG_SERVER_IP="10.8.0.1"

@@ -35,7 +35,7 @@ header() {
 header "Proust Server - WireGuard VPN Client Setup"
 
 # Configuration
-GIMBAL_DOMAIN="gimbal.fobdongle.com"
+GIMBAL_DOMAIN="gimbal.fobdongle.is"
 GIMBAL_IP="185.146.234.144"
 VPN_SERVER_IP="10.8.0.1"
 CLIENT_CONFIG="/etc/wireguard/wg0.conf"
