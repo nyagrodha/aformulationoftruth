@@ -1,5 +1,6 @@
 {
-  "dependencies": {
+  "dependencies": 
+    "body-parser": "^1.20.3"
     "@vitejs/plugin-react": "^4.7.0",
     "body-parser": "^2.2.0",
     "connect-pg-simple": "^10.0.0",
