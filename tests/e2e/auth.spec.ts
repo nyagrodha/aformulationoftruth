@@ -19,9 +19,9 @@ test.describe('Authentication Flow', () => {
 
   test('should show login button in auth portal', async ({ page }) => {
     await page.goto('/auth-portal');
-    
-    // Should have login with Replit option
-    const loginButton = page.locator('[data-testid="replit-login-button"]');
+
+    // Should have login option
+    const loginButton = page.locator('[data-testid="login-button"]');
     await expect(loginButton).toBeVisible();
     await expect(loginButton).toContainText('Enter the apotropaic realm');
   });
