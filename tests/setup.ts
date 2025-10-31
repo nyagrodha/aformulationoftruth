@@ -21,16 +21,9 @@ if (fs.existsSync(envPath)) {
 
 // Ensure required variables are set (use defaults if not loaded from env file)
 process.env.NODE_ENV = 'test';
-if (!process.env.DATABASE_URL) {
-  console.warn('WARNING: DATABASE_URL not found in /etc/a4mula.env, tests will fail');
-  process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test';
-}
-if (!process.env.SESSION_SECRET) {
-  process.env.SESSION_SECRET = 'test-session-secret';
-}
-if (!process.env.VPS_ENCRYPTION_KEY) {
-  process.env.VPS_ENCRYPTION_KEY = 'test-encryption-key-32-chars!!!';
-}
+process.env.DATABASE_URL = process.env.DATABASE_URL ?? 'postgresql://test:test@localhost:5432/test';
+process.env.SESSION_SECRET = process.env.SESSION_SECRET ?? 'test-session-secret';
+process.env.VPS_ENCRYPTION_KEY = process.env.VPS_ENCRYPTION_KEY ?? 'test-encryption-key-32-chars!!!';
 process.env.PORT = process.env.PORT ?? '0';
 
 // Mock console methods to reduce noise in tests
@@ -47,10 +40,8 @@ global.console = {
 jest.setTimeout(10000); // 10 seconds
 
 // Provide Node <-> browser polyfills that some modules rely on
-// @ts-expect-error - jsdom doesn't define TextEncoder/Decoder on global
-global.TextEncoder = TextEncoder;
-// @ts-expect-error - jsdom doesn't define TextEncoder/Decoder on global
-global.TextDecoder = TextDecoder as unknown as typeof global.TextDecoder;
+(global as any).TextEncoder = TextEncoder;
+(global as any).TextDecoder = TextDecoder as unknown as typeof global.TextDecoder;
 
 if (!global.fetch) {
   global.fetch = jest.fn() as unknown as typeof fetch;
