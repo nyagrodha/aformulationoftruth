@@ -1,6 +1,6 @@
 # PostgreSQL Setup Guide
 
-This project now includes a lightweight Express server that persists questionnaire responses to PostgreSQL. Follow the steps below to get the database operational in development.
+This project ships with a secure authentication layer backed by PostgreSQL. Follow the steps below to configure the database in development.
 
 ## 1. Install Dependencies
 
@@ -16,53 +16,51 @@ Copy the example file and update it with your database credentials:
 cp .env.example .env
 ```
 
-Edit `.env` so that `DATABASE_URL` points to your PostgreSQL instance. For example, a local connection string might look like:
+Edit `.env` so that `DATABASE_URL` remains pointed at the managed cluster on `gimbal.fobdongle.com`. Example connection string with least-privilege credentials and TLS enforced:
 
 ```
-DATABASE_URL=postgresql://a4ot:localpassword@localhost:5432/a4ot
+DATABASE_URL=postgres://app_user:change-me@gimbal.fobdongle.com:5432/aformulationoftruth?sslmode=require
 ```
 
-If you prefer to provide discrete PostgreSQL settings, you can set the standard environment variables instead of a URL:
+Ensure the PostgreSQL role referenced by `DATABASE_URL` has the minimal privileges required (CONNECT, USAGE on schema, CRUD on tables created by the app) and that the account is restricted to connections initiated from the encrypted VPN tunnel.
 
-```
-PGHOST=localhost
-PGPORT=5432
-PGDATABASE=a4ot
-PGUSER=a4ot
-PGPASSWORD=localpassword
-```
+The application refuses to start unless the VPN interface configured via `VPN_INTERFACE` is active and the connection string enforces TLS (`sslmode=require`, `verify-ca`, or `verify-full`). Optionally pin the CA certificate path with `DATABASE_CA_CERT_PATH` for additional transport assurance.
 
-If you are connecting to a managed provider that requires TLS (e.g., Supabase, Render), set `PGSSLMODE=require`.
+## 3. Apply Migrations
 
-## 3. Prepare the Database
-
-Once the environment variables are configured, run the schema initialization script:
+Run the migration script to create the required tables (`users`, `password_resets`, `session`, and `questionnaire_responses`):
 
 ```bash
-npm run db:init
+npm run db:migrate
 ```
 
-This applies the SQL found in [`db/schema.sql`](db/schema.sql), creating the `questionnaire_responses` table and ensuring necessary extensions are available.
+The SQL lives in [`db/migrations`](db/migrations).
 
-## 4. Start the Server
+## 4. Seed an Admin User (optional)
 
-Launch the Express server, which serves the static site from `public/` and exposes the questionnaire APIs:
+After configuring the `SEED_ADMIN_*` variables in `.env`, create or update an admin account:
 
 ```bash
-npm start
+npm run db:seed
 ```
 
-The server listens on port `5742` by default (matching the production deployment). Navigate to `http://localhost:5742` to interact with the application, or set the `PORT` environment variable if you need a different port locally.
+## 5. Start the Server
 
-## 5. Verifying Connectivity
+Launch the API:
 
-Two API endpoints are available to help confirm connectivity:
+```bash
+npm run dev
+```
 
-- `GET /api/health` — verifies a simple round-trip query to PostgreSQL.
-- `POST /api/responses` — stores questionnaire responses. The frontend automatically calls this endpoint when a user completes the questionnaire.
+The server listens on `PORT` (default `5742`). It serves both the API and static assets from `public/`.
 
-You can also query recent responses with `GET /api/responses` (intended for administrative use).
+## 6. Verifying Connectivity
 
----
+Use Supertest/Jest (`npm test`) or hit the API manually:
 
-If the server logs warnings about `DATABASE_URL` being missing, confirm that the environment file is loaded and that the process has access to your PostgreSQL instance.
+- `GET /auth/session` — confirms session + CSRF issuance.
+- `POST /auth/signup` — exercises user creation.
+- `POST /api/responses` — stores questionnaire responses.
+- `GET /api/responses` — requires an admin session.
+
+If the server logs warnings about missing `DATABASE_URL`, confirm the environment file is loaded and that PostgreSQL is reachable.
