@@ -60,13 +60,10 @@ construction-vite/
 drizzle/
 maintenance/
 packages/
-scripts/
 !server/scripts/
 services/
 shared/
-src/
 static/
-tests/
 
 # Config files (managed separately)
 Caddyfile
