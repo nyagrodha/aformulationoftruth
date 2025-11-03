@@ -5,3 +5,8 @@ node_modules/
 .env
 .DS_Store
 EOF
+*.local
+backend/.env
+.env.local
+*.backup.*
+backend/.env.backup.*
