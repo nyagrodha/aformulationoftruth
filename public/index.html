@@ -108,7 +108,8 @@
       showMessage('Sending magic link...', 'info');
 
       try {
-        const response = await fetch('/auth/request', {
+        // Magic Link Authentication (JWT-based)
+        const response = await fetch('/api/auth/request-magic-link', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
@@ -131,6 +132,24 @@
         emailInput.disabled = false;
         authForm.querySelector('button').disabled = false;
       }
+
+      /* OAuth Authentication (Keycloak) - COMMENTED OUT
+       * To enable OAuth, uncomment this block and comment out the magic link code above
+       * Requires backend OAuth configuration
+       *
+      try {
+        const response = await fetch('/auth/oauth/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ email })
+        });
+        // ... OAuth flow implementation
+      } catch (error) {
+        console.error('OAuth error:', error);
+      }
+      */
     });
 
     function showMessage(text, type) {
