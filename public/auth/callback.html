@@ -111,7 +111,7 @@
         return;
       }
 
-      // Verify token with backend
+      // Magic Link JWT Authentication
       fetch('/api/auth/validate-magic-link', {
         method: 'POST',
         headers: {
@@ -123,6 +123,13 @@
       .then(data => {
         if (data.success) {
           showMessage('✅ Authentication successful! Redirecting to questionnaire...', 'success');
+
+          // Store authentication session
+          if (data.user) {
+            localStorage.setItem('userEmail', data.user.email);
+            localStorage.setItem('userId', data.user.id);
+          }
+
           // Redirect to questionnaire after 1 second
           setTimeout(() => {
             window.location.href = '/questionnaire.html';
@@ -141,6 +148,26 @@
           window.location.href = '/';
         }, 3000);
       });
+
+      /* OAuth Callback Handler - COMMENTED OUT
+       * To enable OAuth authentication, uncomment this block
+       * This handles OAuth provider callback with authorization code
+       *
+      const authCode = urlParams.get('code');
+      if (authCode) {
+        fetch('/api/auth/oauth/callback', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ code: authCode })
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            window.location.href = '/questionnaire.html';
+          }
+        });
+      }
+      */
     })();
   </script>
 </body>
