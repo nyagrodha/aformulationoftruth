@@ -9,6 +9,16 @@
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;800&family=Noto+Sans+Tamil:wght@400;700&family=Noto+Sans+Devanagari:wght@400;700&display=swap" rel="stylesheet"><!-- Stylesheets -->
   <link rel="stylesheet" href="/css/themes.css">
   <style>
+    h1,
+    h2,
+    h3,
+    .hero-title,
+    .card h3 {
+      font-family: 'Futura', 'Futura PT', 'Trebuchet MS', 'Arial Narrow', Arial,
+        sans-serif;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+    }
   </style>
   <meta name="description" content="a Proust questionnaire dba Karupacami kelvittal">
 
@@ -109,13 +119,16 @@
 
       try {
         // Magic Link Authentication (JWT-based)
-        const response = await fetch('/api/auth/request-magic-link', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ email })
-        });
+        const response = await fetch(
+          'https://iceland.aformulationoftruth.com/api/auth/request-magic-link',
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ email })
+          }
+        );
 
         const data = await response.json();
 
