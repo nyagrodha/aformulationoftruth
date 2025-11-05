@@ -12,10 +12,13 @@
     h1,
     h2,
     h3,
+    h4,
+    h5,
+    h6,
     .hero-title,
     .card h3 {
-      font-family: 'Futura', 'Futura PT', 'Trebuchet MS', 'Arial Narrow', Arial,
-        sans-serif;
+      font-family: 'Futura', 'Futura PT', 'Century Gothic', 'Gill Sans',
+        'Trebuchet MS', Arial, sans-serif;
       font-weight: 700;
       letter-spacing: 0.04em;
     }
@@ -124,19 +127,28 @@
           {
             method: 'POST',
             headers: {
-              'Content-Type': 'application/json'
+              'Content-Type': 'application/json',
+              Accept: 'application/json'
             },
             body: JSON.stringify({ email })
           }
         );
 
-        const data = await response.json();
+        let data = null;
+        try {
+          data = await response.json();
+        } catch (parseError) {
+          // Some successful responses may not include a JSON body (e.g. 204 No Content)
+          data = null;
+        }
 
         if (response.ok) {
           showMessage('✅ Check your email! Click the magic link to begin the questionnaire.', 'success');
           emailInput.value = '';
         } else {
-          showMessage(data.error || 'Failed to send magic link. Please try again.', 'error');
+          const errorMessage = (data && (data.error || data.message)) ||
+            'Failed to send magic link. Please try again.';
+          showMessage(errorMessage, 'error');
         }
       } catch (error) {
         console.error('Error:', error);
