@@ -1,0 +1,38 @@
+[Unit]
+Description=Proust Questionnaire - Gupta Vidyā Server (End-to-End Encrypted)
+Documentation=https://aformulationoftruth.com
+After=network.target postgresql.service
+
+[Service]
+Type=simple
+User=marcel
+Group=marcel
+WorkingDirectory=/var/www/aformulationoftruth/apps/proust
+
+# Environment
+Environment="NODE_ENV=production"
+Environment="PROUST_PORT=5743"
+EnvironmentFile=-/var/www/aformulationoftruth/.env
+
+# Start server
+ExecStart=/usr/bin/node server/index.js
+
+# Restart policy
+Restart=always
+RestartSec=10
+
+# Security hardening (relaxed for compatibility)
+NoNewPrivileges=true
+PrivateTmp=false
+
+# Resource limits
+LimitNOFILE=65536
+LimitNPROC=4096
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=proust-gupta-vidya
+
+[Install]
+WantedBy=multi-user.target

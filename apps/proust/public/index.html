@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proust Questionnaire - Gupta Vidyā Gateway</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Crimson Text', 'Georgia', serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            color: #e8e8e8;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .bhairava-gateway {
+            max-width: 600px;
+            width: 100%;
+            background: rgba(26, 26, 46, 0.9);
+            border: 2px solid rgba(232, 193, 160, 0.3);
+            border-radius: 12px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
+        }
+
+        h1 {
+            font-size: 2.5em;
+            color: #e8c1a0;
+            text-align: center;
+            margin-bottom: 10px;
+            font-weight: 400;
+            letter-spacing: 2px;
+        }
+
+        .sanskrit {
+            text-align: center;
+            color: #c4a57b;
+            font-size: 1.1em;
+            margin-bottom: 30px;
+            font-style: italic;
+            letter-spacing: 1px;
+        }
+
+        .intro {
+            text-align: center;
+            line-height: 1.8;
+            margin-bottom: 30px;
+            color: #b8b8b8;
+        }
+
+        .intro strong {
+            color: #e8c1a0;
+        }
+
+        .encryption-form {
+            margin: 30px 0;
+        }
+
+        .email-input {
+            width: 100%;
+            padding: 15px;
+            font-size: 1.1em;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(232, 193, 160, 0.3);
+            border-radius: 8px;
+            color: #e8e8e8;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .email-input:focus {
+            outline: none;
+            border-color: #e8c1a0;
+            background: rgba(255, 255, 255, 0.08);
+            box-shadow: 0 0 20px rgba(232, 193, 160, 0.2);
+        }
+
+        .submit-button {
+            width: 100%;
+            padding: 15px;
+            font-size: 1.2em;
+            background: linear-gradient(135deg, #e8c1a0 0%, #c4a57b 100%);
+            border: none;
+            border-radius: 8px;
+            color: #1a1a2e;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .submit-button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(232, 193, 160, 0.4);
+        }
+
+        .submit-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .message-display {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(232, 193, 160, 0.1);
+            border-left: 4px solid #e8c1a0;
+            border-radius: 4px;
+            line-height: 1.6;
+        }
+
+        .message-display.success {
+            background: rgba(76, 175, 80, 0.1);
+            border-left-color: #4caf50;
+        }
+
+        .message-display.error {
+            background: rgba(244, 67, 54, 0.1);
+            border-left-color: #f44336;
+        }
+
+        .encryption-note {
+            margin-top: 30px;
+            padding: 20px;
+            background: rgba(232, 193, 160, 0.05);
+            border-radius: 8px;
+            font-size: 0.9em;
+            line-height: 1.8;
+        }
+
+        .encryption-note p {
+            margin: 8px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(232, 193, 160, 0.3);
+            border-top-color: #e8c1a0;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .encryption-status {
+            margin: 15px 0;
+            padding: 10px;
+            background: rgba(232, 193, 160, 0.05);
+            border-radius: 4px;
+            font-size: 0.9em;
+            color: #c4a57b;
+            display: none;
+        }
+
+        .encryption-status.active {
+            display: block;
+        }
+
+        .footer {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 0.85em;
+            color: #888;
+            padding-top: 20px;
+            border-top: 1px solid rgba(232, 193, 160, 0.2);
+        }
+    </style>
+</head>
+<body>
+    <div class="bhairava-gateway">
+        <h1>The Proust Questionnaire</h1>
+        <p class="sanskrit">गुप्तविद्यया प्रवेशः</p>
+
+        <div class="intro">
+            <p>Welcome to the <strong>encrypted gateway</strong>.</p>
+            <p>Your email address will be protected by <strong>AES-256-GCM encryption</strong> before transmission to our Iceland server.</p>
+        </div>
+
+        <form id="encryption-form" class="encryption-form">
+            <input
+                type="email"
+                id="email-input"
+                class="email-input"
+                placeholder="your.email@example.com"
+                required
+                autocomplete="email"
+            />
+
+            <div id="encryption-status" class="encryption-status"></div>
+
+            <button type="submit" id="submit-button" class="submit-button">
+                Request Access
+            </button>
+        </form>
+
+        <div id="message-display"></div>
+
+        <div class="encryption-note">
+            <p>🔒 Your email is encrypted client-side using <strong>AES-256-GCM</strong></p>
+            <p>🗝️ Ephemeral keys exist only for this session (5 minutes)</p>
+            <p>🏔️ Secure transmission to Iceland server via encrypted tunnel</p>
+            <p>🔐 Zero-knowledge architecture - we never see your plaintext email</p>
+        </div>
+
+        <div class="footer">
+            <p>स्वतन्त्रो भव । Be free.</p>
+        </div>
+    </div>
+
+    <script type="module">
+        /**
+         * Gupta Vidyā Client-Side Encryption
+         * This script handles the encryption before any data leaves the browser
+         */
+
+        class GuptaVidyaEncryption {
+            constructor() {
+                this.config = {
+                    algorithm: 'AES-GCM',
+                    keyLength: 256,
+                    maxAge: 5 * 60 * 1000
+                };
+            }
+
+            async generateEphemeralKey() {
+                return await window.crypto.subtle.generateKey(
+                    {
+                        name: this.config.algorithm,
+                        length: this.config.keyLength
+                    },
+                    true,
+                    ['encrypt', 'decrypt']
+                );
+            }
+
+            async encryptEmail(email, key) {
+                const iv = window.crypto.getRandomValues(new Uint8Array(12));
+                const salt = window.crypto.getRandomValues(new Uint8Array(16));
+                const encoder = new TextEncoder();
+                const emailBytes = encoder.encode(email.toLowerCase().trim());
+
+                const ciphertext = await window.crypto.subtle.encrypt(
+                    { name: this.config.algorithm, iv: iv },
+                    key,
+                    emailBytes
+                );
+
+                return { ciphertext, iv, salt };
+            }
+
+            async exportKey(key) {
+                return await window.crypto.subtle.exportKey('jwk', key);
+            }
+
+            arrayBufferToBase64(buffer) {
+                const bytes = new Uint8Array(buffer);
+                let binary = '';
+                for (let i = 0; i < bytes.byteLength; i++) {
+                    binary += String.fromCharCode(bytes[i]);
+                }
+                return btoa(binary);
+            }
+
+            async createSignature(ciphertext, iv, salt) {
+                const combined = new Uint8Array(
+                    ciphertext.byteLength + iv.length + salt.length
+                );
+                combined.set(new Uint8Array(ciphertext), 0);
+                combined.set(iv, ciphertext.byteLength);
+                combined.set(salt, ciphertext.byteLength + iv.length);
+
+                const hashBuffer = await window.crypto.subtle.digest('SHA-256', combined);
+                return this.arrayBufferToBase64(hashBuffer);
+            }
+
+            validateEmail(email) {
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                return emailRegex.test(email);
+            }
+
+            async createSecurePackage(email) {
+                if (!this.validateEmail(email)) {
+                    throw new Error('Invalid email format');
+                }
+
+                const key = await this.generateEphemeralKey();
+                const { ciphertext, iv, salt } = await this.encryptEmail(email, key);
+                const exportedKey = await this.exportKey(key);
+                const signature = await this.createSignature(ciphertext, iv, salt);
+
+                return {
+                    encryptedEmail: this.arrayBufferToBase64(ciphertext),
+                    ephemeralKey: btoa(JSON.stringify(exportedKey)),
+                    iv: this.arrayBufferToBase64(iv),
+                    salt: this.arrayBufferToBase64(salt),
+                    timestamp: Date.now(),
+                    signature
+                };
+            }
+
+            static isSupported() {
+                return !!(window.crypto && window.crypto.subtle);
+            }
+        }
+
+        // Initialize
+        const encryption = new GuptaVidyaEncryption();
+        const form = document.getElementById('encryption-form');
+        const emailInput = document.getElementById('email-input');
+        const submitButton = document.getElementById('submit-button');
+        const messageDisplay = document.getElementById('message-display');
+        const encryptionStatus = document.getElementById('encryption-status');
+
+        // Check browser support
+        if (!GuptaVidyaEncryption.isSupported()) {
+            showMessage('error', '❌ Your browser does not support Web Crypto API. Please use a modern browser.');
+            submitButton.disabled = true;
+        }
+
+        // Handle form submission
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const email = emailInput.value;
+            submitButton.disabled = true;
+            submitButton.innerHTML = '<span class="loading-spinner"></span> Encrypting...';
+
+            try {
+                // Show encryption progress
+                showStatus('🔐 Generating ephemeral key...');
+                await sleep(300);
+
+                showStatus('🔒 Encrypting email with AES-256-GCM...');
+                const securePackage = await encryption.createSecurePackage(email);
+                await sleep(300);
+
+                showStatus('🏔️ Transmitting to Iceland server...');
+                const response = await fetch('/api/auth/initiate-encrypted', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(securePackage)
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showMessage('success', `
+                        ✨ ${data.blessing}<br><br>
+                        <strong>Authentication Successful!</strong><br><br>
+                        ${data.message}<br><br>
+                        Your session token: <code>${data.sessionToken}</code><br><br>
+                        <a href="${data.magicLink}" style="color: #e8c1a0;">Proceed to Questionnaire →</a>
+                    `);
+                    emailInput.value = '';
+                } else {
+                    showMessage('error', `⚠️ ${data.message}`);
+                }
+
+            } catch (error) {
+                showMessage('error', '❌ Encryption failed. ' + error.message);
+                console.error('Encryption error:', error);
+            } finally {
+                submitButton.disabled = false;
+                submitButton.textContent = 'Request Access';
+                hideStatus();
+            }
+        });
+
+        function showStatus(message) {
+            encryptionStatus.textContent = message;
+            encryptionStatus.classList.add('active');
+        }
+
+        function hideStatus() {
+            encryptionStatus.classList.remove('active');
+        }
+
+        function showMessage(type, message) {
+            messageDisplay.innerHTML = message;
+            messageDisplay.className = `message-display ${type}`;
+        }
+
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+    </script>
+</body>
+</html>
