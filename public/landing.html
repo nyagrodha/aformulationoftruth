@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>A Formulation of Truth</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;800&family=Noto+Sans+Tamil:wght@400;700&family=Noto+Sans+Devanagari:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+:root {
+  --neon-cyan: #00ffff;
+  --neon-pink: #ff00ff;
+  --neon-lime: #ccff00;
+  --cosmic: #0c0720;
+  --card: #140a2e;
+  --gold-a: #b8870b;
+  --gold-b: #ffd56b;
+  --gold-c: #f1a10d;
+  --gold-d: #ffe9a3;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background: var(--cosmic);
+  color: #d7ccff;
+  font-family: 'Georgia', serif;
+  min-height: 100vh;
+}
+
+.hero {
+  display: grid;
+  place-items: center;
+  min-height: 100vh;
+  padding: 4rem 1rem;
+  background: radial-gradient(
+    1200px 600px at 50% 10%,
+    #5b21b6 0%,
+    transparent 60%
+  );
+}
+
+.hero-title {
+  font-family: "Orbitron", system-ui, sans-serif;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  font-size: clamp(28px, 5vw, 56px);
+  text-align: center;
+  color: white;
+  margin: 0 0 0.35rem;
+  text-shadow: 0 0 16px rgba(0, 255, 255, 0.25);
+}
+
+.oms {
+  display: flex;
+  justify-content: center;
+  gap: 0.6rem;
+  margin: 0.15rem 0 1.25rem;
+  font-size: clamp(18px, 2.6vw, 26px);
+  font-weight: 700;
+  line-height: 1;
+}
+
+.oms .om {
+  font-weight: bold;
+  color: transparent;
+  -webkit-text-stroke: 1.4px #f3c33b;
+  background: linear-gradient(
+    90deg,
+    var(--gold-a),
+    var(--gold-b),
+    var(--gold-c),
+    var(--gold-d),
+    var(--gold-a)
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  background-size: 220% 100%;
+  animation: gold-shimmer 3.5s linear infinite;
+  filter: drop-shadow(0 0 6px rgba(255, 213, 107, 0.35));
+}
+
+.oms .at {
+  font-size: 1.2rem;
+  color: #fff5cc;
+  text-shadow: 0 0 6px rgba(255, 213, 107, 0.35);
+}
+
+.oms .sup {
+  position: relative;
+  top: -0.4em;
+}
+
+.oms .sub {
+  position: relative;
+  top: 0.4em;
+}
+
+.irendu {
+  position: relative;
+  top: -0.6em;
+  font-size: 2rem;
+  font-weight: bold;
+  background: linear-gradient(
+    45deg,
+    #e0ffff,
+    #ffe4e1,
+    #f0e68c,
+    #dda0dd,
+    #e0ffff
+  );
+  background-size: 300% 300%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: irendu-opal 6s ease-in-out infinite;
+  text-shadow: 0 0 8px rgba(255, 255, 255, 0.6);
+}
+
+.lockup {
+  position: relative;
+  display: grid;
+  place-items: center;
+  margin: 1.25rem 0 1.15rem;
+  padding: 2.4rem 1rem 2.6rem;
+}
+
+.lockup-center {
+  font-family: "Orbitron", system-ui, sans-serif;
+  font-weight: 800;
+  text-align: center;
+  color: #fff;
+  font-size: clamp(22px, 3.8vw, 40px);
+  line-height: 1.15;
+  white-space: nowrap;
+  text-shadow: 0 0 10px rgba(255, 0, 255, 0.35),
+    0 0 18px rgba(0, 255, 255, 0.25);
+}
+
+.lockup-tamil {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform: translate(4px, -8px);
+  font-family: 'Noto Sans Tamil', sans-serif;
+  font-weight: 700;
+  font-size: clamp(16px, 2.1vw, 20px);
+  color: #f8eaff;
+  opacity: 0.95;
+  text-shadow: 0 0 8px rgba(255, 0, 255, 0.35);
+}
+
+.lockup-ukr {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  transform: translate(-4px, 8px);
+  font-family: "Orbitron", system-ui, sans-serif;
+  font-weight: 700;
+  font-size: clamp(15px, 1.9vw, 19px);
+  color: #e5f9ff;
+  text-shadow: 0 0 8px rgba(0, 255, 255, 0.35);
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.flag-ua {
+  width: 28px;
+  height: 18px;
+  display: inline-block;
+  border-radius: 2px;
+  background: linear-gradient(#0057b7 0 50%, #ffd700 50% 100%);
+  box-shadow: 0 0 10px rgba(0, 255, 255, 0.25);
+  transform-origin: left center;
+  animation: flag-wave 2.2s ease-in-out infinite;
+}
+
+.hero p {
+  color: #d7ccff;
+  text-align: center;
+  margin: 2rem auto;
+  max-width: 800px;
+  line-height: 1.8;
+  font-size: 1.1rem;
+  padding: 0 1rem;
+}
+
+.akam-link {
+  font-family: 'Noto Sans Tamil', sans-serif;
+  font-weight: 700;
+  text-decoration: none;
+  color: transparent;
+  background: linear-gradient(
+    90deg,
+    var(--gold-a),
+    var(--gold-b),
+    var(--gold-c),
+    var(--gold-d),
+    var(--gold-a)
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  background-size: 220% 100%;
+  animation: gold-shimmer 3.5s linear infinite;
+  filter: drop-shadow(0 0 8px rgba(255, 213, 107, 0.5));
+  transition: filter 0.3s ease;
+}
+
+.akam-link:hover {
+  filter: drop-shadow(0 0 12px rgba(255, 213, 107, 0.8));
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+  margin-top: 3rem;
+  max-width: 900px;
+  width: 100%;
+  padding: 0 1rem;
+}
+
+.card {
+  display: block;
+  padding: 2.5rem 2rem;
+  background: rgba(20, 10, 46, 0.35);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(100, 200, 255, 0.2);
+  border-radius: 16px;
+  color: #fff;
+  text-decoration: none;
+  text-align: center;
+  font-weight: 600;
+  min-height: 200px;
+  transition: all 0.3s ease;
+  box-shadow:
+    0 4px 16px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.card:hover {
+  background: rgba(30, 15, 66, 0.45);
+  border-color: rgba(150, 220, 255, 0.4);
+  transform: translateY(-4px) scale(1.02);
+  box-shadow:
+    0 8px 32px rgba(100, 200, 255, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+@media (max-width: 420px) {
+  .lockup {
+    padding: 2.2rem 0.25rem 2.3rem;
+  }
+  .lockup-center {
+    font-size: 20px;
+    letter-spacing: 0.01em;
+  }
+  .lockup-tamil,
+  .lockup-ukr {
+    font-size: 14px;
+  }
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@keyframes gold-shimmer {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 200% 50%; }
+}
+
+@keyframes irendu-opal {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes flag-wave {
+  0%, 100% { transform: rotate(0deg) skewY(0deg); }
+  50% { transform: rotate(-4deg) skewY(-2deg); }
+}
+    </style>
+</head>
+<body>
+    <section class="hero">
+      <h1 class="hero-title">you are this moment</h1>
+      <div class="oms" aria-hidden="true">
+        <span class="om sup">ஓம்</span>
+        <span class="at">@</span>
+        <span class="om sub">ॐ</span>
+        <span class="at">@</span>
+        <span class="irendu">&#3048;</span>
+        <span class="at">@</span>
+        <span class="om sup">ஓம்</span>
+        <span class="at">@</span>
+        <span class="om sub">ॐ</span>
+      </div>
+      <div class="lockup">
+        <div class="lockup-center">|| a formulation of truth ||</div>
+        <div class="lockup-tamil">உண்மையை சூத்திரம்</div>
+        <div class="lockup-ukr">
+          формулювання істини
+          <span class="flag-ua" role="img" aria-label="Ukraine flag"></span>
+        </div>
+      </div>
+      <p>A practice in <a href="https://www.davidgodman.org/the-practice-of-self-enquiry/" class="akam-link" target="_blank">self-inquiry</a> these questions invite upon users a reflective state of awareness. Persons' crafted responses (or a non-response!) reveal something interior (<a href="http://whatismyip.akamai.com" class="akam-link" target="_blank">அகம்</a>)--the idiosyncratic machinations that vivify oneself, as such, a person and a formulation of truth.</p>
+
+      <div class="grid">
+        <a class="card" href="/index.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1rem;">
+          <div style="font-family: 'Noto Sans Tamil', sans-serif; font-size: clamp(2rem, 4vw, 3rem); font-weight: 700; color: #ffd56b; text-shadow: 0 0 12px rgba(255, 213, 107, 0.6);">வணக்கம்</div>
+          <div>Welcome. Click here to enter the site.</div>
+          <div style="font-family: 'Noto Sans Tamil', sans-serif; font-size: clamp(2rem, 4vw, 3rem); font-weight: 700; color: #ffd56b; text-shadow: 0 0 12px rgba(255, 213, 107, 0.6);">தொடங்கு</div>
+        </a>
+      </div>
+
+      <p style="margin-top: 2rem; font-style: italic; opacity: 0.9;">It has been said that beauty brings a promise of happiness, but it could be otherwise that the possibility of joy is the beginning of beauty. So have fun and, if you wish, share what you create so joy may ever await you.</p>
+    </section>
+</body>
+</html>

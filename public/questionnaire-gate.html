@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Access Required</title>
+  <style>
+    body {
+      margin: 0;
+      height: 100vh;
+      background-color: #000011;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Arial', sans-serif;
+      color: #fff;
+    }
+
+    .gate-container {
+      text-align: center;
+      max-width: 500px;
+      padding: 2rem;
+    }
+
+    h1 {
+      color: #9370db;
+      font-size: 2rem;
+      margin-bottom: 1rem;
+      text-shadow: 0 0 10px #9370db;
+    }
+
+    p {
+      color: #ddd;
+      line-height: 1.6;
+      margin-bottom: 2rem;
+    }
+
+    .gate-link {
+      display: inline-block;
+      padding: 1rem 2rem;
+      background: #9370db;
+      color: #fff;
+      text-decoration: none;
+      border-radius: 8px;
+      font-size: 1.1rem;
+      transition: all 0.3s ease;
+      text-shadow: none;
+    }
+
+    .gate-link:hover {
+      background: #bb86fc;
+      box-shadow: 0 0 20px rgba(147, 112, 219, 0.6);
+      transform: scale(1.05);
+    }
+
+    .icon {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="gate-container">
+    <div class="icon">🔒</div>
+    <h1>Access Required</h1>
+    <p>This questionnaire requires validation. Please return to the homepage and enter your email to receive a magic link.</p>
+    <a href="/" class="gate-link">Return to Homepage</a>
+  </div>
+
+  <script>
+    // Check if user is validated
+    const token = localStorage.getItem('magicLinkToken');
+    const validated = localStorage.getItem('userValidated');
+
+    if (token && validated === 'true') {
+      // User is validated, redirect to actual questionnaire
+      window.location.href = '/questionnaire';
+    }
+  </script>
+</body>
+</html>

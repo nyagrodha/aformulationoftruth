@@ -1,0 +1,247 @@
+<!-- Ornaments + Sections -->
+<section class="content-wrap">
+
+  <div class="ornament" aria-hidden="true">
+    <svg viewBox="0 0 120 14" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+      <path d="M6 7 C24 1, 36 13, 54 7 C72 1, 84 13, 102 7"/>
+    </svg>
+  </div>
+
+  <h2>yat prati likheyaṁ: what to write about</h2>
+
+  <p>
+    <em>Feedback &amp; Suggestions:</em> If you have thoughts about the questionnaire, the site's functionality, or ideas for improvement, I would be grateful to hear them. Every perspective enriches the endeavor.
+  </p>
+
+  <p>
+    <em>Technical Issues:</em> Should you encounter difficulties with the site, authentication, or questionnaire responses, please describe the issue in detail so I might address it.
+  </p>
+
+  <p>
+    <em>Collaboration:</em> If you work on digital projects in humanities, indology (esp. Dravidian or Sanskrit literature), encryption, or if you'd like to collaborate or employ my services, I am available to chat. Kindly send me an email. :)
+  </p>
+
+  <p>
+    <em>Support &amp; Donations:</em> This site operates independently without advertising or data harvesting. If you wish to support its ongoing development and hosting costs, inquiries about donations are welcome. You may also consider patronizing
+    <a href="https://billing.flokinet.is/aff.php?aff=543" target="_blank" rel="noopener">Flokinet</a>, the privacy-focused hosting provider that makes this site possible.
+  </p>
+
+  <div class="ornament" aria-hidden="true">
+    <svg viewBox="0 0 120 14" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+      <path d="M6 7 C24 1, 36 13, 54 7 C72 1, 84 13, 102 7"/>
+      <circle cx="60" cy="7" r="1"/>
+    </svg>
+  </div>
+
+  <h2>gopyatā: privacy</h2>
+
+  <p>
+    Communications sent to this address are treated with the same respect for privacy that governs all interactions on this site. Your correspondence will not be shared, sold, or used for purposes other than responding to your inquiry. I maintain minimal logs and employ industry-standard encryption for all communications.
+  </p>
+
+  <div class="ornament" aria-hidden="true">
+    <svg viewBox="0 0 120 14" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+      <path d="M6 7 C24 1, 36 13, 54 7 C72 1, 84 13, 102 7"/>
+      <circle cx="100" cy="7" r="1.2"/>
+    </svg>
+  </div>
+
+  <p>
+    I endeavor to respond to all correspondence within a reasonable timeframe, though as this is a personal project maintained alongside other commitments, I ask for patience. Thoughtful messages receive thoughtful replies.
+  </p>
+
+  <!-- Verse block -->
+  <section class="a4m-verse" aria-label="Sanskrit verse">
+    <p class="sanskrit-verse">
+      <span class="line">
+        क्लेशान् <span class="sparkle-word">विनाशाय<span class="sparkle" aria-hidden="true"></span></span> विकासय हृत्सरोजम्,
+      </span><br>
+      <span class="line">
+        ओजो विजृम्भय निजं <span class="sparkle-word">निजनार्तयङ्गम्<span class="sparkle" aria-hidden="true"></span></span> ।
+      </span><br>
+      <span class="line">
+        चेतस्चकोरचित्तचन्द्रमरीचिचक्रम् <span class="sparkle-word">पिबतु<span class="sparkle" aria-hidden="true"></span></span> ।
+      </span><br>
+      <span class="line">
+        सम्यग् अमृति कुरु विश्वम् एतत् ॥
+      </span>
+    </p>
+  </section>
+
+  <!-- Back Links -->
+  <nav class="back-links" aria-label="Page navigation">
+    <a href="/" class="btn btn-primary back-link">Return Home</a>
+    <a href="/about.html" class="btn btn-secondary back-link">About the Site</a>
+  </nav>
+
+</section>
+
+<!-- Compact styles (move to your CSS file if preferred) -->
+<style>
+  /* Layout & Typography */
+  .content-wrap {
+    max-width: 70ch;
+    margin: 0 auto;
+    padding: 0 1rem;
+    text-align: center;
+  }
+
+  h2 {
+    margin: 1.25rem 0 0.5rem;
+    font-size: clamp(1.1rem, 2.2vw, 1.5rem);
+    letter-spacing: 0.02em;
+  }
+
+  p {
+    margin: 0.6rem auto 0.6rem;
+    text-align: left;
+  }
+
+  .back-links {
+    margin: 1.25rem 0 0.75rem;
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+  }
+
+  .back-link {
+    text-decoration: none;
+  }
+
+  /* Ornaments */
+  .ornament {
+    margin: 1rem auto 0.75rem;
+    width: 100%;
+    max-width: 420px;
+  }
+
+  .ornament svg {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  .ornament path,
+  .ornament circle {
+    stroke: currentColor;
+    fill: none;
+    opacity: 0.65;
+    stroke-width: 1.25;
+    vector-effect: non-scaling-stroke;
+  }
+
+  .ornament circle {
+    fill: currentColor;
+    opacity: 0.8;
+    stroke: none;
+  }
+
+  /* Devanāgarī verse: smaller + opalescent with equal visibility */
+  .a4m-verse {
+    margin-top: 1.25rem;
+  }
+
+  .sanskrit-verse {
+    font-family: "Noto Serif Devanagari", "Noto Sans Devanagari", "Hind", serif;
+    font-style: italic;
+    font-size: clamp(0.86rem, 1.15vw, 1.02rem);
+    line-height: 1.75;
+    margin: 0.25rem auto 0;
+    display: inline-block;
+    text-align: center;
+    /* Opalescent gradient text */
+    background: linear-gradient(
+      120deg,
+      rgba(255,255,255,0.92) 0%,
+      rgba(208,238,255,0.85) 25%,
+      rgba(240,222,255,0.85) 50%,
+      rgba(255,244,219,0.85) 75%,
+      rgba(255,255,255,0.92) 100%
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    text-shadow:
+      0 0 0.4px rgba(255,255,255,0.85),
+      0 0 7px rgba(255,255,255,0.18);
+    filter: saturate(0.9);
+  }
+
+  .sanskrit-verse .line {
+    opacity: 1;
+    white-space: nowrap; /* keeps four lines visually even */
+  }
+
+  /* Sparkle: base + active animation (triggered by JS) */
+  .sparkle-word {
+    position: relative;
+    display: inline-block;
+    padding: 0 0.15em;
+  }
+
+  .sparkle {
+    position: absolute;
+    top: 40%;
+    left: -0.6em;
+    width: 0.45em;
+    height: 0.45em;
+    border-radius: 50%;
+    background: radial-gradient(closest-side, rgba(255,255,255,1), rgba(255,255,255,0.2) 70%, rgba(255,255,255,0) 72%);
+    box-shadow:
+      0 0 8px rgba(255,255,255,0.85),
+      0 0 14px rgba(194,232,255,0.7),
+      0 0 22px rgba(245,225,255,0.55);
+    transform: translate3d(0, -50%, 0) scale(0.9);
+    opacity: 0;              /* idle: hidden */
+    pointer-events: none;
+  }
+
+  .sparkle.active {
+    animation: sparkle-sweep 1.5s ease-out forwards;
+    opacity: 1;
+  }
+
+  @keyframes sparkle-sweep {
+    0%   { transform: translate3d(-0.2em, -50%, 0) scale(0.85); opacity: 0; }
+    10%  { opacity: 1; }
+    55%  { transform: translate3d(110%, -50%, 0) scale(1.0); opacity: 1; }
+    100% { transform: translate3d(130%, -50%, 0) scale(0.85); opacity: 0; }
+  }
+
+  /* Motion respect */
+  @media (prefers-reduced-motion: reduce) {
+    .sparkle,
+    .sparkle.active {
+      animation: none;
+      opacity: 0.7; /* show, but don’t animate */
+    }
+  }
+
+  /* Minimal buttons, in case your global styles don’t cover them */
+  .btn {
+    display: inline-block;
+    padding: 0.5rem 0.9rem;
+    border-radius: 999px;
+    border: 1px solid currentColor;
+    font-size: 0.95rem;
+  }
+  .btn-primary { opacity: 0.95; }
+  .btn-secondary { opacity: 0.8; }
+</style>
+
+<!-- Sparkle script (uses your existing timing) -->
+<script>
+  function triggerSparkles() {
+    const sparkles = document.querySelectorAll('.sparkle');
+    sparkles.forEach(s => s.classList.remove('active'));
+    const picks = Array.from(sparkles).sort(() => 0.5 - Math.random()).slice(0, 2);
+    picks.forEach(s => {
+      setTimeout(() => {
+        s.classList.add('active');
+        setTimeout(() => s.classList.remove('active'), 1500);
+      }, Math.random() * 500);
+    });
+  }
+  setInterval(triggerSparkles, 7000);
+  setTimeout(triggerSparkles, 2000);
+</script>
