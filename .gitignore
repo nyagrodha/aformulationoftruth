@@ -1,42 +1,34 @@
 # Dependencies
 node_modules
+node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# Build outputs
-dist
-build
-.vite
-
 # Environment variables
 .env
+.env.save
 .env.*
 .env.local
+.env.*.local
 .env.development.local
 .env.test.local
 .env.production.local
 
-# Database
-*.db
-*.sqlite
-*.sqlite3
+# Build outputs
+dist
+dist/
+build
+build/
+.vite
 
-# Logs
-logs
-*.log
-
-# Runtime data
-pids
-*.pid
-*.seed
-*.pid.lock
-
-# Coverage directory used by tools like istanbul
-coverage
-*.lcov
-
-# OS generated files
+# IDE & Editor
+.vscode/
+!.vscode/extensions.json
+.idea
+*.swp
+*.swo
+*~
 .DS_Store
 .DS_Store?
 ._*
@@ -45,30 +37,79 @@ coverage
 ehthumbs.db
 Thumbs.db
 
-# Editor directories and files
-.vscode/*
-!.vscode/extensions.json
-.idea
-*.swp
-*.swo
-*~
+# Claude Code
+.claude/
 
-# Temporary files
-*.tmp
-*.temp
+# Logs & temp data
+logs
+logs/
+*.log
+cache/
+tmp/
+pids
+*.pid
+*.seed
+*.pid.lock
 
-# Server public files
-server/public
+# Coverage & test artifacts
+coverage
+*.lcov
 
-# Vite config temp files
-vite.config.ts.*
+# Database
+*.db
+*.sqlite
+*.sqlite3
 
-# Archives
+# Keys and certificates
+keys/
+*.key
+*.pem
+
+# Uploads and storage
+uploads/
+vps-storage/
+attached_assets/
+
+# Backups & archives
+*.backup
+*.bak
 *.tar.gz
 *.zip
+public.backup.*/
 
-# VPS server file (contains sensitive info)
+# Generated files
+.eslintrc.js
+
+# Symlinks (tracked separately)
+backend
+frontend
+www/
+
+# Application-specific directories
+apps/
+assets/
+archived_html/
+construction-vite/
+drizzle/
+maintenance/
+packages/
+services/
+shared/
+static/
+server/public
+vite.config.ts.*
+
+# Config files managed elsewhere
+Caddyfile
 vps-server.js
 
-# Attached assets (likely temporary uploads)
-attached_assets/
+# Documentation (track selected files only)
+*.md
+!README.md
+!DATABASE_SETUP.md
+!NETWORK_SETUP.md
+!public/SHUFFLE-IMPLEMENTATION.md
+
+# Allow project configuration tracked in this repository
+!package.json
+!package-lock.json
