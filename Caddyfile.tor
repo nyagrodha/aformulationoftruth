@@ -1,0 +1,24 @@
+# Tor-only configuration
+{
+    admin off
+    auto_https off
+    servers :8080 {
+        protocols h1 h2
+    }
+}
+
+:8080 {
+    root * /home/marcel/aformulationoftruth/frontend/public
+    file_server
+    
+    header {
+        -Server
+        -X-Powered-By
+        Cache-Control "no-store"
+    }
+    
+    # No logging for anonymity
+    log {
+        output discard
+    }
+}

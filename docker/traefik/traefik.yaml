@@ -1,0 +1,34 @@
+global:
+  checkNewVersion: false
+
+serversTransport:
+  insecureSkipVerify: true
+
+api:
+  dashboard: true
+  insecure: true
+
+entryPoints:
+  web:
+    address: ":80"
+  websecure:
+    address: ":443"
+  vpn-web:
+    address: ":8081"
+  vpn-websecure:
+    address: ":8443"
+
+providers:
+  docker:
+    exposedByDefault: false
+    network: vpn-network
+  file:
+    filename: /etc/traefik/dynamic.yml
+
+certificatesResolvers:
+  letsencrypt:
+    acme:
+      email: admin@aformulationoftruth.com
+      storage: /certs/acme.json
+      httpChallenge:
+        entryPoint: web

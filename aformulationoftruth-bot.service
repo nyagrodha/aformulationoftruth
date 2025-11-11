@@ -1,0 +1,29 @@
+[Unit]
+Description=A Formulation of Truth Keybase Bot
+After=network.target
+After=postgresql.service
+
+[Service]
+Type=simple
+User=marcel
+WorkingDirectory=/home/marcel/aformulationoftruth/backend
+ExecStart=/usr/bin/node server.js
+Restart=always
+RestartSec=10
+
+# Environment variables
+EnvironmentFile=/home/marcel/aformulationoftruth/backend/.env
+
+# Security settings
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/home/marcel/aformulationoftruth
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=a4mula-bot
+
+[Install]
+WantedBy=multi-user.target
