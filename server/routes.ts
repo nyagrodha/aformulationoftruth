@@ -31,6 +31,7 @@ import { emailService } from "./services/emailService";
 import { pdfService } from "./services/pdfService";
 import { questionService } from "./services/questionService";
 import { vpsStorageService } from "./services/vpsStorageService";
+import { encryptionService } from "./services/encryptionService";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
@@ -408,6 +409,57 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ healthy: isHealthy });
     } catch (error) {
       res.json({ healthy: false });
+    }
+  });
+
+  // Newsletter signup endpoint with encrypted storage
+  app.post("/api/newsletter/signup", async (req, res) => {
+    try {
+      const emailSchema = z.object({
+        email: z.string().email()
+      });
+
+      const { email } = emailSchema.parse(req.body);
+      const normalizedEmail = email.toLowerCase().trim();
+
+      // Encrypt the email using AES-256-GCM
+      const encryptedData = encryptionService.encrypt(normalizedEmail);
+
+      // Check if email already exists (by checking encrypted value)
+      const exists = await storage.checkNewsletterEmailExists(encryptedData.encrypted);
+
+      if (exists) {
+        return res.status(400).json({ message: "Email already subscribed to newsletter" });
+      }
+
+      // Store encrypted email in database
+      await storage.createNewsletterEmail({
+        encryptedEmail: encryptedData.encrypted,
+        iv: encryptedData.iv,
+        tag: encryptedData.tag
+      });
+
+      // Also send encrypted data through VPS tunnel for backup
+      try {
+        await vpsStorageService.storeResponse(
+          'newsletter',
+          0,
+          JSON.stringify(encryptedData)
+        );
+      } catch (vpsError) {
+        // VPS backup is optional, log but don't fail the request
+        console.error('VPS backup for newsletter failed:', vpsError);
+      }
+
+      res.json({ message: "Successfully subscribed to newsletter" });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        res.status(400).json({ message: "Invalid email address" });
+        return;
+      }
+
+      console.error("Newsletter signup error:", error);
+      res.status(500).json({ message: "Failed to subscribe to newsletter" });
     }
   });
 

@@ -35,6 +35,17 @@ export const magicLinks = pgTable("magic_links", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// Newsletter emails stored with encryption via VPS tunnel
+export const newsletterEmails = pgTable("newsletter_emails", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  encryptedEmail: text("encrypted_email").notNull(),
+  iv: text("iv").notNull(), // Initialization vector for AES-256-GCM
+  tag: text("tag").notNull(), // Authentication tag for AES-256-GCM
+  subscribed: boolean("subscribed").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 export const questionnaireSessions = pgTable("questionnaire_sessions", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   userId: varchar("user_id").notNull().references(() => users.id),
@@ -101,6 +112,12 @@ export const insertResponseSchema = createInsertSchema(responses).pick({
   answer: true,
 });
 
+export const insertNewsletterEmailSchema = createInsertSchema(newsletterEmails).pick({
+  encryptedEmail: true,
+  iv: true,
+  tag: true,
+});
+
 // Types
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -114,3 +131,6 @@ export type InsertQuestionnaireSession = z.infer<typeof insertQuestionnaireSessi
 
 export type Response = typeof responses.$inferSelect;
 export type InsertResponse = z.infer<typeof insertResponseSchema>;
+
+export type NewsletterEmail = typeof newsletterEmails.$inferSelect;
+export type InsertNewsletterEmail = z.infer<typeof insertNewsletterEmailSchema>;

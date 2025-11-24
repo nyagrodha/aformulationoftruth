@@ -1,9 +1,10 @@
-import { 
-  users, 
-  magicLinks, 
-  questionnaireSessions, 
+import {
+  users,
+  magicLinks,
+  questionnaireSessions,
   responses,
-  type User, 
+  newsletterEmails,
+  type User,
   type InsertUser,
   type UpsertUser,
   type MagicLink,
@@ -11,7 +12,9 @@ import {
   type QuestionnaireSession,
   type InsertQuestionnaireSession,
   type Response,
-  type InsertResponse
+  type InsertResponse,
+  type NewsletterEmail,
+  type InsertNewsletterEmail
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, gt, desc, sql } from "drizzle-orm";
@@ -43,6 +46,11 @@ export interface IStorage {
   createResponse(response: InsertResponse): Promise<Response>;
   updateResponse(sessionId: string, questionId: number, answer: string): Promise<Response>;
   getResponseBySessionAndQuestion(sessionId: string, questionId: number): Promise<Response | undefined>;
+
+  // Newsletter operations
+  createNewsletterEmail(newsletter: InsertNewsletterEmail): Promise<NewsletterEmail>;
+  getNewsletterEmails(): Promise<NewsletterEmail[]>;
+  checkNewsletterEmailExists(encryptedEmail: string): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -284,12 +292,37 @@ export class DatabaseStorage implements IStorage {
   async markReminderSent(sessionId: string): Promise<void> {
     await db
       .update(questionnaireSessions)
-      .set({ 
+      .set({
         reminderSent: true,
         reminderSentAt: new Date(),
         updatedAt: new Date()
       })
       .where(eq(questionnaireSessions.id, sessionId));
+  }
+
+  // Newsletter operations
+  async createNewsletterEmail(newsletter: InsertNewsletterEmail): Promise<NewsletterEmail> {
+    const [newsletterEmail] = await db
+      .insert(newsletterEmails)
+      .values(newsletter)
+      .returning();
+    return newsletterEmail;
+  }
+
+  async getNewsletterEmails(): Promise<NewsletterEmail[]> {
+    return await db
+      .select()
+      .from(newsletterEmails)
+      .where(eq(newsletterEmails.subscribed, true))
+      .orderBy(desc(newsletterEmails.createdAt));
+  }
+
+  async checkNewsletterEmailExists(encryptedEmail: string): Promise<boolean> {
+    const [existing] = await db
+      .select()
+      .from(newsletterEmails)
+      .where(eq(newsletterEmails.encryptedEmail, encryptedEmail));
+    return !!existing;
   }
 }
 
