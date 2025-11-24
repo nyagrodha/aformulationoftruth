@@ -262,6 +262,161 @@
         .sparkle.active {
             animation: sparkle-animation 1.5s ease-in-out;
         }
+
+        /* Newsletter signup section */
+        .newsletter-section {
+            margin: 2rem 0;
+            padding: 2rem;
+            background: var(--bg-secondary);
+            border: 2px solid var(--accent-2);
+            border-radius: 12px;
+            box-shadow: 0 0 20px var(--glow-2);
+        }
+
+        .newsletter-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.3rem;
+            color: var(--accent-1);
+            margin-bottom: 1rem;
+            text-shadow: 0 0 10px var(--glow-1);
+        }
+
+        .newsletter-description {
+            font-size: 1rem;
+            margin-bottom: 1.5rem;
+            color: var(--text-secondary);
+        }
+
+        .email-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .email-input {
+            padding: 0.75rem;
+            font-size: 1rem;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: 'Georgia', serif;
+            transition: all 0.3s ease;
+        }
+
+        .email-input:focus {
+            outline: none;
+            border-color: var(--accent-1);
+            box-shadow: 0 0 15px var(--glow-1);
+        }
+
+        .email-input::placeholder {
+            color: var(--text-secondary);
+            opacity: 0.6;
+        }
+
+        .subscribe-button {
+            padding: 0.75rem 2rem;
+            font-size: 1rem;
+            font-family: 'Orbitron', sans-serif;
+            border: none;
+            border-radius: 8px;
+            background: linear-gradient(90deg, var(--accent-1), var(--accent-2));
+            color: var(--bg-primary);
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 0 15px var(--glow-1);
+            transition: transform 0.2s ease;
+        }
+
+        .subscribe-button:hover {
+            transform: scale(1.05);
+        }
+
+        .subscribe-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .message {
+            margin-top: 1rem;
+            padding: 0.75rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
+
+        .message.success {
+            background: rgba(0, 255, 0, 0.1);
+            border: 1px solid rgba(0, 255, 0, 0.4);
+            color: #00ff00;
+        }
+
+        .message.error {
+            background: rgba(255, 0, 0, 0.1);
+            border: 1px solid rgba(255, 0, 0, 0.4);
+            color: #ff6b6b;
+        }
+
+        .message.info {
+            background: rgba(0, 255, 255, 0.1);
+            border: 1px solid rgba(0, 255, 255, 0.4);
+            color: var(--accent-2);
+        }
+
+        .encryption-note {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-top: 0.5rem;
+            font-style: italic;
+            text-align: center;
+        }
+
+        /* Privacy section styling */
+        .privacy-practices {
+            margin: 2rem 0;
+        }
+
+        .privacy-practices h3 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.1rem;
+            color: var(--accent-2);
+            margin: 1.5rem 0 0.75rem;
+            text-shadow: 0 0 8px var(--glow-2);
+        }
+
+        .privacy-practices ul {
+            margin: 0.5rem 0 1rem 1.5rem;
+            line-height: 1.8;
+        }
+
+        .privacy-practices li {
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+        }
+
+        .highlight-box {
+            padding: 1.5rem;
+            background: rgba(0, 255, 255, 0.05);
+            border-left: 4px solid var(--accent-1);
+            margin: 1.5rem 0;
+            border-radius: 4px;
+        }
+
+        .code-ref {
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            background: var(--bg-secondary);
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            color: var(--accent-3);
+        }
+
+        @media (max-width: 768px) {
+            .newsletter-section {
+                padding: 1.5rem;
+            }
+        }
     </style>
 </head>
 <body>
@@ -350,11 +505,128 @@
                 </svg>
             </div>
 
-            <h2>gopyatā: privacy</h2>
+            <h2>samācāra-paṭṭikā: newsletter</h2>
 
             <p>
-                Communications sent to this address are treated with the same respect for privacy that governs all interactions on this site. Your correspondence will not be shared, sold, or used for purposes other than responding to your inquiry. I maintain minimal logs and employ industry-standard encryption for all communications.
+                Receive occasional updates about new content, philosophical explorations, and site developments. Your email will be encrypted and stored securely—no tracking, no spam, no third parties.
             </p>
+
+            <!-- Newsletter Signup Form -->
+            <div class="newsletter-section">
+                <div class="newsletter-title">◈ Subscribe to Updates ◈</div>
+                <p class="newsletter-description">
+                    Join the mailing list to receive thoughtful updates on new essays, questionnaire features, and contemplative content.
+                </p>
+                <form id="newsletter-form" class="email-form">
+                    <input
+                        type="email"
+                        id="email-input"
+                        class="email-input"
+                        placeholder="your.email@example.com"
+                        required
+                        autocomplete="email"
+                    />
+                    <button type="submit" class="subscribe-button" id="submit-button">
+                        Subscribe
+                    </button>
+                    <div id="message" class="message" style="display: none;"></div>
+                    <p class="encryption-note">
+                        🔐 Your email is encrypted with AES-256-GCM before storage
+                    </p>
+                </form>
+            </div>
+
+            <div class="ornament" aria-hidden="true">
+                <svg viewBox="0 0 120 14" xmlns="http://www.w3.org/2000/svg" role="img" aria-hidden="true">
+                    <path d="M6 7 C24 1, 36 13, 54 7 C72 1, 84 13, 102 7" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+
+            <h2>gopyatā ca prakāśanam: privacy & transparency</h2>
+
+            <p class="lead">
+                This site is built on principles of respect, privacy, and openness. Below is a complete accounting of our privacy practices, data handling, and the open-source nature of this project.
+            </p>
+
+            <div class="privacy-practices">
+                <h3>🔓 Open Source & Transparency</h3>
+                <div class="highlight-box">
+                    <p>
+                        <strong>This entire website is open source.</strong> Every line of code, every configuration file, and every database schema is available for public inspection. You are welcome—indeed, encouraged—to examine how your data is handled.
+                    </p>
+                    <p style="margin-top: 1rem;">
+                        <strong>Repository:</strong> <a href="https://github.com/nyagrodha/aformulationoftruth" target="_blank" rel="noopener">github.com/nyagrodha/aformulationoftruth</a>
+                    </p>
+                </div>
+
+                <h3>🔐 Data Collection & Encryption</h3>
+                <p><strong>What we collect:</strong></p>
+                <ul>
+                    <li><strong>Email addresses (Newsletter):</strong> Encrypted using <span class="code-ref">AES-256-GCM</span> with PBKDF2 key derivation (100,000 iterations). Stored encrypted in PostgreSQL. Source: <span class="code-ref">backend/utils/encryption.js</span></li>
+                    <li><strong>Questionnaire responses:</strong> Stored with minimal identifying information. You control visibility via profile settings.</li>
+                    <li><strong>Authentication:</strong> Managed through OpenID Connect (Keycloak). We do not store passwords—authentication is delegated to the identity provider.</li>
+                    <li><strong>IP addresses:</strong> Logged only for newsletter subscriptions (for anti-spam). Not linked to questionnaire responses.</li>
+                </ul>
+
+                <h3>🚫 What We DON'T Do</h3>
+                <ul>
+                    <li>❌ No tracking cookies or analytics (no Google Analytics, no Facebook Pixel, nothing)</li>
+                    <li>❌ No advertising or third-party data sharing</li>
+                    <li>❌ No selling or monetizing user data</li>
+                    <li>❌ No behavioral profiling or surveillance</li>
+                    <li>❌ No email harvesting or spam</li>
+                </ul>
+
+                <h3>🌐 Hosting & Infrastructure</h3>
+                <p>
+                    This site is hosted by <a href="https://flokinet.is" target="_blank" rel="noopener"><strong>Flokinet</strong></a>, a privacy-focused hosting provider based in Iceland and Romania. Flokinet operates under strong Icelandic data protection laws with a <strong>zero-logs policy</strong> and does not cooperate with mass surveillance programs.
+                </p>
+                <ul>
+                    <li><strong>Primary server:</strong> Iceland (GDPR compliant, zero-logs jurisdiction)</li>
+                    <li><strong>Database:</strong> Self-hosted PostgreSQL with encrypted backups</li>
+                    <li><strong>SSL/TLS:</strong> All traffic encrypted via Let's Encrypt certificates</li>
+                    <li><strong>No access logs:</strong> Server configured to disable access logging—we cannot track who visits this site</li>
+                </ul>
+
+                <h3>📜 Data Retention & Your Rights</h3>
+                <ul>
+                    <li><strong>Right to access:</strong> Request a copy of your data at any time</li>
+                    <li><strong>Right to deletion:</strong> Request complete removal of your account and all associated data</li>
+                    <li><strong>Right to portability:</strong> Export your questionnaire responses in JSON format</li>
+                    <li><strong>Newsletter unsubscribe:</strong> Instant removal via the unsubscribe endpoint (no questions asked)</li>
+                </ul>
+                <p>
+                    To exercise these rights, email: <a href="mailto:formitselfisemptiness@aformulationoftruth.com">formitselfisemptiness@aformulationoftruth.com</a>
+                </p>
+
+                <h3>🔍 Technical Details for the Curious</h3>
+                <p>For those interested in the implementation details:</p>
+                <ul>
+                    <li><strong>Encryption:</strong> Node.js crypto library (<span class="code-ref">crypto.createCipheriv</span>)</li>
+                    <li><strong>Database:</strong> PostgreSQL 15+ with parameterized queries (SQL injection prevention)</li>
+                    <li><strong>Authentication:</strong> OpenID Connect via Keycloak (industry-standard OAuth 2.0)</li>
+                    <li><strong>Session management:</strong> Secure HTTP-only cookies with SameSite protection</li>
+                    <li><strong>Rate limiting:</strong> Express rate-limit middleware to prevent abuse</li>
+                </ul>
+
+                <h3>📧 Email Communication Privacy</h3>
+                <p>
+                    Communications sent to this address are treated with the same respect for privacy that governs all interactions on this site. Your correspondence will not be shared, sold, or used for purposes other than responding to your inquiry. I maintain minimal logs and employ industry-standard encryption for all communications.
+                </p>
+
+                <div class="highlight-box">
+                    <p>
+                        <strong>Zero-Logs Architecture:</strong> This site is hosted in Iceland with Flokinet's zero-logs infrastructure. We have intentionally disabled server access logs, meaning we cannot see who visits the site, when, or from where. The only logs maintained are:
+                    </p>
+                    <ul style="margin: 0.5rem 0 1rem 1.5rem;">
+                        <li>Application error logs (for debugging, automatically rotated)</li>
+                        <li>Newsletter subscription IPs (only for anti-spam, not linked to browsing)</li>
+                    </ul>
+                    <p style="margin: 1rem 0 0 0;">
+                        <strong>Questions about privacy?</strong> The source code doesn't lie. Review our encryption implementation, database schemas, and authentication flows in the public repository. If you find any privacy concerns, please report them—I take these matters seriously.
+                    </p>
+                </div>
+            </div>
 
             <div class="ornament" aria-hidden="true">
                 <svg viewBox="0 0 120 14" xmlns="http://www.w3.org/2000/svg" role="img" aria-hidden="true">
@@ -389,6 +661,92 @@
     <!-- Scripts -->
     <script src="/js/theme-toggle.js"></script>
     <script>
+        // Newsletter subscription handler
+        const form = document.getElementById('newsletter-form');
+        const emailInput = document.getElementById('email-input');
+        const submitButton = document.getElementById('submit-button');
+        const messageDiv = document.getElementById('message');
+
+        function showMessage(text, type) {
+            messageDiv.textContent = text;
+            messageDiv.className = `message ${type}`;
+            messageDiv.style.display = 'block';
+
+            if (type === 'success') {
+                setTimeout(() => {
+                    messageDiv.style.display = 'none';
+                }, 5000);
+            }
+        }
+
+        async function submitEmail(email) {
+            try {
+                submitButton.disabled = true;
+                submitButton.textContent = 'Subscribing...';
+
+                showMessage('Encrypting and storing your email securely...', 'info');
+
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 10000);
+
+                const response = await fetch('/api/newsletter/subscribe', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email }),
+                    signal: controller.signal,
+                });
+
+                clearTimeout(timeoutId);
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    if (data.alreadySubscribed) {
+                        showMessage('✓ This email is already subscribed to updates', 'info');
+                    } else {
+                        showMessage('✓ Successfully subscribed! You\'ll receive updates in your inbox.', 'success');
+                        emailInput.value = '';
+                    }
+                } else {
+                    showMessage(`✗ Subscription failed: ${data.error || 'Unknown error'}`, 'error');
+                }
+            } catch (error) {
+                console.error('Subscription error:', error);
+
+                if (error.name === 'AbortError') {
+                    showMessage('✗ Connection timeout - Please try again', 'error');
+                } else if (error.name === 'TypeError') {
+                    showMessage('✗ Network error - Server unreachable', 'error');
+                } else {
+                    showMessage(`✗ Subscription error: ${error.message}`, 'error');
+                }
+            } finally {
+                submitButton.disabled = false;
+                submitButton.textContent = 'Subscribe';
+            }
+        }
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const email = emailInput.value.trim();
+
+            if (!email) {
+                showMessage('Please enter an email address', 'error');
+                return;
+            }
+
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                showMessage('Please enter a valid email address', 'error');
+                return;
+            }
+
+            await submitEmail(email);
+        });
+
         // Sparkle effect for Sanskrit verse
         function triggerSparkles() {
             const sparkles = document.querySelectorAll('.sparkle');
