@@ -10,13 +10,9 @@ export default function AuthPage() {
   const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
   const [email, setEmail] = useState("");
-  const [newsletterEmail, setNewsletterEmail] = useState("");
   const [status, setStatus] = useState<AuthStatus>("idle");
-  const [newsletterStatus, setNewsletterStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [newsletterError, setNewsletterError] = useState<string | null>(null);
   const [infoMessage, setInfoMessage] = useState<string | null>(null);
-  const [newsletterSuccess, setNewsletterSuccess] = useState<string | null>(null);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -124,40 +120,6 @@ export default function AuthPage() {
       setStatus("error");
       const message = error instanceof Error ? error.message : "Failed to send magic link";
       setErrorMessage(message);
-    }
-  };
-
-  const handleNewsletterSubmit = async (event: FormEvent) => {
-    event.preventDefault();
-
-    if (!newsletterEmail) {
-      setNewsletterError("Please enter an email address.");
-      return;
-    }
-
-    setNewsletterStatus("sending");
-    setNewsletterError(null);
-    setNewsletterSuccess(null);
-
-    try {
-      const response = await fetch("/api/newsletter/signup", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: newsletterEmail }),
-      });
-
-      if (!response.ok) {
-        const body = await response.json().catch(() => ({ message: "Failed to subscribe to newsletter" }));
-        throw new Error(body.message || "Failed to subscribe to newsletter");
-      }
-
-      setNewsletterStatus("sent");
-      setNewsletterSuccess("Successfully subscribed to the newsletter!");
-      setNewsletterEmail("");
-    } catch (error) {
-      setNewsletterStatus("error");
-      const message = error instanceof Error ? error.message : "Failed to subscribe to newsletter";
-      setNewsletterError(message);
     }
   };
 
@@ -320,79 +282,6 @@ export default function AuthPage() {
               </button>
             )}
           </div>
-        </div>
-
-        {/* Newsletter Signup Box - 4th Visual Element */}
-        <div className="mt-12">
-          <form onSubmit={handleNewsletterSubmit} className="max-w-xl mx-auto">
-            <div
-              className="p-6 rounded-lg"
-              style={{
-                background: "rgba(139, 69, 19, 0.3)",
-                border: "2px solid rgba(0, 255, 255, 0.3)",
-                boxShadow: "0 0 10px rgba(255, 0, 255, 0.2)",
-              }}
-            >
-              <h3
-                className="text-2xl mb-3 text-center"
-                style={{
-                  fontFamily: '"Playfair Display", serif',
-                  color: "#2d1810",
-                  textShadow: "0 0 4px rgba(0, 255, 255, 0.4)",
-                }}
-              >
-                Subscribe to Our Newsletter
-              </h3>
-              <p
-                className="text-center mb-4 text-sm"
-                style={{
-                  fontFamily: '"Playfair Display", serif',
-                  color: "#2d1810",
-                }}
-              >
-                Receive contemplations and updates (stored encrypted through our secure VPN tunnel)
-              </p>
-
-              <div className="space-y-3">
-                <input
-                  type="email"
-                  value={newsletterEmail}
-                  onChange={(event) => setNewsletterEmail(event.target.value)}
-                  className="w-full px-4 py-2 rounded-lg border border-[#8B4513]/40 focus:outline-none focus:ring-2 focus:ring-cyan-400 bg-white/80 text-[#2d1810]"
-                  placeholder="your@email.com"
-                  required
-                  disabled={newsletterStatus === "sending"}
-                />
-                <button
-                  type="submit"
-                  className="w-full py-2 rounded-full text-lg font-semibold transition-all duration-300"
-                  style={{
-                    background: "linear-gradient(45deg, rgba(0,255,255,0.4), rgba(255,0,255,0.4))",
-                    color: "#111",
-                    textShadow: "0 0 4px rgba(0,0,0,0.2)",
-                    boxShadow: "0 5px 15px rgba(0, 0, 0, 0.2)",
-                    opacity: newsletterStatus === "sending" ? 0.7 : 1,
-                  }}
-                  disabled={newsletterStatus === "sending"}
-                >
-                  {newsletterStatus === "sending" ? "Subscribing..." : "Subscribe"}
-                </button>
-              </div>
-
-              <div className="mt-3 text-center">
-                {newsletterSuccess && (
-                  <p className="text-green-800" style={{ fontFamily: '"Playfair Display", serif' }}>
-                    {newsletterSuccess}
-                  </p>
-                )}
-                {newsletterError && (
-                  <p className="text-red-800" style={{ fontFamily: '"Playfair Display", serif' }}>
-                    {newsletterError}
-                  </p>
-                )}
-              </div>
-            </div>
-          </form>
         </div>
       </div>
     </div>

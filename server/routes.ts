@@ -1,5 +1,6 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
+import path from "path";
 import { storage } from "./storage";
 import { z } from "zod";
 import { insertResponseSchema } from "@shared/schema";
@@ -36,6 +37,11 @@ import { encryptionService } from "./services/encryptionService";
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
   await setupAuth(app);
+
+  // Serve static landing page from public directory
+  app.get('/landing', (req, res) => {
+    res.sendFile(path.resolve(import.meta.dirname, '..', 'public', 'index.html'));
+  });
 
   // Auth routes
   app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {

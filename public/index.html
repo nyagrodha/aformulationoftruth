@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
+  <title>A Formulation of Truth</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Playfair Display', serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+      background: radial-gradient(circle at 20% 20%, rgba(0, 255, 255, 0.1) 0%, transparent 50%),
+                  radial-gradient(circle at 80% 80%, rgba(255, 0, 255, 0.1) 0%, transparent 50%),
+                  radial-gradient(circle at 40% 60%, rgba(148, 0, 211, 0.1) 0%, transparent 50%),
+                  radial-gradient(circle at 70% 30%, rgba(0, 255, 255, 0.05) 0%, transparent 60%),
+                  #8B4513;
+    }
+
+    .container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 2rem;
+    }
+
+    .frame {
+      background: rgba(212, 175, 55, 0.8);
+      border: 12px solid #8B4513;
+      border-radius: 16px;
+      box-shadow: 0 0 20px #00ffff,
+                  inset 0 0 15px #ff00ff,
+                  0 0 30px #9400d3;
+      padding: 3rem;
+      max-width: 900px;
+      width: 100%;
+    }
+
+    .title {
+      text-align: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .title-main {
+      display: block;
+      text-transform: lowercase;
+      font-size: 3rem;
+      color: #111;
+      text-shadow: 0 0 8px #00ffff,
+                   0 0 12px #ff00ff,
+                   0 0 4px rgba(0, 255, 255, 0.8),
+                   0 0 8px rgba(255, 0, 255, 0.8);
+      margin-bottom: 1rem;
+    }
+
+    .symbols {
+      margin: 1.5rem 0;
+      text-align: center;
+      font-size: 2rem;
+      line-height: 1;
+      overflow: hidden;
+    }
+
+    .symbol {
+      display: inline-block;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    .om-symbol {
+      color: #00ffff;
+      text-shadow: 0 0 10px #00ffff;
+    }
+
+    .at-symbol {
+      color: #ff00ff;
+      text-shadow: 0 0 10px #ff00ff;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 0.6; transform: scale(1); }
+      50% { opacity: 1; transform: scale(1.1); }
+    }
+
+    .subtitle {
+      display: block;
+      text-transform: lowercase;
+      font-size: 3rem;
+      color: #111;
+      text-shadow: 0 0 8px #00ffff,
+                   0 0 12px #ff00ff,
+                   0 0 4px rgba(0, 255, 255, 0.8),
+                   0 0 8px rgba(255, 0, 255, 0.8);
+    }
+
+    .description {
+      font-size: 1.125rem;
+      line-height: 1.75;
+      max-width: 48rem;
+      margin: 3rem auto;
+      font-weight: 300;
+      text-align: center;
+      color: #2d1810;
+      text-shadow: 0 0 4px rgba(0, 255, 255, 0.3),
+                   0 0 6px rgba(255, 0, 255, 0.3);
+    }
+
+    .box {
+      max-width: 36rem;
+      margin: 3rem auto;
+      padding: 1.5rem;
+      background: rgba(139, 69, 19, 0.3);
+      border: 2px solid rgba(0, 255, 255, 0.3);
+      border-radius: 0.5rem;
+      box-shadow: 0 0 10px rgba(255, 0, 255, 0.2);
+    }
+
+    .box-title {
+      font-size: 1.5rem;
+      margin-bottom: 0.75rem;
+      text-align: center;
+      color: #2d1810;
+      text-shadow: 0 0 4px rgba(0, 255, 255, 0.4);
+    }
+
+    .box-description {
+      text-align: center;
+      margin-bottom: 1rem;
+      font-size: 0.875rem;
+      color: #2d1810;
+    }
+
+    .form-group {
+      margin-bottom: 1rem;
+    }
+
+    label {
+      display: block;
+      font-size: 1.125rem;
+      margin-bottom: 0.5rem;
+      color: #2d1810;
+    }
+
+    input[type="email"] {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      border-radius: 0.5rem;
+      border: 1px solid rgba(139, 69, 19, 0.4);
+      background: rgba(255, 255, 255, 0.8);
+      color: #2d1810;
+      font-size: 1rem;
+      font-family: 'Playfair Display', serif;
+    }
+
+    input[type="email"]:focus {
+      outline: none;
+      ring: 2px;
+      ring-color: #00ffff;
+      box-shadow: 0 0 0 2px #00ffff;
+    }
+
+    input[type="email"]:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    button {
+      width: 100%;
+      padding: 0.75rem 1.5rem;
+      border-radius: 9999px;
+      font-size: 1.25rem;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      background: linear-gradient(45deg, rgba(0,255,255,0.6), rgba(255,0,255,0.6));
+      color: #111;
+      text-shadow: 0 0 6px rgba(0,0,0,0.2);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+      transition: all 0.3s;
+      font-family: 'Playfair Display', serif;
+    }
+
+    button:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 35px rgba(0, 0, 0, 0.3);
+    }
+
+    button:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+    }
+
+    .message {
+      margin-top: 1rem;
+      text-align: center;
+      font-family: 'Playfair Display', serif;
+    }
+
+    .message.error {
+      color: #991b1b;
+    }
+
+    .message.success {
+      color: #166534;
+    }
+
+    .message.info {
+      color: #2d1810;
+    }
+
+    .link-button {
+      margin-top: 1.5rem;
+      text-align: center;
+    }
+
+    .link-button a {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.3em;
+      color: #4d2316;
+      text-decoration: none;
+      transition: color 0.3s;
+    }
+
+    .link-button a:hover {
+      color: #2d1810;
+    }
+
+    @media (max-width: 768px) {
+      .title-main, .subtitle {
+        font-size: 2rem;
+      }
+
+      .symbols {
+        font-size: 1.5rem;
+      }
+
+      .description {
+        font-size: 1rem;
+      }
+
+      .frame {
+        padding: 2rem 1.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="frame">
+      <!-- Box 1: Title and Branding -->
+      <div class="title">
+        <span class="title-main">you are this moment</span>
+
+        <div class="symbols" id="symbols">
+          <!-- Symbols will be generated by JS -->
+        </div>
+
+        <span class="subtitle">ஸ்ரீ ॥ a formulation of truth ॥ ശ്രീ</span>
+      </div>
+
+      <!-- Box 2: Description -->
+      <p class="description">
+        A practice in self-inquiry these questions invite upon users a
+        reflective state of awareness. Persons' crafted responses (or a
+        non-response!) betray something interior (அகம்) this I--machinations
+        idiosyncratiques--that vivify the subject, as such, a person and a
+        formulation of truth.
+      </p>
+
+      <!-- Box 3: Email Login/Magic Link -->
+      <div class="box">
+        <form id="authForm">
+          <div class="form-group">
+            <label for="email">Enter your email to receive the apotropaic link:</label>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              placeholder="you@example.com"
+              required
+            />
+          </div>
+          <button type="submit" id="authButton">Send me the link</button>
+        </form>
+
+        <div id="authMessage" class="message" style="display: none;"></div>
+
+        <div class="link-button">
+          <a href="/auth-portal">Enter through the mystical portal instead →</a>
+        </div>
+      </div>
+
+      <!-- Box 4: Newsletter Signup -->
+      <div class="box">
+        <h3 class="box-title">Subscribe to Our Newsletter</h3>
+        <p class="box-description">
+          Receive contemplations and updates (stored encrypted through our secure VPN tunnel)
+        </p>
+
+        <form id="newsletterForm">
+          <div class="form-group">
+            <input
+              type="email"
+              id="newsletterEmail"
+              name="newsletterEmail"
+              placeholder="your@email.com"
+              required
+            />
+          </div>
+          <button type="submit" id="newsletterButton">Subscribe</button>
+        </form>
+
+        <div id="newsletterMessage" class="message" style="display: none;"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Generate animated symbols
+    const symbolsContainer = document.getElementById('symbols');
+    for (let i = 0; i < 16; i++) {
+      const span = document.createElement('span');
+      span.className = i % 2 === 0 ? 'symbol om-symbol' : 'symbol at-symbol';
+      span.textContent = i % 2 === 0 ? 'ॐ' : '@';
+      span.style.animationDelay = `${i * 0.2}s`;
+      symbolsContainer.appendChild(span);
+    }
+
+    // Auth form handler
+    const authForm = document.getElementById('authForm');
+    const authButton = document.getElementById('authButton');
+    const authMessage = document.getElementById('authMessage');
+    const emailInput = document.getElementById('email');
+
+    authForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const email = emailInput.value.trim();
+      if (!email) {
+        showMessage(authMessage, 'Please enter an email address.', 'error');
+        return;
+      }
+
+      authButton.disabled = true;
+      authButton.textContent = 'Summoning link...';
+      hideMessage(authMessage);
+
+      try {
+        const response = await fetch('/api/auth/magic-link', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ email })
+        });
+
+        if (!response.ok) {
+          const data = await response.json().catch(() => ({ message: 'Failed to send magic link' }));
+          throw new Error(data.message || 'Failed to send magic link');
+        }
+
+        showMessage(authMessage, 'Check your email for the apotropaic link to continue.', 'success');
+        emailInput.value = '';
+      } catch (error) {
+        showMessage(authMessage, error.message || 'Failed to send magic link', 'error');
+      } finally {
+        authButton.disabled = false;
+        authButton.textContent = 'Send me the link';
+      }
+    });
+
+    // Newsletter form handler
+    const newsletterForm = document.getElementById('newsletterForm');
+    const newsletterButton = document.getElementById('newsletterButton');
+    const newsletterMessage = document.getElementById('newsletterMessage');
+    const newsletterEmailInput = document.getElementById('newsletterEmail');
+
+    newsletterForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const email = newsletterEmailInput.value.trim();
+      if (!email) {
+        showMessage(newsletterMessage, 'Please enter an email address.', 'error');
+        return;
+      }
+
+      newsletterButton.disabled = true;
+      newsletterButton.textContent = 'Subscribing...';
+      hideMessage(newsletterMessage);
+
+      try {
+        const response = await fetch('/api/newsletter/signup', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email })
+        });
+
+        if (!response.ok) {
+          const data = await response.json().catch(() => ({ message: 'Failed to subscribe to newsletter' }));
+          throw new Error(data.message || 'Failed to subscribe to newsletter');
+        }
+
+        showMessage(newsletterMessage, 'Successfully subscribed to the newsletter!', 'success');
+        newsletterEmailInput.value = '';
+      } catch (error) {
+        showMessage(newsletterMessage, error.message || 'Failed to subscribe to newsletter', 'error');
+      } finally {
+        newsletterButton.disabled = false;
+        newsletterButton.textContent = 'Subscribe';
+      }
+    });
+
+    // Helper functions
+    function showMessage(element, text, type) {
+      element.textContent = text;
+      element.className = `message ${type}`;
+      element.style.display = 'block';
+    }
+
+    function hideMessage(element) {
+      element.style.display = 'none';
+    }
+
+    // Check for magic link token in URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const token = urlParams.get('token');
+    if (token) {
+      verifyToken(token);
+    }
+
+    async function verifyToken(token) {
+      authButton.disabled = true;
+      authButton.textContent = 'Verifying...';
+      showMessage(authMessage, 'Verifying your link...', 'info');
+
+      try {
+        const response = await fetch('/api/auth/magic-link/verify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ token })
+        });
+
+        if (!response.ok) {
+          const data = await response.json().catch(() => ({ message: 'Failed to verify magic link' }));
+          throw new Error(data.message || 'Failed to verify magic link');
+        }
+
+        showMessage(authMessage, 'Authentication complete. Redirecting...', 'success');
+
+        // Clean URL
+        window.history.replaceState({}, '', window.location.pathname);
+
+        // Redirect to app
+        setTimeout(() => {
+          window.location.href = '/';
+        }, 800);
+      } catch (error) {
+        showMessage(authMessage, error.message || 'Failed to verify magic link', 'error');
+        window.history.replaceState({}, '', window.location.pathname);
+      } finally {
+        authButton.disabled = false;
+        authButton.textContent = 'Send me the link';
+      }
+    }
+  </script>
+</body>
+</html>
