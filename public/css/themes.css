@@ -1,0 +1,324 @@
+/* A Formulation of Truth - Single Theme (Tamas) */
+
+/* ============================================ */
+/* BASE RESET & COMMON STYLES */
+/* ============================================ */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  /* Theme transition */
+  --transition-speed: 0.3s;
+}
+
+body {
+  font-family: 'Georgia', serif;
+  min-height: 100vh;
+  transition: background-color var(--transition-speed) ease,
+              color var(--transition-speed) ease;
+}
+
+/* ============================================ */
+/* TAMAS THEME (Default and Only) */
+/* ============================================ */
+
+body {
+  --bg-primary: #000000;      /* Pure black void */
+  --bg-secondary: #0a0a0a;    /* Near-black surface */
+  --bg-card: rgba(10, 10, 10, 0.9);
+  --text-primary: #e0e0ff;    /* Very light lavender */
+  --text-secondary: #00d9ff;  /* Electric blue */
+  --accent-1: #00d9ff;        /* Electric blue */
+  --accent-2: #8b00ff;        /* Deep psychedelic purple */
+  --accent-3: #00ff41;        /* Toxic neon green */
+  --border-color: rgba(0, 217, 255, 0.3);
+  --shadow-color: rgba(0, 0, 0, 0.9);
+  --glow-1: rgba(0, 217, 255, 0.8);
+  --glow-2: rgba(139, 0, 255, 0.8);
+  --glow-3: rgba(0, 255, 65, 0.8);
+
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+/* ============================================ */
+/* TYPOGRAPHY */
+/* ============================================ */
+
+h1, h2, h3 {
+  font-family: 'Orbitron', sans-serif;
+}
+
+h1 {
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+h2 {
+  font-size: clamp(1.5rem, 3.5vw, 2.5rem);
+  font-weight: 600;
+}
+
+h3 {
+  font-size: clamp(1.2rem, 2.5vw, 1.8rem);
+  font-weight: 600;
+}
+
+p {
+  line-height: 1.8;
+  font-size: 1.1rem;
+}
+
+a {
+  color: var(--accent-1);
+  text-decoration: none;
+  transition: all 0.3s ease;
+}
+
+a:hover {
+  text-shadow: 0 0 8px var(--glow-1);
+}
+
+/* ============================================ */
+/* HERO SECTION */
+/* ============================================ */
+
+.hero {
+  display: grid;
+  place-items: center;
+  min-height: 100vh;
+  padding: 4rem 1rem;
+  position: relative;
+}
+
+/* Tamas gradient - Psychedelic void */
+.hero {
+  background: radial-gradient(
+    1200px 600px at 50% 10%,
+    rgba(139, 0, 255, 0.3) 0%,
+    rgba(0, 217, 255, 0.2) 40%,
+    rgba(0, 255, 65, 0.1) 60%,
+    transparent 80%
+  );
+}
+
+.hero-title {
+  text-align: center;
+  margin: 0 0 0.5rem;
+  text-shadow: 0 0 16px var(--glow-1);
+}
+
+/* ============================================ */
+/* OM SYMBOLS */
+/* ============================================ */
+
+.oms {
+  display: flex;
+  justify-content: center;
+  gap: 0.6rem;
+  margin: 0.5rem 0 1.5rem;
+  font-size: clamp(1.2rem, 2.6vw, 1.8rem);
+  font-weight: 700;
+}
+
+.om {
+  font-weight: bold;
+  color: var(--accent-2);
+  filter: drop-shadow(0 0 6px var(--glow-2));
+  animation: pulse 3s ease-in-out infinite;
+}
+
+.oms .sup {
+  position: relative;
+  top: -0.4em;
+}
+
+.oms .sub {
+  position: relative;
+  top: 0.4em;
+}
+
+.oms .at {
+  color: var(--accent-1);
+  filter: drop-shadow(0 0 6px var(--glow-1));
+}
+
+.irendu {
+  position: relative;
+  top: -0.6em;
+  font-size: 2rem;
+  color: var(--accent-3);
+  filter: drop-shadow(0 0 8px var(--glow-3));
+}
+
+/* ============================================ */
+/* LOCKUP SECTION */
+/* ============================================ */
+
+.lockup {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  margin: 1.5rem 0;
+  padding: 2.5rem 1rem;
+}
+
+.lockup-center {
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 800;
+  text-align: center;
+  font-size: clamp(1.4rem, 3.8vw, 2.5rem);
+  line-height: 1.15;
+  white-space: nowrap;
+  text-shadow: 0 0 10px var(--glow-1);
+}
+
+.lockup-tamil {
+  font-family: 'Noto Sans Tamil', sans-serif;
+  font-weight: 700;
+  font-size: clamp(1.2rem, 3.2vw, 2.1rem);
+  color: var(--accent-2);
+  text-align: center;
+  opacity: 0.95;
+  text-shadow: 0 0 10px var(--glow-2);
+}
+
+.lockup-ukr {
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 700;
+  font-size: clamp(1.1rem, 3vw, 2rem);
+  color: var(--accent-3);
+  text-align: center;
+  text-shadow: 0 0 10px var(--glow-3);
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  justify-content: center;
+}
+
+.flag-ua {
+  width: 28px;
+  height: 18px;
+  display: inline-block;
+  border-radius: 2px;
+  background: linear-gradient(#0057b7 0 50%, #ffd700 50% 100%);
+  box-shadow: 0 0 10px var(--glow-1);
+  animation: flag-wave 2.2s ease-in-out infinite;
+}
+
+/* ============================================ */
+/* CARDS & GRID */
+/* ============================================ */
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 2rem;
+  margin-top: 3rem;
+  max-width: 1000px;
+  width: 100%;
+  padding: 0 1rem;
+}
+
+.card {
+  display: block;
+  padding: 2.5rem 2rem;
+  background: var(--bg-card);
+  backdrop-filter: blur(12px);
+  border: 2px solid var(--border-color);
+  border-radius: 16px;
+  color: var(--text-primary);
+  text-decoration: none;
+  text-align: center;
+  font-weight: 600;
+  min-height: 200px;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 16px var(--shadow-color);
+}
+
+.card:hover {
+  border-color: var(--accent-1);
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 8px 32px var(--glow-1);
+}
+
+.card h3 {
+  color: var(--accent-1);
+  margin-bottom: 1rem;
+}
+
+/* ============================================ */
+/* BUTTONS */
+/* ============================================ */
+
+.btn {
+  display: inline-block;
+  padding: 1rem 2rem;
+  background: var(--bg-card);
+  border: 2px solid var(--accent-1);
+  border-radius: 50px;
+  color: var(--accent-1);
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
+}
+
+.btn:hover {
+  background: var(--accent-1);
+  color: var(--bg-primary);
+  box-shadow: 0 0 20px var(--glow-1);
+  transform: scale(1.05);
+}
+
+.btn-primary {
+  background: var(--accent-1);
+  color: var(--bg-primary);
+}
+
+.btn-primary:hover {
+  background: transparent;
+  color: var(--accent-1);
+}
+
+/* ============================================ */
+/* ANIMATIONS */
+/* ============================================ */
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.8; transform: scale(1.05); }
+}
+
+@keyframes flag-wave {
+  0%, 100% { transform: rotate(0deg) skewY(0deg); }
+  50% { transform: rotate(-4deg) skewY(-2deg); }
+}
+
+/* ============================================ */
+/* RESPONSIVE */
+/* ============================================ */
+
+@media (max-width: 768px) {
+  .lockup {
+    padding: 2rem 0.5rem;
+  }
+
+  .lockup-tamil,
+  .lockup-ukr {
+    font-size: 0.85rem;
+  }
+
+  .grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+}
