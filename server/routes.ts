@@ -432,11 +432,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Email already subscribed to newsletter" });
       }
 
-      // Store encrypted email in database
+      // Generate secure unsubscribe token
+      const crypto = await import('crypto');
+      const unsubscribeToken = crypto.randomBytes(32).toString('hex');
+
+      // Store encrypted email in database with unsubscribe token
       await storage.createNewsletterEmail({
         encryptedEmail: encryptedData.encrypted,
         iv: encryptedData.iv,
-        tag: encryptedData.tag
+        tag: encryptedData.tag,
+        unsubscribeToken
       });
 
       // Also send encrypted data through VPS tunnel for backup

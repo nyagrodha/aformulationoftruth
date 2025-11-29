@@ -4,6 +4,7 @@ import {
   questionnaireSessions,
   responses,
   newsletterEmails,
+  paymentCodes,
   type User,
   type InsertUser,
   type UpsertUser,
@@ -14,7 +15,9 @@ import {
   type Response,
   type InsertResponse,
   type NewsletterEmail,
-  type InsertNewsletterEmail
+  type InsertNewsletterEmail,
+  type PaymentCode,
+  type InsertPaymentCode
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, gt, desc, sql } from "drizzle-orm";
@@ -323,6 +326,71 @@ export class DatabaseStorage implements IStorage {
       .from(newsletterEmails)
       .where(eq(newsletterEmails.encryptedEmail, encryptedEmail));
     return !!existing;
+  }
+
+  async getNewsletterByUnsubscribeToken(token: string): Promise<NewsletterEmail | undefined> {
+    const [newsletter] = await db
+      .select()
+      .from(newsletterEmails)
+      .where(eq(newsletterEmails.unsubscribeToken, token));
+    return newsletter;
+  }
+
+  async unsubscribeNewsletter(token: string): Promise<boolean> {
+    const result = await db
+      .update(newsletterEmails)
+      .set({ subscribed: false, updatedAt: new Date() })
+      .where(eq(newsletterEmails.unsubscribeToken, token));
+    return true;
+  }
+
+  // Payment code operations
+  async createPaymentCode(code: typeof paymentCodes.$inferInsert): Promise<typeof paymentCodes.$inferSelect> {
+    const [paymentCode] = await db
+      .insert(paymentCodes)
+      .values(code)
+      .returning();
+    return paymentCode;
+  }
+
+  async getPaymentCodeByCode(code: string): Promise<typeof paymentCodes.$inferSelect | undefined> {
+    const [paymentCode] = await db
+      .select()
+      .from(paymentCodes)
+      .where(eq(paymentCodes.code, code));
+    return paymentCode;
+  }
+
+  async verifyPaymentCode(codeId: string, verifiedBy: string): Promise<void> {
+    await db
+      .update(paymentCodes)
+      .set({
+        status: 'verified',
+        verifiedBy,
+        verifiedAt: new Date(),
+        updatedAt: new Date()
+      })
+      .where(eq(paymentCodes.id, codeId));
+  }
+
+  async upgradeUserToP aid(userId: string): Promise<User> {
+    const [user] = await db
+      .update(users)
+      .set({
+        profileTier: 'paid',
+        updatedAt: new Date()
+      })
+      .where(eq(users.id, userId))
+      .returning();
+    return user;
+  }
+
+  async getPendingPaymentCodes(): Promise<Array<typeof paymentCodes.$inferSelect>> {
+    return await db
+      .select()
+      .from(paymentCodes)
+      .where(eq(paymentCodes.status, 'pending'))
+      .orderBy(desc(paymentCodes.createdAt));
   }
 }
 

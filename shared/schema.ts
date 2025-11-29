@@ -22,6 +22,13 @@ export const users = pgTable("users", {
   lastName: varchar("last_name"),
   profileImageUrl: varchar("profile_image_url"),
   completionCount: integer("completion_count").default(0),
+  // Paid profile features
+  profileTier: varchar("profile_tier").default("free").notNull(), // 'free' | 'paid'
+  encryptionType: varchar("encryption_type").default("server").notNull(), // 'server' | 'client'
+  publicKey: text("public_key"), // X25519 public key for paid users with client-side encryption
+  username: varchar("username").unique(), // Optional pseudonym for paid users
+  bio: text("bio"), // Optional bio for public profiles
+  profileVisibility: varchar("profile_visibility").default("private").notNull(), // 'private' | 'anonymous' | 'public'
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -41,7 +48,24 @@ export const newsletterEmails = pgTable("newsletter_emails", {
   encryptedEmail: text("encrypted_email").notNull(),
   iv: text("iv").notNull(), // Initialization vector for AES-256-GCM
   tag: text("tag").notNull(), // Authentication tag for AES-256-GCM
+  unsubscribeToken: text("unsubscribe_token").notNull().unique(), // Secure token for one-click unsubscribe
   subscribed: boolean("subscribed").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Payment codes for profile upgrades (manual verification)
+export const paymentCodes = pgTable("payment_codes", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  code: varchar("code").notNull().unique(), // Format: A4OT-XXXX-XXXX
+  userId: varchar("user_id").notNull().references(() => users.id),
+  amount: integer("amount").notNull(), // Amount in cents (300 = $3.00)
+  currency: varchar("currency").default("USD").notNull(), // USD, BTC, XMR, ZEC
+  paymentMethod: varchar("payment_method").notNull(), // 'paypal' | 'cashapp' | 'btc' | 'monero' | 'zcash'
+  status: varchar("status").default("pending").notNull(), // 'pending' | 'verified' | 'expired' | 'cancelled'
+  verifiedBy: varchar("verified_by"), // Admin user ID who verified
+  verifiedAt: timestamp("verified_at"),
+  expiresAt: timestamp("expires_at").notNull(), // 7 days from creation
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -65,7 +89,14 @@ export const responses = pgTable("responses", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   sessionId: varchar("session_id").notNull().references(() => questionnaireSessions.id),
   questionId: integer("question_id").notNull(),
-  answer: text("answer").notNull(),
+  answer: text("answer").notNull(), // Plain text for server-side, encrypted for client-side
+  encryptionType: varchar("encryption_type").default("server").notNull(), // 'server' | 'client'
+  // For client-side encrypted responses (paid users)
+  encryptedData: text("encrypted_data"), // X25519-encrypted response
+  nonce: text("nonce"), // Nonce for client-side encryption
+  // Version history for paid users
+  version: integer("version").default(1).notNull(),
+  previousVersionId: varchar("previous_version_id"), // Reference to previous version
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -116,6 +147,16 @@ export const insertNewsletterEmailSchema = createInsertSchema(newsletterEmails).
   encryptedEmail: true,
   iv: true,
   tag: true,
+  unsubscribeToken: true,
+});
+
+export const insertPaymentCodeSchema = createInsertSchema(paymentCodes).pick({
+  code: true,
+  userId: true,
+  amount: true,
+  currency: true,
+  paymentMethod: true,
+  expiresAt: true,
 });
 
 // Types
@@ -134,3 +175,6 @@ export type InsertResponse = z.infer<typeof insertResponseSchema>;
 
 export type NewsletterEmail = typeof newsletterEmails.$inferSelect;
 export type InsertNewsletterEmail = z.infer<typeof insertNewsletterEmailSchema>;
+
+export type PaymentCode = typeof paymentCodes.$inferSelect;
+export type InsertPaymentCode = z.infer<typeof insertPaymentCodeSchema>;
