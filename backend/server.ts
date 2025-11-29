@@ -1,7 +1,7 @@
 // server.js
 // Load environment variables
 import dotenv from 'dotenv';
-dotenv.config({ path: '../.env.local' });
+dotenv.config(); // Load from .env in current directory
 
 // ─── Rate-limit middleware ───────────────────────────────────────────────
 import express from 'express';
@@ -14,11 +14,12 @@ import jwt from 'jsonwebtoken';
 import cors from 'cors';
 import path from 'path';
 import crypto from 'crypto';
-import questionsRouter from './routes/questions.js';
+import questionsRouter, { setDatabaseClient as setQuestionsDatabaseClient } from './routes/questions.js';
 import authRouter from './routes/auth.js';
 // import KeybaseAuthBot from './keybase-bot.js';
 import PDFGenerator from './utils/pdf-generator.js';
 import { verifyToken, optionalAuth } from './middleware/auth.js';
+import KaruppasāmiBot from './bots/karuppasami-telegram.js';
 
 // Protected API routes requiring authentication
 app.use('/api/questions', verifyToken, questionsRouter);
@@ -37,7 +38,7 @@ const apiLimiter = rateLimit({
   max: 100,                        // limit each IP
   standardHeaders: true,           // adds 'RateLimit-*' headers
   legacyHeaders: false,            // removes 'X-RateLimit-*'
-  message: { error: 'Too many requests; try again later.' },
+  message: { error: 'Too many subscription attempts. Kindly desist :)' },
 });
 
 // Apply to all API routes
@@ -80,9 +81,30 @@ app.use(express.static(path.join(__dirname, "../frontend/public")));
 import { Client } from 'pg';
 import { setDatabaseClient as setDbUtilsClient } from './utils/db.js';
 
-const client = new Client({
-  connectionString: process.env.DATABASE_URL
-});
+// Parse DATABASE_URL or use individual env vars
+const getDatabaseConfig = () => {
+  if (process.env.DATABASE_URL) {
+    // Parse postgresql://user:password@host:port/database
+    const url = new URL(process.env.DATABASE_URL);
+    return {
+      host: url.hostname,
+      port: parseInt(url.port) || 5432,
+      database: url.pathname.slice(1), // remove leading /
+      user: url.username,
+      password: decodeURIComponent(url.password)
+    };
+  }
+  // Fallback to individual env vars (deprecated)
+  return {
+    host: process.env.DB_HOST || '10.99.0.1',
+    port: parseInt(process.env.DB_PORT || '5432'),
+    database: process.env.DB_NAME || 'a4m_db',
+    user: process.env.DB_USER || 'a4m_app',
+    password: process.env.DB_PASSWORD || 'jsT@sA2nd1nsd3cl2y0'
+  };
+};
+
+const client = new Client(getDatabaseConfig());
 
 client.connect()
   .then(() => {
@@ -94,6 +116,7 @@ client.connect()
     setDbUtilsClient(client);
     setPhoneDatabaseClient(client);
     setProfileDatabaseClient(client);
+    setQuestionsDatabaseClient(client);
 
     // Create users table if it doesn't exist
     return client.query(`
@@ -336,6 +359,23 @@ app.use('/auth', authRouter);
 // Mount phone verification and profile routes
 app.use('/api/phone', phoneVerificationRouter);
 app.use('/api/profile', profileRouter);
+
+// Geolocation endpoint to detect user's country
+import { getCachedIPInfo } from './utils/ip-lookup.js';
+app.get('/api/geolocation', async (req, res) => {
+  try {
+    const ipAddress = req.ip || req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+    const ipInfo = await getCachedIPInfo(ipAddress);
+
+    res.json({
+      country: ipInfo?.country || 'Unknown',
+      isUSA: ipInfo?.country === 'US'
+    });
+  } catch (error) {
+    console.error('Error getting geolocation:', error);
+    res.json({ country: 'Unknown', isUSA: false });
+  }
+});
 
 // Clean up expired tokens periodically
 import { cleanupExpiredTokens } from './utils/db.js';
@@ -718,6 +758,19 @@ app.get(/^(?!\/api)/, (req, res) => {
 
 //added to prevent crash
 console.log('🧪 Reached end of server.js setup');
+
+// Initialize Telegram Bot
+if (process.env.TELEGRAM_BOT_TOKEN) {
+  try {
+    const karuppasāmiBot = new KaruppasāmiBot(process.env.TELEGRAM_BOT_TOKEN, client);
+    console.log('👹 கருப்பசாமி கேள்வித்தாள் (Karuppacāmi kēḷvittāḷ) bot initialized');
+  } catch (error) {
+    console.error('❌ Failed to initialize Telegram bot:', error);
+  }
+} else {
+  console.warn('⚠️  TELEGRAM_BOT_TOKEN not set - bot will not start');
+}
+
 // Start server
 setInterval(() => {}, 1000 * 60); // keep-alive
 

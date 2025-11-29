@@ -1,5 +1,6 @@
 import express from 'express';
 import { generateVerificationCode, sendVerificationSMS, sendVerificationCall, normalizePhoneNumber } from '../utils/sms.js';
+import { isTwilioVerifyEnabled, sendVerification, verifyCode } from '../utils/twilio-verify.js';
 
 const router = express.Router();
 
@@ -84,35 +85,53 @@ router.post('/request', async (req, res) => {
       }
     }
 
-    // Generate 6-digit verification code
-    const code = generateVerificationCode();
+    // Use Twilio Verify API if enabled, otherwise use manual method
+    if (isTwilioVerifyEnabled()) {
+      // Use Twilio Verify API
+      const channel = method === 'voice' ? 'call' : 'sms';
+      const result = await sendVerification(normalizedPhone, channel);
 
-    // Store in database with 10-minute expiry
-    const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
+      console.log(`✓ Twilio Verify ${channel} sent to ${normalizedPhone} for ${email}`);
 
-    await dbClient.query(
-      `INSERT INTO phone_verification_codes
-       (user_id, phone_number, code, expires_at, verified, attempts, created_at)
-       VALUES ($1, $2, $3, $4, false, 0, NOW())`,
-      [user.id, normalizedPhone, code, expiresAt]
-    );
+      res.json({
+        message: `Verification code sent via ${method}`,
+        phoneNumber: normalizedPhone,
+        expiresIn: 600, // 10 minutes in seconds
+        verifyMethod: 'twilio-verify'
+      });
 
-    // Send verification code
-    let result;
-    if (method === 'voice') {
-      result = await sendVerificationCall(normalizedPhone, code);
     } else {
-      result = await sendVerificationSMS(normalizedPhone, code);
+      // Manual method: Generate code and store in database
+      const code = generateVerificationCode();
+
+      // Store in database with 10-minute expiry
+      const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
+
+      await dbClient.query(
+        `INSERT INTO phone_verification_codes
+         (user_id, phone_number, code, expires_at, verified, attempts, created_at)
+         VALUES ($1, $2, $3, $4, false, 0, NOW())`,
+        [user.id, normalizedPhone, code, expiresAt]
+      );
+
+      // Send verification code
+      let result;
+      if (method === 'voice') {
+        result = await sendVerificationCall(normalizedPhone, code);
+      } else {
+        result = await sendVerificationSMS(normalizedPhone, code);
+      }
+
+      console.log(`✓ Manual verification ${method} sent to ${normalizedPhone} for ${email}`);
+
+      res.json({
+        message: `Verification code sent via ${method}`,
+        phoneNumber: normalizedPhone,
+        expiresIn: 600, // 10 minutes in seconds
+        testMode: result.testMode || false,
+        verifyMethod: 'manual'
+      });
     }
-
-    console.log(`✓ Verification ${method} sent to ${normalizedPhone} for ${email}`);
-
-    res.json({
-      message: `Verification code sent via ${method}`,
-      phoneNumber: normalizedPhone,
-      expiresIn: 600, // 10 minutes in seconds
-      testMode: result.testMode || false
-    });
 
   } catch (error) {
     console.error('Error sending verification code:', error);
@@ -127,7 +146,7 @@ router.post('/request', async (req, res) => {
 
 // POST /api/phone/verify - Verify the code
 router.post('/verify', async (req, res) => {
-  const { email, code } = req.body;
+  const { email, code, phoneNumber } = req.body;
 
   if (!email || !code) {
     return res.status(400).json({ error: 'Email and code required' });
@@ -146,80 +165,116 @@ router.post('/verify', async (req, res) => {
 
     const user = userResult.rows[0];
 
-    // Find the most recent unverified code for this user
-    const codeResult = await dbClient.query(
-      `SELECT id, phone_number, code, expires_at, verified, attempts
-       FROM phone_verification_codes
-       WHERE user_id = $1 AND verified = false
-       ORDER BY created_at DESC
-       LIMIT 1`,
-      [user.id]
-    );
+    // Use Twilio Verify API if enabled
+    if (isTwilioVerifyEnabled()) {
+      // Need phone number for Twilio Verify
+      if (!phoneNumber) {
+        return res.status(400).json({ error: 'Phone number required for Twilio Verify' });
+      }
 
-    if (codeResult.rows.length === 0) {
-      return res.status(404).json({ error: 'No verification code found. Please request a new code.' });
-    }
+      const normalizedPhone = normalizePhoneNumber(phoneNumber);
 
-    const verification = codeResult.rows[0];
+      // Verify code with Twilio
+      const result = await verifyCode(normalizedPhone, code);
 
-    // Check if code has expired
-    if (new Date() > new Date(verification.expires_at)) {
-      return res.status(400).json({ error: 'Verification code has expired. Please request a new code.' });
-    }
+      if (!result.valid || result.status !== 'approved') {
+        return res.status(400).json({
+          error: 'Invalid verification code'
+        });
+      }
 
-    // Check if too many attempts
-    if (verification.attempts >= 3) {
-      return res.status(400).json({
-        error: 'Too many failed attempts. Please request a new code.'
-      });
-    }
-
-    // Verify the code
-    if (verification.code !== code) {
-      // Increment attempt counter
-      await dbClient.query(
-        'UPDATE phone_verification_codes SET attempts = attempts + 1 WHERE id = $1',
-        [verification.id]
-      );
-
-      const attemptsLeft = 3 - (verification.attempts + 1);
-      return res.status(400).json({
-        error: 'Invalid verification code',
-        attemptsLeft: attemptsLeft
-      });
-    }
-
-    // Code is valid - update user and mark code as verified
-    await dbClient.query('BEGIN');
-
-    try {
-      // Update user
+      // Code is valid - update user
       await dbClient.query(
         `UPDATE users
          SET phone_number = $1, phone_verified = true, phone_verified_at = NOW()
          WHERE id = $2`,
-        [verification.phone_number, user.id]
+        [normalizedPhone, user.id]
       );
 
-      // Mark code as verified
-      await dbClient.query(
-        'UPDATE phone_verification_codes SET verified = true WHERE id = $1',
-        [verification.id]
-      );
-
-      await dbClient.query('COMMIT');
-
-      console.log(`✓ Phone verified for ${email}: ${verification.phone_number}`);
+      console.log(`✓ Phone verified via Twilio Verify for ${email}: ${normalizedPhone}`);
 
       res.json({
         message: 'Phone number verified successfully',
-        phoneNumber: verification.phone_number,
+        phoneNumber: normalizedPhone,
         verified: true
       });
 
-    } catch (error) {
-      await dbClient.query('ROLLBACK');
-      throw error;
+    } else {
+      // Manual method: Check code in database
+      const codeResult = await dbClient.query(
+        `SELECT id, phone_number, code, expires_at, verified, attempts
+         FROM phone_verification_codes
+         WHERE user_id = $1 AND verified = false
+         ORDER BY created_at DESC
+         LIMIT 1`,
+        [user.id]
+      );
+
+      if (codeResult.rows.length === 0) {
+        return res.status(404).json({ error: 'No verification code found. Please request a new code.' });
+      }
+
+      const verification = codeResult.rows[0];
+
+      // Check if code has expired
+      if (new Date() > new Date(verification.expires_at)) {
+        return res.status(400).json({ error: 'Verification code has expired. Please request a new code.' });
+      }
+
+      // Check if too many attempts
+      if (verification.attempts >= 3) {
+        return res.status(400).json({
+          error: 'Too many failed attempts. Please request a new code.'
+        });
+      }
+
+      // Verify the code
+      if (verification.code !== code) {
+        // Increment attempt counter
+        await dbClient.query(
+          'UPDATE phone_verification_codes SET attempts = attempts + 1 WHERE id = $1',
+          [verification.id]
+        );
+
+        const attemptsLeft = 3 - (verification.attempts + 1);
+        return res.status(400).json({
+          error: 'Invalid verification code',
+          attemptsLeft: attemptsLeft
+        });
+      }
+
+      // Code is valid - update user and mark code as verified
+      await dbClient.query('BEGIN');
+
+      try {
+        // Update user
+        await dbClient.query(
+          `UPDATE users
+           SET phone_number = $1, phone_verified = true, phone_verified_at = NOW()
+           WHERE id = $2`,
+          [verification.phone_number, user.id]
+        );
+
+        // Mark code as verified
+        await dbClient.query(
+          'UPDATE phone_verification_codes SET verified = true WHERE id = $1',
+          [verification.id]
+        );
+
+        await dbClient.query('COMMIT');
+
+        console.log(`✓ Phone verified manually for ${email}: ${verification.phone_number}`);
+
+        res.json({
+          message: 'Phone number verified successfully',
+          phoneNumber: verification.phone_number,
+          verified: true
+        });
+
+      } catch (error) {
+        await dbClient.query('ROLLBACK');
+        throw error;
+      }
     }
 
   } catch (error) {
