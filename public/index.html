@@ -85,6 +85,26 @@
         <h3>contact</h3>
         <p>Reach out to share feedback, ask questions, or discuss collaboration opportunities.</p>
       </a>
+
+      <div class="card">
+        <h3>Newsletter</h3>
+        <p style="margin-bottom: 1rem;">Subscribe for contemplations and updates</p>
+        <p style="font-size: 0.85rem; opacity: 0.8; margin-bottom: 1rem;">(Stored encrypted via secure VPN tunnel)</p>
+
+        <form id="newsletter-form" style="margin-top: 1rem;">
+          <input
+            type="email"
+            id="newsletter-email"
+            placeholder="your.email@example.com"
+            style="width: 100%; padding: 0.75rem; border: 1px solid var(--accent-1); background: var(--bg-color); color: var(--text-color); border-radius: 4px; margin-bottom: 0.75rem; font-family: 'Orbitron', monospace;"
+          >
+          <button type="submit" style="width: 100%; padding: 0.75rem; background: transparent; color: var(--accent-2); border: 2px solid var(--accent-2); border-radius: 4px; font-family: 'Orbitron', monospace; font-weight: 600; cursor: pointer; transition: all 0.4s ease;">
+            Subscribe
+          </button>
+        </form>
+
+        <div id="newsletter-message" style="margin-top: 1rem; padding: 0.75rem; border-radius: 4px; display: none;"></div>
+      </div>
     </div><!-- Footer Quote -->
     <p style="margin-top: 2rem; font-style: italic; opacity: 0.9; max-width: 700px; padding: 0 1rem;">It has been said that beauty brings a promise of happiness, but it could be otherwise that the possibility of joy is the beginning of beauty. So have fun and, if you wish, share what you create so joy may ever await you.</p>
   </section>
@@ -182,6 +202,70 @@
       if (type !== 'success') {
         setTimeout(() => {
           authMessage.style.display = 'none';
+        }, 5000);
+      }
+    }
+
+    // Newsletter signup handler
+    const newsletterForm = document.getElementById('newsletter-form');
+    const newsletterEmail = document.getElementById('newsletter-email');
+    const newsletterMessage = document.getElementById('newsletter-message');
+
+    newsletterForm.addEventListener('submit', async function(e) {
+      e.preventDefault();
+
+      const email = newsletterEmail.value.trim();
+      if (!email) {
+        showNewsletterMessage('Please enter your email', 'error');
+        return;
+      }
+
+      // Disable form while processing
+      newsletterEmail.disabled = true;
+      newsletterForm.querySelector('button[type="submit"]').disabled = true;
+      showNewsletterMessage('Subscribing...', 'info');
+
+      try {
+        const response = await fetch('/api/newsletter/signup', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ email })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          showNewsletterMessage('✅ Successfully subscribed to the newsletter!', 'success');
+          newsletterEmail.value = '';
+        } else {
+          showNewsletterMessage(data.error || data.message || 'Failed to subscribe.', 'error');
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        showNewsletterMessage('Network error. Please try again.', 'error');
+      } finally {
+        newsletterEmail.disabled = false;
+        newsletterForm.querySelector('button[type="submit"]').disabled = false;
+      }
+    });
+
+    function showNewsletterMessage(text, type) {
+      newsletterMessage.textContent = text;
+      newsletterMessage.style.display = 'block';
+      newsletterMessage.style.background = type === 'error' ? 'rgba(239, 68, 68, 0.2)' :
+                                          type === 'success' ? 'rgba(34, 197, 94, 0.2)' :
+                                          'rgba(59, 130, 246, 0.2)';
+      newsletterMessage.style.border = type === 'error' ? '1px solid #ef4444' :
+                                      type === 'success' ? '1px solid #22c55e' :
+                                      '1px solid #3b82f6';
+      newsletterMessage.style.color = 'var(--text-color)';
+
+      // Auto-hide error/info messages after 5 seconds, but keep success visible
+      if (type !== 'success') {
+        setTimeout(() => {
+          newsletterMessage.style.display = 'none';
         }, 5000);
       }
     }
