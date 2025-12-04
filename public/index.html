@@ -8,6 +8,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;800&family=Noto+Sans+Tamil:wght@400;700&family=Noto+Sans+Devanagari:wght@400;700&display=swap" rel="stylesheet"><!-- Stylesheets -->
   <link rel="stylesheet" href="/css/themes.css">
+  <!-- Theme Rotation System -->
+  <script src="/js/theme-rotator.js"></script>
   <style>
   </style>
   <meta name="description" content="a Proust questionnaire dba Karupacami kelvittal">
@@ -54,13 +56,13 @@
         <p style="margin-bottom: 1rem;">Sign in to begin the questionnaire</p>
 
         <form id="auth-form" style="margin-top: 1rem;">
-          <button type="button" id="oauth-login-btn" style="width: 100%; padding: 0.75rem; background: var(--accent-1); color: var(--bg-color); border: none; border-radius: 4px; font-family: 'Orbitron', monospace; font-weight: 600; cursor: pointer; transition: all 0.4s ease; margin-bottom: 0.75rem;">
+          <!-- <button type="button" id="oauth-login-btn" style="width: 100%; padding: 0.75rem; background: var(--accent-1); color: var(--bg-color); border: none; border-radius: 4px; font-family: 'Orbitron', monospace; font-weight: 600; cursor: pointer; transition: all 0.4s ease; margin-bottom: 0.75rem;">
             🔐 Sign in with Keycloak
-          </button>
+          </button> -->
 
-          <div style="text-align: center; margin: 0.75rem 0; color: var(--text-color); opacity: 0.6; font-size: 0.9rem;">
+          <!-- <div style="text-align: center; margin: 0.75rem 0; color: var(--text-color); opacity: 0.6; font-size: 0.9rem;">
             — or use magic link —
-          </div>
+          </div> -->
 
           <input
             type="email"
@@ -109,16 +111,18 @@
     <p style="margin-top: 2rem; font-style: italic; opacity: 0.9; max-width: 700px; padding: 0 1rem;">It has been said that beauty brings a promise of happiness, but it could be otherwise that the possibility of joy is the beginning of beauty. So have fun and, if you wish, share what you create so joy may ever await you.</p>
   </section>
   <a href="https://billing.flokinet.is/aff.php?aff=543"><img src=https://flokinet.is/images/floki_logo.svg width="542" height="161" border="0"></a>
+ <!-- API Failover Client -->
+ <script src="/js/api-failover.js"></script>
  <script>
   // Handle both OAuth and magic link authentication
   (function() {
     const authForm = document.getElementById('auth-form');
     const emailInput = document.getElementById('email-input');
-    const oauthBtn = document.getElementById('oauth-login-btn');
+    // const oauthBtn = document.getElementById('oauth-login-btn');
     const authMessage = document.getElementById('auth-message');
 
     // OAuth login handler
-    oauthBtn.addEventListener('click', function(e) {
+    /* oauthBtn.addEventListener('click', function(e) {
       e.preventDefault();
 
       oauthBtn.disabled = true;
@@ -126,7 +130,7 @@
 
       // Redirect to OAuth login endpoint
       window.location.href = '/api/auth/oidc/login';
-    });
+    }); */
 
     // Magic link handler
     authForm.addEventListener('submit', async function(e) {
@@ -144,13 +148,7 @@
       showMessage('Sending magic link...', 'info');
 
       try {
-        const response = await fetch('/api/auth/request-magic-link', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ email })
-        });
+        const response = await apiPost('/api/auth/request-magic-link', { email });
 
         const data = await response.json();
 
@@ -174,9 +172,7 @@
 
     async function checkAuthStatus() {
       try {
-        const response = await fetch('/api/user/me', {
-          credentials: 'include'
-        });
+        const response = await apiGet('/api/user/me');
 
         if (response.ok) {
           const user = await response.json();
@@ -226,13 +222,7 @@
       showNewsletterMessage('Subscribing...', 'info');
 
       try {
-        const response = await fetch('/api/newsletter/signup', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ email })
-        });
+        const response = await apiPost('/api/newsletter/signup', { email });
 
         const data = await response.json();
 
