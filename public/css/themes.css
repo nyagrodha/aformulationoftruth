@@ -455,6 +455,73 @@ body.neon-nexus .card:hover {
     inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
+/* Individual card glow colors */
+body.neon-nexus .grid > .card:nth-child(1),
+body.neon-nexus .grid > div:nth-child(1),
+body.neon-nexus .grid > a:nth-child(1) {
+  --card-glow: rgba(192, 192, 192, 0.6);
+  --card-glow-bright: rgba(192, 192, 192, 0.8);
+  --card-border: rgba(192, 192, 192, 0.3);
+}
+
+body.neon-nexus .grid > .card:nth-child(1):hover,
+body.neon-nexus .grid > div:nth-child(1):hover,
+body.neon-nexus .grid > a:nth-child(1):hover {
+  border-color: #c0c0c0;
+  box-shadow:
+    0 16px 48px var(--card-glow-bright),
+    0 0 80px var(--card-glow),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+body.neon-nexus .grid > .card:nth-child(2),
+body.neon-nexus .grid > div:nth-child(2) {
+  --card-glow: rgba(255, 215, 0, 0.6);
+  --card-glow-bright: rgba(255, 215, 0, 0.8);
+  --card-border: rgba(255, 215, 0, 0.3);
+}
+
+body.neon-nexus .grid > .card:nth-child(2):hover,
+body.neon-nexus .grid > div:nth-child(2):hover {
+  border-color: #ffd700;
+  box-shadow:
+    0 16px 48px var(--card-glow-bright),
+    0 0 80px var(--card-glow),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+body.neon-nexus .grid > .card:nth-child(3),
+body.neon-nexus .grid > a:nth-child(3) {
+  --card-glow: rgba(138, 43, 226, 0.6);
+  --card-glow-bright: rgba(138, 43, 226, 0.8);
+  --card-border: rgba(138, 43, 226, 0.3);
+}
+
+body.neon-nexus .grid > .card:nth-child(3):hover,
+body.neon-nexus .grid > a:nth-child(3):hover {
+  border-color: #8a2be2;
+  box-shadow:
+    0 16px 48px var(--card-glow-bright),
+    0 0 80px var(--card-glow),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+body.neon-nexus .grid > .card:nth-child(4),
+body.neon-nexus .grid > div:nth-child(4) {
+  --card-glow: rgba(255, 69, 0, 0.6);
+  --card-glow-bright: rgba(255, 69, 0, 0.8);
+  --card-border: rgba(255, 69, 0, 0.3);
+}
+
+body.neon-nexus .grid > .card:nth-child(4):hover,
+body.neon-nexus .grid > div:nth-child(4):hover {
+  border-color: #ff4500;
+  box-shadow:
+    0 16px 48px var(--card-glow-bright),
+    0 0 80px var(--card-glow),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
 body.neon-nexus .card h3 {
   background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
   -webkit-background-clip: text;
