@@ -137,40 +137,15 @@
             margin-bottom: 1.5rem;
             color: #fff;
         }
-
-        input[type="email"] {
-            width: 100%;
-            max-width: 400px;
-            padding: 1rem;
-            background: rgba(0, 0, 0, 0.5);
-            border: 1px solid #00ffff;
-            color: #fff;
-            font-family: inherit;
-            border-radius: 5px;
-            margin-bottom: 1rem;
-            font-size: 1rem;
-        }
-
-        input[type="email"]:focus {
-            outline: none;
-            border-color: #ff00ff;
-        }
-
-        input[type="email"]::placeholder {
-            color: #666;
-        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>Questionnaire</h1>
 
-        <div id="emailForm" class="email-form">
-            <h3>Welcome!</h3>
-            <p>Please enter your email address to begin the questionnaire.</p>
-            <input type="email" id="emailInput" placeholder="your.email@example.com" />
-            <button id="emailSubmitBtn" onclick="submitEmail()">Begin</button>
-            <div id="emailStatus" class="status"></div>
+        <div id="emailForm" class="email-form hidden">
+            <h3>Authenticating...</h3>
+            <p>Validating your authentication token...</p>
         </div>
 
         <div id="authInfo" class="auth-info hidden">
@@ -211,18 +186,48 @@
             // Detect location for button text
             detectLocation();
 
-            // Check if email is already stored in localStorage
-            const storedEmail = localStorage.getItem('questionnaireEmail');
+            // Check for JWT token in localStorage (matches React Login.tsx flow)
+            const token = localStorage.getItem('token');
 
-            if (storedEmail) {
-                userEmail = storedEmail;
-                document.getElementById('emailForm').classList.add('hidden');
-                document.getElementById('userEmail').textContent = `Authenticated as: ${storedEmail}`;
-                document.getElementById('authInfo').classList.remove('hidden');
-                await fetchNextQuestion();
+            if (token) {
+                // Validate token by calling /api/user/me
+                try {
+                    const response = await fetch('/api/user/me', {
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
+
+                    if (response.ok) {
+                        const userData = await response.json();
+                        authToken = token;
+                        userEmail = userData.email;
+
+                        // Store userEmail if not already stored
+                        if (userData.email) {
+                            localStorage.setItem('userEmail', userData.email);
+                        }
+
+                        // Hide email form and show authenticated state
+                        document.getElementById('emailForm').classList.add('hidden');
+                        document.getElementById('userEmail').textContent = `Authenticated as: ${userData.email}`;
+                        document.getElementById('authInfo').classList.remove('hidden');
+                        await fetchNextQuestion();
+                    } else {
+                        // Invalid token, clear it and redirect to login
+                        localStorage.removeItem('token');
+                        localStorage.removeItem('userEmail');
+                        window.location.href = '/login?redirect=/questionnaire.html';
+                    }
+                } catch (error) {
+                    console.error('Token validation error:', error);
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('userEmail');
+                    window.location.href = '/login?redirect=/questionnaire.html';
+                }
             } else {
-                // Show email form
-                document.getElementById('emailInput').focus();
+                // No token, redirect to login
+                window.location.href = '/login?redirect=/questionnaire.html';
             }
         }
 
@@ -253,65 +258,11 @@
             }
         }
 
-        // Submit email to start questionnaire
-        async function submitEmail() {
-            const emailInput = document.getElementById('emailInput');
-            const email = emailInput.value.trim();
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-            if (!email) {
-                showEmailStatus('Please enter your email address', 'error');
-                return;
-            }
-
-            if (!emailRegex.test(email)) {
-                showEmailStatus('Please enter a valid email address', 'error');
-                return;
-            }
-
-            const submitBtn = document.getElementById('emailSubmitBtn');
-            submitBtn.disabled = true;
-            submitBtn.textContent = 'Submitting...';
-
-            try {
-                const response = await fetch('/api/questionnaire/start', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email })
-                });
-
-                const data = await response.json();
-
-                if (response.ok) {
-                    userEmail = email;
-                    localStorage.setItem('questionnaireEmail', email);
-
-                    // Hide email form and show questionnaire
-                    document.getElementById('emailForm').classList.add('hidden');
-                    document.getElementById('userEmail').textContent = `Authenticated as: ${email}`;
-                    document.getElementById('authInfo').classList.remove('hidden');
-
-                    showEmailStatus('Email registered! Loading questions...', 'success');
-                    setTimeout(fetchNextQuestion, 1000);
-                } else {
-                    showEmailStatus(data.error || 'Failed to register email', 'error');
-                    submitBtn.disabled = false;
-                    submitBtn.textContent = 'Begin';
-                }
-            } catch (error) {
-                showEmailStatus('Network error: ' + error.message, 'error');
-                submitBtn.disabled = false;
-                submitBtn.textContent = 'Begin';
-            }
-        }
-
-        function showEmailStatus(message, type) {
-            const status = document.getElementById('emailStatus');
-            status.textContent = message;
-            status.className = 'status ' + type;
-            if (type === 'success') {
-                setTimeout(() => status.textContent = '', 3000);
-            }
+        // Handle 401 unauthorized responses
+        function handleUnauthorized() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('userEmail');
+            window.location.href = '/login?redirect=/questionnaire.html';
         }
 
         async function fetchNextQuestion() {
@@ -322,6 +273,13 @@
                 }
 
                 const response = await fetch('/api/questions/next', { headers });
+
+                // Handle 401 unauthorized
+                if (response.status === 401) {
+                    handleUnauthorized();
+                    return;
+                }
+
                 const data = await response.json();
 
                 document.getElementById('loading').style.display = 'none';
@@ -387,11 +345,17 @@
                     method: 'POST',
                     headers,
                     body: JSON.stringify({
-                        email: userEmail || 'anonymous@example.com',
+                        email: userEmail,
                         questionId: currentQuestion.id,
                         answer: answerText
                     })
                 });
+
+                // Handle 401 unauthorized
+                if (response.status === 401) {
+                    handleUnauthorized();
+                    return;
+                }
 
                 if (response.ok) {
                     showStatus('Answer saved!', 'success');
@@ -422,18 +386,6 @@
 
         // Initialize when page loads
         document.addEventListener('DOMContentLoaded', init);
-
-        // Add Enter key support for email input
-        document.addEventListener('DOMContentLoaded', () => {
-            const emailInput = document.getElementById('emailInput');
-            if (emailInput) {
-                emailInput.addEventListener('keypress', (e) => {
-                    if (e.key === 'Enter') {
-                        submitEmail();
-                    }
-                });
-            }
-        });
     </script>
 </body>
 </html>

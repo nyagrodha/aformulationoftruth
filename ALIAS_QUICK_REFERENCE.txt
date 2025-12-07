@@ -1,0 +1,93 @@
+╔════════════════════════════════════════════════════════════════════════════╗
+║                   A4MULA BASH ALIASES QUICK REFERENCE                      ║
+╚════════════════════════════════════════════════════════════════════════════╝
+
+┌─ NAVIGATION ───────────────────────────────────────────────────────────────┐
+│ a4             Go to project root                                          │
+│ a4b            Go to backend                                               │
+│ a4f            Go to frontend                                              │
+└────────────────────────────────────────────────────────────────────────────┘
+
+┌─ DEVELOPMENT ──────────────────────────────────────────────────────────────┐
+│ a4dev          Start dev server (hot reload)                               │
+│ a4build        Build TypeScript                                            │
+│ a4start        Start production server                                     │
+│ a4test         Run tests                                                   │
+│ a4tsc          Type check (no output)                                      │
+│ a4tswatch      Type check (watch mode)                                     │
+└────────────────────────────────────────────────────────────────────────────┘
+
+┌─ LOGS ─────────────────────────────────────────────────────────────────────┐
+│ a4logs         Tail combined logs                                          │
+│ a4errors       Tail error logs                                             │
+│ a4logsall      Tail all logs                                               │
+│ a4viewlogs     View logs with colors                                       │
+│ a4viewerrors   View errors with colors                                     │
+│ a4logsclear    Delete all logs                                             │
+└────────────────────────────────────────────────────────────────────────────┘
+
+┌─ DATABASE ─────────────────────────────────────────────────────────────────┐
+│ a4db           Open psql prompt                                            │
+│ a4dbtest       Test connection (simple query)                              │
+│ a4dbping       Test connection (using config)                              │
+└────────────────────────────────────────────────────────────────────────────┘
+
+┌─ CONFIGURATION ────────────────────────────────────────────────────────────┐
+│ a4config       View full configuration                                     │
+│ a4configtest   Validate configuration                                      │
+│ a4env          Edit .env.local                                             │
+│ a4envshow      View .env.local with colors                                 │
+│ a4envcheck     List all env vars (sorted)                                  │
+└────────────────────────────────────────────────────────────────────────────┘
+
+┌─ SERVER MANAGEMENT ────────────────────────────────────────────────────────┐
+│ a4pm2          List PM2 processes                                          │
+│ a4restart      Restart backend                                             │
+│ a4stop         Stop backend                                                │
+│ a4pm2logs      View PM2 logs                                               │
+│ a4pm2flush     Clear PM2 logs                                              │
+└────────────────────────────────────────────────────────────────────────────┘
+
+┌─ HEALTH & TESTING ─────────────────────────────────────────────────────────┐
+│ a4health       Full health check                                           │
+│ a4ping         Test /api/ping                                              │
+│ a4test-auth    Test magic link auth (optional: email)                      │
+└────────────────────────────────────────────────────────────────────────────┘
+
+┌─ DOCUMENTATION ────────────────────────────────────────────────────────────┐
+│ a4docs         View REFACTORING_SUMMARY.md                                 │
+│ a4quickstart   View QUICK_START.md                                         │
+│ a4readme       View README.md                                              │
+└────────────────────────────────────────────────────────────────────────────┘
+
+┌─ GIT HELPERS ──────────────────────────────────────────────────────────────┐
+│ a4status       Git status                                                  │
+│ a4diff         Git diff                                                    │
+│ a4log          Git log (graph, last 20)                                    │
+│ a4branch       List branches                                               │
+└────────────────────────────────────────────────────────────────────────────┘
+
+┌─ BACKUP & CLEANUP ─────────────────────────────────────────────────────────┐
+│ a4backup       Backup DB, config, logs                                     │
+│ a4clean        Remove dist, build, caches                                  │
+│ a4reset        Remove node_modules, reinstall (asks confirmation)          │
+└────────────────────────────────────────────────────────────────────────────┘
+
+┌─ CODE SEARCH & STATS ──────────────────────────────────────────────────────┐
+│ a4tree         Show backend structure (tree)                               │
+│ a4grep <term>  Search entire codebase                                      │
+│ a4loc          Count lines of code                                         │
+└────────────────────────────────────────────────────────────────────────────┘
+
+┌─ COMMON WORKFLOWS ─────────────────────────────────────────────────────────┐
+│ Development:   a4dev                                                       │
+│ Check Health:  a4health                                                    │
+│ View Logs:     a4logs  (or a4viewlogs for colors)                          │
+│ Debug:         a4errors && a4dbping && a4ping                              │
+│ Before Deploy: a4tsc && a4build && a4test && a4backup                      │
+│ Deploy:        a4restart && a4health                                       │
+└────────────────────────────────────────────────────────────────────────────┘
+
+TIP: Type 'a4' and press TAB twice to see all available aliases
+
+For full documentation: a4docs or cat ~/aformulationoftruth/ALIASES_REFERENCE.md

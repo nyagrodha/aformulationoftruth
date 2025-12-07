@@ -40,16 +40,9 @@ describe('Magic Link Authentication E2E Tests', () => {
   beforeAll(async () => {
     // Import express and create test app
     const express = (await import('express')).default;
-    const session = (await import('express-session')).default;
 
     app = express();
     app.use(express.json());
-    app.use(session({
-      secret: 'test-session-secret',
-      resave: false,
-      saveUninitialized: false,
-      cookie: { secure: false } // Allow HTTP for testing
-    }));
 
     // Import auth router after mocking dependencies
     authRouter = (await import('../routes/auth.js')).default;

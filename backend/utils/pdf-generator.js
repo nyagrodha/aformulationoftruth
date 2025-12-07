@@ -3,61 +3,52 @@ import puppeteer from 'puppeteer';
 import fs from 'fs-extra';
 import path from 'path';
 import { fileURLToPath } from 'url';
-
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-
 class PDFGenerator {
-  constructor() {
-    this.outputDir = path.join(__dirname, '../pdfs');
-    // Ensure output directory exists
-    fs.ensureDirSync(this.outputDir);
-  }
-
-  async generateProustQuestionnairePDF(userResponses, keybaseUsername) {
-    const browser = await puppeteer.launch({
-      headless: 'new',
-      args: ['--no-sandbox', '--disable-setuid-sandbox']
-    });
-
-    try {
-      const page = await browser.newPage();
-
-      // Create HTML content for the PDF
-      const htmlContent = this.generateProustHTML(userResponses, keybaseUsername);
-
-      await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
-
-      // Generate filename
-      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-      const filename = `proust-${keybaseUsername}-${timestamp}.pdf`;
-      const filepath = path.join(this.outputDir, filename);
-
-      // Generate PDF
-      await page.pdf({
-        path: filepath,
-        format: 'A4',
-        margin: {
-          top: '20mm',
-          right: '15mm',
-          bottom: '20mm',
-          left: '15mm'
-        }
-      });
-
-      console.log(`PDF generated: ${filepath}`);
-      return { success: true, filepath, filename };
-
-    } catch (error) {
-      console.error('Error generating PDF:', error);
-      return { success: false, error: error.message };
-    } finally {
-      await browser.close();
+    constructor() {
+        this.outputDir = path.join(__dirname, '../pdfs');
+        // Ensure output directory exists
+        fs.ensureDirSync(this.outputDir);
     }
-  }
-
-  generateProustHTML(responses, keybaseUsername) {
-    return `
+    async generateProustQuestionnairePDF(userResponses, keybaseUsername) {
+        const browser = await puppeteer.launch({
+            headless: 'new',
+            args: ['--no-sandbox', '--disable-setuid-sandbox']
+        });
+        try {
+            const page = await browser.newPage();
+            // Create HTML content for the PDF
+            const htmlContent = this.generateProustHTML(userResponses, keybaseUsername);
+            await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
+            // Generate filename
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+            const filename = `proust-${keybaseUsername}-${timestamp}.pdf`;
+            const filepath = path.join(this.outputDir, filename);
+            // Generate PDF
+            await page.pdf({
+                path: filepath,
+                format: 'A4',
+                margin: {
+                    top: '20mm',
+                    right: '15mm',
+                    bottom: '20mm',
+                    left: '15mm'
+                }
+            });
+            console.log(`PDF generated: ${filepath}`);
+            return { success: true, filepath, filename };
+        }
+        catch (error) {
+            console.error('Error generating PDF:', error);
+            return { success: false, error: error.message };
+        }
+        finally {
+            await browser.close();
+        }
+    }
+    generateProustHTML(responses, keybaseUsername) {
+        return `
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -147,10 +138,10 @@ class PDFGenerator {
     <div class="user-info">
       <strong>Completed by:</strong> ${keybaseUsername}<br>
       <strong>Date:</strong> ${new Date().toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-      })}
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        })}
     </div>
   </div>
 
@@ -168,28 +159,25 @@ class PDFGenerator {
 </body>
 </html>
     `.trim();
-  }
-
-  async cleanupOldPDFs(maxAge = 24 * 60 * 60 * 1000) { // 24 hours default
-    try {
-      const files = await fs.readdir(this.outputDir);
-      const now = Date.now();
-
-      for (const file of files) {
-        if (file.endsWith('.pdf')) {
-          const filepath = path.join(this.outputDir, file);
-          const stats = await fs.stat(filepath);
-
-          if (now - stats.mtime.getTime() > maxAge) {
-            await fs.remove(filepath);
-            console.log(`Cleaned up old PDF: ${file}`);
-          }
-        }
-      }
-    } catch (error) {
-      console.error('Error cleaning up PDFs:', error);
     }
-  }
+    async cleanupOldPDFs(maxAge = 24 * 60 * 60 * 1000) {
+        try {
+            const files = await fs.readdir(this.outputDir);
+            const now = Date.now();
+            for (const file of files) {
+                if (file.endsWith('.pdf')) {
+                    const filepath = path.join(this.outputDir, file);
+                    const stats = await fs.stat(filepath);
+                    if (now - stats.mtime.getTime() > maxAge) {
+                        await fs.remove(filepath);
+                        console.log(`Cleaned up old PDF: ${file}`);
+                    }
+                }
+            }
+        }
+        catch (error) {
+            console.error('Error cleaning up PDFs:', error);
+        }
+    }
 }
-
 export default PDFGenerator;

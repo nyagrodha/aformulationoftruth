@@ -1,6 +1,7 @@
 import express, { NextFunction, Request, Response } from 'express';
 import crypto from 'crypto';
 import type { ClientBase, QueryResult } from 'pg';
+import { encryptGeolocation } from '../utils/crypto.js';
 
 const router = express.Router();
 
@@ -36,6 +37,7 @@ interface AnswerRequestBody {
   email: string;
   questionId: number;
   answer: string;
+  sessionId?: number;
 }
 
 interface UserRecord {
@@ -43,7 +45,7 @@ interface UserRecord {
 }
 
 router.post('/', async (req: Request<Record<string, unknown>, unknown, AnswerRequestBody>, res: Response) => {
-  const { email, questionId, answer } = req.body;
+  const { email, questionId, answer, sessionId } = req.body;
 
   if (!email || questionId === undefined || answer === undefined) {
     res.status(400).json({
@@ -61,6 +63,15 @@ router.post('/', async (req: Request<Record<string, unknown>, unknown, AnswerReq
     const jwtSecret = process.env.JWT_SECRET ?? 'your-secret-key';
     const normalizedEmail = email.toLowerCase().trim();
     const hashedUsername = generateHashedUsername(normalizedEmail, jwtSecret);
+
+    // Extract JWT token from Authorization header for encryption key
+    const authHeader = req.headers.authorization;
+    const token = authHeader?.startsWith('Bearer ') ? authHeader.substring(7) : null;
+
+    if (!token) {
+      res.status(401).json({ error: 'Authorization token required for encryption' });
+      return;
+    }
 
     let userId: number | null = null;
 
@@ -100,17 +111,67 @@ router.post('/', async (req: Request<Record<string, unknown>, unknown, AnswerReq
       return;
     }
 
+    // Encrypt the answer using the user's JWT token as the encryption key
+    const encryptedAnswer = encryptGeolocation(answer, token);
+    console.log(`🔒 Encrypting answer for user ${userId} (email: ${normalizedEmail})`);
+
+    // Get the current answer sequence number for this user
+    const sequenceResult = await dbClient.query(
+      'SELECT COALESCE(MAX(answer_sequence), 0) + 1 as next_sequence FROM user_answers WHERE user_id = $1',
+      [userId]
+    );
+    const answerSequence = sequenceResult.rows[0].next_sequence;
+
+    // Insert the answer with session and sequence tracking
     await dbClient.query(
       `
-        INSERT INTO user_answers (user_id, question_index, question_id, answer_text)
-        VALUES ($1, $2, $3, $4)
+        INSERT INTO user_answers (user_id, question_index, question_id, answer_text, session_id, answer_sequence)
+        VALUES ($1, $2, $3, $4, $5, $6)
         RETURNING id, user_id, question_id
       `,
-      [userId, questionId, questionId, answer],
+      [userId, questionId, questionId, encryptedAnswer, sessionId || null, answerSequence],
     );
+
+    // Mark the question as answered in the question order table
+    // Use sessionId if provided, otherwise use email as session identifier
+    const effectiveSessionId = sessionId || normalizedEmail;
+
+    try {
+      await dbClient.query(
+        'UPDATE questionnaire_question_order SET answered = TRUE, answered_at = NOW() WHERE session_id = $1 AND question_id = $2',
+        [effectiveSessionId, questionId]
+      );
+
+      // Check if all questions are answered to mark session complete
+      const completionCheck = await dbClient.query(
+        'SELECT COUNT(*) as unanswered FROM questionnaire_question_order WHERE session_id = $1 AND answered = FALSE',
+        [effectiveSessionId]
+      );
+
+      if (completionCheck.rows[0].unanswered === '0') {
+        // Mark the questionnaire session as completed (if using email as session)
+        if (!sessionId) {
+          await dbClient.query(
+            'UPDATE questionnaire_sessions SET completed = TRUE WHERE email = $1',
+            [normalizedEmail]
+          );
+        } else {
+          await dbClient.query(
+            'UPDATE questionnaire_sessions SET completed = TRUE WHERE id = $1',
+            [sessionId]
+          );
+        }
+        console.log(`✅ Session ${effectiveSessionId} completed - all questions answered!`);
+      }
+    } catch (updateError) {
+      console.error('Error updating question order:', updateError);
+      // Continue anyway - the answer was saved
+    }
 
     res.json({
       message: 'Answer saved successfully',
+      encrypted: true,
+      answerSequence,
       timestamp: new Date().toISOString(),
     });
   } catch (error) {

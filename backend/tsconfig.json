@@ -1,19 +1,20 @@
 {
   "compilerOptions": {
-    "target": "es2020",
-    "module": "node16",
-    "moduleResolution": "node16",
+    "target": "ES2022",
+    "module": "ES2022",
+    "moduleResolution": "node",
+    "outDir": "./dist",
     "rootDir": "./",
-    "outDir": "dist",
-    "allowJs": true,
+    "strict": false,
     "esModuleInterop": true,
+    "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
-    "isolatedModules": false,
-    "skipLibCheck": true,
-    "strict": false,
-    "types": ["node"]
+    "allowJs": true,
+    "allowSyntheticDefaultImports": true,
+    "isolatedModules": true,
+    "noImplicitAny": false
   },
-  "include": ["./**/*.ts", "./**/*.js"],
-  "exclude": ["dist", "node_modules"]
+  "include": ["**/*.ts", "**/*.js"],
+  "exclude": ["node_modules", "dist", "build"]
 }

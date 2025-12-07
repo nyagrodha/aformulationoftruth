@@ -88,7 +88,7 @@ const LongScrollShowcase = (): JSX.Element => {
     },
     {
       type: 'image',
-      src: ',
+      src: '',
       position: 25,
       duration: 40,
       style: { borderRadius: '20px', boxShadow: '0 0 30px #ff00ff' },

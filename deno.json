@@ -1,0 +1,39 @@
+{
+  "nodeModulesDir": "auto",
+  "tasks": {
+    "dev": "deno run --allow-net --allow-read --allow-write --allow-env --watch backend/server-deno.ts",
+    "start": "deno run --allow-net --allow-read --allow-write --allow-env backend/server-deno.ts",
+    "test": "deno test --allow-net --allow-read --allow-write --allow-env"
+  },
+  "imports": {
+    "oak": "https://deno.land/x/oak@v17.1.4/mod.ts",
+    "cors": "https://deno.land/x/cors@v1.2.2/mod.ts",
+    "dotenv": "https://deno.land/std@0.224.0/dotenv/mod.ts",
+    "postgres": "https://deno.land/x/postgres@v0.19.3/mod.ts",
+    "bcrypt": "https://deno.land/x/bcrypt@v0.4.1/mod.ts",
+    "djwt": "https://deno.land/x/djwt@v3.0.2/mod.ts",
+    "path": "https://deno.land/std@0.224.0/path/mod.ts",
+    "fs": "https://deno.land/std@0.224.0/fs/mod.ts",
+    "crypto": "https://deno.land/std@0.224.0/crypto/mod.ts",
+    "nodemailer": "npm:nodemailer@^7.0.5",
+    "@sendgrid/mail": "npm:@sendgrid/mail@^8.1.6"
+  },
+  "compilerOptions": {
+    "allowJs": true,
+    "lib": ["deno.window", "dom"],
+    "strict": true
+  },
+  "lint": {
+    "rules": {
+      "tags": ["recommended"]
+    }
+  },
+  "fmt": {
+    "useTabs": false,
+    "lineWidth": 120,
+    "indentWidth": 2,
+    "semiColons": true,
+    "singleQuote": true,
+    "proseWrap": "preserve"
+  }
+}

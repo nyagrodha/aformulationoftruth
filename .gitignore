@@ -1,7 +1,92 @@
-cat <<EOF > .gitignore
+# Dependencies
 node_modules/
+package-lock.json
+yarn.lock
+
+# Logs
 *.log
-*.sqlite
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# Environment variables
 .env
+.env.local
+.env.production
+.env.development
+.env.test
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+data.db
+karuppacami.db
+magic_links.db
+data/
+
+# Build output
+dist/
+build/
+*.tsbuildinfo
+
+# IDEs and editors
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
 .DS_Store
-EOF
+
+# OS files
+Thumbs.db
+.DS_Store
+
+# Backup files
+*.backup
+*.bak
+*.save
+*_backup
+server_*.js
+*.old
+
+# Test coverage
+coverage/
+.nyc_output/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# PM2
+.pm2/
+
+# Docker
+.dockerignore
+
+# SSL certificates (keep templates, ignore actual certs)
+*.pem
+*.key
+*.crt
+*.cert
+!*.pem.example
+!*.key.example
+
+# Upload directories
+uploads/
+public/uploads/
+
+# PDF files (generated)
+pdfs/
+*.pdf
+
+# macOS
+.AppleDouble
+.LSOverride
+
+# Cache
+.cache/
+.parcel-cache/

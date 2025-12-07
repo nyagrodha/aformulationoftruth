@@ -70,12 +70,23 @@ services:
       - "traefik.http.services.wg-easy.loadbalancer.server.port=51821"
       - "traefik.docker.network=vpn-network"
 
-  tor-proxy:
-    image: dperson/torproxy
-    container_name: tor-proxy
+  pyazopay:
+    image: osminogin/tor-simple:latest
+    container_name: pyazopay
     restart: unless-stopped
     volumes:
-      - ./tor:/etc/tor
+      - ./pyaz/torrc:/etc/tor/torrc:ro
+      - ./pyaz/hidden_service:/var/lib/tor/hidden_service
+      - ./pyaz/data:/var/lib/tor/data
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - SETUID
+      - SETGID
+      - DAC_OVERRIDE
+    security_opt:
+      - no-new-privileges:true
     networks:
       - internal
 
@@ -112,7 +123,26 @@ services:
     environment:
       - NODE_ENV=production
       - PORT=3001
-      - DATABASE_URL=sqlite:///app/data/karuppacami.db
+      - DATABASE_URL=postgresql://a4m_app:jsT@sA2nd1nsd3cl2y0@185.146.234.144:5432/a4m_db
+      - DB_HOST=185.146.234.144
+      - DB_PORT=5432
+      - DB_NAME=a4m_db
+      - DB_USER=a4m_app
+      - DB_PASSWORD=jsT@sA2nd1nsd3cl2y0
+      - JWT_SECRET=+Rw+suiD3UdO7++JahQMGpnYf5DkQPeum/uwidNbma2Nh4q0xOvNubZo4BbjHvmj1JER2gmrY5ogLzyZcjCUYQ==
+      - SENDGRID_API_KEY=SG.XXXXXXXXXXXXXXXXXXXX.XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+      - SENDGRID_FROM_EMAIL=noreply@aformulationoftruth.com
+      - SENDGRID_FROM_NAME=A Formulation of Truth
+      - SMTP_HOST=smtp.mail.me.com
+      - SMTP_PORT=587
+      - SMTP_SECURE=false
+      - SMTP_USER=nyagrodha@icloud.com
+      - SMTP_PASS=ofch-wrgg-yjtb-ukrv
+      - FROM_EMAIL=formitselfisemptiness@aformulationoftruth.con
+      - FROM_NAME=Karuppacāmi Nirmeyappōr
+      - ADMIN_EMAIL=marcel@aformulationoftruth.com
+      - TWILIO_ACCOUNT_SID=ACXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+      - TWILIO_AUTH_TOKEN=fe68e5d3276f3f68b3ce06eefcd5bc72
     volumes:
       - ../backend/data:/app/data
     networks:

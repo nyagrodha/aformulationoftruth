@@ -117,6 +117,7 @@ client.connect()
     setPhoneDatabaseClient(client);
     setProfileDatabaseClient(client);
     setQuestionsDatabaseClient(client);
+    setUserDatabaseClient(client);
 
     // Create users table if it doesn't exist
     return client.query(`
@@ -172,8 +173,46 @@ client.connect()
         email TEXT NOT NULL,
         session_hash TEXT UNIQUE NOT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        completed BOOLEAN DEFAULT FALSE
+        completed BOOLEAN DEFAULT FALSE,
+        completed_at TIMESTAMP
       );
+    `);
+  })
+  .then(() => {
+    // Add completed_at column to questionnaire_sessions if it doesn't exist
+    return client.query(`
+      ALTER TABLE questionnaire_sessions
+      ADD COLUMN IF NOT EXISTS completed_at TIMESTAMP;
+    `);
+  })
+  .then(() => {
+    // Create questionnaire_question_order table for shuffled questions
+    return client.query(`
+      CREATE TABLE IF NOT EXISTS questionnaire_question_order (
+        id SERIAL PRIMARY KEY,
+        session_id TEXT NOT NULL,
+        question_position INTEGER NOT NULL,
+        question_id INTEGER NOT NULL,
+        question_text TEXT NOT NULL,
+        answered BOOLEAN DEFAULT FALSE,
+        presented_at TIMESTAMP,
+        answered_at TIMESTAMP,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(session_id, question_position)
+      );
+    `);
+  })
+  .then(() => {
+    // Create index for questionnaire_question_order
+    return client.query(`
+      CREATE INDEX IF NOT EXISTS idx_questionnaire_question_order_session
+      ON questionnaire_question_order(session_id);
+    `);
+  })
+  .then(() => {
+    return client.query(`
+      CREATE INDEX IF NOT EXISTS idx_questionnaire_question_order_answered
+      ON questionnaire_question_order(session_id, answered, question_position);
     `);
   })
   .then(() => {
@@ -192,9 +231,25 @@ client.connect()
         question_index INTEGER NOT NULL,
         question_id INTEGER NOT NULL,
         answer_text TEXT NOT NULL,
+        session_id INTEGER,
+        answer_sequence INTEGER,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
+    `);
+  })
+  .then(() => {
+    // Add session_id column to user_answers if it doesn't exist
+    return client.query(`
+      ALTER TABLE user_answers
+      ADD COLUMN IF NOT EXISTS session_id INTEGER;
+    `);
+  })
+  .then(() => {
+    // Add answer_sequence column to user_answers if it doesn't exist
+    return client.query(`
+      ALTER TABLE user_answers
+      ADD COLUMN IF NOT EXISTS answer_sequence INTEGER;
     `);
   })
   .then(() => {
@@ -350,8 +405,10 @@ import { setDatabaseClient as setAuthDatabaseClient } from './routes/auth.js';
 // Import phone verification and profile routes
 import phoneVerificationRouter from './routes/phone-verification.js';
 import profileRouter from './routes/profile.js';
+import userRouter from './routes/user.js';
 import { setDatabaseClient as setPhoneDatabaseClient } from './routes/phone-verification.js';
 import { setDatabaseClient as setProfileDatabaseClient } from './routes/profile.js';
+import { setDatabaseClient as setUserDatabaseClient } from './routes/user.js';
 
 // Mount auth routes
 app.use('/auth', authRouter);
@@ -359,6 +416,7 @@ app.use('/auth', authRouter);
 // Mount phone verification and profile routes
 app.use('/api/phone', phoneVerificationRouter);
 app.use('/api/profile', profileRouter);
+app.use('/api/user', userRouter);
 
 // Geolocation endpoint to detect user's country
 import { getCachedIPInfo } from './utils/ip-lookup.js';

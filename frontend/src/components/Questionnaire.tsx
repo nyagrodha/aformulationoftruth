@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import api from '../api/api';
 import Question, { QuestionData } from './Question';
+import SessionIndicator from './SessionIndicator';
+import { getValidToken } from '../utils/tokenUtils';
 
 interface NextQuestionResponse extends QuestionData {
   completed?: boolean;
@@ -16,6 +18,7 @@ export default function Questionnaire(): JSX.Element {
   const [question, setQuestion] = useState<QuestionData | null>(null);
   const [done, setDone] = useState<boolean>(false);
   const [userEmail, setUserEmail] = useState<string>('');
+  const [showExpiringWarning, setShowExpiringWarning] = useState<boolean>(false);
 
   useEffect(() => {
     // Extract auth parameters from URL
@@ -30,15 +33,29 @@ export default function Questionnaire(): JSX.Element {
       localStorage.setItem('userEmail', email);
     } else {
       // Try to get from localStorage
-      const storedToken = localStorage.getItem('token');
+      const storedToken = getValidToken();
       const storedEmail = localStorage.getItem('userEmail');
+
       if (storedToken && storedEmail) {
         setUserEmail(storedEmail);
+      } else if (!storedToken) {
+        // Token expired or doesn't exist, redirect to login
+        window.location.href = '/?session=expired';
+        return;
       }
     }
 
     void fetchNext();
   }, []);
+
+  const handleExpiringSoon = () => {
+    setShowExpiringWarning(true);
+
+    // Auto-hide warning after 10 seconds
+    setTimeout(() => {
+      setShowExpiringWarning(false);
+    }, 10000);
+  };
 
   const fetchNext = async (): Promise<void> => {
     const response = await api.get<NextQuestionResponse>('/questions/next');
@@ -90,9 +107,29 @@ export default function Questionnaire(): JSX.Element {
           <h2>Welcome to the Questionnaire</h2>
           <p>Authenticated as: {userEmail}</p>
           <p>Answer each question thoughtfully. Your responses will be saved automatically.</p>
+
+          {showExpiringWarning && (
+            <div style={{
+              backgroundColor: '#fef3c7',
+              border: '1px solid #f59e0b',
+              color: '#92400e',
+              padding: '12px 16px',
+              borderRadius: '8px',
+              marginTop: '1rem',
+              fontSize: '14px'
+            }}>
+              ⚠️ Your session will expire soon. Please save your current answer to avoid losing progress.
+            </div>
+          )}
         </div>
       )}
       <Question question={question} onSubmit={submit} />
+
+      {/* Session indicator in bottom-right corner */}
+      <SessionIndicator
+        onExpiringSoon={handleExpiringSoon}
+        warnThresholdMinutes={5}
+      />
     </div>
   );
 }
