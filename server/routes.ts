@@ -441,6 +441,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         encryptedEmail: encryptedData.encrypted,
         iv: encryptedData.iv,
         tag: encryptedData.tag,
+        salt: encryptedData.salt,
         unsubscribeToken
       });
 

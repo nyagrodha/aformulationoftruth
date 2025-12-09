@@ -48,6 +48,7 @@ export const newsletterEmails = pgTable("newsletter_emails", {
   encryptedEmail: text("encrypted_email").notNull(),
   iv: text("iv").notNull(), // Initialization vector for AES-256-GCM
   tag: text("tag").notNull(), // Authentication tag for AES-256-GCM
+  salt: text("salt"), // Per-encryption salt (null for legacy data using static salt)
   unsubscribeToken: text("unsubscribe_token").notNull().unique(), // Secure token for one-click unsubscribe
   subscribed: boolean("subscribed").default(true).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -147,6 +148,7 @@ export const insertNewsletterEmailSchema = createInsertSchema(newsletterEmails).
   encryptedEmail: true,
   iv: true,
   tag: true,
+  salt: true,
   unsubscribeToken: true,
 });
 
