@@ -1,7 +1,11 @@
+
 /* A Formulation of Truth - Single Theme (Tamas) */
 
 /* Import self-hosted fonts */
 @import url('/css/fonts.css');
+
+/* A Formulation of Truth - Three Theme System */
+/*
 
 /* ============================================ */
 /* BASE RESET & COMMON STYLES */
@@ -20,14 +24,11 @@
 
 body {
   font-family: 'Sorts Mill Goudy', Georgia, serif;
+  font-family: 'Georgia', serif;
   min-height: 100vh;
   transition: background-color var(--transition-speed) ease,
               color var(--transition-speed) ease;
 }
-
-/* ============================================ */
-/* TAMAS THEME (Default and Only) */
-/* ============================================ */
 
 body {
   --bg-primary: #000000;      /* Pure black void */
@@ -49,6 +50,109 @@ body {
 }
 
 /* ============================================ */
+
+
+body[data-theme="nila"] {
+  --bg-primary: #0a0a0a;      /* Deep black for neon contrast */
+  --bg-secondary: #1a1a1a;    /* Elevated black */
+  --bg-card: rgba(26, 26, 26, 0.9);
+  --text-primary: #ffffff;    /* Pure white for readability */
+  --text-secondary: #e0e0e0;  /* Slightly dimmed white */
+  --accent-1: #00FFFF;        /* Electric cyan */
+  --accent-2: #FF0080;        /* Hot pink/magenta */
+  --accent-3: #FF5500;        /* Neon orange */
+  --accent-4: #CCFF00;        /* Neon yellow-lime */
+  --border-color: rgba(0, 255, 255, 0.3);
+  --shadow-color: rgba(0, 0, 0, 0.8);
+  --glow-1: rgba(0, 255, 255, 0.8);
+  --glow-2: rgba(255, 0, 128, 0.8);
+  --glow-3: rgba(255, 85, 0, 0.8);
+  --glow-4: rgba(204, 255, 0, 0.8);
+
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+/* ============================================ */
+/* URUVAM THEME (Electrified Neon Void) */
+/* ============================================ */
+
+body[data-theme="uruvam"] {
+  --bg-primary: #050508;      /* Deepest void - almost true black */
+  --bg-secondary: #0a0a0f;    /* Elevated void */
+  --bg-card: rgba(10, 10, 15, 0.85);
+  --text-primary: #e8e8ff;    /* Very light lavender */
+  --text-secondary: #b8b8d8;  /* Dimmed lavender */
+  --accent-1: #9d4edd;        /* Electric purple */
+  --accent-2: #ffea00;        /* Electric yellow */
+  --accent-3: #00ff66;        /* Deep electric green */
+  --accent-4: #ff1744;        /* Deep electric red */
+  --border-color: rgba(157, 78, 221, 0.4);
+  --shadow-color: rgba(5, 5, 8, 0.9);
+  --glow-1: rgba(157, 78, 221, 0.9);     /* Purple glow */
+  --glow-2: rgba(255, 234, 0, 0.9);      /* Yellow glow */
+  --glow-3: rgba(0, 255, 102, 0.9);      /* Green glow */
+  --glow-4: rgba(255, 23, 68, 0.9);      /* Red glow */
+
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+/* ============================================ */
+/* THEME TOGGLE BUTTON */
+/* ============================================ */
+
+
+.theme-btn {
+  background: transparent;
+  border: 2px solid transparent;
+  padding: 0.5rem 1rem;
+  border-radius: 25px;
+  cursor: pointer;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  color: var(--text-secondary);
+}
+
+.theme-btn:hover {
+  transform: scale(1.05);
+}
+
+.theme-btn.active {
+  color: var(--text-primary);
+  border-color: var(--accent-1);
+  box-shadow: 0 0 10px var(--glow-1);
+}
+
+/* Tamas button colors */
+body[data-theme="tamas"] .theme-btn[data-theme="tamas"],
+body:not([data-theme]) .theme-btn[data-theme="tamas"] {
+  color: #00d9ff;
+  border-color: #00d9ff;
+  box-shadow: 0 0 20px rgba(0, 217, 255, 1);
+  text-shadow: 0 0 10px rgba(0, 217, 255, 0.8);
+}
+
+/* Nila button colors - Neon cyan */
+body[data-theme="nila"] .theme-btn[data-theme="nila"] {
+  color: #00FFFF;
+  border-color: #00FFFF;
+  box-shadow: 0 0 20px rgba(0, 255, 255, 1);
+  text-shadow: 0 0 10px rgba(0, 255, 255, 0.8);
+}
+
+/* Uruvam button colors - Electric purple */
+body[data-theme="uruvam"] .theme-btn[data-theme="uruvam"] {
+  color: #9d4edd;
+  border-color: #9d4edd;
+  box-shadow: 0 0 20px rgba(157, 78, 221, 1);
+  text-shadow: 0 0 10px rgba(157, 78, 221, 0.8);
+}
+
+/* ============================================ */
+
 /* TYPOGRAPHY */
 /* ============================================ */
 
@@ -101,12 +205,35 @@ a:hover {
 }
 
 /* Tamas gradient - Psychedelic void */
-.hero {
+body[data-theme="tamas"] .hero,
+body:not([data-theme]) .hero {
   background: radial-gradient(
     1200px 600px at 50% 10%,
     rgba(139, 0, 255, 0.3) 0%,
     rgba(0, 217, 255, 0.2) 40%,
     rgba(0, 255, 65, 0.1) 60%,
+    transparent 80%
+  );
+}
+
+/* Nila gradient - Electric neon glow */
+body[data-theme="nila"] .hero {
+  background: radial-gradient(
+    1200px 600px at 50% 10%,
+    rgba(0, 255, 255, 0.25) 0%,
+    rgba(255, 0, 128, 0.15) 40%,
+    transparent 70%
+  );
+}
+
+/* Uruvam gradient - Electrified neon void */
+body[data-theme="uruvam"] .hero {
+  background: radial-gradient(
+    1200px 600px at 50% 10%,
+    rgba(157, 78, 221, 0.3) 0%,
+    rgba(255, 234, 0, 0.15) 30%,
+    rgba(0, 255, 102, 0.1) 50%,
+    rgba(255, 23, 68, 0.08) 65%,
     transparent 80%
   );
 }
@@ -308,10 +435,109 @@ a:hover {
 }
 
 /* ============================================ */
+/* NILA THEME SPECIFIC OVERRIDES */
+/* ============================================ */
+
+/* "you are this moment" - Neon orange */
+body[data-theme="nila"] .hero-title {
+  color: #FF5500;
+  text-shadow: 0 0 20px rgba(255, 85, 0, 1), 0 0 40px rgba(255, 85, 0, 0.6);
+}
+
+/* Tamil text - Hot pink/magenta */
+body[data-theme="nila"] .lockup-tamil {
+  color: #FF0080;
+  text-shadow: 0 0 20px rgba(255, 0, 128, 1), 0 0 40px rgba(255, 0, 128, 0.6);
+}
+
+/* "|| a formulation of truth ||" - Electric cyan */
+body[data-theme="nila"] .lockup-center {
+  color: #00FFFF;
+  text-shadow: 0 0 20px rgba(0, 255, 255, 1), 0 0 40px rgba(0, 255, 255, 0.6);
+}
+
+/* Ukrainian text - Neon yellow-lime */
+body[data-theme="nila"] .lockup-ukr {
+  color: #CCFF00;
+  text-shadow: 0 0 20px rgba(204, 255, 0, 1), 0 0 40px rgba(204, 255, 0, 0.6);
+}
+
+/* Top Tamil/Devanagari symbol - Hot pink to match energy */
+body[data-theme="nila"] .hero div[style*="Noto Sans Tamil"] {
+  color: #FF69B4 !important;
+  text-shadow: 0 0 20px rgba(255, 105, 180, 1), 0 0 40px rgba(255, 105, 180, 0.6) !important;
+}
+
+/* Links - Neon cyan */
+body[data-theme="nila"] a {
+  color: #00FFFF;
+}
+
+body[data-theme="nila"] a:hover {
+  text-shadow: 0 0 15px rgba(0, 255, 255, 1);
+}
+
+/* ============================================ */
+/* URUVAM THEME SPECIFIC OVERRIDES */
+/* ============================================ */
+
+/* "you are this moment" - Electric yellow */
+body[data-theme="uruvam"] .hero-title {
+  color: #ffea00;
+  text-shadow: 0 0 20px rgba(255, 234, 0, 1), 0 0 40px rgba(255, 234, 0, 0.6);
+}
+
+/* Tamil text - Electric purple */
+body[data-theme="uruvam"] .lockup-tamil {
+  color: #9d4edd;
+  text-shadow: 0 0 20px rgba(157, 78, 221, 1), 0 0 40px rgba(157, 78, 221, 0.6);
+}
+
+/* "|| a formulation of truth ||" - Deep electric green */
+body[data-theme="uruvam"] .lockup-center {
+  color: #00ff66;
+  text-shadow: 0 0 20px rgba(0, 255, 102, 1), 0 0 40px rgba(0, 255, 102, 0.6);
+}
+
+/* Ukrainian text - Deep electric red */
+body[data-theme="uruvam"] .lockup-ukr {
+  color: #ff1744;
+  text-shadow: 0 0 20px rgba(255, 23, 68, 1), 0 0 40px rgba(255, 23, 68, 0.6);
+}
+
+/* Top Tamil/Devanagari symbol - Electric purple to match energy */
+body[data-theme="uruvam"] .hero div[style*="Noto Sans Tamil"] {
+  color: #c77dff !important;
+  text-shadow: 0 0 20px rgba(199, 125, 255, 1), 0 0 40px rgba(199, 125, 255, 0.6) !important;
+}
+
+/* Links - Electric purple */
+body[data-theme="uruvam"] a {
+  color: #9d4edd;
+}
+
+body[data-theme="uruvam"] a:hover {
+  text-shadow: 0 0 15px rgba(157, 78, 221, 1);
+}
+
+/* ============================================ */
+
 /* RESPONSIVE */
 /* ============================================ */
 
 @media (max-width: 768px) {
+  .theme-toggle {
+    top: 1rem;
+    right: 1rem;
+    padding: 0.4rem;
+    gap: 0.3rem;
+  }
+
+  .theme-btn {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.75rem;
+  }
+
   .lockup {
     padding: 2rem 0.5rem;
   }

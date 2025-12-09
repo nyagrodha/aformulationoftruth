@@ -109,20 +109,24 @@ const corsOptions: cors.CorsOptions = {
 };
 
 // Helmet configuration for security headers
+// Note: 'unsafe-inline' for styles is kept due to multiple pages with inline styles
+// TODO: Extract inline styles from remaining pages (about, contact, index, app, etc.)
+// to fully remove 'unsafe-inline' from styleSrc
 const helmetConfig = helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
-      styleSrc: ["'self'", "'unsafe-inline'", "fonts.googleapis.com"],
-      fontSrc: ["'self'", "fonts.gstatic.com"],
+      styleSrc: ["'self'", "'unsafe-inline'"],  // Fonts now self-hosted
+      fontSrc: ["'self'"],  // Fonts now self-hosted, no Google Fonts
       scriptSrc: ["'self'"],
-      imgSrc: ["'self'", "data:", "https:"],
-      connectSrc: ["'self'"],
-      frameSrc: ["'none'"],
+      imgSrc: ["'self'", "data:", "https:", "i.imgur.com"],  // Allow imgur for maintenance page
+      connectSrc: ["'self'", "api.open-meteo.com"],  // Weather API for snow effect
+      frameSrc: ["'self'", "www.youtube-nocookie.com", "w.soundcloud.com"],  // Embeds on maintenance/rich pages
       objectSrc: ["'none'"],
       baseUri: ["'self'"],
       formAction: ["'self'"],
       frameAncestors: ["'none'"],
+      mediaSrc: ["'self'"],  // Allow self-hosted audio
     },
   },
   crossOriginEmbedderPolicy: false, // Allow embedding for shared questionnaires
