@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Questionnaire Shuffle Test</title>
+    <style>
+        body {
+            font-family: monospace;
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+            background: #1a1a1a;
+            color: #0f0;
+        }
+        h1 { color: #0ff; }
+        h2 { color: #ff0; margin-top: 30px; }
+        .test-section {
+            background: #2a2a2a;
+            padding: 15px;
+            margin: 15px 0;
+            border: 1px solid #0f0;
+            border-radius: 5px;
+        }
+        .pass { color: #0f0; }
+        .fail { color: #f00; }
+        .warning { color: #ff0; }
+        button {
+            background: #0f0;
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            margin: 5px;
+            cursor: pointer;
+            font-family: monospace;
+            font-weight: bold;
+        }
+        button:hover { background: #0ff; }
+        pre {
+            background: #000;
+            padding: 10px;
+            overflow-x: auto;
+            border: 1px solid #0f0;
+        }
+        .question-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 10px;
+        }
+        .question-item {
+            background: #333;
+            padding: 8px;
+            border-left: 3px solid #0f0;
+        }
+        .fixed { border-left-color: #0ff; }
+        .answered { background: #2a4a2a; }
+    </style>
+</head>
+<body>
+    <h1>Questionnaire Shuffle Test Suite</h1>
+
+    <div class="test-section">
+        <h2>Test Controls</h2>
+        <button onclick="clearAllStorage()">Clear All Storage</button>
+        <button onclick="runAllTests()">Run All Tests</button>
+        <button onclick="simulatePartialCompletion()">Simulate Partial Completion</button>
+        <button onclick="showCurrentOrder()">Show Current Order</button>
+    </div>
+
+    <div id="results"></div>
+
+    <script>
+        const TOTAL_QUESTIONS = 35;
+
+        // Copy the shuffle function from questionnaire.html
+        function fisherYatesShuffle(array) {
+            const shuffled = [...array];
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+            return shuffled;
+        }
+
+        function getAnsweredQuestions() {
+            const session = localStorage.getItem('a4ot-session');
+            if (session) {
+                const data = JSON.parse(session);
+                const answers = data.answers || {};
+                return Object.keys(answers).map(Number).filter(idx => answers[idx] && answers[idx].trim() !== '');
+            }
+            return [];
+        }
+
+        function initializeQuestionOrder() {
+            const fixedQuestions = [0, 1, 2];
+            const answeredQuestions = getAnsweredQuestions();
+
+            let existingOrder = sessionStorage.getItem('questionOrder');
+            if (existingOrder) {
+                existingOrder = JSON.parse(existingOrder);
+            }
+
+            const answeredShuffleable = [];
+            const unansweredShuffleable = [];
+
+            for (let i = 3; i < 35; i++) {
+                if (answeredQuestions.includes(i)) {
+                    answeredShuffleable.push(i);
+                } else {
+                    unansweredShuffleable.push(i);
+                }
+            }
+
+            if (existingOrder && existingOrder.length === 35) {
+                const newlyShuffled = fisherYatesShuffle(unansweredShuffleable);
+                const questionOrder = [...fixedQuestions];
+                let shuffledIdx = 0;
+
+                for (let i = 3; i < 35; i++) {
+                    const posInExisting = existingOrder.indexOf(i);
+                    if (answeredQuestions.includes(i) && posInExisting >= 3) {
+                        questionOrder[posInExisting] = i;
+                    }
+                }
+
+                for (let i = 3; i < questionOrder.length; i++) {
+                    if (questionOrder[i] === undefined) {
+                        questionOrder[i] = newlyShuffled[shuffledIdx++];
+                    }
+                }
+
+                sessionStorage.setItem('questionOrder', JSON.stringify(questionOrder));
+            } else {
+                const shuffledUnanswered = fisherYatesShuffle(unansweredShuffleable);
+
+                if (answeredQuestions.length === 0) {
+                    const allShuffleable = [];
+                    for (let i = 3; i < 35; i++) {
+                        allShuffleable.push(i);
+                    }
+                    const shuffled = fisherYatesShuffle(allShuffleable);
+                    const questionOrder = [...fixedQuestions, ...shuffled];
+                    sessionStorage.setItem('questionOrder', JSON.stringify(questionOrder));
+                } else {
+                    const combined = fisherYatesShuffle([...answeredShuffleable, ...shuffledUnanswered]);
+                    const questionOrder = [...fixedQuestions, ...combined];
+                    sessionStorage.setItem('questionOrder', JSON.stringify(questionOrder));
+                }
+            }
+        }
+
+        function clearAllStorage() {
+            localStorage.clear();
+            sessionStorage.clear();
+            log('✓ All storage cleared', 'pass');
+        }
+
+        function log(message, type = '') {
+            const results = document.getElementById('results');
+            const div = document.createElement('div');
+            div.className = `test-section ${type}`;
+            div.innerHTML = message;
+            results.appendChild(div);
+        }
+
+        function runAllTests() {
+            document.getElementById('results').innerHTML = '';
+
+            log('<h2>Test 1: Initial Shuffle</h2>');
+            clearAllStorage();
+            initializeQuestionOrder();
+            const order1 = JSON.parse(sessionStorage.getItem('questionOrder'));
+
+            if (order1[0] === 0 && order1[1] === 1 && order1[2] === 2) {
+                log('✓ First 3 questions are fixed (0, 1, 2)', 'pass');
+            } else {
+                log(`✗ FAIL: First 3 questions are: ${order1[0]}, ${order1[1]}, ${order1[2]}`, 'fail');
+            }
+
+            const shuffledPortion = order1.slice(3);
+            const isShuffled = !shuffledPortion.every((val, idx) => val === idx + 3);
+            if (isShuffled) {
+                log('✓ Questions 3-34 are shuffled', 'pass');
+            } else {
+                log('⚠ Questions 3-34 appear in original order (could be coincidence)', 'warning');
+            }
+
+            log(`<pre>Order: [${order1.join(', ')}]</pre>`);
+
+            // Test 2: Partial completion
+            log('<h2>Test 2: Partial Completion</h2>');
+            const session = {
+                email: 'test@example.com',
+                currentQuestion: 5,
+                answers: {
+                    0: 'Answer 0',
+                    1: 'Answer 1',
+                    2: 'Answer 2',
+                    3: 'Answer 3',
+                    4: 'Answer 4'
+                }
+            };
+            localStorage.setItem('a4ot-session', JSON.stringify(session));
+
+            const answered = getAnsweredQuestions();
+            if (answered.length === 5) {
+                log(`✓ Correctly identified ${answered.length} answered questions`, 'pass');
+            } else {
+                log(`✗ FAIL: Expected 5 answered, got ${answered.length}`, 'fail');
+            }
+
+            // Test 3: New session with partial completion
+            log('<h2>Test 3: New Session with Partial Data</h2>');
+            sessionStorage.clear();
+            initializeQuestionOrder();
+            const order3 = JSON.parse(sessionStorage.getItem('questionOrder'));
+
+            const answeredInOrder = answered.every(q => order3.includes(q));
+            if (answeredInOrder) {
+                log('✓ All answered questions still in the order', 'pass');
+            } else {
+                log('✗ FAIL: Some answered questions missing from order', 'fail');
+            }
+
+            const uniqueQuestions = new Set(order3);
+            if (uniqueQuestions.size === 35) {
+                log('✓ All 35 questions present (no duplicates)', 'pass');
+            } else {
+                log(`✗ FAIL: Found ${uniqueQuestions.size} unique questions, expected 35`, 'fail');
+            }
+
+            log(`<pre>New order: [${order3.join(', ')}]</pre>`);
+
+            // Test 4: Session persistence
+            log('<h2>Test 4: Session Persistence</h2>');
+            const order4 = JSON.parse(sessionStorage.getItem('questionOrder'));
+            if (JSON.stringify(order3) === JSON.stringify(order4)) {
+                log('✓ Question order persists in sessionStorage', 'pass');
+            } else {
+                log('✗ FAIL: Question order changed unexpectedly', 'fail');
+            }
+        }
+
+        function simulatePartialCompletion() {
+            clearAllStorage();
+            initializeQuestionOrder();
+
+            const order = JSON.parse(sessionStorage.getItem('questionOrder'));
+            const session = {
+                email: 'test@example.com',
+                currentQuestion: 10,
+                answers: {}
+            };
+
+            // Answer first 10 questions
+            for (let i = 0; i < 10; i++) {
+                session.answers[order[i]] = `Answer to question index ${order[i]}`;
+            }
+
+            localStorage.setItem('a4ot-session', JSON.stringify(session));
+            log(`<h2>Simulated Partial Completion</h2>
+                 Answered first 10 questions. Question indices answered: [${Object.keys(session.answers).join(', ')}]`, 'pass');
+        }
+
+        function showCurrentOrder() {
+            const order = sessionStorage.getItem('questionOrder');
+            const answered = getAnsweredQuestions();
+
+            if (!order) {
+                log('<h2>No Question Order Found</h2>Initializing...', 'warning');
+                initializeQuestionOrder();
+                showCurrentOrder();
+                return;
+            }
+
+            const orderArray = JSON.parse(order);
+            let html = '<h2>Current Question Order</h2><div class="question-list">';
+
+            orderArray.forEach((qIdx, position) => {
+                const isFixed = position < 3;
+                const isAnswered = answered.includes(qIdx);
+                const classes = [
+                    'question-item',
+                    isFixed ? 'fixed' : '',
+                    isAnswered ? 'answered' : ''
+                ].filter(Boolean).join(' ');
+
+                html += `<div class="${classes}">
+                    <strong>Position ${position}</strong>: Question #${qIdx}
+                    ${isFixed ? ' [FIXED]' : ''}
+                    ${isAnswered ? ' [ANSWERED]' : ''}
+                </div>`;
+            });
+
+            html += '</div>';
+            html += `<p>Legend: <span style="color:#0ff">Blue border = Fixed</span> | <span style="color:#0f0">Green background = Answered</span></p>`;
+            log(html);
+        }
+
+        // Run initial test on load
+        window.addEventListener('DOMContentLoaded', () => {
+            log('<h2>Page Loaded</h2>Ready to run tests. Click "Run All Tests" to begin.', 'warning');
+        });
+    </script>
+</body>
+</html>
