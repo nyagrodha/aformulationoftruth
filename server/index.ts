@@ -2,15 +2,9 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { reminderService } from "./services/reminderService";
-import { setupSecurity, healthCheck } from "./middleware/security";
+import { setupSecurity, healthCheck, shutdownRateLimiter } from "./middleware/security";
 
 const app = express();
-
-// Apply security middleware first
-setupSecurity(app);
-
-// Add health check endpoints
-healthCheck(app);
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
@@ -46,6 +40,12 @@ app.use((req, res, next) => {
 });
 
 (async () => {
+  // Apply security middleware first (async for Redis connection)
+  await setupSecurity(app);
+
+  // Add health check endpoints
+  healthCheck(app);
+
   const server = await registerRoutes(app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
@@ -80,4 +80,26 @@ app.use((req, res, next) => {
     // Start the reminder service
     reminderService.start();
   });
+
+  // Graceful shutdown handling
+  const shutdown = async (signal: string) => {
+    log(`${signal} received, shutting down gracefully...`);
+
+    // Stop accepting new connections
+    server.close(() => {
+      log('HTTP server closed');
+    });
+
+    // Stop reminder service
+    reminderService.stop();
+
+    // Close Redis connection
+    await shutdownRateLimiter();
+
+    log('Graceful shutdown complete');
+    process.exit(0);
+  };
+
+  process.on('SIGTERM', () => shutdown('SIGTERM'));
+  process.on('SIGINT', () => shutdown('SIGINT'));
 })();
