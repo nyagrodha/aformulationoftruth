@@ -1,5 +1,8 @@
 /* A Formulation of Truth - Single Theme (Tamas) */
 
+/* Import self-hosted fonts */
+@import url('/css/fonts.css');
+
 /* ============================================ */
 /* BASE RESET & COMMON STYLES */
 /* ============================================ */
@@ -16,7 +19,7 @@
 }
 
 body {
-  font-family: 'Georgia', serif;
+  font-family: 'Sorts Mill Goudy', Georgia, serif;
   min-height: 100vh;
   transition: background-color var(--transition-speed) ease,
               color var(--transition-speed) ease;
@@ -51,6 +54,7 @@ body {
 
 h1, h2, h3 {
   font-family: 'Orbitron', sans-serif;
+  font-weight: 700;
 }
 
 h1 {
