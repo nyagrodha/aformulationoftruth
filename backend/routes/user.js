@@ -21,7 +21,7 @@ router.get('/me', verifyToken, async (req, res) => {
     // Get user from database
     if (dbClient) {
       const result = await dbClient.query(
-        'SELECT id, email, username, display_name, created_at, is_admin FROM users WHERE email = $1',
+        'SELECT id, email, username, display_name, created_at FROM users WHERE email = $1',
         [email]
       );
 
@@ -32,7 +32,6 @@ router.get('/me', verifyToken, async (req, res) => {
           email: user.email,
           username: user.username,
           displayName: user.display_name || user.username,
-          isAdmin: user.is_admin || false,
           createdAt: user.created_at
         });
       }
