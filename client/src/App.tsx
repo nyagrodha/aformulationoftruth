@@ -7,6 +7,7 @@ import { useAuth } from "@/hooks/useAuth";
 import AuthPage from "@/pages/auth";
 import AuthPortalPage from "@/pages/auth-portal";
 import AuthCallbackPage from "@/pages/auth-callback";
+import OTPLoginPage from "@/pages/otp-login";
 import QuestionnairePage from "@/pages/questionnaire";
 import CompletionPage from "@/pages/completion";
 import ReviewDeclinedPage from "@/pages/review-declined";
@@ -38,6 +39,7 @@ function Router() {
         <>
           <Route path="/" component={AuthPage} />
           <Route path="/auth-portal" component={AuthPortalPage} />
+          <Route path="/otp-login" component={OTPLoginPage} />
         </>
       ) : (
         <>
