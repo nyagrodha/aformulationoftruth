@@ -37,7 +37,16 @@ app.use(httpLogger);
 
 app.use(sessionMiddleware);
 app.use(attachUser);
-app.use(csrfProtection as unknown as RequestHandler);
+const csrfExcludedPostPrefix = '/auth/otp/';
+
+app.use((req, res, next) => {
+  if (req.method === 'POST' && req.path.startsWith(csrfExcludedPostPrefix)) {
+    next();
+    return;
+  }
+
+  (csrfProtection as unknown as RequestHandler)(req, res, next);
+});
 
 app.get('/auth/csrf-token', (req, res) => {
   res.json({ csrfToken: req.csrfToken() });
