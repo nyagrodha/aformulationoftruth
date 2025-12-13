@@ -1,4 +1,4 @@
-# A Formulation of Truth API
+# a formulation of truth API
 
 Secure Node.js API providing questionnaire storage and Phase 1 authentication with PostgreSQL.
 
