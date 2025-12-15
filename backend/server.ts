@@ -1,7 +1,77 @@
 // server.js
 // Load environment variables
 import dotenv from 'dotenv';
+import fs from 'fs';
 dotenv.config(); // Load from .env in current directory
+
+// ═══════════════════════════════════════════════════════════════════════════
+// FAILSAFE: Check Essential Environment Variables
+// ═══════════════════════════════════════════════════════════════════════════
+const REQUIRED_ENV_VARS = [
+  'DATABASE_URL',
+  'JWT_SECRET',
+  'PORT'
+];
+
+const CRITICAL_ENV_VARS = [
+  'SENDGRID_API_KEY',
+  'SMTP_HOST',
+  'SMTP_USER',
+  'SMTP_PASS'
+];
+
+const missingRequired: string[] = [];
+const missingCritical: string[] = [];
+
+// Check required variables
+for (const envVar of REQUIRED_ENV_VARS) {
+  if (!process.env[envVar]) {
+    missingRequired.push(envVar);
+  }
+}
+
+// Check critical variables (at least one email provider must be configured)
+const hasEmailProvider = process.env.SENDGRID_API_KEY ||
+  (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS);
+
+if (!hasEmailProvider) {
+  console.error('❌ FATAL: No email provider configured!');
+  console.error('   You must set either:');
+  console.error('   - SENDGRID_API_KEY for SendGrid, OR');
+  console.error('   - SMTP_HOST, SMTP_USER, SMTP_PASS for SMTP');
+  missingRequired.push('EMAIL_PROVIDER');
+}
+
+// Fail fast if required variables are missing
+if (missingRequired.length > 0) {
+  console.error('═══════════════════════════════════════════════════════════');
+  console.error('❌ FATAL ERROR: Missing required environment variables');
+  console.error('═══════════════════════════════════════════════════════════');
+  console.error('The following REQUIRED variables are not set:');
+  missingRequired.forEach(v => console.error(`   ✗ ${v}`));
+  console.error('');
+  console.error('Server cannot start without these variables.');
+  console.error('Please check your .env file at:');
+  console.error(`   ${process.cwd()}/.env`);
+  console.error('═══════════════════════════════════════════════════════════');
+  process.exit(1);
+}
+
+// Warn about optional but recommended variables
+const RECOMMENDED_ENV_VARS = ['TELEGRAM_BOT_TOKEN', 'TWILIO_ACCOUNT_SID', 'TWILIO_AUTH_TOKEN'];
+const missingRecommended: string[] = [];
+for (const envVar of RECOMMENDED_ENV_VARS) {
+  if (!process.env[envVar]) {
+    missingRecommended.push(envVar);
+  }
+}
+
+if (missingRecommended.length > 0) {
+  console.warn('⚠️  WARNING: Optional features disabled due to missing env vars:');
+  missingRecommended.forEach(v => console.warn(`   - ${v}`));
+}
+
+console.log('✅ Environment variables validated successfully');
 
 // ─── Rate-limit middleware ───────────────────────────────────────────────
 import express from 'express';
@@ -186,6 +256,15 @@ client.connect()
     `);
   })
   .then(() => {
+    // Add platform columns to questionnaire_sessions for multi-platform support
+    return client.query(`
+      ALTER TABLE questionnaire_sessions
+      ADD COLUMN IF NOT EXISTS platform TEXT DEFAULT 'web',
+      ADD COLUMN IF NOT EXISTS platform_user_id TEXT,
+      ADD COLUMN IF NOT EXISTS platform_username TEXT;
+    `);
+  })
+  .then(() => {
     // Create questionnaire_question_order table for shuffled questions
     return client.query(`
       CREATE TABLE IF NOT EXISTS questionnaire_question_order (
@@ -253,6 +332,14 @@ client.connect()
     `);
   })
   .then(() => {
+    // Add platform and skipped columns to user_answers for multi-platform support
+    return client.query(`
+      ALTER TABLE user_answers
+      ADD COLUMN IF NOT EXISTS platform TEXT DEFAULT 'web',
+      ADD COLUMN IF NOT EXISTS skipped BOOLEAN DEFAULT FALSE;
+    `);
+  })
+  .then(() => {
     // Create indexes for better performance
     return client.query(`
       CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
@@ -281,6 +368,13 @@ client.connect()
   .then(() => {
     return client.query(`
       CREATE INDEX IF NOT EXISTS idx_user_answers_user_id ON user_answers(user_id);
+    `);
+  })
+  .then(() => {
+    // Create index for platform queries on questionnaire_sessions
+    return client.query(`
+      CREATE INDEX IF NOT EXISTS idx_questionnaire_sessions_platform
+      ON questionnaire_sessions(platform, platform_user_id);
     `);
   })
   .then(() => {
@@ -832,6 +926,42 @@ if (process.env.TELEGRAM_BOT_TOKEN) {
 // Start server
 setInterval(() => {}, 1000 * 60); // keep-alive
 
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Server is running on http://0.0.0.0:${PORT}`);
-});
+const socketPath = process.env.SOCKET_PATH;
+
+(async () => {
+  if (socketPath) {
+    // Clean up stale socket file
+    try {
+      const stat = fs.statSync(socketPath);
+      if (stat.isSocket()) fs.unlinkSync(socketPath);
+    } catch (err) {
+      if (err.code !== "ENOENT") {
+        console.warn(`Socket cleanup warning: ${err.message}`);
+      }
+    }
+
+    // Try to bind to Unix socket with fallback
+    const tryUnix = () => {
+      return new Promise((resolve, reject) => {
+        app
+          .listen(socketPath, resolve)
+          .once("error", reject);
+      });
+    };
+
+    try {
+      await tryUnix();
+      console.log(`Server is running on unix socket ${socketPath}`);
+    } catch (err) {
+      console.error(`Unix socket failed: ${err.message}`);
+      app.listen(PORT, '127.0.0.1', () => {
+        console.log(`Server is running on http://127.0.0.1:${PORT} (fallback mode)`);
+      });
+    }
+  } else {
+    // Bind to TCP port (backward compatibility)
+    app.listen(PORT, '127.0.0.1', () => {
+      console.log(`Server is running on http://127.0.0.1:${PORT}`);
+    });
+  }
+})();
