@@ -6,927 +6,15 @@
 <title>To be a person, to act as one ought, to act according to the categorical imperative--in other words to be a unified self through time (having risked titling this something thoughtless) one may not want to identify a 'self' as unified in any person</title>
 
 <!-- Favicons -->
-<link rel="icon" type="image/svg+xml" href="/favicon.svg">
-<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
-<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/x-icon" href="/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicons/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicons/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/favicons/apple-touch-icon.png">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Rye&family=Spectral:ital,wght@0,400;0,700;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Special+Elite&family=Noto+Sans+Tamil:wght@400;700&display=swap" rel="stylesheet">
-<style>
-:root {
---dust: #C4B8A8;
---parchment: #D8CFC0;
---taupe: #B8A99A;
---burnt-sienna: #8B4513;
---dried-blood: #722F37;
---saddle-brown: #5C4033;
---sun-bleached: #CEC4B4;
---shadow: #2C1810;
---rust: #B7410E;
---bone: #D4CCC0;
---midnight: #1a1a1a;
---obsidian: #0a0a0a;
-}
-
-* {
-margin: 0;
-padding: 0;
-box-sizing: border-box;
-}
-
-body {
-font-family: 'Spectral', 'Libre Baskerville', Georgia, serif;
-background: var(--parchment);
-color: #1E1510;
-line-height: 1.9;
-font-size: 36.2px;
-min-height: 100vh;
-background-image:
-url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
-background-blend-mode: multiply;
-display: grid;
-grid-template-columns: 280px 1fr 280px;
-gap: 2rem;
-padding: 2rem;
-padding-top: 100px;
-}
-
-@media (max-width: 1200px) {
-body {
-grid-template-columns: 1fr;
-padding-top: 100px;
-}
-}
-
-/* Worn paper texture overlay */
-body::before {
-content: '';
-position: fixed;
-top: 0;
-left: 0;
-width: 100%;
-height: 100%;
-background:
-radial-gradient(ellipse at 20% 20%, transparent 60%, rgba(139, 69, 19, 0.08) 100%),
-radial-gradient(ellipse at 80% 80%, transparent 60%, rgba(139, 69, 19, 0.08) 100%);
-pointer-events: none;
-z-index: 1000;
-}
-
-/* Christmas Lights - Adafruit Style */
-.christmas-lights {
-position: fixed;
-top: 0;
-left: 0;
-width: 100%;
-height: 80px;
-z-index: 2000;
-pointer-events: none;
-display: flex;
-justify-content: space-around;
-align-items: flex-start;
-padding-top: 10px;
-}
-
-.light {
-width: 20px;
-height: 30px;
-border-radius: 50% 50% 40% 40%;
-position: relative;
-animation: twinkle 2s ease-in-out infinite;
-}
-
-.light::before {
-content: '';
-position: absolute;
-top: -8px;
-left: 50%;
-transform: translateX(-50%);
-width: 4px;
-height: 10px;
-background: #2C1810;
-border-radius: 2px;
-}
-
-.light::after {
-content: '';
-position: absolute;
-top: 0;
-left: 0;
-width: 100%;
-height: 100%;
-border-radius: 50% 50% 40% 40%;
-background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.8), transparent);
-}
-
-.light.red {
-background: linear-gradient(135deg, #ff0000, #cc0000);
-box-shadow: 0 0 20px #ff0000, 0 0 40px #ff0000;
-animation-delay: 0s;
-}
-
-.light.green {
-background: linear-gradient(135deg, #00ff00, #00cc00);
-box-shadow: 0 0 20px #00ff00, 0 0 40px #00ff00;
-animation-delay: 0.3s;
-}
-
-.light.blue {
-background: linear-gradient(135deg, #0000ff, #0000cc);
-box-shadow: 0 0 20px #0000ff, 0 0 40px #0000ff;
-animation-delay: 0.6s;
-}
-
-.light.yellow {
-background: linear-gradient(135deg, #ffff00, #cccc00);
-box-shadow: 0 0 20px #ffff00, 0 0 40px #ffff00;
-animation-delay: 0.9s;
-}
-
-.light.purple {
-background: linear-gradient(135deg, #ff00ff, #cc00cc);
-box-shadow: 0 0 20px #ff00ff, 0 0 40px #ff00ff;
-animation-delay: 1.2s;
-}
-
-.light.cyan {
-background: linear-gradient(135deg, #00ffff, #00cccc);
-box-shadow: 0 0 20px #00ffff, 0 0 40px #00ffff;
-animation-delay: 1.5s;
-}
-
-@keyframes twinkle {
-0%, 100% {
-  opacity: 1;
-  filter: brightness(1);
-}
-50% {
-  opacity: 0.5;
-  filter: brightness(1.5);
-}
-}
-
-/* Wire for lights */
-.lights-wire {
-position: fixed;
-top: 20px;
-left: 0;
-width: 100%;
-height: 2px;
-background: repeating-linear-gradient(
-  90deg,
-  #2C1810 0px,
-  #2C1810 5px,
-  transparent 5px,
-  transparent 10px
-);
-z-index: 1999;
-pointer-events: none;
-}
-
-/* Snowflake Container */
-.snowflakes {
-position: fixed;
-top: 0;
-left: 0;
-width: 100%;
-height: 100%;
-pointer-events: none;
-z-index: 1500;
-display: none;
-}
-
-.snowflakes.active {
-display: block;
-}
-
-.snowflake {
-position: absolute;
-top: -10px;
-color: #fff;
-font-size: 1em;
-opacity: 0.8;
-animation: fall linear infinite;
-text-shadow: 0 0 5px rgba(255, 255, 255, 0.8);
-}
-
-@keyframes fall {
-to {
-  transform: translateY(100vh) rotate(360deg);
-}
-}
-
-/* Sidebar Cards */
-.sidebar {
-position: sticky;
-top: 120px;
-height: fit-content;
-display: flex;
-flex-direction: column;
-gap: 1.5rem;
-}
-
-.sidebar-card {
-background: linear-gradient(135deg, var(--parchment) 0%, var(--dust) 100%);
-border: 3px solid var(--burnt-sienna);
-padding: 1.5rem;
-box-shadow:
-inset 0 0 20px rgba(139, 69, 19, 0.1),
-4px 4px 0 rgba(44, 24, 16, 0.2);
-position: relative;
-text-decoration: none;
-display: block;
-transition: all 0.3s ease;
-}
-
-.sidebar-card:hover {
-transform: translateY(-2px);
-box-shadow:
-inset 0 0 20px rgba(139, 69, 19, 0.15),
-6px 6px 0 rgba(44, 24, 16, 0.25);
-}
-
-.sidebar-card h3 {
-font-family: 'Rye', cursive;
-font-size: 0.6rem;
-letter-spacing: 0.15em;
-color: var(--shadow);
-text-transform: uppercase;
-margin-bottom: 0.5rem;
-text-shadow: 1px 1px 0 var(--dust);
-}
-
-.sidebar-card p {
-font-size: 0.4rem;
-line-height: 1.5;
-color: var(--saddle-brown);
-margin-bottom: 0;
-}
-
-.sidebar-card a {
-color: var(--burnt-sienna);
-text-decoration: underline;
-}
-
-.sidebar-card a:hover {
-color: var(--dried-blood);
-}
-
-/* Quote Card Specific */
-#quote-card {
-min-height: 200px;
-}
-
-#quote-text {
-font-style: italic;
-font-size: 0.45rem;
-line-height: 1.6;
-color: var(--shadow);
-margin-bottom: 0.75rem;
-}
-
-#quote-author {
-font-family: 'Rye', cursive;
-font-size: 0.4rem;
-color: var(--burnt-sienna);
-text-align: right;
-letter-spacing: 0.1em;
-}
-
-.container {
-max-width: 720px;
-margin: 0 auto;
-padding: 80px 40px 120px;
-position: relative;
-grid-column: 2;
-}
-
-@media (max-width: 1200px) {
-.container {
-grid-column: 1;
-}
-.sidebar {
-position: relative;
-top: 0;
-}
-}
-
-/* Title styling - Spaghetti Western Wanted Poster */
-h1 {
-font-family: 'Rye', cursive;
-font-size: clamp(2rem, 6vw, 3.5rem);
-color: var(--shadow);
-text-align: center;
-text-transform: uppercase;
-letter-spacing: 0.15em;
-margin-bottom: 0.3em;
-text-shadow: 2px 2px 0 var(--dust);
-position: relative;
-}
-
-h1::before,
-h1::after {
-content: '✦';
-font-size: 0.4em;
-vertical-align: middle;
-margin: 0 0.5em;
-color: var(--burnt-sienna);
-}
-
-/* Tamil 2 and Spaghetti Container */
-.hero-symbols {
-display: flex;
-align-items: center;
-justify-content: center;
-gap: 2rem;
-margin: 2rem 0;
-flex-wrap: wrap;
-}
-
-/* Obsidian Tamil numeral 2 */
-.tamil-numeral-2 {
-font-family: 'Noto Sans Tamil', sans-serif;
-font-size: clamp(4rem, 10vw, 7rem);
-font-weight: 700;
-color: var(--obsidian);
-text-shadow:
-  0 0 1px rgba(255, 255, 255, 0.3),
-  1px 1px 2px rgba(255, 255, 255, 0.2),
-  -1px -1px 2px rgba(255, 255, 255, 0.1);
-filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.5));
-animation: obsidianShimmer 3s ease-in-out infinite;
-position: relative;
-transform: skewY(-2deg);
-}
-
-@keyframes obsidianShimmer {
-0%, 100% {
-  text-shadow:
-    0 0 1px rgba(255, 255, 255, 0.3),
-    1px 1px 2px rgba(255, 255, 255, 0.2),
-    -1px -1px 2px rgba(255, 255, 255, 0.1);
-}
-50% {
-  text-shadow:
-    0 0 2px rgba(255, 255, 255, 0.5),
-    2px 2px 3px rgba(255, 255, 255, 0.3),
-    -2px -2px 3px rgba(255, 255, 255, 0.2);
-}
-}
-
-/* Spaghetti Bowl SVG */
-.spaghetti-bowl {
-width: clamp(80px, 15vw, 120px);
-height: clamp(80px, 15vw, 120px);
-filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.3));
-}
-
-/* Subtitle elements below title */
-.subtitle-primary {
-font-family: 'Rye', cursive;
-font-size: clamp(1.6rem, 4.8vw, 2.8rem);
-color: var(--shadow);
-text-align: center;
-letter-spacing: 0.12em;
-margin: 0.5em 0 0.3em;
-text-shadow: 2px 2px 0 var(--dust);
-font-weight: 400;
-}
-
-.subtitle-secondary {
-font-family: 'Rye', cursive;
-font-size: clamp(1.4rem, 4.2vw, 2.45rem);
-color: var(--saddle-brown);
-text-align: center;
-letter-spacing: 0.08em;
-margin: 0.3em 0 1.5em;
-text-shadow: 1px 1px 0 var(--sun-bleached);
-font-weight: 700;
-line-height: 1.4;
-}
-
-.subtitle-secondary .weather-text {
-color: var(--burnt-sienna);
-font-style: italic;
-}
-
-.dedication {
-text-align: center;
-font-style: italic;
-font-size: 0.95rem;
-color: var(--saddle-brown);
-margin-bottom: 4rem;
-letter-spacing: 0.05em;
-line-height: 1.6;
-}
-
-.dedication span {
-display: block;
-font-style: normal;
-font-family: 'Special Elite', monospace;
-font-size: 0.85rem;
-letter-spacing: 0.15em;
-margin-top: 0.3rem;
-color: var(--burnt-sienna);
-}
-
-/* Decorative border under title */
-.title-border {
-width: 60%;
-max-width: 300px;
-height: 3px;
-background: linear-gradient(90deg,
-transparent,
-var(--burnt-sienna) 20%,
-var(--burnt-sienna) 80%,
-transparent);
-margin: 0 auto 4rem;
-position: relative;
-}
-
-.title-border::before {
-content: '◆';
-position: absolute;
-left: 50%;
-top: 50%;
-transform: translate(-50%, -50%);
-background: var(--parchment);
-padding: 0 10px;
-color: var(--burnt-sienna);
-font-size: 0.8rem;
-}
-
-/* Epigraph styling - BOLD, dramatic, like a proclamation */
-.epigraph {
-border-left: 6px solid var(--dried-blood);
-padding: 2.5rem 3rem;
-margin: 4rem 0;
-background: linear-gradient(135deg,
-rgba(114, 47, 55, 0.12) 0%,
-rgba(139, 69, 19, 0.06) 100%);
-position: relative;
-box-shadow:
-inset 0 0 30px rgba(139, 69, 19, 0.1),
-4px 4px 0 rgba(44, 24, 16, 0.15);
-}
-
-.epigraph.sanskrit {
-text-align: center;
-border-left: none;
-border: none;
-padding: 3rem 2rem;
-background: var(--shadow);
-color: var(--parchment);
-box-shadow:
-inset 0 0 60px rgba(0, 0, 0, 0.5),
-0 8px 32px rgba(44, 24, 16, 0.4);
-position: relative;
-}
-
-.epigraph.sanskrit::before,
-.epigraph.sanskrit::after {
-content: '✦ ✦ ✦';
-display: block;
-letter-spacing: 0.5em;
-color: var(--rust);
-font-size: 0.8rem;
-opacity: 0.8;
-}
-
-.epigraph.sanskrit::before {
-margin-bottom: 1.5rem;
-}
-
-.epigraph.sanskrit::after {
-margin-top: 1.5rem;
-}
-
-.sanskrit-text {
-font-size: clamp(1.4rem, 4vw, 1.8rem);
-color: var(--dust);
-margin-bottom: 1.5rem;
-font-weight: 700;
-line-height: 1.6;
-text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-}
-
-.epigraph.sanskrit em {
-display: block;
-font-style: italic;
-color: var(--parchment);
-font-size: clamp(1.1rem, 3vw, 1.4rem);
-font-weight: 700;
-margin-bottom: 1rem;
-line-height: 1.5;
-}
-
-.epigraph.sanskrit .attribution {
-font-family: 'Rye', cursive;
-font-size: 1rem;
-color: var(--rust);
-letter-spacing: 0.15em;
-text-transform: uppercase;
-}
-
-/* Benjamin quote - western proclamation style */
-.epigraph.benjamin {
-border-left: none;
-border: 4px solid var(--burnt-sienna);
-text-align: center;
-padding: 3rem;
-background:
-linear-gradient(135deg, var(--parchment) 0%, var(--dust) 100%);
-position: relative;
-}
-
-.epigraph.benjamin::before {
-content: '❝';
-position: absolute;
-top: -0.3em;
-left: 50%;
-transform: translateX(-50%);
-font-size: 3rem;
-color: var(--burnt-sienna);
-background: var(--parchment);
-padding: 0 0.5rem;
-line-height: 1;
-}
-
-.epigraph.benjamin em {
-display: block;
-font-style: italic;
-color: var(--shadow);
-font-size: clamp(1.15rem, 3vw, 1.35rem);
-font-weight: 700;
-margin-bottom: 1.5rem;
-line-height: 1.7;
-}
-
-.epigraph .attribution {
-font-family: 'Rye', cursive;
-font-size: 0.95rem;
-color: var(--burnt-sienna);
-letter-spacing: 0.12em;
-text-transform: uppercase;
-}
-
-/* Section dividers - like a horizon line */
-.divider {
-text-align: center;
-margin: 4rem 0;
-color: var(--burnt-sienna);
-font-size: 1.5rem;
-letter-spacing: 1em;
-opacity: 0.6;
-}
-
-.divider::before {
-content: '— ☆ —';
-}
-
-/* Body text */
-p {
-margin-bottom: 1.5rem;
-text-align: left;
-text-indent: 0;
-}
-
-/* Standalone short lines - like dialogue in a western */
-.standalone {
-font-size: 1.1rem;
-margin: 2.5rem 0;
-padding-left: 2rem;
-border-left: 2px solid var(--rust);
-color: var(--shadow);
-}
-
-.standalone.centered {
-text-align: center;
-border-left: none;
-padding-left: 0;
-}
-
-/* Questions - like wanted poster items */
-.question {
-font-family: 'Special Elite', monospace;
-font-size: 1rem;
-color: var(--dried-blood);
-margin: 1.5rem 0;
-padding: 0.5rem 1rem;
-background: rgba(139, 69, 19, 0.08);
-border-left: 4px solid var(--rust);
-}
-
-/* Emphasis */
-em {
-font-style: italic;
-color: var(--burnt-sienna);
-}
-
-strong {
-font-weight: 700;
-color: var(--shadow);
-}
-
-/* Final section - the closing */
-.closing {
-text-align: center;
-margin-top: 5rem;
-padding-top: 3rem;
-border-top: 1px solid var(--burnt-sienna);
-}
-
-.closing p {
-text-align: center;
-font-size: 1.1rem;
-}
-
-.final-sanskrit {
-font-size: 1rem;
-color: var(--dried-blood);
-margin: 3rem 0 1rem;
-padding: 2rem;
-background: linear-gradient(135deg,
-rgba(114, 47, 55, 0.08) 0%,
-transparent 100%);
-border: 1px solid var(--burnt-sienna);
-}
-
-.final-attribution {
-font-family: 'Rye', cursive;
-font-size: 1rem;
-letter-spacing: 0.2em;
-color: var(--saddle-brown);
-margin-top: 1rem;
-}
-
-/* Coda */
-.coda {
-margin-top: 4rem;
-font-style: italic;
-color: var(--saddle-brown);
-}
-
-.coda p {
-margin-bottom: 0.8rem;
-}
-
-/* The end mark */
-.end-mark {
-text-align: center;
-margin-top: 5rem;
-font-size: 2rem;
-color: var(--burnt-sienna);
-opacity: 0.5;
-}
-
-/* Footnote styling - triśūla */
-.footnote-ref {
-font-size: 0.75em;
-vertical-align: super;
-color: var(--dried-blood);
-text-decoration: none;
-font-weight: 700;
-margin-left: 2px;
-}
-
-.footnotes {
-margin-top: 5rem;
-padding-top: 2rem;
-border-top: 2px solid var(--burnt-sienna);
-}
-
-.footnotes h3 {
-font-family: 'Rye', cursive;
-font-size: 1rem;
-letter-spacing: 0.2em;
-color: var(--saddle-brown);
-margin-bottom: 1.5rem;
-text-transform: uppercase;
-}
-
-.footnote {
-font-size: 0.9rem;
-line-height: 1.7;
-margin-bottom: 1.5rem;
-padding-left: 2rem;
-position: relative;
-color: var(--saddle-brown);
-}
-
-.footnote::before {
-content: 'Ψ';
-position: absolute;
-left: 0;
-color: var(--dried-blood);
-font-weight: 700;
-}
-
-.footnote em {
-color: var(--shadow);
-}
-
-/* Newsletter Section - moved to bottom */
-.newsletter-section {
-margin: 5rem auto 3rem;
-padding: 3rem 2rem;
-background: var(--midnight);
-border: 3px solid var(--burnt-sienna);
-box-shadow:
-  inset 0 0 30px rgba(139, 69, 19, 0.2),
-  0 8px 32px rgba(44, 24, 16, 0.3);
-max-width: 600px;
-}
-
-.newsletter-section h3 {
-font-family: 'Rye', cursive;
-font-size: clamp(1.5rem, 4vw, 2rem);
-color: var(--dust);
-text-align: center;
-letter-spacing: 0.1em;
-text-transform: uppercase;
-margin-bottom: 1rem;
-text-shadow: 2px 2px 0 var(--burnt-sienna);
-}
-
-.newsletter-section p {
-font-size: 0.9rem;
-text-align: center;
-color: var(--dust);
-margin-bottom: 1.5rem;
-line-height: 1.6;
-}
-
-.newsletter-form {
-display: flex;
-flex-direction: column;
-gap: 1rem;
-}
-
-.newsletter-input {
-padding: 0.75rem;
-font-size: 1rem;
-font-family: 'Spectral', serif;
-background: var(--parchment);
-border: 2px solid var(--burnt-sienna);
-color: var(--shadow);
-border-radius: 4px;
-transition: all 0.3s ease;
-}
-
-.newsletter-input:focus {
-outline: none;
-border-color: var(--rust);
-box-shadow: 0 0 10px rgba(183, 65, 14, 0.3);
-}
-
-.newsletter-input::placeholder {
-color: var(--saddle-brown);
-opacity: 0.7;
-}
-
-.newsletter-button {
-padding: 0.75rem 1.5rem;
-font-family: 'Rye', cursive;
-font-size: 1rem;
-letter-spacing: 0.1em;
-background: var(--burnt-sienna);
-color: var(--parchment);
-border: 2px solid var(--rust);
-border-radius: 4px;
-cursor: pointer;
-text-transform: uppercase;
-transition: all 0.3s ease;
-box-shadow: 0 4px 8px rgba(44, 24, 16, 0.3);
-}
-
-.newsletter-button:hover {
-background: var(--rust);
-transform: translateY(-2px);
-box-shadow: 0 6px 12px rgba(44, 24, 16, 0.4);
-}
-
-.newsletter-button:disabled {
-opacity: 0.5;
-cursor: not-allowed;
-transform: none;
-}
-
-.newsletter-message {
-margin-top: 1rem;
-padding: 0.75rem;
-border-radius: 4px;
-text-align: center;
-font-size: 0.9rem;
-display: none;
-}
-
-.newsletter-message.success {
-background: rgba(34, 197, 94, 0.2);
-border: 1px solid #22c55e;
-color: #22c55e;
-}
-
-.newsletter-message.error {
-background: rgba(239, 68, 68, 0.2);
-border: 1px solid #ef4444;
-color: #ef4444;
-}
-
-.newsletter-message.info {
-background: rgba(59, 130, 246, 0.2);
-border: 1px solid #3b82f6;
-color: #3b82f6;
-}
-
-.privacy-note {
-font-size: 0.75rem;
-text-align: center;
-color: var(--dust);
-margin-top: 1rem;
-font-style: italic;
-}
-
-/* Decorative corners */
-.corner {
-position: fixed;
-width: 60px;
-height: 60px;
-opacity: 0.3;
-pointer-events: none;
-z-index: 900;
-}
-
-.corner svg {
-width: 100%;
-height: 100%;
-fill: var(--burnt-sienna);
-}
-
-.corner.top-left { top: 80px; left: 20px; }
-.corner.top-right { top: 80px; right: 20px; transform: rotate(90deg); }
-.corner.bottom-left { bottom: 20px; left: 20px; transform: rotate(-90deg); }
-.corner.bottom-right { bottom: 20px; right: 20px; transform: rotate(180deg); }
-
-/* Responsive */
-@media (max-width: 600px) {
-body {
-  padding: 1rem;
-  padding-top: 100px;
-}
-
-.container {
-  padding: 60px 25px 80px;
-}
-
-.sidebar {
-  display: none;
-}
-
-h1 {
-  letter-spacing: 0.08em;
-}
-
-h1::before,
-h1::after {
-  display: none;
-}
-
-.epigraph {
-  padding: 1rem 1.5rem;
-}
-
-.corner {
-  display: none;
-}
-
-.hero-symbols {
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.christmas-lights {
-  height: 60px;
-}
-
-.light {
-  width: 15px;
-  height: 22px;
-}
-}
-
-/* Subtle animation - like heat shimmer */
-@keyframes shimmer {
-0%, 100% { opacity: 0.3; }
-50% { opacity: 0.5; }
-}
-
-.corner {
-animation: shimmer 8s ease-in-out infinite;
-}
-</style>
+<link rel="stylesheet" href="/css/western-theme.css">
 </head>
 <body>
 <!-- Christmas Lights Wire -->
@@ -990,26 +78,26 @@ animation: shimmer 8s ease-in-out infinite;
 <div class="hero-symbols">
   <div class="tamil-numeral-2">௨</div>
 
-  <!-- Spaghetti Bowl SVG -->
+  <!-- Spaghetti Bowl SVG 
   <svg class="spaghetti-bowl" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
-    <!-- Bowl -->
+    <!-- Bowl 
     <ellipse cx="100" cy="150" rx="80" ry="30" fill="#8B4513" opacity="0.3"/>
     <path d="M 30 120 Q 30 100 50 90 L 150 90 Q 170 100 170 120 L 165 150 Q 165 170 100 175 Q 35 170 35 150 Z"
           fill="#D2691E" stroke="#8B4513" stroke-width="3"/>
 
-    <!-- Spaghetti strands -->
+    <!-- Spaghetti strands
     <path d="M 60 110 Q 65 95 70 110 Q 75 125 70 110" stroke="#F4A460" stroke-width="4" fill="none" opacity="0.9"/>
     <path d="M 75 105 Q 80 90 85 105 Q 90 120 85 105" stroke="#DEB887" stroke-width="4" fill="none" opacity="0.9"/>
     <path d="M 90 108 Q 95 93 100 108 Q 105 123 100 108" stroke="#F5DEB3" stroke-width="4" fill="none" opacity="0.9"/>
     <path d="M 105 106 Q 110 91 115 106 Q 120 121 115 106" stroke="#F4A460" stroke-width="4" fill="none" opacity="0.9"/>
     <path d="M 120 110 Q 125 95 130 110 Q 135 125 130 110" stroke="#DEB887" stroke-width="4" fill="none" opacity="0.9"/>
 
-    <!-- More intertwined strands -->
+    <!-- More intertwined strands
     <path d="M 65 115 Q 70 105 75 115 Q 80 125 85 115" stroke="#F5DEB3" stroke-width="3" fill="none" opacity="0.8"/>
     <path d="M 95 112 Q 100 102 105 112 Q 110 122 115 112" stroke="#F4A460" stroke-width="3" fill="none" opacity="0.8"/>
     <path d="M 110 118 Q 115 108 120 118 Q 125 128 130 118" stroke="#DEB887" stroke-width="3" fill="none" opacity="0.8"/>
 
-    <!-- Fork stuck in spaghetti -->
+    <!-- Fork stuck in spaghetti 
     <g transform="translate(140, 80) rotate(45)">
       <rect x="0" y="0" width="4" height="40" fill="#C0C0C0"/>
       <rect x="-2" y="-8" width="2" height="12" fill="#C0C0C0"/>
@@ -1018,12 +106,12 @@ animation: shimmer 8s ease-in-out infinite;
       <rect x="10" y="-8" width="2" height="12" fill="#C0C0C0"/>
     </g>
 
-    <!-- Tomato sauce splatters -->
+    <!-- Tomato sauce splatters
     <circle cx="55" cy="118" r="3" fill="#8B0000" opacity="0.6"/>
     <circle cx="125" cy="115" r="4" fill="#8B0000" opacity="0.6"/>
     <circle cx="95" cy="120" r="2" fill="#DC143C" opacity="0.6"/>
   </svg>
-</div>
+</div> -->
 
 <div class="subtitle-primary">You are not one self.</div>
 
@@ -1076,7 +164,7 @@ Dedicated to the memory and imaginative talent of<br>
 
 <p>Abhinavagupta said: it belongs to consciousness recognizing itself.<a href="#fn1" class="footnote-ref">Ψ</a></p>
 
-<p>Doing so it creates this effect that metaphor can't quite capture. Likely with a head full of LSD some folks remark it's like looking in a mirror and seeing that you are also the mirror; I'd paint a different picture with words employing '2-CB'. Recognise within you, the I, as an absence. Words alone engender and inaugurate its possibility just as around the inside clay the emptiness of a pot.</p>
+<p>Doing so it creates this effect that metaphor can't quite capture. Likely with a head full of LSD some folks remark it's like looking in a mirror and seeing that you are also the mirror; I'd paint a different picture with words employing '2-CB'. Recognise within you, the I, as an absence that words alone create the possibility for just as around an inside clay the emptiness of a pot.</p>
 
 <p>He called this <em>camatkāra</em>, which means something like "wonder" or "the shiver."</p>
 
@@ -1084,15 +172,27 @@ Dedicated to the memory and imaginative talent of<br>
 
 <div class="divider"></div>
 
-<p>Lacan was a French psychoanalyst who smoked too many cigarettes and said things like "the unconscious is structured like a language."</p>
+<p>Lacan was a French psychoanalyst. From today's standard he smoked too many cigarettes. He said things like "the very foundation of interhuman dialogue is misunderstanding.", "the unconscious is structured like a language."; "I think where I am not; therefore, I am where I do not think."</p>
 
-<p>He also said the self is basically a grammatical error.</p>
+<p>He also said the self, this thing we call 'I' in English is basically a grammatical error. Imagine that bookish cunt we all know start correcting people for saying 'I'... apologies in advance.</p>
 
-<p>When you say "I," you are not referring to yourself. You are referring to a word that stands where you should be. The real you—if there is one—is somewhere else, hiding behind the sentence.</p>
+<p>We all call ourselves by the same name: I. It's who we are and yet when we say I, per Lacanian theory, we aren't referring to ourselves. Rather, I appeals to a phoneme—this word I—to stand in where oneself ought be. But instead there is this grammatical anomaly.</p>
 
-<p>This is why talking about yourself feels like trying to catch a fish with your hands.</p>
+<p>Remember the clay pot? The emptiness that words create? Pāṇini knew about this two thousand years before Lacan was born.</p>
 
-<p>Every time you grab, it slips.</p>
+<p>Pāṇini was an ancient Sanskrit grammarian. He wrote a grammar so precise it could compile computer code if computers had existed in 400 BCE. His rules for how language works are like instructions for a very small machine that builds sentences one atom at a time.</p>
+
+<p>Here's what Pāṇini did that matters: he never gave you a cozy definition like "the nominative case marks the subject." He did something sharper. The nominative—the case of I, the case of naming—only appears when nothing else has claimed the noun. It's a case of exclusion. Of what remains.</p>
+
+<p>In Sanskrit grammar, you don't get to be "I" because you're the doer or the thinker. You get to be "I" because no other relationship seized you first. The nominative is the case of residue. What's left over when every other connection has been mapped and named.</p>
+
+<p>Think about that. "I" is what remains when nothing else applies. Like the empty space in the pot. Like consciousness recognizing itself in a play. The subject isn't a thing. It's an absence that appears when all the relationships have been accounted for and there's still... this. Whatever this is.</p>
+
+<p>Lacan would have loved this. The grammatical anomaly isn't a bug. It's the feature. We're a remainder. A leftover. The space that appears when you've mapped everything else.</p>
+
+<p>This is why talking about yourself feels like trying to catch a trout with your hands.</p>
+
+<p>Every time you grasp at trout fishing in America, they slip. Likely cause of that lube you'd been using earlier to rub one out.</p>
 
 <div class="divider"></div>
 
@@ -1104,81 +204,87 @@ Dedicated to the memory and imaginative talent of<br>
 
 <div class="question">"How would you like to die?"</div>
 
-<p>These are not polite questions. They are holes in the ice.</p>
+<p>These are not polite questions. They are holes in the rapidly melting ice.</p>
 
-<p>If you answer them honestly, something cold touches your feet.</p>
-
-<div class="divider"></div>
-
-<p>Christine Korsgaard is a philosopher at Harvard. She says the self is not something you find. It is something you make.</p>
-
-<p>Every choice is a kind of sewing.</p>
-
-<p>You stitch yourself together out of what's available: your mother's phrases, your teacher's posture, songs you heard when you were seventeen, a stranger's coat you saw once and never forgot.</p>
-
-<p>You are a quilt made of other people's fabric.</p>
-
-<p>This is not sad. Quilts are warm.</p>
+<p>If you answer honestly, spontaneously, something cold touches your feet.</p>
 
 <div class="divider"></div>
 
-<p>The instruction is: answer once. Then forget the questions for ten years.</p>
+<p>If we think about this too much, we're likely students of Christine Korsgaard's, a Kantian ethicist (retired) at Harvard.</p>
+
+<div style="text-align: center; margin: 2rem 0;">
+  <img src="/images/korsgaardonvacuuming-1200-cropped.webp" alt="Pre-meme meme from 2012: You can't spell vacuum without u" style="max-width: 100%; height: auto; border-radius: 4px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);">
+</div>
+
+<p>Anyhow 'stine says the self is not something we find. It's something we make. And from birth until death we're making a quilt, our lives. Quilts on quilts on quilts--every irl choice a kind of sewing.</p>
+
+<p>We stitch ourselves together (or not!) out of what's available: mother's phrases, a teacher's posture, songs we heard when we were angsty teens, that stranger's coat I saw once at Cafe Roma and never forgot (it was nice!).</p>
+
+<p>We are a quilt. We are only ever made of other people's fabrics. These days in the hellscape that is later-ish (?) capitalizm, priority is given to individuals, and we make like brands to sell a vanishingly fleeting formulation. A you de parvence variously seeking fortune, fame, and all things incompatibile with the realities of being a quilt. A family.</p>
+
+<p>This is not sad. Quilts are warm. This has been brought to you by extending the metaphor.</p>
+
+<div class="divider"></div>
+
+<p>The instruction is this: answer once. Then do your best to forget the questions. That dude up there he answered it four times. Frankly, tha's a lot.</p>
 
 <p>This is important.</p>
 
-<p>If you think about the questions too often, you will start to believe your answers are who you are. They are not who you are. They are who you were on a Tuesday in November when you were tired and the light was gray.</p>
+<p>If we think about the questions too often, our responses start to become performative. It creates this vicious cycle that, once embarked upon wittingly or not, the ego's in control and the value of the mechanic is diminished. We soon (so soon!) start to believe the answers to be who we are. But questions are not who you, or I, or anyone else are. They are who we were on a Tuesday in November when you were tired and the light was gray.</p>
 
-<p>Ten years later you will be someone else answering the same questions.</p>
+<p>Ten years later, having all but perfectly forgotten, we'll be someone else. That person, who is sitting in room different than the one you are in now, may answer the same questions and experience a good dose of that camatkāra.</p>
 
-<p>The questions don't change. You do.</p>
+<p>The questions don't change. I do.</p>
 
 <p>This is like a river passing the same bridge twice. The bridge thinks it's seeing the same river. The river knows better.</p>
 
 <div class="divider"></div>
 
-<p>Lacan had a concept called <em>objet petit a</em>. The little object. The thing you're always looking for but can never find.</p>
+<p>Lacan thought up a concept he called <em>objet petit a</em>. The little object. The thing we're always looking for but can never find.</p>
 
-<p>It's the reason you open the refrigerator when you're not hungry.</p>
+<p>It's the hole in your sould that makes you open the refrigerator late at night/early in the AM when you're not even hungry.</p>
 
-<p>It's the reason you answer questionnaires about yourself.</p>
+<p>It's the hole in your ass... I mean, self-understanding that makes anyone think to answer a questionnaire in the first place!</p>
 
-<p>You're looking for something. You don't know what it is. If you found it, you wouldn't recognize it. But looking feels important.</p>
+<p>We're seeking something. We don't know what that is. Engaged thusly a seeker, we wouldn't recognize it. But the looking the perfecting feels important.</p>
 
 <p>The looking is the thing.</p>
 
 <div class="divider"></div>
 
-<p>In India they have a word: <em>pratyabhijñā</em>. It means recognition.</p>
+<p>In what is today India long time back some poet put together a word: <em>pratyabhijñā</em>. In english it means recognition.</p>
 
-<p>Not learning something new. Remembering something you always knew but forgot.</p>
+<p>Not seeking, not looking for something new. Remembering something. Becoming Buddha. Buddha being a simple past passive participle in Sanskrit. In English it means that which is known. Past in that we always knew it, but forgot; passive because we don't gotta do anything to understand it. Precisely the opposite!</p>
 
-<p>Like when you walk into a room and suddenly remember you've been there before, in a dream or another life or last Thursday.</p>
+<p>Like when I walked into a room and suddenly remembered I'd been there before, in a dream or another life or (more likely) last Thursday.</p>
 
 <p>That shiver.</p>
 
-<p>The questionnaire is a machine for producing that shiver.</p>
+<p>The questionnaire is a machine I host here for producing that shiver.</p>
 
-<p>Not the answers. The moment between the question and the answer. The pause where you are nobody in particular, just consciousness wondering what it will say.</p>
+<p>Not the answers.</p>
 
-<p>That pause is freedom.</p>
+<p>The moment between having read the question and beginning to see the answer... that pause wherein I am really nobody in particular, the absence I imagine who can translate a memory. This is what the eye is therefore. Have we the courage not to correct but just to answer? Who is it, anyway, who thinks I shouldn't write that? Stop giving a fuck. We are a speaking quilt, wondering what it will say next. </p>
+
+<p>That pause is uninterrupted delight, the freedom  and bliss of cosnciousness recognizing itself.</p>
 
 <p>The eleventh-century Kashmiris had a word for that too: <em>svātantrya</em>. It means "not needing anything outside yourself to be what you are."</p>
 
 <p>Like a cat in a sunbeam. The cat isn't waiting for anything. The cat is complete.</p>
 
-<p>You are also complete. You just keep forgetting.</p>
+<p>You are also complete. I just keep forgetting it about you bc we're such bitches to one another because... well, late (?) capitsalizm.</p>
 
 <div class="divider"></div>
 
-<p>The world moves faster now.</p>
+<p> And the world moves faster now.</p>
 
-<p>In 1890, when Proust answered these questions in a parlor in Paris, a person might be one thing for their whole life. A baker. A countess. A disappointment to their father.</p>
+<p>In 1890, when Proust answered these questions somewhere in Paris, a person might be one thing for their whole life. A baker. A countess. A disappointment to their father.</p>
 
-<p>Now you can be twelve things before lunch.</p>
+<p>Now you or I can be twelve things before lunch! We can purge in the restroom and be another 7 to 9 before bed.</p>
 
-<p>This is confusing but it is also an opportunity.</p>
+<p>This is confusing, it is far from naturalized, but it also may be an opportunity.</p>
 
-<p>If you are not one self, you don't have to defend any particular self. You can watch them come and go like clouds.</p>
+<p>If we are not one self, I don't have to defend any particular self, any version of me against the others. I do get to watch though as come for the second time in a day and go like clouds.</p>
 
 <p>Clouds are beautiful. Nobody argues with clouds.</p>
 
@@ -1190,25 +296,27 @@ Dedicated to the memory and imaginative talent of<br>
 
 <p>Behind the door is another door.</p>
 
-<p>Behind that door is a room with no floor, only sky.</p>
+<p>Behind that door is a room with no floor, only a cloud-filled sky.</p>
 
 <p>You've been falling through that sky your whole life.</p>
 
+<p>How did the clouds even get inside? And where am I falling to?</p>
+
 <p>The fall is the happiness.</p>
 
-<div class="divider"></div>
+<div class="divider">Whatever nature may there be is in the fall.</div>
 
 <p>Answer. Wait ten years. Answer again.</p>
 
-<p>Notice that you are different.</p>
+<p>Notice something different.</p>
 
-<p>Notice that you are the same.</p>
+<p>Notice the same.</p>
 
-<p>Notice that "different" and "same" are just words, and you are not a word.</p>
+<p>Notice "different" and "same" are words, and we are not a word.</p>
 
-<p>You are the one using the words.</p>
+<p>We are the ones using the words with one another.</p>
 
-<p>You are the one who can put them down.</p>
+<p>We are the ones who put down or lift up. And all of us do both. But we gotta practice doing more the lifting up one another.</p>
 
 <div class="closing">
 <div class="final-sanskrit">
@@ -1234,6 +342,16 @@ See <em>Abhinavabhāratī</em>, Abhinavagupta's commentary on Bharata's <em>Nā�
 </div>
 
 <div class="end-mark">☆</div>
+
+<!-- Begin Questionnaire Call-to-Action -->
+<div style="text-align: center; margin: 3rem 0; padding: 2rem; background: rgba(139, 69, 19, 0.1); border-radius: 8px; border: 2px solid var(--border-color);">
+  <h3 style="font-family: 'Noto Sans Tamil', serif; font-size: 2rem; margin-bottom: 1rem; color: var(--text-color);">
+    <a href="/begin" style="color: inherit; text-decoration: none; transition: all 0.3s ease;">
+      தொடங்கு
+    </a>
+  </h3>
+  <p style="font-style: italic; color: var(--text-muted); margin: 0;">Begin the questionnaire</p>
+</div>
 
 <!-- Newsletter Section -->
 <div class="newsletter-section">

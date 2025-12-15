@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>அரவம உரவம், அரவம உரவம்</title>
+
+  <!-- Tamil fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+Thambi+2:wght@800&display=swap" rel="stylesheet">
+  
+  <style>
+    body {
+      margin: 0;
+      height: 100vh;
+      background-color: #000011; /* Cosmic black with a hint of blue */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    
+    .tamil-container {
+      text-align: center;
+      position: relative;
+    }
+    
+    .tamil-neon {
+      font-family: 'SaiIndira', 'Baloo Thambi 2', 'Noto Sans Tamil', serif;
+      font-size: 3vw; /* 3% of viewport width - responsive and dramatic */
+      color: #ff8c00; /* Bright neon orange */
+      text-shadow:
+        0 0 2.5px #ff69b4,   /* Hot pink glow */
+        0 0 5px #ff69b4,
+        0 0 8px #ff1493,     /* Deep pink */
+        0 0 15px #ff69b4,
+        0 0 25px #4169e1;    /* Touch of blue */
+      transition: transform 1s ease, text-shadow 1s ease;
+      text-align: center;
+      padding: 2rem;
+      line-height: 1.2;
+    }
+    
+    .tamil-neon:hover {
+      transform: scale(1.45);
+      text-shadow:
+        0 0 13px #ff69b4,
+        0 0 28px #ff69b4,
+        0 0 56px #ff1493,
+        0 0 83px #ff69b4,
+        0 0 120px #4169e1;
+    }
+    
+    .first-line {
+      display: block;
+      opacity: 1;
+    }
+    
+    .second-line {
+      display: block;
+      opacity: 1;
+      margin-top: 0.5rem;
+      transition: opacity 0.6s ease-out, transform 0.3s ease-out, color 0.2s ease-out, text-shadow 0.1s ease-out, left 0.3s ease-out, top 0.3s ease-out;
+      z-index: 10;
+    }
+    
+    .second-line.fade-out {
+      opacity: 0;
+      transform: translateY(20px) scale(0.9);
+    }
+    
+    .second-line.incarnation {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+    
+    .questionnaire-link {
+      font-family: 'Arial', sans-serif;
+      font-size: 1.8vw;
+      color: #9370db; /* Medium slate blue */
+      text-shadow:
+        0 0 3px #9370db,
+        0 0 6px #8a2be2,     /* Blue violet */
+        0 0 12px #9370db,
+        0 0 20px #4b0082,    /* Indigo */
+        0 0 35px #9370db;
+      text-decoration: none;
+      text-align: center;
+      position: fixed;
+      top: 60%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      opacity: 0;
+      transition: all 2s ease-in-out;
+      padding: 1rem 2rem;
+      border: 2px solid transparent;
+      border-radius: 12px;
+      cursor: pointer;
+      z-index: 100;
+      background-color: rgba(147, 112, 219, 0.05);
+    }
+    
+    .questionnaire-link.appear {
+      opacity: 0.7;
+      transform: translate(-50%, -50%) scale(1);
+    }
+    
+    .questionnaire-link.foreground {
+      opacity: 1;
+      font-size: 2.2vw;
+      transform: translate(-50%, -50%) scale(1.2);
+      text-shadow:
+        0 0 8px #9370db,
+        0 0 15px #8a2be2,
+        0 0 25px #9370db,
+        0 0 40px #4b0082,
+        0 0 60px #9370db;
+      border-color: #9370db;
+      background-color: rgba(147, 112, 219, 0.15);
+      box-shadow: 
+        0 0 20px rgba(147, 112, 219, 0.3),
+        0 0 40px rgba(147, 112, 219, 0.2);
+    }
+    
+    .questionnaire-link:hover {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1.3);
+      text-shadow:
+        0 0 10px #9370db,
+        0 0 20px #8a2be2,
+        0 0 35px #9370db,
+        0 0 50px #4b0082,
+        0 0 80px #9370db;
+      border-color: #bb86fc;
+      background-color: rgba(147, 112, 219, 0.25);
+      box-shadow: 
+        0 0 30px rgba(147, 112, 219, 0.5),
+        0 0 60px rgba(147, 112, 219, 0.3);
+    }
+    
+    .questionnaire-link.portal-rush {
+      animation: portalRush 1.5s ease-in forwards;
+      pointer-events: none;
+    }
+    
+    @keyframes portalRush {
+      0% {
+        transform: translate(-50%, -50%) scale(1.3);
+        opacity: 1;
+        border-radius: 12px;
+      }
+      30% {
+        transform: translate(-50%, -50%) scale(2);
+        opacity: 0.9;
+        border-radius: 20px;
+      }
+      60% {
+        transform: translate(-50%, -50%) scale(5);
+        opacity: 0.7;
+        border-radius: 50px;
+        background-color: rgba(147, 112, 219, 0.4);
+      }
+      80% {
+        transform: translate(-50%, -50%) scale(12);
+        opacity: 0.3;
+        border-radius: 100px;
+        background-color: rgba(147, 112, 219, 0.6);
+      }
+      100% {
+        transform: translate(-50%, -50%) scale(25);
+        opacity: 0;
+        border-radius: 200px;
+        background-color: rgba(147, 112, 219, 0.8);
+      }
+    }
+    
+    .email-portal {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0);
+      opacity: 0;
+      z-index: 200;
+      background: rgba(147, 112, 219, 0.9);
+      border: 2px solid #9370db;
+      border-radius: 15px;
+      padding: 2rem;
+      text-align: center;
+      transition: all 1s ease-out;
+      backdrop-filter: blur(10px);
+    }
+    
+    .email-portal.appear {
+      transform: translate(-50%, -50%) scale(1);
+      opacity: 1;
+    }
+    
+    .email-portal input {
+      background: rgba(0, 0, 17, 0.8);
+      border: 1px solid #9370db;
+      color: #fff;
+      padding: 1rem;
+      font-size: 1.2rem;
+      border-radius: 8px;
+      text-align: center;
+      margin: 1rem 0;
+      width: 300px;
+      outline: none;
+    }
+    
+    .email-portal input:focus {
+      border-color: #bb86fc;
+      box-shadow: 0 0 15px rgba(147, 112, 219, 0.5);
+    }
+    
+    .email-portal button {
+      background: #9370db;
+      border: none;
+      color: #fff;
+      padding: 1rem 2rem;
+      font-size: 1.1rem;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-top: 1rem;
+      transition: all 0.3s ease;
+    }
+    
+    .email-portal button:hover {
+      background: #bb86fc;
+      box-shadow: 0 0 20px rgba(147, 112, 219, 0.6);
+    }
+    
+    .tamil-container.keep-glowing {
+      opacity: 0.6;
+      transform: scale(0.9);
+      transition: all 3s ease-out;
+    }
+  </style>
+</head>
+<body>
+  <div class="tamil-container" id="tamilContainer">
+    <div class="tamil-neon">
+      <span class="first-line">அரவம உரவம்,</span>
+      <span class="second-line" id="secondLine">உரவம அரவம்</span>
+    </div>
+  </div>
+  
+  <a href="#" class="questionnaire-link" id="questionnaireLink">
+    begin the questionnaire
+  </a>
+  
+  <div class="email-portal" id="emailPortal">
+    <h3 style="color: #fff; margin-bottom: 1rem; font-family: 'Arial', sans-serif;">enter the truth</h3>
+    <input type="email" id="emailInput" placeholder="your email address" required>
+    <br>
+    <button onclick="enterQuestionnaire()">proceed into the questions</button>
+  </div>
+
+  <script>
+    // Authentication check - redirect to login if not authenticated
+    (async function checkAuth() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const token = urlParams.get('token');
+
+      // If token in URL, validate it
+      if (token) {
+        try {
+          const response = await fetch('/api/auth/validate-magic-link', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ token })
+          });
+
+          if (response.ok) {
+            // Remove token from URL
+            window.history.replaceState({}, document.title, '/');
+            return; // User is now authenticated
+          }
+        } catch (error) {
+          console.error('Token validation error:', error);
+        }
+      }
+
+      // Check if user has valid session
+      try {
+        const response = await fetch('/api/auth/session', {
+          credentials: 'include'
+        });
+
+        if (!response.ok) {
+          // Not authenticated, redirect to login
+          window.location.href = '/login.html';
+        }
+      } catch (error) {
+        console.error('Session check error:', error);
+        window.location.href = '/login.html';
+      }
+    })();
+
+    const secondLine = document.getElementById('secondLine');
+    const tamilContainer = document.getElementById('tamilContainer');
+    const questionnaireLink = document.getElementById('questionnaireLink');
+    
+    // 5 Primary neon colors
+    const primaryNeonColors = [
+      '#ff0000', // Red
+      '#00ff00', // Green  
+      '#00ffff', // Much brighter electric cyan-blue
+      '#ffff00', // Yellow
+      '#ff00ff'  // Magenta
+    ];
+    
+    // Original phrases
+    const originalPhrase = 'உரவம அரவம்';
+    const oppositePhrase = 'அரவம உரவம்';
+    
+    let incarnationCount = 0;
+    let currentPhrase = originalPhrase;
+    let flickerInterval;
+    
+    // Generate intense flickering neon glow
+    function getFlickeringNeonShadow(color) {
+      const intensity = Math.random() * 40 + 20; // Random intensity 20-60
+      const flicker = Math.random() * 15 + 5; // Random flicker 5-20
+      return `
+        0 0 ${intensity * 0.1}px ${color},
+        0 0 ${intensity * 0.2}px ${color},
+        0 0 ${intensity * 0.4}px ${color},
+        0 0 ${intensity * 0.8}px ${color},
+        0 0 ${intensity * 1.2}px ${color},
+        0 0 ${intensity * 2}px ${color},
+        0 0 ${flicker}px ${color}
+      `;
+    }
+    
+    // Get random position on screen
+    function getRandomPosition() {
+      const maxX = window.innerWidth - 400; // Account for text width
+      const maxY = window.innerHeight - 200; // Account for text height
+      const x = Math.random() * maxX;
+      const y = Math.random() * maxY;
+      return { x, y };
+    }
+    
+    // Start the initial fade effect for second line after page loads
+    setTimeout(() => {
+      secondLine.classList.add('fade-out');
+      
+      // Start the 51 incarnations cycle after initial fade
+      setTimeout(() => {
+        startIncarnationCycle();
+      }, 1000);
+      
+    }, 2000); // 2 seconds after page load
+    
+    function startIncarnationCycle() {
+      if (incarnationCount >= 51) {
+        // After 51 incarnations, show the opposite phrase permanently at center
+        secondLine.style.position = 'static';
+        secondLine.style.transform = 'scale(1)';
+        secondLine.textContent = oppositePhrase;
+        secondLine.style.color = '#ff8c00'; // Return to original orange
+        secondLine.style.textShadow = getFlickeringNeonShadow('#ff69b4'); // Return to hot pink glow
+        secondLine.classList.remove('fade-out');
+        secondLine.classList.add('incarnation');
+        
+        clearInterval(flickerInterval);
+        return;
+      }
+      
+      // Show questionnaire link after 14th incarnation
+      if (incarnationCount === 14) {
+        setTimeout(() => {
+          // Keep Tamil glowing in background instead of fading
+          tamilContainer.classList.add('keep-glowing');
+          questionnaireLink.classList.add('appear');
+          
+          // Gradually bring questionnaire link more into foreground
+          setTimeout(() => {
+            questionnaireLink.classList.add('foreground');
+          }, 3000);
+          
+        }, 800);
+      }
+      
+      // Select random primary color
+      const randomColor = primaryNeonColors[Math.floor(Math.random() * primaryNeonColors.length)];
+      
+      // Get random position
+      const position = getRandomPosition();
+      
+      // Position randomly on screen
+      secondLine.style.position = 'fixed';
+      secondLine.style.left = position.x + 'px';
+      secondLine.style.top = position.y + 'px';
+      secondLine.style.transform = 'translate(0, 0)'; // Reset transform
+      
+      // Start with 50% larger
+      secondLine.style.transform = 'scale(1.5)';
+      secondLine.style.color = randomColor;
+      secondLine.style.textShadow = getFlickeringNeonShadow(randomColor);
+      secondLine.classList.remove('fade-out');
+      secondLine.classList.add('incarnation');
+      
+      // Handle 7th incarnation special behavior (alternates 3x)
+      if (incarnationCount % 7 === 0 && incarnationCount > 0) {
+        performSeventhIncarnationCycle(randomColor, position);
+        return;
+      }
+      
+      secondLine.textContent = currentPhrase;
+      
+      // Start flickering effect
+      flickerInterval = setInterval(() => {
+        secondLine.style.textShadow = getFlickeringNeonShadow(randomColor);
+      }, 80); // Flicker every 80ms
+      
+      // Size animation sequence over 1600ms
+      setTimeout(() => {
+        secondLine.style.transform = 'scale(0.75)'; // 25% smaller
+      }, 400);
+      
+      setTimeout(() => {
+        secondLine.style.transform = 'scale(1.07)'; // 7% bigger
+      }, 800);
+      
+      setTimeout(() => {
+        secondLine.style.transform = 'scale(1.3)'; // Getting larger
+      }, 1200);
+      
+      // Stay visible for 1600ms total
+      setTimeout(() => {
+        clearInterval(flickerInterval);
+        
+        // Fade out
+        secondLine.classList.remove('incarnation');
+        secondLine.classList.add('fade-out');
+        
+        incarnationCount++;
+        
+        // Next incarnation after fade
+        setTimeout(() => {
+          startIncarnationCycle();
+        }, 600); // Wait for fade out
+        
+      }, 1600); // Visible for 1600ms
+    }
+    
+    function performSeventhIncarnationCycle(color, position) {
+      let alternationCount = 0;
+      let currentText = originalPhrase;
+      
+      function alternateText() {
+        if (alternationCount >= 6) { // 3 cycles (original->opposite->original = 3x)
+          // End the 7th incarnation cycle
+          clearInterval(flickerInterval);
+          secondLine.classList.remove('incarnation');
+          secondLine.classList.add('fade-out');
+          
+          incarnationCount++;
+          
+          setTimeout(() => {
+            startIncarnationCycle();
+          }, 600);
+          return;
+        }
+        
+        currentText = currentText === originalPhrase ? oppositePhrase : originalPhrase;
+        secondLine.textContent = currentText;
+        alternationCount++;
+        
+        // Next alternation after 200ms
+        setTimeout(alternateText, 200);
+      }
+      
+      secondLine.textContent = currentText;
+      
+      // Start flickering
+      flickerInterval = setInterval(() => {
+        secondLine.style.textShadow = getFlickeringNeonShadow(color);
+      }, 60); // Faster flicker for 7th incarnation
+      
+      // Size changes during alternation
+      setTimeout(() => {
+        secondLine.style.transform = 'scale(-0.75)';
+      }, 300);
+      
+      setTimeout(() => {
+        secondLine.style.transform = 'scale(1.07)';
+      }, 600);
+      
+      // Start alternating after initial display
+      setTimeout(alternateText, 400);
+    }
+    
+    // Add click handler for questionnaire link - PORTAL RUSH EFFECT
+    questionnaireLink.addEventListener('click', function(e) {
+      e.preventDefault();
+      
+      // Start the portal rush animation
+      questionnaireLink.classList.add('portal-rush');
+      
+      // After portal rush completes, show email portal
+      setTimeout(() => {
+        document.getElementById('emailPortal').classList.add('appear');
+      }, 1200); // Slightly before portal rush ends for smooth transition
+    });
+    
+    // Function to handle questionnaire entry
+    function enterQuestionnaire() {
+      const email = document.getElementById('emailInput').value;
+      if (!email || !email.includes('@')) {
+        alert('Please enter a valid email address');
+        return;
+      }
+      
+      // Store email and redirect to questionnaire
+      localStorage.setItem('userEmail', email);
+      window.location.href = '/questionnaire';
+      // Or call your questionnaire initialization function
+    }
+    
+    // Make enterQuestionnaire globally available
+    window.enterQuestionnaire = enterQuestionnaire;
+  </script>
+</body>

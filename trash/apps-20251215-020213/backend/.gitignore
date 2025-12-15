@@ -1,0 +1,57 @@
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Dependencies
+node_modules/
+
+# Logs
+logs/
+*.log
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage
+coverage/
+.nyc_output
+
+# Build output
+dist/
+build/
+compiled/
+
+# Uploads and temporary files
+uploads/
+temp/
+tmp/
+
+# Database backups
+backups/
+*.sql
+*.dump
+
+# Session store
+sessions/
+
+# Cache
+.cache/
+
+# IDE
+.vscode/
+.idea/
+
+# SSL certificates
+ssl/
+certificates/
+*.pem
+*.key
+*.crt
+
+# OS
+.DS_Store
+Thumbs.db

@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign In - A Formulation of Truth</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #000;
+            color: #00ffff;
+            font-family: 'Courier New', monospace;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 500px;
+            width: 100%;
+            padding: 3rem;
+            border: 2px solid rgba(0, 255, 255, 0.3);
+            border-radius: 16px;
+            background: rgba(0, 255, 255, 0.05);
+            text-align: center;
+        }
+
+        .symbol {
+            font-size: 3rem;
+            color: #ff00ff;
+            margin-bottom: 1.5rem;
+            text-shadow: 0 0 20px #ff00ff;
+        }
+
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            color: #ff00ff;
+        }
+
+        .description {
+            color: #cccccc;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+
+        .form {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        input[type="email"] {
+            width: 100%;
+            padding: 1rem;
+            background: rgba(0, 255, 255, 0.1);
+            border: 2px solid #00ffff;
+            border-radius: 8px;
+            color: #fff;
+            font-family: inherit;
+            font-size: 1rem;
+            outline: none;
+        }
+
+        input[type="email"]:focus {
+            border-color: #ff00ff;
+            box-shadow: 0 0 10px rgba(255, 0, 255, 0.3);
+        }
+
+        button {
+            width: 100%;
+            padding: 1rem 2rem;
+            background: #00ffff;
+            color: #000;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        button:hover {
+            background: #ff00ff;
+            box-shadow: 0 0 20px rgba(255, 0, 255, 0.5);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .footer {
+            margin-top: 2rem;
+            color: #cccccc;
+            opacity: 0.6;
+            font-size: 0.9rem;
+        }
+
+        .error {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid #ef4444;
+            border-radius: 8px;
+            padding: 1rem;
+            color: #ff6b6b;
+            margin-bottom: 1rem;
+        }
+
+        .success {
+            background: rgba(34, 197, 94, 0.2);
+            border: 1px solid #22c55e;
+            border-radius: 8px;
+            padding: 1rem;
+            color: #4ade80;
+            margin-bottom: 1rem;
+        }
+
+        .loading {
+            color: #00ffff;
+            font-size: 1.2rem;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .user-info {
+            margin-bottom: 2rem;
+        }
+
+        .user-email {
+            color: #00ffff;
+            font-size: 1.2rem;
+            margin: 1rem 0;
+        }
+
+        nav {
+            margin-top: 2rem;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(0, 255, 255, 0.3);
+        }
+
+        nav a {
+            color: #00ffff;
+            text-decoration: none;
+            margin: 0 1rem;
+            transition: all 0.3s ease;
+        }
+
+        nav a:hover {
+            color: #ff00ff;
+            text-shadow: 0 0 10px #ff00ff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="loadingState" class="loading hidden">
+            Loading...
+        </div>
+
+        <div id="loginForm" class="hidden">
+            <div class="symbol">ॐ@ॐ</div>
+            <h1>Sign In</h1>
+            <p class="description">
+                Enter your email to receive a magic link for authentication
+            </p>
+
+            <div id="errorMessage" class="error hidden"></div>
+            <div id="successMessage" class="success hidden"></div>
+
+            <form id="magicLinkForm" class="form">
+                <input
+                    type="email"
+                    id="emailInput"
+                    placeholder="your@email.com"
+                    required
+                />
+                <button type="submit" id="submitBtn">
+                    🔐 Send Magic Link
+                </button>
+            </form>
+
+            <p class="footer">
+                Secure passwordless authentication
+            </p>
+
+            <nav>
+                <a href="/">Home</a>
+                <a href="/about.html">About</a>
+            </nav>
+        </div>
+
+        <div id="userInfo" class="user-info hidden">
+            <h1>Welcome!</h1>
+            <p class="user-email" id="userEmail"></p>
+            <button id="logoutBtn">Logout</button>
+            <button id="continueBtn" style="margin-top: 1rem;">Continue to Questionnaire</button>
+        </div>
+    </div>
+
+    <script>
+        let user = null;
+        let loading = true;
+
+        // Initialize
+        async function init() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const urlToken = urlParams.get('token');
+            const redirect = urlParams.get('redirect');
+
+            // Check for token in URL (from magic link)
+            if (urlToken) {
+                localStorage.setItem('token', urlToken);
+                // Clean up URL
+                const cleanUrl = redirect ? `/login?redirect=${encodeURIComponent(redirect)}` : '/login';
+                window.history.replaceState({}, '', cleanUrl);
+            }
+
+            // Check for stored token
+            const token = localStorage.getItem('token');
+
+            if (token) {
+                try {
+                    const response = await fetch('/api/user/me', {
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
+
+                    if (response.ok) {
+                        const userData = await response.json();
+                        user = userData;
+
+                        // Store userEmail for Questionnaire
+                        if (userData.email) {
+                            localStorage.setItem('userEmail', userData.email);
+                        }
+
+                        // Handle redirect
+                        if (redirect) {
+                            window.location.href = redirect;
+                            return;
+                        }
+
+                        showUserInfo();
+                    } else {
+                        // Invalid token, clear it
+                        localStorage.removeItem('token');
+                        localStorage.removeItem('userEmail');
+                        showLoginForm();
+                    }
+                } catch (err) {
+                    console.error('Auth check error:', err);
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('userEmail');
+                    showLoginForm();
+                }
+            } else {
+                showLoginForm();
+            }
+
+            loading = false;
+            document.getElementById('loadingState').classList.add('hidden');
+        }
+
+        function showLoginForm() {
+            document.getElementById('loginForm').classList.remove('hidden');
+            document.getElementById('userInfo').classList.add('hidden');
+        }
+
+        function showUserInfo() {
+            document.getElementById('loginForm').classList.add('hidden');
+            document.getElementById('userInfo').classList.remove('hidden');
+            document.getElementById('userEmail').textContent = user.displayName || user.email;
+        }
+
+        async function handleMagicLinkRequest(e) {
+            e.preventDefault();
+
+            const email = document.getElementById('emailInput').value;
+            const submitBtn = document.getElementById('submitBtn');
+            const errorDiv = document.getElementById('errorMessage');
+            const successDiv = document.getElementById('successMessage');
+
+            errorDiv.classList.add('hidden');
+            successDiv.classList.add('hidden');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Sending...';
+
+            // Collect geolocation if available
+            let geolocation = null;
+            if ('geolocation' in navigator) {
+                try {
+                    const position = await new Promise((resolve, reject) => {
+                        navigator.geolocation.getCurrentPosition(resolve, reject, {
+                            enableHighAccuracy: true,
+                            timeout: 5000,
+                            maximumAge: 0
+                        });
+                    });
+
+                    geolocation = {
+                        latitude: position.coords.latitude,
+                        longitude: position.coords.longitude,
+                        accuracy: position.coords.accuracy,
+                        altitude: position.coords.altitude,
+                        altitudeAccuracy: position.coords.altitudeAccuracy,
+                        heading: position.coords.heading,
+                        speed: position.coords.speed,
+                        timestamp: position.timestamp
+                    };
+                } catch (geoError) {
+                    console.log('Geolocation not available:', geoError);
+                }
+            }
+
+            try {
+                const response = await fetch('/auth/request', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email, geolocation })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    successDiv.textContent = data.message || 'Magic link sent! Check your email inbox.';
+                    successDiv.classList.remove('hidden');
+                    document.getElementById('emailInput').value = '';
+                } else {
+                    errorDiv.textContent = data.error || 'Failed to send magic link';
+                    errorDiv.classList.remove('hidden');
+                }
+            } catch (err) {
+                console.error('Magic link request error:', err);
+                errorDiv.textContent = 'Network error. Please try again.';
+                errorDiv.classList.remove('hidden');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = '🔐 Send Magic Link';
+            }
+        }
+
+        function handleLogout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('userEmail');
+            user = null;
+            showLoginForm();
+        }
+
+        function handleContinue() {
+            window.location.href = '/questionnaire.html';
+        }
+
+        // Event listeners
+        document.getElementById('magicLinkForm').addEventListener('submit', handleMagicLinkRequest);
+        document.getElementById('logoutBtn').addEventListener('click', handleLogout);
+        document.getElementById('continueBtn').addEventListener('click', handleContinue);
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('loadingState').classList.remove('hidden');
+            init();
+        });
+    </script>
+</body>
+</html>

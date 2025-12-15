@@ -33,7 +33,7 @@ function Router() {
       {/* Public routes - always available */}
       <Route path="/auth-callback" component={AuthCallbackPage} />
       <Route path="/shared/:shareId" component={SharedQuestionnairePage} />
-      
+
       {!isAuthenticated ? (
         <>
           <Route path="/" component={AuthPage} />

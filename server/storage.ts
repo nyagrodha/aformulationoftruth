@@ -373,7 +373,7 @@ export class DatabaseStorage implements IStorage {
       .where(eq(paymentCodes.id, codeId));
   }
 
-  async upgradeUserToP aid(userId: string): Promise<User> {
+  async upgradeUserToPaid(userId: string): Promise<User> {
     const [user] = await db
       .update(users)
       .set({
