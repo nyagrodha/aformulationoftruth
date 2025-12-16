@@ -58,117 +58,6 @@ pointer-events: none;
 z-index: 1000;
 }
 
-/* Christmas Lights - Adafruit Style */
-.christmas-lights {
-position: fixed;
-top: 0;
-left: 0;
-width: 100%;
-height: 80px;
-z-index: 2000;
-pointer-events: none;
-display: flex;
-justify-content: space-around;
-align-items: flex-start;
-padding-top: 10px;
-}
-
-.light {
-width: 20px;
-height: 30px;
-border-radius: 50% 50% 40% 40%;
-position: relative;
-animation: twinkle 2s ease-in-out infinite;
-}
-
-.light::before {
-content: '';
-position: absolute;
-top: -8px;
-left: 50%;
-transform: translateX(-50%);
-width: 4px;
-height: 10px;
-background: #2C1810;
-border-radius: 2px;
-}
-
-.light::after {
-content: '';
-position: absolute;
-top: 0;
-left: 0;
-width: 100%;
-height: 100%;
-border-radius: 50% 50% 40% 40%;
-background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.8), transparent);
-}
-
-.light.red {
-background: linear-gradient(135deg, #ff0000, #cc0000);
-box-shadow: 0 0 20px #ff0000, 0 0 40px #ff0000;
-animation-delay: 0s;
-}
-
-.light.green {
-background: linear-gradient(135deg, #00ff00, #00cc00);
-box-shadow: 0 0 20px #00ff00, 0 0 40px #00ff00;
-animation-delay: 0.3s;
-}
-
-.light.blue {
-background: linear-gradient(135deg, #0000ff, #0000cc);
-box-shadow: 0 0 20px #0000ff, 0 0 40px #0000ff;
-animation-delay: 0.6s;
-}
-
-.light.yellow {
-background: linear-gradient(135deg, #ffff00, #cccc00);
-box-shadow: 0 0 20px #ffff00, 0 0 40px #ffff00;
-animation-delay: 0.9s;
-}
-
-.light.purple {
-background: linear-gradient(135deg, #ff00ff, #cc00cc);
-box-shadow: 0 0 20px #ff00ff, 0 0 40px #ff00ff;
-animation-delay: 1.2s;
-}
-
-.light.cyan {
-background: linear-gradient(135deg, #00ffff, #00cccc);
-box-shadow: 0 0 20px #00ffff, 0 0 40px #00ffff;
-animation-delay: 1.5s;
-}
-
-@keyframes twinkle {
-0%, 100% {
-  opacity: 1;
-  filter: brightness(1);
-}
-50% {
-  opacity: 0.5;
-  filter: brightness(1.5);
-}
-}
-
-/* Wire for lights */
-.lights-wire {
-position: fixed;
-top: 20px;
-left: 0;
-width: 100%;
-height: 2px;
-background: repeating-linear-gradient(
-  90deg,
-  #2C1810 0px,
-  #2C1810 5px,
-  transparent 5px,
-  transparent 10px
-);
-z-index: 1999;
-pointer-events: none;
-}
-
 /* Snowflake Container */
 .snowflakes {
 position: fixed;
@@ -380,67 +269,25 @@ transform: skewY(-2deg);
   display: none;
 }
 
-/* The marginal text container */
-.two-stage {
-  position: absolute;
-  top: 0;
-  left: calc(100% + 2rem);
-  
-  width: max-content;
-  max-width: min(360px, 40vw);
-  
-  background: rgba(10, 10, 12, 0.95);
-  color: var(--bone);
-  font-size: 0.85rem;
-  line-height: 1.6;
-  padding: 1rem 1.25rem;
-  
-  border-radius: 4px;
-  border-left: 3px solid var(--burnt-sienna);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
-  
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.2s ease;
-  z-index: 20;
+/* ---------------------------------------------------------
+   Tamil ௨ — marginal gloss, manuscript logic
+
+   The numeral as prakāśa; the gloss as vimarśa.
+   Hover on desktop reveals incidentally.
+   Tap on mobile invokes deliberately.
+   --------------------------------------------------------- */
+
+.two-reveal {
+  position: relative;
+  display: inline-block;
 }
 
-.two-stage p {
-  margin: 0;
-  text-align: left;
-}
-
-/* Desktop: hover reveals */
-@media (hover: hover) and (pointer: fine) {
-  .two-reveal:hover .two-stage,
-  .two-reveal:focus-within .two-stage {
-    opacity: 1;
-    pointer-events: auto;
-  }
-  
-  /* When clicked open, keep it visible */
-  .two-reveal[open] .two-stage {
-    opacity: 1;
-    pointer-events: auto;
-  }
-}
-
-/* Touch devices: tap to toggle */
-@media (hover: none) {
-  .two-reveal[open] .two-stage {
-    opacity: 1;
-    pointer-events: auto;
-  }
-}
-
-/* Mobile: stack vertically instead of margin */
-@media (max-width: 900px) {
-  .two-stage {
-    position: static;
-    max-width: 100%;
-    margin-top: 1.5rem;
-    left: auto;
-  }
+/* Remove summary UI completely */
+.two-reveal summary {
+  all: unset;
+  display: block;
+  text-align: center;
+  cursor: pointer;
 }
 
 /* The numeral itself — monumental obsidian */
@@ -459,29 +306,61 @@ transform: skewY(-2deg);
   animation: obsidianShimmer 3s ease-in-out infinite;
   transform: skewY(-2deg);
 }
-/* Mobile: tap to reveal */
+
+/* The marginal gloss */
+.two-reveal .two-text {
+  position: absolute;
+  top: 0.3em;
+  left: 115%;
+
+  width: max-content;
+  max-width: min(440px, 90vw);
+
+  background: rgba(10, 10, 12, 0.95);
+  color: var(--bone);
+  font-size: 0.9rem;
+  line-height: 1.5;
+  padding: 0.9rem 1.1rem;
+
+  border-radius: 4px;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.4);
+
+  text-align: left;
+  white-space: normal;
+
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+  z-index: 30;
+}
+
+/* Desktop: hover as incidental access */
+@media (hover: hover) and (pointer: fine) {
+  .two-reveal:hover .two-text {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .two-reveal[open] .two-text {
+    opacity: 0;
+  }
+}
+
+/* Mobile: tap to invoke */
 @media (hover: none) {
   .two-reveal[open] .two-text {
     opacity: 1;
     pointer-events: auto;
   }
 }
-/* ---------------------------------------------------------
-   Tamil 2 — interaction without visual concession
-   --------------------------------------------------------- */
 
-.two-reveal {
-  display: inline;
-  position: relative;
-}
-
-.two-reveal summary {
-  all: unset; /* remove disclosure UI */
-}
-
-/* Reuse existing visual authority */
-.two-reveal .tamil-numeral-2 {
-  cursor: default;
+/* Mobile reflow — margins don't exist, gloss enters flow */
+@media (max-width: 700px) {
+  .two-reveal .two-text {
+    position: static;
+    margin-top: 1.2rem;
+    max-width: 100%;
+  }
 }
 
 /* ---------------------------------------------------------
@@ -502,7 +381,7 @@ transform: skewY(-2deg);
 }
 
 /* Tooltip positioning: just above the word */
-.two-text {
+.one-anchor .two-text {
   position: absolute;
   left: 50%;
   bottom: 1.8em;
@@ -1018,26 +897,68 @@ margin-top: 1rem;
 font-style: italic;
 }
 
-/* Decorative corners */
-.corner {
+/* Decorative corners - buffalo skulls */
+.corner.skull {
 position: fixed;
-width: 60px;
-height: 60px;
-opacity: 0.3;
+width: 150px;
+height: 110px;
+opacity: 0;
 pointer-events: none;
 z-index: 900;
+color: var(--shadow);
+transition: opacity 1.2s ease;
 }
 
-.corner svg {
+.corner.skull.buffalo svg {
 width: 100%;
 height: 100%;
-fill: var(--burnt-sienna);
 }
 
-.corner.top-left { top: 80px; left: 20px; }
-.corner.top-right { top: 80px; right: 20px; transform: rotate(90deg); }
-.corner.bottom-left { bottom: 20px; left: 20px; transform: rotate(-90deg); }
-.corner.bottom-right { bottom: 20px; right: 20px; transform: rotate(180deg); }
+/* Christmas lights on buffalo skulls */
+.skull-light {
+  animation: skullTwinkle 2s ease-in-out infinite;
+}
+
+.skull-light:nth-child(4) { animation-delay: 0s; }
+.skull-light:nth-child(5) { animation-delay: 0.3s; }
+.skull-light:nth-child(6) { animation-delay: 0.6s; }
+.skull-light:nth-child(7) { animation-delay: 0.9s; }
+.skull-light:nth-child(8) { animation-delay: 1.2s; }
+.skull-light:nth-child(9) { animation-delay: 1.5s; }
+
+@keyframes skullTwinkle {
+  0%, 100% {
+    opacity: 1;
+    filter: brightness(1) drop-shadow(0 0 3px currentColor);
+  }
+  50% {
+    opacity: 0.4;
+    filter: brightness(1.5) drop-shadow(0 0 6px currentColor);
+  }
+}
+
+.corner.top-left {
+top: 80px;
+left: 20px;
+}
+
+.corner.top-right {
+top: 80px;
+right: 20px;
+transform: scaleX(-1);
+}
+
+.corner.bottom-left {
+bottom: 20px;
+left: 20px;
+transform: scaleY(-1);
+}
+
+.corner.bottom-right {
+bottom: 20px;
+right: 20px;
+transform: scale(-1, -1);
+}
 
 /* Responsive */
 @media (max-width: 600px) {
@@ -1128,20 +1049,10 @@ body {
    No delight before conceptual labor
    --------------------------------------------------------- */
 
-/* Suppress spectacle at entry */
-.christmas-lights,
-.lights-wire,
-.corner {
-  opacity: 0;
-  pointer-events: none;
-}
 
-/* Ornament appears only after first divider */
-.divider ~ .christmas-lights,
-.divider ~ .lights-wire,
-.divider ~ .corner {
-  opacity: 1;
-  pointer-events: none;
+/* Buffalo skulls initially hidden */
+.corner.skull {
+  opacity: 0;
 }
 
 
@@ -1210,10 +1121,8 @@ body {
    Ornament becomes permissible
    --------------------------------------------------------- */
 
-body.passed-orientation .christmas-lights,
-body.passed-orientation .lights-wire,
-body.passed-orientation .corner {
-  opacity: 1;
+body.passed-orientation .corner.skull {
+  opacity: 0.18;
 }
 
 
@@ -1250,9 +1159,4 @@ body.entered-recognition .container p {
 body.entered-recognition .divider {
   opacity: 0.3;
   letter-spacing: 0.6em;
-}
-
-body.entered-recognition .christmas-lights,
-body.entered-recognition .corner {
-  opacity: 0.4;
 }
