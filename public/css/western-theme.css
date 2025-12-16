@@ -359,67 +359,106 @@ transform: skewY(-2deg);
   }
 }
 /* ---------------------------------------------------------
-   Tamil 2 — interaction without visual concession
-   -------------------------*/
-.two-stage {
-  display: flex;
-  justify-content: center;
-  margin: 3rem 0 2rem;
-}
+   Tamil ௨ — Marginal Reveal (dvitīya-prakāśa)
+   
+   The numeral hovers in monumental obsidian. On interaction,
+   explanatory text reveals in the margin—the vimarśa that
+   accompanies prakāśa.
+   --------------------------------------------------------- */
 
 .two-reveal {
   position: relative;
+  display: inline-block;
 }
 
+/* Remove default details marker */
 .two-reveal summary {
-  all: unset; 
-  display: block;
-  text-align: center;
+  list-style: none;
+  cursor: pointer;
+}
+.two-reveal summary::-webkit-details-marker {
+  display: none;
 }
 
-/* Reuse existing visual authority */
-.tamil-numeral-2 {
-  display: block;
-  font-size: clamp(9rem, 17vw, 13rem);
-  line-height: 1;
-  margin: 0 auto;
-}
-
-/* Tooltip text */
-.two-text {
+/* The marginal text container */
+.two-stage {
   position: absolute;
-  bottom: 120%;
-  left: 50%;
-  transform: translateX(-50%);
-  max-width: 320px;
-
-  background: rgba(10,10,12,0.95);
+  top: 0;
+  left: calc(100% + 2rem);
+  
+  width: max-content;
+  max-width: min(360px, 40vw);
+  
+  background: rgba(10, 10, 12, 0.95);
   color: var(--bone);
-  font-size: 0.9rem;
-  line-height: 1.4;
-  padding: 0.75rem 0.9rem;
-
-  border-radius: 6px;
-  box-shadow: 0 10px 28px rgba(0,0,0,0.4);
-
+  font-size: 0.85rem;
+  line-height: 1.6;
+  padding: 1rem 1.25rem;
+  
+  border-radius: 4px;
+  border-left: 3px solid var(--burnt-sienna);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.15s ease;
+  transition: opacity 0.2s ease;
   z-index: 20;
 }
 
-/* Desktop: hover without commitment */
+.two-stage p {
+  margin: 0;
+  text-align: left;
+}
+
+/* Desktop: hover reveals */
 @media (hover: hover) and (pointer: fine) {
-  .two-reveal:hover .two-text {
+  .two-reveal:hover .two-stage,
+  .two-reveal:focus-within .two-stage {
     opacity: 1;
     pointer-events: auto;
   }
-
-  .two-reveal[open] .two-text {
-    opacity: 0;
+  
+  /* When clicked open, keep it visible */
+  .two-reveal[open] .two-stage {
+    opacity: 1;
+    pointer-events: auto;
   }
 }
 
+/* Touch devices: tap to toggle */
+@media (hover: none) {
+  .two-reveal[open] .two-stage {
+    opacity: 1;
+    pointer-events: auto;
+  }
+}
+
+/* Mobile: stack vertically instead of margin */
+@media (max-width: 900px) {
+  .two-stage {
+    position: static;
+    max-width: 100%;
+    margin-top: 1.5rem;
+    left: auto;
+  }
+}
+
+/* The numeral itself — monumental obsidian */
+.tamil-numeral-2 {
+  display: block;
+  font-family: 'Noto Sans Tamil', sans-serif;
+  font-size: clamp(6rem, 14vw, 10rem);
+  font-weight: 700;
+  line-height: 1;
+  margin: 0 auto;
+  color: var(--obsidian);
+  text-shadow:
+    0 0 1px rgba(255, 255, 255, 0.3),
+    1px 1px 2px rgba(255, 255, 255, 0.2);
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.5));
+  animation: obsidianShimmer 3s ease-in-out infinite;
+  transform: skewY(-2deg);
+}
 /* Mobile: tap to reveal */
 @media (hover: none) {
   .two-reveal[open] .two-text {
