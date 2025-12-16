@@ -356,17 +356,145 @@ transform: skewY(-2deg);
     0 0 2px rgba(255, 255, 255, 0.5),
     2px 2px 3px rgba(255, 255, 255, 0.3),
     -2px -2px 3px rgba(255, 255, 255, 0.2);
+  }
 }
+/* ---------------------------------------------------------
+   Tamil 2 — interaction without visual concession
+   -------------------------*/
+.two-stage {
+  display: flex;
+  justify-content: center;
+  margin: 3rem 0 2rem;
 }
 
-/* Spaghetti Bowl SVG */
-.spaghetti-bowl {
-width: clamp(80px, 15vw, 120px);
-height: clamp(80px, 15vw, 120px);
-filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.3));
+.two-reveal {
+  position: relative;
 }
+
+.two-reveal summary {
+  all: unset; 
+  display: block;
+  text-align: center;
+}
+
+/* Reuse existing visual authority */
+.tamil-numeral-2 {
+  display: block;
+  font-size: clamp(9rem, 17vw, 13rem);
+  line-height: 1;
+  margin: 0 auto;
+}
+
+/* Tooltip text */
+.two-text {
+  position: absolute;
+  bottom: 120%;
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: 320px;
+
+  background: rgba(10,10,12,0.95);
+  color: var(--bone);
+  font-size: 0.9rem;
+  line-height: 1.4;
+  padding: 0.75rem 0.9rem;
+
+  border-radius: 6px;
+  box-shadow: 0 10px 28px rgba(0,0,0,0.4);
+
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+  z-index: 20;
+}
+
+/* Desktop: hover without commitment */
+@media (hover: hover) and (pointer: fine) {
+  .two-reveal:hover .two-text {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .two-reveal[open] .two-text {
+    opacity: 0;
+  }
+}
+
+/* Mobile: tap to reveal */
+@media (hover: none) {
+  .two-reveal[open] .two-text {
+    opacity: 1;
+    pointer-events: auto;
+  }
+}
+/* ---------------------------------------------------------
+   Tamil 2 — interaction without visual concession
+   --------------------------------------------------------- */
+
+.two-reveal {
+  display: inline;
+  position: relative;
+}
+
+.two-reveal summary {
+  all: unset; /* remove disclosure UI */
+}
+
+/* Reuse existing visual authority */
+.two-reveal .tamil-numeral-2 {
+  cursor: default;
+}
+
+/* ---------------------------------------------------------
+   Micro-ornament echo for ௨ (inline scholium)
+   --------------------------------------------------------- */
+
+.one-anchor {
+  position: relative;
+  display: inline-block;
+}
+
+.two-trigger {
+  font-size: 0.6em;
+  color: var(--burnt-sienna);
+  margin-left: 0.05em;
+  vertical-align: super;
+  cursor: help;
+}
+
+/* Tooltip positioning: just above the word */
+.two-text {
+  position: absolute;
+  left: 50%;
+  bottom: 1.8em;
+  transform: translateX(-50%);
+  max-width: 320px;
+
+  background: rgba(10,10,12,0.95);
+  color: var(--bone);
+  font-size: 0.85rem;
+  line-height: 1.45;
+  padding: 0.75rem 0.9rem;
+
+  border-radius: 6px;
+  box-shadow: 0 10px 28px rgba(0,0,0,0.4);
+
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+  z-index: 30;
+}
+
+/* Reveal on hover */
+.one-anchor:hover .two-text,
+.two-trigger:hover + .two-text {
+  opacity: 1;
+  pointer-events: auto;
+}
+
 
 /* Subtitle elements below title */
+
 .subtitle-primary {
 font-family: 'Rye', cursive;
 font-size: clamp(1.6rem, 4.8vw, 2.8rem);
