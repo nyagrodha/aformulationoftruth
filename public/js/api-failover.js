@@ -12,7 +12,7 @@
   const API_ENDPOINTS = [
     'https://api.aformulationoftruth.com',  // Primary
     'https://gimbal.fobdongle.com',  // Backup 1
-    'https://proust.aformulationoftruth.com'  // Backup 2
+    'https://a4mulapi.fobdongle.com'  // Backup 2
   ];
 
   const REQUEST_TIMEOUT = 5000; // 5 seconds
