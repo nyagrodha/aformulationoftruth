@@ -10,8 +10,9 @@
 
   // API endpoints in priority order
   const API_ENDPOINTS = [
-    'https://gimbal.fobdongle.com',  // Primary
-    'https://proust.aformulationoftruth.com'  // Backup
+    'https://api.aformulationoftruth.com',  // Primary
+    'https://gimbal.fobdongle.com',  // Backup 1
+    'https://proust.aformulationoftruth.com'  // Backup 2
   ];
 
   const REQUEST_TIMEOUT = 5000; // 5 seconds
