@@ -909,3 +909,164 @@ h1::after {
 .corner {
 animation: shimmer 8s ease-in-out infinite;
 }
+
+/* =========================================================
+   EDITORIAL OVERRIDES — argument-driven layout intervention
+   ========================================================= */
+
+
+/* ---------------------------------------------------------
+   1. TEXTUAL DESCENT
+   Authority thins as the argument deepens
+   --------------------------------------------------------- */
+
+/* Entry remains monumental */
+body {
+  font-size: 36.2px;
+}
+
+/* Middle descent: Abhinava → Panini → Lacan */
+.container p:nth-of-type(n+12):nth-of-type(-n+45) {
+  font-size: 0.92em;
+}
+
+/* Final descent: questionnaire → fall → recognition */
+.container p:nth-of-type(n+46) {
+  font-size: 0.88em;
+  line-height: 1.85;
+}
+
+
+/* ---------------------------------------------------------
+   2. ORNAMENT DELAY
+   No delight before conceptual labor
+   --------------------------------------------------------- */
+
+/* Suppress spectacle at entry */
+.christmas-lights,
+.lights-wire,
+.corner {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Ornament appears only after first divider */
+.divider ~ .christmas-lights,
+.divider ~ .lights-wire,
+.divider ~ .corner {
+  opacity: 1;
+  pointer-events: none;
+}
+
+
+/* ---------------------------------------------------------
+   3. SIDEBAR WITHDRAWAL
+   The Other recedes; solitude becomes possible
+   --------------------------------------------------------- */
+
+/* Mid-essay attenuation */
+.container:has(.divider:nth-of-type(3)) ~ .sidebar {
+  opacity: 0.25;
+  filter: grayscale(1);
+  transition: opacity 1s ease, filter 1s ease;
+}
+
+/* Deep essay: full withdrawal */
+.container:has(.divider:nth-of-type(5)) ~ .sidebar {
+  display: none;
+}
+
+
+/* ---------------------------------------------------------
+   4. NOMINATIVE ZONE
+   Grammatical nakedness where "I" is theorized
+   --------------------------------------------------------- */
+
+/* Strip texture and ornament reminders */
+.container p.nominal,
+.container p.nominative {
+  background: none !important;
+  box-shadow: none !important;
+  border: none !important;
+  padding-left: 0 !important;
+  text-indent: 0;
+  color: var(--shadow);
+}
+
+
+/* ---------------------------------------------------------
+   5. DIVIDER EROSION
+   From structure → atmosphere
+   --------------------------------------------------------- */
+
+.divider {
+  opacity: 0.6;
+}
+
+.container .divider:nth-of-type(n+4) {
+  opacity: 0.3;
+  letter-spacing: 0.6em;
+}
+
+/* =========================================================
+   SCROLL STATES — enacted philosophy
+   ========================================================= */
+
+
+/* ---------------------------------------------------------
+   STATE 0: ENTRY (default)
+   Monumental, instructive, structured
+   --------------------------------------------------------- */
+
+
+/* ---------------------------------------------------------
+   STATE 1: PASSED ORIENTATION
+   Ornament becomes permissible
+   --------------------------------------------------------- */
+
+body.passed-orientation .christmas-lights,
+body.passed-orientation .lights-wire,
+body.passed-orientation .corner {
+  opacity: 1;
+}
+
+
+/* ---------------------------------------------------------
+   STATE 2: ENTERED NOMINATIVE
+   The Other recedes; texture thins
+   --------------------------------------------------------- */
+
+body.entered-nominative .sidebar {
+  opacity: 0.25;
+  filter: grayscale(1);
+  transition: opacity 1s ease, filter 1s ease;
+}
+
+body.entered-nominative .container p {
+  font-size: 0.92em;
+}
+
+
+/* ---------------------------------------------------------
+   STATE 3: ENTERED RECOGNITION
+   Solitude; authority dissolves
+   --------------------------------------------------------- */
+
+body.entered-recognition .sidebar {
+  display: none;
+}
+
+body.entered-recognition .container p {
+  font-size: 0.88em;
+  line-height: 1.85;
+}
+
+body.entered-recognition .divider {
+  opacity: 0.3;
+  letter-spacing: 0.6em;
+}
+
+body.entered-recognition .christmas-lights,
+body.entered-recognition .corner {
+  opacity: 0.4;
+}
