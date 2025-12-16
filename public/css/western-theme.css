@@ -838,7 +838,26 @@ font-weight: 700;
 .footnote em {
 color: var(--shadow);
 }
+/* Tamil CTA - the gateway */
+.tamil-cta {
+  font-family: 'Noto Sans Tamil', serif;
+  font-size: 2rem;
+  text-align: center;
+  margin: 3rem 0;
+}
 
+.tamil-cta a {
+  color: var(--dried-blood);
+  text-decoration: none;
+  padding: 0.5rem 2rem;
+  border: 2px solid var(--burnt-sienna);
+  transition: all 0.3s ease;
+}
+
+.tamil-cta a:hover {
+  background: var(--burnt-sienna);
+  color: var(--parchment);
+}
 /* Newsletter Section - moved to bottom */
 .newsletter-section {
 margin: 5rem auto 3rem;
