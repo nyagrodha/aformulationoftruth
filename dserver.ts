@@ -158,7 +158,7 @@ async function handler(req: Request): Promise<Response> {
 
 async function renderWithTheme(palette: string, phase: number): Promise<string> {
   // Read the HTML template
-  const html = await Deno.readTextFile("./public/reimagined.html");
+  const html = await Deno.readTextFile("./public/landing.html");
 
   // Inject sunphase and palette into body tag with CSS custom property
   const themedHtml = html.replace(
