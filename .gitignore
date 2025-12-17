@@ -94,7 +94,7 @@ construction-vite/
 drizzle/
 maintenance/
 packages/
-services/
+/services/
 shared/
 static/
 server/public

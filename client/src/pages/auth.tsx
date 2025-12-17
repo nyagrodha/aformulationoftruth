@@ -311,13 +311,22 @@ export default function AuthPage() {
               </p>
             )}
             {!infoMessage && status !== "verifying" && (
-              <button
-                type="button"
-                onClick={() => setLocation("/auth-portal")}
-                className="text-sm uppercase tracking-[0.3em] text-[#4d2316] hover:text-[#2d1810] transition-colors"
-              >
-                Enter through the mystical portal instead →
-              </button>
+              <div className="space-y-2">
+                <button
+                  type="button"
+                  onClick={() => setLocation("/otp-login")}
+                  className="block w-full text-sm uppercase tracking-[0.2em] text-[#4d2316] hover:text-[#2d1810] transition-colors"
+                >
+                  Verify via SMS, WhatsApp, or Email →
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setLocation("/auth-portal")}
+                  className="block w-full text-sm uppercase tracking-[0.3em] text-[#4d2316] hover:text-[#2d1810] transition-colors"
+                >
+                  Enter through the mystical portal instead →
+                </button>
+              </div>
             )}
           </div>
         </div>

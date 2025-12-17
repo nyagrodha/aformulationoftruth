@@ -10,6 +10,7 @@ import { sessionMiddleware } from './middleware/session.js';
 import { attachUser } from './middleware/auth.js';
 import { csrfProtection, handleCsrfErrors } from './middleware/csrf.js';
 import authRouter from './routes/auth.js';
+import otpAuthRouter from './routes/otpAuth.js';
 import questionnaireRouter from './routes/questionnaire.js';
 import { errorHandler } from './middleware/errorHandler.js';
 
@@ -44,6 +45,7 @@ app.get('/auth/csrf-token', (req, res) => {
 });
 
 app.use('/auth', authRouter);
+app.use('/auth/otp', otpAuthRouter);
 app.use('/api', questionnaireRouter);
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
