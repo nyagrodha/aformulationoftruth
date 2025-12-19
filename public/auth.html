@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Verifying... - a formulation of truth</title>
+  <link rel="stylesheet" href="/css/gate.css">
+  <style>
+    .auth-container {
+      max-width: 600px;
+      margin: 100px auto;
+      padding: 2rem;
+      text-align: center;
+    }
+    .spinner {
+      border: 4px solid rgba(255, 255, 255, 0.1);
+      border-radius: 50%;
+      border-top: 4px solid var(--green);
+      width: 50px;
+      height: 50px;
+      animation: spin 1s linear infinite;
+      margin: 2rem auto;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    .error {
+      color: var(--pink);
+      margin-top: 2rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="auth-container">
+      <h1>Verifying your magic link...</h1>
+      <div class="spinner"></div>
+      <p id="status">Please wait while we log you in.</p>
+      <div id="error" class="error" style="display: none;"></div>
+    </div>
+  </div>
+
+  <script>
+    (async function() {
+      const statusEl = document.getElementById('status');
+      const errorEl = document.getElementById('error');
+
+      // Get token from URL
+      const urlParams = new URLSearchParams(window.location.search);
+      const token = urlParams.get('token');
+
+      if (!token) {
+        showError('No authentication token found. Please request a new magic link.');
+        return;
+      }
+
+      // Get gate session ID from localStorage
+      const gateSessionId = localStorage.getItem('gateSessionId');
+
+      try {
+        statusEl.textContent = 'Authenticating...';
+
+        const response = await fetch('/api/auth/magic-link/verify', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            token,
+            gateSessionId // Pass gate session to link responses
+          })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          statusEl.textContent = 'Success! Redirecting...';
+
+          // Clear gate session ID now that it's linked
+          if (gateSessionId) {
+            localStorage.removeItem('gateSessionId');
+          }
+
+          // Redirect to questionnaire
+          setTimeout(() => {
+            window.location.href = '/app.html';
+          }, 1000);
+        } else {
+          showError(data.message || 'Authentication failed. Please request a new magic link.');
+        }
+      } catch (error) {
+        console.error('Auth error:', error);
+        showError('Network error. Please check your connection and try again.');
+      }
+
+      function showError(message) {
+        statusEl.style.display = 'none';
+        document.querySelector('.spinner').style.display = 'none';
+        errorEl.textContent = message;
+        errorEl.style.display = 'block';
+
+        // Show link to request new magic link
+        errorEl.innerHTML += '<br><br><a href="/callback.html" style="color: var(--green);">Request a new magic link</a>';
+      }
+    })();
+  </script>
+</body>
+</html>
