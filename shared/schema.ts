@@ -101,9 +101,29 @@ export const responses = pgTable("responses", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+// Gate questions - introductory questions before main questionnaire
+export const gateQuestions = pgTable("gate_questions", {
+  id: integer("id").primaryKey(),
+  questionText: text("question_text").notNull(),
+  questionOrder: integer("question_order").notNull().unique(),
+  required: boolean("required").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Gate answers - user responses to gate questions
+export const gateAnswers = pgTable("gate_answers", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  questionId: integer("question_id").notNull().references(() => gateQuestions.id),
+  answer: text("answer").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   sessions: many(questionnaireSessions),
+  gateAnswers: many(gateAnswers),
 }));
 
 export const questionnaireSessionsRelations = relations(questionnaireSessions, ({ one, many }) => ({
@@ -118,6 +138,21 @@ export const responsesRelations = relations(responses, ({ one }) => ({
   session: one(questionnaireSessions, {
     fields: [responses.sessionId],
     references: [questionnaireSessions.id],
+  }),
+}));
+
+export const gateQuestionsRelations = relations(gateQuestions, ({ many }) => ({
+  answers: many(gateAnswers),
+}));
+
+export const gateAnswersRelations = relations(gateAnswers, ({ one }) => ({
+  user: one(users, {
+    fields: [gateAnswers.userId],
+    references: [users.id],
+  }),
+  question: one(gateQuestions, {
+    fields: [gateAnswers.questionId],
+    references: [gateQuestions.id],
   }),
 }));
 
@@ -159,6 +194,19 @@ export const insertPaymentCodeSchema = createInsertSchema(paymentCodes).pick({
   expiresAt: true,
 });
 
+export const insertGateQuestionSchema = createInsertSchema(gateQuestions).pick({
+  id: true,
+  questionText: true,
+  questionOrder: true,
+  required: true,
+});
+
+export const insertGateAnswerSchema = createInsertSchema(gateAnswers).pick({
+  userId: true,
+  questionId: true,
+  answer: true,
+});
+
 // Types
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -178,3 +226,9 @@ export type InsertNewsletterEmail = z.infer<typeof insertNewsletterEmailSchema>;
 
 export type PaymentCode = typeof paymentCodes.$inferSelect;
 export type InsertPaymentCode = z.infer<typeof insertPaymentCodeSchema>;
+
+export type GateQuestion = typeof gateQuestions.$inferSelect;
+export type InsertGateQuestion = z.infer<typeof insertGateQuestionSchema>;
+
+export type GateAnswer = typeof gateAnswers.$inferSelect;
+export type InsertGateAnswer = z.infer<typeof insertGateAnswerSchema>;

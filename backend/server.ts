@@ -192,6 +192,7 @@ client.connect()
     setUserDatabaseClient(client);
     setNewsletterDatabaseClient(client);
     setCompletionDatabaseClient(client);
+    setGateDatabaseClient(client);
 
     // Create users table if it doesn't exist
     return client.query(`
@@ -508,10 +509,12 @@ import phoneVerificationRouter from './routes/phone-verification.js';
 import profileRouter from './routes/profile.js';
 import userRouter from './routes/user.js';
 import newsletterRouter from './routes/newsletter.js';
+import gateRouter from './routes/gate.js';
 import { setDatabaseClient as setPhoneDatabaseClient } from './routes/phone-verification.js';
 import { setDatabaseClient as setProfileDatabaseClient } from './routes/profile.js';
 import { setDatabaseClient as setUserDatabaseClient } from './routes/user.js';
 import { setDatabaseClient as setNewsletterDatabaseClient } from './routes/newsletter.js';
+import { setDatabaseClient as setGateDatabaseClient } from './routes/gate.js';
 
 // Mount auth routes
 app.use('/auth', authRouter);
@@ -521,6 +524,7 @@ app.use('/api/phone', phoneVerificationRouter);
 app.use('/api/profile', profileRouter);
 app.use('/api/user', userRouter);
 app.use('/api/newsletter', newsletterRouter);
+app.use('/api/gate', gateRouter);
 
 // Geolocation endpoint to detect user's country
 import { getCachedIPInfo } from './utils/ip-lookup.js';
