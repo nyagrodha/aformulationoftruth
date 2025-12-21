@@ -32,6 +32,23 @@
             margin-bottom: 1rem;
         }
 
+        .about-header-image {
+            max-width: 100%;
+            width: 600px;
+            height: auto;
+            border-radius: 12px;
+            margin: 0 auto 2rem;
+            display: block;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            border: 2px solid var(--border-color);
+            opacity: 0.9;
+            transition: opacity 0.3s ease;
+        }
+
+        .about-header-image:hover {
+            opacity: 1;
+        }
+
         .about-content {
             background: var(--bg-card);
             backdrop-filter: blur(12px);
@@ -78,6 +95,11 @@
         @media (max-width: 768px) {
             .about-content {
                 padding: 2rem 1.5rem;
+            }
+
+            .about-header-image {
+                width: 100%;
+                border-radius: 8px;
             }
         }
 
@@ -191,6 +213,7 @@
     <div class="about-container">
         <!-- Header -->
         <div class="about-header">
+            <img src="/images/AusrbachianPassion.JPG" alt="Karuppacami - with auerbachian passion" class="about-header-image">
             <h1>first and form: the name</h1>
             <p style="color: var(--text-secondary);">a bit on the creator's vidyātīrtha</p>
         </div>

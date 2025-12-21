@@ -100,8 +100,65 @@
         errorEl.textContent = message;
         errorEl.style.display = 'block';
 
-        // Show link to request new magic link
-        errorEl.innerHTML += '<br><br><a href="/callback.html" style="color: var(--green);">Request a new magic link</a>';
+        // Show form to request new magic link
+        errorEl.innerHTML += `
+          <br><br>
+          <div style="margin-top: 2rem;">
+            <input type="email" id="retry-email" placeholder="Enter your email"
+              style="padding: 0.8rem; font-size: 1rem; border: 1px solid var(--green); border-radius: 4px; width: 100%; max-width: 300px; background: transparent; color: var(--text);">
+            <br><br>
+            <button id="retry-button" onclick="requestNewMagicLink()"
+              style="padding: 0.8rem 2rem; font-size: 1rem; background: var(--green); color: var(--bg); border: none; border-radius: 4px; cursor: pointer;">
+              Request a new magic link
+            </button>
+            <div id="retry-status" style="margin-top: 1rem;"></div>
+          </div>
+        `;
+      }
+
+      async function requestNewMagicLink() {
+        const email = document.getElementById('retry-email').value.trim();
+        const retryButton = document.getElementById('retry-button');
+        const retryStatus = document.getElementById('retry-status');
+
+        if (!email) {
+          retryStatus.textContent = 'Please enter your email address.';
+          retryStatus.style.color = 'var(--pink)';
+          return;
+        }
+
+        retryButton.disabled = true;
+        retryButton.textContent = 'Sending...';
+        retryStatus.textContent = '';
+
+        try {
+          const response = await fetch('/api/auth/magic-link', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ email })
+          });
+
+          const data = await response.json();
+
+          if (response.ok) {
+            retryStatus.textContent = 'Magic link sent! Check your email.';
+            retryStatus.style.color = 'var(--green)';
+            retryButton.textContent = 'Sent!';
+          } else {
+            retryStatus.textContent = data.message || data.error || 'Failed to send magic link. Please try again.';
+            retryStatus.style.color = 'var(--pink)';
+            retryButton.disabled = false;
+            retryButton.textContent = 'Request a new magic link';
+          }
+        } catch (error) {
+          console.error('Error requesting magic link:', error);
+          retryStatus.textContent = 'Network error. Please check your connection.';
+          retryStatus.style.color = 'var(--pink)';
+          retryButton.disabled = false;
+          retryButton.textContent = 'Request a new magic link';
+        }
       }
     })();
   </script>
