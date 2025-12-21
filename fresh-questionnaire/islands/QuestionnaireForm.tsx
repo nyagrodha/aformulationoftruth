@@ -45,7 +45,11 @@ export default function QuestionnaireForm({ questionId, questionText, token }: Q
         throw new Error(data.error || "Failed to save answer");
       }
 
-      // Reload the page to get the next question
+      const data = await response.json();
+
+      // Check if this was the last question - trigger completion
+      // The completion will be handled by the backend when /questionnaire is loaded
+      // and detects all questions are answered
       window.location.href = "/questionnaire";
     } catch (err) {
       console.error("Error submitting answer:", err);

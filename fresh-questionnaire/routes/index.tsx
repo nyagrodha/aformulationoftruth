@@ -29,7 +29,7 @@ export const handler: Handlers<IndexData> = {
 
       // Send magic link request to backend
       const apiBase = Deno.env.get("API_BASE_URL") || "http://localhost:8393";
-      const response = await fetch(`${apiBase}/auth/request`, {
+      const response = await fetch(`${apiBase}/api/auth/magic-link`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

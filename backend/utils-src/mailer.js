@@ -143,7 +143,7 @@ function validateEmailAddress(email) {
 }
 
 // Send email via SendGrid
-async function sendViaSendGrid(email, subject, html, text) {
+async function sendViaSendGrid(email, subject, html, text, attachments = []) {
   if (!sendGridConfigured) {
     throw new MailerConfigError('SendGrid is not configured');
   }
@@ -161,7 +161,17 @@ async function sendViaSendGrid(email, subject, html, text) {
     html: html,
   };
 
-  console.log(`📧 Sending email via SendGrid to: ${email}`);
+  // Add attachments if provided
+  if (attachments && attachments.length > 0) {
+    msg.attachments = attachments.map(att => ({
+      content: att.content,
+      filename: att.filename,
+      type: att.type || 'application/pdf',
+      disposition: att.disposition || 'attachment'
+    }));
+  }
+
+  console.log(`📧 Sending email via SendGrid to: ${email}${attachments.length > 0 ? ` with ${attachments.length} attachment(s)` : ''}`);
 
   try {
     const response = await sgMail.send(msg);
@@ -180,7 +190,7 @@ async function sendViaSendGrid(email, subject, html, text) {
 }
 
 // Send email via SMTP
-async function viaSMTP(email, subject, html, text) {
+async function viaSMTP(email, subject, html, text, attachments = []) {
   if (!smtpConfigured || !smtpTransporter) {
     throw new MailerConfigError('SMTP is not configured');
   }
@@ -200,7 +210,16 @@ async function viaSMTP(email, subject, html, text) {
     }
   };
 
-  console.log(`📧 Sending email via Apple SMTP to: ${email}`);
+  // Add attachments if provided
+  if (attachments && attachments.length > 0) {
+    mailOptions.attachments = attachments.map(att => ({
+      filename: att.filename,
+      path: att.path,
+      contentType: att.type || 'application/pdf'
+    }));
+  }
+
+  console.log(`📧 Sending email via Apple SMTP to: ${email}${attachments.length > 0 ? ` with ${attachments.length} attachment(s)` : ''}`);
 
   try {
     const info = await smtpTransporter.sendMail(mailOptions);
@@ -349,6 +368,108 @@ export async function healthCheck() {
     status: overallHealthy ? 'healthy' : 'unhealthy',
     ...results
   };
+}
+
+// Send questionnaire PDF email with attachment
+export async function sendQuestionnairePDF(email, pdfPath, username) {
+  try {
+    // Validate inputs
+    if (!email || !pdfPath) {
+      throw new Error('Email and PDF path are required');
+    }
+
+    validateEmailAddress(email);
+
+    // Read PDF file as base64 for SendGrid or use path for SMTP
+    const fs = await import('fs/promises');
+    const pdfBuffer = await fs.readFile(pdfPath);
+    const pdfBase64 = pdfBuffer.toString('base64');
+
+    const subject = 'Your Questionnaire Results - A Formulation of Truth';
+
+    const html = `
+      <div style="font-family: Georgia, serif; max-width: 600px; margin: 0 auto; padding: 20px; background: #f9f5f0; color: #4a3728;">
+        <div style="background: white; border: 3px solid #8b4513; border-radius: 12px; padding: 30px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+          <h1 style="color: #8b4513; font-size: 28px; margin-bottom: 10px; text-align: center;">✨ Questionnaire Complete ✨</h1>
+          <p style="font-style: italic; text-align: center; color: #6b5344; margin-bottom: 30px;">A Formulation of Truth</p>
+
+          <p style="font-size: 16px; line-height: 1.7; margin-bottom: 20px;">
+            Thank you for completing the thirty-five questions. Your introspective journey has been captured and encrypted.
+          </p>
+
+          <p style="font-size: 16px; line-height: 1.7; margin-bottom: 20px;">
+            Attached to this email, you'll find a PDF containing all of your responses. This document is yours to keep, reflect upon, and revisit as you continue your journey of self-discovery.
+          </p>
+
+          <div style="background: #f0e6d8; border-left: 4px solid #8b4513; padding: 15px; margin: 25px 0; border-radius: 4px;">
+            <p style="margin: 0; font-size: 14px; color: #4a3728;">
+              <strong>Note:</strong> Your responses are encrypted in our database and can only be decrypted using your authentication token. We take your privacy seriously.
+            </p>
+          </div>
+
+          <p style="font-size: 14px; color: #6b5344; text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #d4a574;">
+            With gratitude,<br>
+            <strong>A Formulation of Truth</strong>
+          </p>
+        </div>
+      </div>
+    `;
+
+    const text = `
+      Questionnaire Complete - A Formulation of Truth
+
+      Thank you for completing the thirty-five questions. Your introspective journey has been captured and encrypted.
+
+      Attached to this email, you'll find a PDF containing all of your responses. This document is yours to keep, reflect upon, and revisit as you continue your journey of self-discovery.
+
+      Note: Your responses are encrypted in our database and can only be decrypted using your authentication token. We take your privacy seriously.
+
+      With gratitude,
+      A Formulation of Truth
+    `;
+
+    // Prepare attachments array
+    const attachments = [{
+      content: pdfBase64, // For SendGrid (base64)
+      path: pdfPath,      // For SMTP (file path)
+      filename: `questionnaire-${username || 'responses'}-${new Date().toISOString().split('T')[0]}.pdf`,
+      type: 'application/pdf',
+      disposition: 'attachment'
+    }];
+
+    // Route email based on recipient
+    const isAdmin = isAdminEmail(email);
+
+    console.log(`\n📬 Questionnaire PDF Email:`);
+    console.log(`   Recipient: ${email}`);
+    console.log(`   PDF: ${pdfPath}`);
+    console.log(`   Provider: ${isAdmin ? 'Apple SMTP' : 'SendGrid'}\n`);
+
+    if (isAdmin) {
+      // Send admin emails via Apple SMTP
+      return await viaSMTP(email, subject, html, text, attachments);
+    } else {
+      // Send user emails via SendGrid
+      return await sendViaSendGrid(email, subject, html, text, attachments);
+    }
+
+  } catch (error) {
+    console.error('Error sending questionnaire PDF email:', {
+      error: error.message,
+      email: email,
+      pdfPath: pdfPath,
+      timestamp: new Date().toISOString()
+    });
+
+    // Re-throw with more specific error types
+    if (error instanceof MailerConfigError) {
+      throw error;
+    } else if (error.message.includes('Invalid email')) {
+      throw new Error(`Email validation failed: ${error.message}`);
+    } else {
+      throw new Error(`Failed to send PDF email: ${error.message}`);
+    }
+  }
 }
 
 // Export utility functions for testing

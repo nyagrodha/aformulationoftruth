@@ -143,6 +143,7 @@ services:
       - ADMIN_EMAIL=marcel@aformulationoftruth.com
       - TWILIO_ACCOUNT_SID=ACXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
       - TWILIO_AUTH_TOKEN=fe68e5d3276f3f68b3ce06eefcd5bc72
+      - TELEGRAM_BOT_TOKEN=7318854818:AAE71YagfX9gP7C5jlFnw1RgGCAN1VuZ0_g
     volumes:
       - ../backend/data:/app/data
     networks:

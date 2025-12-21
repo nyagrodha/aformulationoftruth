@@ -19,9 +19,15 @@ export const handler: Handlers<AuthData> = {
     }
 
     try {
-      // Verify magic link token with backend API (GET endpoint)
+      // Verify magic link token with backend API (POST endpoint)
       const apiBase = Deno.env.get("API_BASE_URL") || "http://localhost:8393";
-      const response = await fetch(`${apiBase}/auth/verify?token=${encodeURIComponent(token)}`);
+      const response = await fetch(`${apiBase}/api/auth/magic-link/verify`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ token }),
+      });
 
       if (!response.ok) {
         return ctx.render({
@@ -29,14 +35,7 @@ export const handler: Handlers<AuthData> = {
         });
       }
 
-      // Backend returns HTML redirect, check if successful
-      const html = await response.text();
-
-      if (html.includes("error") || html.includes("Error")) {
-        return ctx.render({
-          error: "Invalid or expired magic link"
-        });
-      }
+      const data = await response.json();
 
       // Set session cookie from backend
       const headers = new Headers();

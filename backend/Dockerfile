@@ -28,12 +28,13 @@ RUN apt-get update \
       python3 \
       xdg-utils \
  && rm -rf /var/lib/apt/lists/* \
- && npm ci --omit=dev
+ && npm ci
 
 COPY . .
 
-RUN mkdir -p /app/data /app/logs /app/pdfs
+RUN npm run build \
+ && mkdir -p /app/data /app/logs /app/pdfs
 
 EXPOSE 3001
 
-CMD ["node", "server.js"]
+CMD ["node", "dist/server.js"]

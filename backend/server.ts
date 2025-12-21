@@ -86,6 +86,7 @@ import path from 'path';
 import crypto from 'crypto';
 import questionsRouter, { setDatabaseClient as setQuestionsDatabaseClient } from './routes/questions.js';
 import authRouter from './routes/auth.js';
+import completionRouter, { setDatabaseClient as setCompletionDatabaseClient, setPDFGenerator as setCompletionPDFGenerator } from './routes/questionnaire-completion.js';
 // import KeybaseAuthBot from './keybase-bot.js';
 import PDFGenerator from './utils/pdf-generator.js';
 import { verifyToken, optionalAuth } from './middleware/auth.js';
@@ -93,6 +94,7 @@ import KaruppasāmiBot from './bots/karuppasami-telegram.js';
 
 // Protected API routes requiring authentication
 app.use('/api/questions', verifyToken, questionsRouter);
+app.use('/api/questionnaire', verifyToken, completionRouter);
 // make __dirname available by default
 import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
@@ -188,6 +190,8 @@ client.connect()
     setProfileDatabaseClient(client);
     setQuestionsDatabaseClient(client);
     setUserDatabaseClient(client);
+    setNewsletterDatabaseClient(client);
+    setCompletionDatabaseClient(client);
 
     // Create users table if it doesn't exist
     return client.query(`
@@ -472,6 +476,9 @@ client.connect()
 // const keybaseBot = new KeybaseAuthBot();
 const pdfGenerator = new PDFGenerator();
 
+// Pass PDF generator to completion router
+setCompletionPDFGenerator(pdfGenerator);
+
 // keybaseBot.initialize().catch(err => {
 //   console.error('Keybase bot initialization error:', err);
 // });
@@ -500,9 +507,11 @@ import { setDatabaseClient as setAuthDatabaseClient } from './routes/auth.js';
 import phoneVerificationRouter from './routes/phone-verification.js';
 import profileRouter from './routes/profile.js';
 import userRouter from './routes/user.js';
+import newsletterRouter from './routes/newsletter.js';
 import { setDatabaseClient as setPhoneDatabaseClient } from './routes/phone-verification.js';
 import { setDatabaseClient as setProfileDatabaseClient } from './routes/profile.js';
 import { setDatabaseClient as setUserDatabaseClient } from './routes/user.js';
+import { setDatabaseClient as setNewsletterDatabaseClient } from './routes/newsletter.js';
 
 // Mount auth routes
 app.use('/auth', authRouter);
@@ -511,6 +520,7 @@ app.use('/auth', authRouter);
 app.use('/api/phone', phoneVerificationRouter);
 app.use('/api/profile', profileRouter);
 app.use('/api/user', userRouter);
+app.use('/api/newsletter', newsletterRouter);
 
 // Geolocation endpoint to detect user's country
 import { getCachedIPInfo } from './utils/ip-lookup.js';
@@ -944,7 +954,7 @@ const socketPath = process.env.SOCKET_PATH;
     const tryUnix = () => {
       return new Promise((resolve, reject) => {
         app
-          .listen(socketPath, resolve)
+          .listen(socketPath, () => resolve(undefined))
           .once("error", reject);
       });
     };

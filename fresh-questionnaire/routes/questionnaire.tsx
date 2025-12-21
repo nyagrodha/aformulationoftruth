@@ -6,6 +6,8 @@ interface QuestionnaireData {
   error?: string;
   completed?: boolean;
   message?: string;
+  pdfSent?: boolean;
+  deliveryMethod?: string;
   question?: {
     id: number;
     text: string;
@@ -62,10 +64,47 @@ export const handler: Handlers<QuestionnaireData> = {
 
       // Check if questionnaire is completed
       if (questionData.completed) {
-        return ctx.render({
-          completed: true,
-          message: questionData.message || "All questions have been answered!"
-        });
+        // Trigger completion endpoint to generate and send PDF
+        console.log('Questionnaire completed - triggering PDF generation');
+        try {
+          const completionResponse = await fetch(`${apiUrl}/api/questionnaire/complete`, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
+          });
+
+          if (completionResponse.ok) {
+            const completionData = await completionResponse.json();
+            console.log('Completion processed:', completionData);
+
+            return ctx.render({
+              completed: true,
+              message: completionData.delivery?.method === 'email'
+                ? "All questions answered! Check your email for your PDF."
+                : completionData.delivery?.method === 'telegram'
+                  ? "All questions answered! Your PDF has been sent via Telegram."
+                  : "All questions have been answered!",
+              pdfSent: true,
+              deliveryMethod: completionData.delivery?.method
+            });
+          } else {
+            // Even if PDF generation fails, still show completion
+            console.error('Completion endpoint failed:', await completionResponse.text());
+            return ctx.render({
+              completed: true,
+              message: "All questions answered! (PDF generation pending...)"
+            });
+          }
+        } catch (completionError) {
+          console.error('Error triggering completion:', completionError);
+          // Still show completion even if PDF fails
+          return ctx.render({
+            completed: true,
+            message: "All questions have been answered!"
+          });
+        }
       }
 
       // Store token in response cookie for subsequent requests
@@ -125,6 +164,22 @@ export default function QuestionnairePage({ data }: PageProps<QuestionnaireData>
           <div class="max-w-2xl w-full bg-white shadow-xl rounded-lg p-12 text-center">
             <h1 class="text-4xl font-bold text-amber-800 mb-6">✨ Complete ✨</h1>
             <p class="text-xl text-gray-700 mb-8">{data.message}</p>
+
+            {data.pdfSent && (
+              <div class="bg-amber-50 border-l-4 border-amber-600 p-6 mb-8 text-left rounded">
+                <p class="font-semibold text-amber-800 mb-2">
+                  📄 Your PDF is ready!
+                </p>
+                <p class="text-gray-700">
+                  {data.deliveryMethod === 'email' || data.deliveryMethod === 'email_fallback'
+                    ? "A PDF containing all your responses has been sent to your email. Please check your inbox (and spam folder if needed)."
+                    : data.deliveryMethod === 'telegram'
+                      ? "Your PDF has been sent to you via Telegram. Check your messages!"
+                      : "Your PDF has been generated and sent to you."}
+                </p>
+              </div>
+            )}
+
             <p class="text-gray-600 mb-8">
               Your answers have been encrypted and saved. Thank you for your introspection.
             </p>
