@@ -90,3 +90,8 @@ pdfs/
 # Cache
 .cache/
 .parcel-cache/
+fresh-questionnaire/_fresh/
+
+# Tor hidden service (sensitive keys)
+docker/pyaz/hidden_service/
+docker/pyaz/data/

@@ -1,0 +1,337 @@
+/* ============================================ */
+/* LANDING PAGE LAYOUT */
+/* ============================================ */
+
+/* Hero Section - Dream More (Full width, large and dominant) */
+.hero-section {
+    width: 100%;
+    min-height: 70vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 4rem;
+    position: relative;
+    padding: 2rem 0;
+}
+
+.hero-image-container {
+    width: 100%;
+    max-width: 1400px;
+    position: relative;
+    z-index: 10;
+}
+
+.hero-image {
+    width: 100%;
+    height: auto;
+    border-radius: 16px;
+    box-shadow:
+        0 30px 90px rgba(0, 0, 0, 0.7),
+        0 0 60px var(--neon-pink-glow),
+        0 0 100px var(--neon-orange-glow);
+    transition: var(--transition-smooth);
+}
+
+.hero-image:hover {
+    transform: scale(1.02);
+    box-shadow:
+        0 40px 120px rgba(0, 0, 0, 0.8),
+        0 0 80px var(--neon-pink-glow),
+        0 0 120px var(--neon-orange-glow);
+}
+
+/* ============================================ */
+/* THREE COLUMN IMAGE GRID */
+/* ============================================ */
+
+.image-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 3rem;
+    margin: 4rem 0;
+    position: relative;
+    z-index: 10;
+}
+
+/* Desktop: Three column layout with specific positioning */
+@media (min-width: 1024px) {
+    .image-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 2rem;
+        align-items: start;
+    }
+
+    /* Left column - DOPAMINA */
+    .left-column {
+        grid-column: 1;
+        align-self: start;
+    }
+
+    /* Middle column - positioned lower than DOPAMINA bottom */
+    .middle-column {
+        grid-column: 2;
+        margin-top: 8rem; /* Lower than DOPAMINA */
+        align-self: start;
+    }
+
+    /* Right column - third position */
+    .right-column {
+        grid-column: 3;
+        margin-top: 4rem;
+        align-self: start;
+    }
+}
+
+/* Grid Items */
+.grid-item {
+    position: relative;
+    width: 100%;
+}
+
+/* ============================================ */
+/* ARCHETYPE BUTTON - Lover/Erotic */
+/* ============================================ */
+
+.left-column .archetype-button {
+    margin: 0 auto 2rem auto;
+    display: flex;
+    animation: pulse-slow 3s ease-in-out infinite;
+}
+
+@keyframes pulse-slow {
+    0%, 100% {
+        box-shadow:
+            0 0 20px var(--neon-pink-glow),
+            inset 0 0 15px rgba(0, 0, 0, 0.5);
+    }
+    50% {
+        box-shadow:
+            0 0 40px var(--neon-pink-glow),
+            0 0 60px var(--neon-orange-glow),
+            inset 0 0 20px rgba(255, 0, 128, 0.3);
+    }
+}
+
+/* Image Reveal Animation */
+.image-reveal {
+    opacity: 0;
+    max-height: 0;
+    overflow: hidden;
+    transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.image-reveal.active {
+    opacity: 1;
+    max-height: 2000px;
+    animation: slideInFromLeft 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes slideInFromLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-100px) scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0) scale(1);
+    }
+}
+
+/* ============================================ */
+/* WEATHER WIDGET */
+/* ============================================ */
+
+.weather-widget {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: linear-gradient(
+        135deg,
+        rgba(26, 10, 46, 0.9) 0%,
+        rgba(15, 5, 29, 0.85) 100%
+    );
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--neon-pink);
+    border-radius: 12px;
+    padding: 0.75rem 1rem;
+    box-shadow:
+        0 4px 20px rgba(0, 0, 0, 0.7),
+        0 0 15px var(--neon-pink-glow);
+    z-index: 900;
+    min-width: 100px;
+    text-align: center;
+    transition: var(--transition-fast);
+}
+
+.weather-widget:hover {
+    transform: scale(1.05);
+    box-shadow:
+        0 6px 30px rgba(0, 0, 0, 0.8),
+        0 0 25px var(--neon-orange-glow);
+}
+
+.weather-temp {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--neon-orange);
+    text-shadow: 0 0 10px var(--neon-orange-glow);
+    line-height: 1;
+}
+
+.weather-location {
+    font-family: 'Spectral', Georgia, serif;
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    margin-top: 0.25rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* Mobile: smaller weather widget */
+@media (max-width: 768px) {
+    .weather-widget {
+        bottom: 10px;
+        right: 10px;
+        padding: 0.5rem 0.75rem;
+        min-width: 80px;
+    }
+
+    .weather-temp {
+        font-size: 1.2rem;
+    }
+
+    .weather-location {
+        font-size: 0.65rem;
+    }
+}
+
+/* ============================================ */
+/* CALL TO ACTION SECTION */
+/* ============================================ */
+
+.cta-section {
+    text-align: center;
+    margin: 8rem 0 4rem 0;
+    padding: 4rem 2rem;
+    position: relative;
+    z-index: 10;
+}
+
+.cta-section h2 {
+    font-size: clamp(2rem, 6vw, 4rem);
+    margin-bottom: 1rem;
+}
+
+.cta-section p {
+    font-size: clamp(1.2rem, 3vw, 1.8rem);
+    font-style: italic;
+    color: var(--text-secondary);
+    margin-bottom: 3rem;
+}
+
+.cta-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.2rem 2.5rem;
+    background: linear-gradient(
+        135deg,
+        var(--brothel-purple) 0%,
+        var(--brothel-indigo) 100%
+    );
+    border: 2px solid var(--neon-pink);
+    border-radius: 50px;
+    color: var(--text-bright);
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 600;
+    text-decoration: none;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    box-shadow:
+        0 10px 40px rgba(0, 0, 0, 0.6),
+        0 0 30px var(--neon-pink-glow);
+    transition: var(--transition-fast);
+    cursor: pointer;
+}
+
+.cta-button:hover {
+    transform: translateY(-5px) scale(1.05);
+    background: linear-gradient(
+        135deg,
+        var(--brothel-violet) 0%,
+        var(--brothel-purple) 100%
+    );
+    border-color: var(--neon-orange);
+    box-shadow:
+        0 15px 60px rgba(0, 0, 0, 0.8),
+        0 0 50px var(--neon-orange-glow);
+    color: var(--neon-orange);
+}
+
+.cta-button .archetype-icon {
+    font-size: 1.5rem;
+    color: var(--neon-pink);
+    filter: drop-shadow(0 0 8px var(--neon-pink-glow));
+}
+
+/* ============================================ */
+/* MOBILE RESPONSIVE ADJUSTMENTS */
+/* ============================================ */
+
+@media (max-width: 768px) {
+    .hero-section {
+        min-height: 50vh;
+        margin-bottom: 2rem;
+    }
+
+    .image-grid {
+        gap: 2rem;
+        margin: 2rem 0;
+    }
+
+    .cta-section {
+        margin: 4rem 0 2rem 0;
+        padding: 2rem 1rem;
+    }
+
+    .cta-button {
+        padding: 1rem 2rem;
+        font-size: 0.95rem;
+    }
+}
+
+/* ============================================ */
+/* EASTER EGG INDICATOR */
+/* Subtle hint that images are clickable */
+/* ============================================ */
+
+[data-easter-egg] {
+    cursor: pointer;
+    position: relative;
+}
+
+[data-easter-egg]::after {
+    content: '';
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 12px;
+    height: 12px;
+    background: var(--neon-pink);
+    border-radius: 50%;
+    opacity: 0;
+    transition: var(--transition-fast);
+    box-shadow: 0 0 10px var(--neon-pink-glow);
+    animation: pulse-dot 2s ease-in-out infinite;
+}
+
+[data-easter-egg]:hover::after {
+    opacity: 0.6;
+}
+
+@keyframes pulse-dot {
+    0%, 100% { opacity: 0.3; transform: scale(1); }
+    50% { opacity: 0.7; transform: scale(1.2); }
+}
