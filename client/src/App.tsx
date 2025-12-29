@@ -37,6 +37,7 @@ function Router() {
       {!isAuthenticated ? (
         <>
           <Route path="/" component={AuthPage} />
+          <Route path="/auth" component={AuthPortalPage} />
           <Route path="/auth-portal" component={AuthPortalPage} />
         </>
       ) : (

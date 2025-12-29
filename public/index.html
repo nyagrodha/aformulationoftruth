@@ -1,122 +1,387 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <title>a formulation of truth</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>a formulation of truth</title>
+<link rel="stylesheet" href="/styles.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+<style>
+.gate-question {
+  margin: 2rem 0;
+  padding: 2rem;
+  border: 2px solid rgba(255, 0, 0, 0.6);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.3);
+}
 
-  <!-- Open Graph / Facebook -->
-  <meta property="og:type" content="website" />
-  <meta property="og:title" content="a formulation of truth" />
-  <meta property="og:description" content="a long experiment; a practice in self-inquiry" />
-  <meta property="og:image" content="https://aformulationoftruth.com/images/dreamMore...always.JPG" />
-  <meta property="og:url" content="https://aformulationoftruth.com/" />
+.gate-question h3 {
+  color: #ff6666;
+  margin-bottom: 1rem;
+  font-size: 1.3rem;
+  line-height: 1.4;
+}
 
-  <!-- Twitter -->
-  <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="a formulation of truth" />
-  <meta name="twitter:description" content="a long experiment; a practice in self-inquiry" />
-  <meta name="twitter:image" content="https://aformulationoftruth.com/images/dreamMore...always.JPG" />
+.gate-question textarea {
+  width: 100%;
+  min-height: 120px;
+  padding: 1rem;
+  font-size: 1rem;
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 0, 0, 0.4);
+  color: #ffffff;
+  font-family: inherit;
+  border-radius: 4px;
+  resize: vertical;
+  line-height: 1.6;
+}
 
-  <!-- Favicons -->
-  <link rel="icon" type="image/x-icon" href="/favicon.ico">
-  <link rel="icon" type="image/png" sizes="32x32" href="/favicons/favicon-32x32.png">
-  <link rel="icon" type="image/png" sizes="16x16" href="/favicons/favicon-16x16.png">
-  <link rel="apple-touch-icon" sizes="180x180" href="/favicons/apple-touch-icon.png">
+.gate-question textarea:focus {
+  outline: none;
+  border-color: rgba(255, 0, 0, 0.8);
+  box-shadow: 0 0 10px rgba(255, 0, 0, 0.3);
+}
 
-  <!-- Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Tamil:wght@400;700&family=Space+Grotesk:wght@300;400;500;600&display=swap" rel="stylesheet">
+.gate-question button {
+  margin-top: 1rem;
+  padding: 0.75rem 2rem;
+  background: rgba(255, 0, 0, 0.8);
+  color: #ffffff;
+  border: none;
+  border-radius: 4px;
+  font-size: 1.1rem;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.3s ease;
+}
 
-  <link rel="stylesheet" href="/css/gate.css" />
+.gate-question button:hover {
+  background: rgba(255, 0, 0, 1);
+  box-shadow: 0 0 20px rgba(255, 0, 0, 0.5);
+}
+
+.gate-question button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.gate-note {
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+  opacity: 0.7;
+  font-style: italic;
+  color: #ff9999;
+}
+
+#email-entry, #email-sent {
+  margin: 2rem 0;
+  padding: 2rem;
+  border: 2px solid rgba(255, 0, 0, 0.6);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.3);
+}
+
+#email-entry h3, #email-sent h3 {
+  color: #ff6666;
+  margin-bottom: 1rem;
+  font-size: 1.5rem;
+}
+
+#email-entry input[type="email"] {
+  width: 100%;
+  padding: 1rem;
+  font-size: 1rem;
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 0, 0, 0.4);
+  color: #ffffff;
+  border-radius: 4px;
+  margin: 1rem 0;
+  font-family: inherit;
+}
+
+#email-entry input[type="email"]:focus {
+  outline: none;
+  border-color: rgba(255, 0, 0, 0.8);
+  box-shadow: 0 0 10px rgba(255, 0, 0, 0.3);
+}
+
+#email-entry button {
+  padding: 0.75rem 2rem;
+  background: rgba(255, 0, 0, 0.8);
+  color: #ffffff;
+  border: none;
+  border-radius: 4px;
+  font-size: 1.1rem;
+  cursor: pointer;
+  font-weight: bold;
+  width: 100%;
+}
+
+#email-entry button:hover {
+  background: rgba(255, 0, 0, 1);
+  box-shadow: 0 0 20px rgba(255, 0, 0, 0.5);
+}
+
+#email-sent {
+  text-align: center;
+  background: rgba(0, 255, 0, 0.1);
+  border-color: rgba(0, 255, 0, 0.6);
+}
+
+#email-sent h3 {
+  color: #66ff66;
+}
+
+.error-message {
+  color: #ff4444;
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.success-message {
+  color: #66ff66;
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+}
+</style>
 </head>
 <body>
+<div id="scroll-container">
+  <div id="scroll-content">
 
-  <main class="container">
+    <!-- Hero Section with Quote and Image -->
+    <div class="hero-grid">
+      <div class="death-quote">
+        "We say that the hour of death cannot be forecast, but when we say this we imagine that hour as placed in an obscure and distant future. It never occurs to us that it has any connection with the day already begun or that death could arrive this same afternoon, this afternoon which is so certain and which has every hour filled in advance."
+        <span class="quote-author">— Marcel Proust</span>
+      </div>
 
-    <!-- Handwritten sigil -->
-    <div class="sigil"><img src="/images/itendu2.PNG" alt="Tamil 2" class="tamil-numeral"></div>
-
-    <!-- Main statement with animated colors -->
-    <div class="statement">
-      <span class="you">we are</span><br />
-      <span class="moment">this moment</span>
-    </div>
-
-    <!-- Tamil scrolling band -->
-    <div class="tamil-band">
-      <div class="tamil-scroll">
-        <span>நாங்கள் இந்தத் தருணம்</span>
-        <span>நாங்கள் இந்தத் தருணம்</span>
-        <span>நாங்கள் இந்தத் தருணம்</span>
-        <span>நாங்கள் இந்தத் தருணம்</span>
-        <span>நாங்கள் இந்தத் தருணம்</span>
-        <span>நாங்கள் இந்தத் தருணம்</span>
-        <span>நாங்கள் இந்தத் தருணம்</span>
-        <span>நாங்கள் இந்தத் தருணம்</span>
+      <div class="hero-image">
+        <img src="/images/proustOptics-1200.webp" alt="Proust Optics">
       </div>
     </div>
 
-    <!-- Identity line -->
-    <div class="identity">|| a formulation of truth ||</div>
+    <h1 class="neon-text">a formulation of truth</h1>
 
-    <!-- Brief explanation -->
-    <div class="explanation">
-      <p>A practice in self-inquiry these questions invite reflective states of awareness. We are not seeking answers; we seek, rather, novel awareness the self, the I who asks: who asks? What is this 'I', intimately experienced whom we feel for? We all refer to ourselves by the same name.</p>
-       <p>We ask questions not to extract, not to  aquire data--each
-       word you may write the app encrypts. We do not profile or track users. We intend to unsettle such that in the pause between question and response and through time a novel persoective on self emerges. That awareness is fully present right now. You may start here and finish ising ur cell phone, or vice versa. This is a slow experiment, and in the nonce lives an unending delight.</p>
+    <div class="neon-paragraph tamil">
+      <p>நான் யாரு? ௨</p>
     </div>
 
-    <!-- Question box (hidden initially) -->
-    <div id="question-box" class="question-box hidden">
-      <div id="question-text" class="question-text"></div>
+    <div class="neon-paragraph">
+      <h2>Prolegomenon</h2>
+    </div>
 
-      <textarea
-        id="response"
-        class="response"
-        placeholder="Type, or leave it unanswered…"
-      ></textarea>
+    <div class="neon-paragraph">
+      <p>You are not one self.</p>
+      <p>This is not a tragedy. It is more like the weather.</p>
+    </div>
 
-      <div class="actions">
-        <button id="submit">Continue</button>
-        <button id="skip" class="skip">Leave unanswered</button>
+    <div class="neon-paragraph">
+      <p><em>Dedicated to the memory and imaginative talent of Richard Brautigan (1935–1984)</em></p>
+    </div>
+
+    <div class="spacer"></div>
+
+    <div class="neon-paragraph">
+      <p>I knew a man once who answered the Proust Questionnaire. It was 1987. His idea of perfect happiness? "A cabin in Montana with good light for reading."</p>
+    </div>
+
+    <div class="neon-paragraph">
+      <p>In 1997 happenstantially coming upon the questionnaire that had shifted from within a box and now stained with his soon-to-be crusty sfacim, again he answered. His idea of perfect happiness? Well that had become "for my daughter to stop crying at night."</p>
+    </div>
+
+    <div class="neon-paragraph">
+      <p>In 2007 it was "to finish the book I'm writing."</p>
+    </div>
+
+    <div class="neon-paragraph">
+      <p>In 2017 it was, like clockwork, "a cabin in Montana with good light for reading."</p>
+    </div>
+
+    <div class="neon-paragraph">
+      <p>He thought this meant something. Therein lies the ego's rub not upon the phallus per se. And it did. It meant something the way weather means something.</p>
+    </div>
+
+    <div class="spacer"></div>
+
+    <div class="neon-paragraph">
+      <p>The questionnaire has thirty-five questions.</p>
+      <p>"What is your greatest fear?"</p>
+      <p>"What is the trait you most deplore in yourself?"</p>
+      <p>"How would you like to die?"</p>
+    </div>
+
+    <div class="neon-paragraph">
+      <p>These are not polite questions. They are holes in the ice.</p>
+      <p>If you answer them honestly, something cold touches your feet.</p>
+    </div>
+
+    <div class="spacer"></div>
+
+    <div class="neon-paragraph">
+      <p>Answer. Wait ten years. Answer again.</p>
+      <p>Notice that you are different.</p>
+      <p>Notice that you are the same.</p>
+      <p>Notice that "different" and "same" are just words, and you are not a word.</p>
+    </div>
+
+    <div class="neon-paragraph">
+      <p>You are the one using the words.</p>
+      <p>You are the one who can put them down.</p>
+    </div>
+
+    <div class="neon-paragraph">
+      <div id="gate-questionnaire">
+        <!-- Question 0 -->
+        <div id="question-0" class="gate-question" style="display: block;">
+          <h3>What is your idea of perfect happiness?</h3>
+          <textarea id="answer-0" rows="4" placeholder="Take your time to reflect..."></textarea>
+          <button onclick="submitGateAnswer(0)">Continue →</button>
+          <p class="gate-note">Your response is encrypted immediately.</p>
+        </div>
+
+        <!-- Question 1 -->
+        <div id="question-1" class="gate-question" style="display: none;">
+          <h3>What is your greatest fear?</h3>
+          <textarea id="answer-1" rows="4" placeholder="Be honest with yourself..."></textarea>
+          <button onclick="submitGateAnswer(1)">Continue →</button>
+          <p class="gate-note">Your response is encrypted immediately.</p>
+        </div>
+
+        <!-- Email entry -->
+        <div id="email-entry" style="display: none;">
+          <h3>One more step...</h3>
+          <p>Enter your email to receive a magic link and continue with the remaining 33 questions.</p>
+          <input type="email" id="email-input" placeholder="your@email.com" required>
+          <button onclick="submitEmail()">Send Magic Link</button>
+          <p class="gate-note" id="email-status"></p>
+        </div>
+
+        <!-- Success message -->
+        <div id="email-sent" style="display: none;">
+          <h3>Check your email!</h3>
+          <p>We've sent you a magic link. Click it to continue the questionnaire.</p>
+        </div>
       </div>
     </div>
 
-    <!-- Transition (hidden initially) -->
-    <div id="transition" class="transition hidden">
-      <button id="enter">Continue</button>
-    </div>
+<script>
+// Generate or retrieve gate session ID
+function getGateSessionId() {
+  let sessionId = localStorage.getItem('gateSessionId');
+  if (!sessionId) {
+    sessionId = 'gate_' + crypto.randomUUID();
+    localStorage.setItem('gateSessionId', sessionId);
+  }
+  return sessionId;
+}
 
-    <!-- Thermodynamics educational content (hidden initially) -->
-    <div id="thermodynamics-content" class="thermo-content hidden">
-      <h2>The Second Law of Thermodynamics</h2>
-      <div class="thermo-explanation">
-        <p>The second law of thermodynamics states that the total entropy of an isolated system can never decrease over time. In simple terms: disorder naturally increases.</p>
+// Submit gate answer
+async function submitGateAnswer(questionIndex) {
+  const answerId = 'answer-' + questionIndex;
+  const answerTextarea = document.getElementById(answerId);
+  const answer = answerTextarea.value.trim();
 
-        <h3>Mathematical Expression</h3>
-        <p class="math-formula">ΔS<sub>universe</sub> ≥ 0</p>
-        <p>Where ΔS represents the change in entropy, and the inequality shows that entropy always increases or remains constant.</p>
+  if (!answer) {
+    alert('Please provide an answer before continuing.');
+    return;
+  }
 
-        <h3>The Arrow of Time</h3>
-        <p>Entropy gives time its direction.</p>
+  const questionTexts = [
+    "What is your idea of perfect happiness?",
+    "What is your greatest fear?"
+  ];
 
-        <p class="math-formula">S = k<sub>B</sub> ln(Ω)</p>
-        <p>Boltzmann's entropy formula, where k<sub>B</sub> is Boltzmann's constant and Ω is the number of microstates.</p>
-      </div>
-      <button id="continue-from-thermo">Continue</button>
-    </div>
+  const button = event.target;
+  button.disabled = true;
+  button.textContent = 'Saving...';
 
-    <!-- Entry box (three boxes as per original design) -->
-    <div id="entry-boxes" class="entry-boxes">
-      <button class="entry-box" data-action="enter">
-        <span class="box-label">Enter</span>
-      </button>
-    </div>
+  try {
+    const response = await fetch('/api/gate/submit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        sessionId: getGateSessionId(),
+        questionText: questionTexts[questionIndex],
+        questionIndex: questionIndex,
+        answer: answer,
+        skipped: false
+      })
+    });
 
-  </main>
+    if (!response.ok) {
+      throw new Error('Failed to save answer');
+    }
 
-  <script src="/js/gate.js"></script>
+    // Hide current question
+    document.getElementById('question-' + questionIndex).style.display = 'none';
+
+    // Show next question or email entry
+    if (questionIndex === 0) {
+      document.getElementById('question-1').style.display = 'block';
+    } else {
+      document.getElementById('email-entry').style.display = 'block';
+    }
+  } catch (error) {
+    console.error('Error submitting answer:', error);
+    alert('Failed to save your answer. Please try again.');
+    button.disabled = false;
+    button.textContent = 'Continue →';
+  }
+}
+
+// Submit email for magic link
+async function submitEmail() {
+  const emailInput = document.getElementById('email-input');
+  const email = emailInput.value.trim();
+  const statusEl = document.getElementById('email-status');
+  const button = event.target;
+
+  if (!email || !email.includes('@')) {
+    statusEl.textContent = 'Please enter a valid email address.';
+    statusEl.className = 'gate-note error-message';
+    return;
+  }
+
+  button.disabled = true;
+  button.textContent = 'Sending...';
+  statusEl.textContent = 'Sending magic link...';
+  statusEl.className = 'gate-note';
+
+  try {
+    const response = await fetch('/api/auth/magic-link', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({
+        email: email,
+        gateSessionId: getGateSessionId()
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to send magic link');
+    }
+
+    // Hide email entry, show success
+    document.getElementById('email-entry').style.display = 'none';
+    document.getElementById('email-sent').style.display = 'block';
+
+    // Clear session ID after linking (will be linked to user after auth)
+    // Don't remove yet - backend needs it for verification
+  } catch (error) {
+    console.error('Error sending magic link:', error);
+    statusEl.textContent = 'Failed to send magic link. Please try again.';
+    statusEl.className = 'gate-note error-message';
+    button.disabled = false;
+    button.textContent = 'Send Magic Link';
+  }
+}
+</script>
+
+  </div>
+</div>
 </body>
 </html>

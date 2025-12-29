@@ -1,4 +1,5 @@
 import { Handlers, PageProps } from "$fresh/server.ts";
+import { Head } from "$fresh/runtime.ts";
 
 interface AuthData {
   token?: string;
@@ -13,6 +14,7 @@ export const handler: Handlers<AuthData> = {
   async GET(req, ctx) {
     const url = new URL(req.url);
     const token = url.searchParams.get("token");
+    const gateSessionId = url.searchParams.get("gateSessionId");
 
     if (!token) {
       return ctx.render({ error: "No authentication token provided" });
@@ -20,36 +22,38 @@ export const handler: Handlers<AuthData> = {
 
     try {
       // Verify magic link token with backend API (GET endpoint)
+      // Use redirect: 'manual' to capture the session cookie from the redirect
       const apiBase = Deno.env.get("API_BASE_URL") || "http://localhost:8393";
-      const response = await fetch(`${apiBase}/auth/verify?token=${encodeURIComponent(token)}`);
+      const response = await fetch(
+        `${apiBase}/auth/verify?token=${encodeURIComponent(token)}${gateSessionId ? `&gateSessionId=${gateSessionId}` : ''}`,
+        { redirect: 'manual' }
+      );
 
-      if (!response.ok) {
-        return ctx.render({
-          error: "Invalid or expired token"
+      // Backend should return 302 redirect with session cookie
+      if (response.status === 302) {
+        // Extract session cookie from backend response
+        const headers = new Headers();
+        const setCookie = response.headers.get("set-cookie");
+
+        if (setCookie) {
+          // Forward the session cookie to the browser
+          headers.append("set-cookie", setCookie);
+        }
+
+        // Get redirect location from backend (should be /questionnaire)
+        const location = response.headers.get("location") || "/questionnaire";
+
+        // Redirect browser to questionnaire with session cookie
+        headers.append("Location", location);
+        return new Response(null, {
+          status: 302,
+          headers,
         });
       }
 
-      // Backend returns HTML redirect, check if successful
-      const html = await response.text();
-
-      if (html.includes("error") || html.includes("Error")) {
-        return ctx.render({
-          error: "Invalid or expired magic link"
-        });
-      }
-
-      // Set session cookie from backend
-      const headers = new Headers();
-      const setCookie = response.headers.get("set-cookie");
-      if (setCookie) {
-        headers.append("set-cookie", setCookie);
-      }
-
-      // Redirect to questionnaire
-      headers.append("Location", "/questionnaire");
-      return new Response(null, {
-        status: 302,
-        headers,
+      // If not a redirect, something went wrong
+      return ctx.render({
+        error: "Authentication failed. Please try again."
       });
 
     } catch (error) {

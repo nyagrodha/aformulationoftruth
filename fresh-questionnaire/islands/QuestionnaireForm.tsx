@@ -3,10 +3,9 @@ import { useState } from "preact/hooks";
 interface QuestionnaireFormProps {
   questionId: number;
   questionText: string;
-  token: string;
 }
 
-export default function QuestionnaireForm({ questionId, questionText, token }: QuestionnaireFormProps) {
+export default function QuestionnaireForm({ questionId, questionText }: QuestionnaireFormProps) {
   const [answer, setAnswer] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
@@ -23,18 +22,14 @@ export default function QuestionnaireForm({ questionId, questionText, token }: Q
     setError("");
 
     try {
-      // Extract email from JWT token (it's in the payload)
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      const email = payload.email;
-
+      // Use session-based authentication (cookies sent automatically)
       const response = await fetch("/api/answers", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`,
         },
+        credentials: "include",
         body: JSON.stringify({
-          email,
           questionId,
           answer: answer.trim(),
         }),

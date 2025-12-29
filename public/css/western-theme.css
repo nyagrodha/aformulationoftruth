@@ -897,6 +897,69 @@ margin-top: 1rem;
 font-style: italic;
 }
 
+/* Decorative corners - buffalo skulls */
+.corner.skull {
+position: fixed;
+width: 150px;
+height: 110px;
+opacity: 0;
+pointer-events: none;
+z-index: 900;
+color: var(--shadow);
+transition: opacity 1.2s ease;
+}
+
+.corner.skull.buffalo svg {
+width: 100%;
+height: 100%;
+}
+
+/* Christmas lights on buffalo skulls */
+.skull-light {
+  animation: skullTwinkle 2s ease-in-out infinite;
+}
+
+.skull-light:nth-child(4) { animation-delay: 0s; }
+.skull-light:nth-child(5) { animation-delay: 0.3s; }
+.skull-light:nth-child(6) { animation-delay: 0.6s; }
+.skull-light:nth-child(7) { animation-delay: 0.9s; }
+.skull-light:nth-child(8) { animation-delay: 1.2s; }
+.skull-light:nth-child(9) { animation-delay: 1.5s; }
+
+@keyframes skullTwinkle {
+  0%, 100% {
+    opacity: 1;
+    filter: brightness(1) drop-shadow(0 0 3px currentColor);
+  }
+  50% {
+    opacity: 0.4;
+    filter: brightness(1.5) drop-shadow(0 0 6px currentColor);
+  }
+}
+
+.corner.top-left {
+top: 80px;
+left: 20px;
+}
+
+.corner.top-right {
+top: 80px;
+right: 20px;
+transform: scaleX(-1);
+}
+
+.corner.bottom-left {
+bottom: 20px;
+left: 20px;
+transform: scaleY(-1);
+}
+
+.corner.bottom-right {
+bottom: 20px;
+right: 20px;
+transform: scale(-1, -1);
+}
+
 /* Responsive */
 @media (max-width: 600px) {
 body {
@@ -925,6 +988,10 @@ h1::after {
   padding: 1rem 1.5rem;
 }
 
+.corner {
+  display: none;
+}
+
 .hero-symbols {
   flex-direction: column;
   gap: 1rem;
@@ -938,6 +1005,16 @@ h1::after {
   width: 15px;
   height: 22px;
 }
+}
+
+/* Subtle animation - like heat shimmer */
+@keyframes shimmer {
+0%, 100% { opacity: 0.3; }
+50% { opacity: 0.5; }
+}
+
+.corner {
+animation: shimmer 8s ease-in-out infinite;
 }
 
 /* =========================================================
@@ -971,6 +1048,12 @@ body {
    2. ORNAMENT DELAY
    No delight before conceptual labor
    --------------------------------------------------------- */
+
+
+/* Buffalo skulls initially hidden */
+.corner.skull {
+  opacity: 0;
+}
 
 
 /* ---------------------------------------------------------
@@ -1038,6 +1121,10 @@ body {
    Ornament becomes permissible
    --------------------------------------------------------- */
 
+body.passed-orientation .corner.skull {
+  opacity: 0.18;
+}
+
 
 /* ---------------------------------------------------------
    STATE 2: ENTERED NOMINATIVE
@@ -1072,4 +1159,105 @@ body.entered-recognition .container p {
 body.entered-recognition .divider {
   opacity: 0.3;
   letter-spacing: 0.6em;
+}
+
+/* =========================================================
+   PROLEGOMENON SECTION
+   ========================================================= */
+
+/* Drop-in: Clearnet Prolegomenon */
+.prolegomenon{
+  --bg: #000;
+  --fg: #eae7df;
+  --muted: rgba(234,231,223,.72);
+  --hair: rgba(234,231,223,.18);
+  --accent: rgba(234,231,223,.92);
+
+  max-width: 68ch;
+  margin: 5rem auto;
+  padding: 0 1.25rem;
+  color: var(--fg);
+  line-height: 1.75;
+  position: relative;
+  font-size: 1.02rem;
+}
+
+/* "Not entirely" OM: single faint watermark */
+.prolegomenon.clearnet::before{
+  content: "ॐ";
+  position: absolute;
+  top: -1.6rem;
+  right: 1rem;
+  font-size: 4rem;
+  opacity: .05;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* Onion variant (no watermark) */
+.prolegomenon.onion{
+  /* inherits base styles, no ::before watermark */
+}
+
+/* Threshold line */
+.prolegomenon .threshold{
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  font-size: .85rem;
+  color: var(--muted);
+  margin: 0 0 1.25rem 0;
+}
+
+/* Subhead */
+.prolegomenon .kicker{
+  font-size: .98rem;
+  letter-spacing: .04em;
+  color: var(--muted);
+  margin: 0 0 1.5rem 0;
+}
+
+/* Line variant (similar to threshold) */
+.prolegomenon .line{
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  font-size: .85rem;
+  color: var(--muted);
+  margin: 1.25rem 0;
+}
+
+/* Hairline divider */
+.prolegomenon .sigil{
+  border: 0;
+  border-top: 1px solid var(--hair);
+  margin: 2rem 0;
+}
+
+/* Triad paragraph */
+.prolegomenon .triad{
+  color: var(--accent);
+  margin-top: 1.25rem;
+}
+
+/* Mantra block */
+.prolegomenon .mantra{
+  margin-top: 2rem;
+  padding-left: 1rem;
+  border-left: 2px solid var(--hair);
+  color: var(--accent);
+}
+
+/* Closing */
+.prolegomenon .close{
+  margin-top: 1.5rem;
+  color: var(--muted);
+}
+
+/* Links (if any appear inside) */
+.prolegomenon a{
+  color: var(--fg);
+  text-decoration: none;
+  border-bottom: 1px solid var(--hair);
+}
+.prolegomenon a:hover{
+  border-bottom-color: var(--fg);
 }

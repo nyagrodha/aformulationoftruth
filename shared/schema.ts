@@ -16,7 +16,7 @@ export const sessions = pgTable(
 
 // User storage table
 export const users = pgTable("users", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id").primaryKey(),
   email: text("email").unique(),
   firstName: varchar("first_name"),
   lastName: varchar("last_name"),
@@ -39,6 +39,7 @@ export const magicLinks = pgTable("magic_links", {
   token: text("token").notNull().unique(),
   expiresAt: timestamp("expires_at").notNull(),
   used: boolean("used").default(false).notNull(),
+  gateSessionId: varchar("gate_session_id", { length: 255 }),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

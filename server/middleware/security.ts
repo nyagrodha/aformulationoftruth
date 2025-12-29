@@ -6,12 +6,16 @@ import type { Express } from 'express';
 // Rate limiting configuration
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limit each IP to 100 requests per windowMs
+  max: 500, // limit each IP to 500 requests per windowMs (increased for development)
   message: {
     error: 'Too many requests from this IP, please try again later.'
   },
   standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
   legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+  skip: (req: any) => {
+    // Skip rate limiting for admin users
+    return req.user?.isAdmin === true;
+  }
 });
 
 // Stricter rate limiting for authentication endpoints

@@ -5,26 +5,35 @@
 @tailwind utilities;
 
 :root {
-  --primary: hsl(207, 90%, 54%);
-  --primary-foreground: hsl(0, 0%, 100%);
-  --secondary: hsl(210, 11%, 26%);
+  /* Theme matching index.html gate page */
+  --blue-deep: #0b1020;
+  --blue-soft: #1b2a4a;
+  --pink: #ff6fae;
+  --green: #4cffb0;
+  --text-main: #e6ebff;
+  --text-muted: #9aa3c7;
+  --text-pale: #d0d8f0;
+
+  --primary: var(--green);
+  --primary-foreground: var(--blue-deep);
+  --secondary: var(--pink);
   --secondary-foreground: hsl(0, 0%, 100%);
-  --accent: hsl(122, 39%, 49%);
-  --accent-foreground: hsl(0, 0%, 100%);
-  --background: hsl(120, 100%, 3%);
-  --foreground: hsl(210, 11%, 26%);
-  --surface: hsl(0, 0%, 100%);
-  --muted: hsl(210, 11%, 71%);
-  --muted-foreground: hsl(210, 11%, 46%);
-  --border: hsl(214, 32%, 91%);
-  --input: hsl(214, 32%, 91%);
-  --card: hsl(0, 0%, 100%);
-  --card-foreground: hsl(210, 11%, 26%);
-  --popover: hsl(0, 0%, 100%);
-  --popover-foreground: hsl(210, 11%, 26%);
+  --accent: var(--pink);
+  --accent-foreground: var(--blue-deep);
+  --background: var(--blue-deep);
+  --foreground: var(--text-main);
+  --surface: var(--blue-soft);
+  --muted: var(--blue-soft);
+  --muted-foreground: var(--text-muted);
+  --border: rgba(255, 111, 174, 0.3);
+  --input: var(--blue-soft);
+  --card: var(--blue-soft);
+  --card-foreground: var(--text-main);
+  --popover: var(--blue-soft);
+  --popover-foreground: var(--text-main);
   --destructive: hsl(0, 84%, 60%);
   --destructive-foreground: hsl(0, 0%, 100%);
-  --ring: hsl(207, 90%, 54%);
+  --ring: var(--pink);
   --radius: 0.5rem;
 }
 
@@ -129,14 +138,54 @@
   --ring: hsl(207, 90%, 54%);
 }
 
+/* Sigil header with orange-red background */
+.app-sigil-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  background: linear-gradient(135deg, #ff4500, #ff6347, #ff4500);
+  padding: 1rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 4px 20px rgba(255, 69, 0, 0.5);
+}
+
+.app-sigil {
+  max-width: 140px;
+  height: auto;
+  transform: rotate(-3deg);
+  filter: brightness(1.3) contrast(1.15) drop-shadow(0 0 15px rgba(255, 255, 255, 0.8));
+  animation: breathe 3s ease-in-out infinite;
+}
+
+@keyframes breathe {
+  0%, 100% {
+    filter: brightness(1.3) contrast(1.15) drop-shadow(0 0 15px rgba(255, 255, 255, 0.8));
+    transform: rotate(-3deg) scale(1);
+  }
+  50% {
+    filter: brightness(1.4) contrast(1.2) drop-shadow(0 0 25px rgba(255, 255, 255, 1));
+    transform: rotate(-3deg) scale(1.05);
+  }
+}
+
+.main-content-with-sigil {
+  padding-top: 100px; /* Space for fixed header */
+}
+
 @layer base {
   * {
     @apply border-border;
   }
 
   body {
-    @apply font-sans antialiased bg-background text-foreground;
-    font-family: 'Inter', sans-serif;
+    @apply font-sans antialiased text-foreground;
+    font-family: 'Space Grotesk', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    background: radial-gradient(circle at top, var(--blue-soft), var(--blue-deep));
+    min-height: 100vh;
   }
 }
 

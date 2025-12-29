@@ -29,6 +29,24 @@
       z-index: 1;
     }
 
+    /* Sigil at the top */
+    .sigil-top {
+      position: absolute;
+      top: 2rem;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 10;
+    }
+
+    .tamil-numeral {
+      max-width: 170px;
+      height: auto;
+      transform: rotate(-3deg);
+      mix-blend-mode: screen;
+      filter: brightness(1.3) contrast(1.15) drop-shadow(0 0 25px rgba(255, 102, 204, 0.9)) drop-shadow(0 0 45px rgba(153, 102, 255, 0.7));
+      opacity: 0.95;
+    }
+
     .om-tamil {
       font-family: 'Noto Sans Tamil', 'Noto Serif Devanagari', Georgia, serif;
       font-size: 12vw;
@@ -60,6 +78,7 @@
       align-items: center;
       justify-content: center;
       will-change: transform;
+      padding: 2rem;
     }
 
     /* Layer custom speeds and color effects */
@@ -68,26 +87,34 @@
     .layer3 { z-index: 4; }
 
     .verse {
-      font-size: 2rem;
+      font-size: 1.8rem;
       color: #fff;
-      text-shadow: 0 0 10px #00ffff, 0 0 20px #ff00ff;
-      margin-bottom: 1.5rem;
+      text-shadow: 0 0 12px #00ffff, 0 0 24px #ff00ff;
+      margin-bottom: 2rem;
       margin-top: 1.5rem;
       font-family: 'Noto Serif Devanagari', 'Noto Sans Tamil', Georgia, serif;
+      line-height: 1.8;
+      max-width: 800px;
+      text-align: center;
     }
     .translation {
-      font-size: 1.1rem;
+      font-size: 1.15rem;
       color: #ccff00;
       margin-bottom: 2.5rem;
-      text-shadow: 0 0 6px #ff00ff;
+      text-shadow: 0 0 8px #ff00ff;
+      line-height: 1.9;
+      max-width: 750px;
+      text-align: center;
     }
     .quote {
-      font-size: 1.3rem;
+      font-size: 1.2rem;
       color: #ff00ff;
-      max-width: 700px;
-      margin: 1.5rem auto;
-      text-shadow: 0 0 4px #00ffff;
-      line-height: 1.7;
+      max-width: 750px;
+      margin: 2rem auto;
+      text-shadow: 0 0 6px #00ffff;
+      line-height: 2;
+      text-align: center;
+      letter-spacing: 0.02em;
     }
     /* Hide scrollbars for immersive effect */
     ::-webkit-scrollbar { width: 0; height: 0; }
@@ -96,12 +123,19 @@
     /* Responsive tweaks */
     @media (max-width: 600px) {
       .verse { font-size: 1.1rem; }
-      .translation, .quote { font-size: 0.96rem; }
+      .translation, .quote { font-size: 0.96rem; line-height: 1.8; }
       .om-tamil { font-size: 18vw; }
+      .tamil-numeral { max-width: 120px; }
+      .sigil-top { top: 1rem; }
     }
   </style>
 </head>
 <body>
+  <!-- Sigil at top -->
+  <div class="sigil-top">
+    <img src="/images/itendu2.PNG" alt="Tamil Sigil" class="tamil-numeral">
+  </div>
+
   <div id="root"></div>
   <!-- AUDIO LOOP: Replace src with your actual Vedic chant audio file -->
   <audio id="chant-audio" loop>
@@ -114,26 +148,51 @@
   </div>
 
   <div class="layer layer2 sticky-layer">
-      <div class="translation">
-      Amidst limitless imagination of verse<br>
-      a poet is the lord of creation.<br>
-      Just as they enjoy the world, so, too, she transforms it.
+      <div class="verse">
+      ಕವಿಯ ಮನ ನಂದನವನ;<br>
+      ಅನಂದದ ರಸನಿಕೇತನ:<br>
+      ಅಲ್ಲಿ ಭಾವದ್ರುಮ ಬೆಳೆದ ಮಾಸ:<br>
+      ಅಲ್ಲಿ ಯೌವನ ಸುಖದ ಸದಾನ:<br>
+      ಅಲ್ಲಿ ಸಾಹಿತ್ಯ ಅಮರತಾರಾನ!<br>
+      <span style="font-size: 0.7em; opacity: 0.8;">— ಕುವೆಂಪು</span>
+    </div>
+    <div class="translation">
+      The poet's mind is a forest of delights:<br>
+      a dwelling place for bliss.<br>
+      Here, sin is a vehicle to holiness<br>
+      Here, suffering turns into a joyful chant<br>
+      Here, peace becomes a journey toward immortality.
     </div>
   </div>
 
     <div class="layer layer3 sticky-layer">
     <div class="quote">
       truth resides in the reconstruction<br>
-      of events without precedent<br>
+      of events without precedent<br><br>
+
       in a world where nothing<br>
-      repeats itself exactly; where one's sense<br>
+      repeats itself exactly;<br><br>
+
+      where one's sense<br>
       comes from the association of memory.
     </div>
     <div class="quote">
-      to be a person, to act as one ought,<br/>
-      to act according to the categorical imperative,<br/>
-      in other words, to be oneself cohesive through time (having said something thoughtless)<br/>
-      one may not want to identify a 'self' as unified in any 'person'
+      <strong>श्रीकृष्णाय नमः ॥</strong><br/><br/>
+      <em>आत्मार्पणस्तुतिः</em><br/>
+      <span style="font-size: 0.85em;">(श्रीमतप्पय्यदीक्षित विरचितम्)</span><br/>
+      <span style="font-size: 0.85em;">ஆத்மார்ப்பண ஸ்துதி (அப்பய்ய தீக்ஷிதர் எழுதியது)</span><br/><br/>
+      देवदेवप्रभावकसमम्<br/>
+      कस्ते बोधुं प्रभवति परं देवदेव प्रकाम्<br/>
+      समस्तं विश्वरूपं च धृतं च त्वया ।<br/>
+      भक्त्या केवलमात्मना तवांहं अनाथः<br/>
+      स्तोतुं चेष्टमि अहहहे सःसः मे सहसं ॥ २ ॥<br/><br/>
+      <span style="font-size: 0.85em;">Who is able to know the gravity of your being from whom this variegated creation springs into existence? You can be understood through devotion alone. I wish, therefore, to propitiate you; forgive me for this audacious endeavour.</span>
+    </div>
+    <div class="quote">
+      <strong>திருக்குறள் 77</strong><br/><br/>
+      என்பு இலதனை வெயில்போலக் காயுமே<br/>
+      அன்பு இலதனை அறம்<br/><br/>
+      <span style="font-size: 0.85em;">As the sun a creature with no bones,<br/>virtuosity burns the loveless.</span>
     </div>
   </div>
 

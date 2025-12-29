@@ -32,32 +32,62 @@ export class VPSStorageService {
   }
 
   // AES-256-GCM encryption for maximum security
-  private encrypt(text: string): { encrypted: string; iv: string; tag: string } {
-    const iv = crypto.randomBytes(16);
-    const cipher = crypto.createCipher('aes-256-gcm', this.config.encryptionKey);
+  // Uses scrypt key derivation with per-encryption salt for defense in depth
+  private encrypt(text: string): { encrypted: string; iv: string; tag: string; salt: string } {
+    // Generate random salt for key derivation (16 bytes)
+    const salt = crypto.randomBytes(16);
+    // Derive key using scrypt (same parameters as encryptionService)
+    const key = crypto.scryptSync(this.config.encryptionKey, salt, 32, { N: 16384, r: 8, p: 1 });
+    // 96-bit IV (12 bytes) is recommended for AES-GCM
+    const iv = crypto.randomBytes(12);
+
+    const cipher = crypto.createCipheriv('aes-256-gcm', key, iv);
     cipher.setAAD(Buffer.from('formulation-of-truth', 'utf8'));
-    
-    let encrypted = cipher.update(text, 'utf8', 'hex');
-    encrypted += cipher.final('hex');
-    
+
+    const encrypted = Buffer.concat([
+      cipher.update(text, 'utf8'),
+      cipher.final()
+    ]);
+
     const tag = cipher.getAuthTag();
-    
+
     return {
-      encrypted,
-      iv: iv.toString('hex'),
-      tag: tag.toString('hex')
+      encrypted: encrypted.toString('base64'),
+      iv: iv.toString('base64'),
+      tag: tag.toString('base64'),
+      salt: salt.toString('base64')
     };
   }
 
-  private decrypt(encryptedData: { encrypted: string; iv: string; tag: string }): string {
-    const decipher = crypto.createDecipher('aes-256-gcm', this.config.encryptionKey);
+  private decrypt(encryptedData: { encrypted: string; iv: string; tag: string; salt?: string }): string {
+    let key: Buffer;
+    let iv: Buffer;
+    let encrypted: Buffer;
+
+    if (encryptedData.salt) {
+      // New format with per-encryption salt
+      const salt = Buffer.from(encryptedData.salt, 'base64');
+      key = crypto.scryptSync(this.config.encryptionKey, salt, 32, { N: 16384, r: 8, p: 1 });
+      iv = Buffer.from(encryptedData.iv, 'base64');
+      encrypted = Buffer.from(encryptedData.encrypted, 'base64');
+    } else {
+      // Legacy format (hex encoding, static key derivation)
+      // Note: Legacy data may not decrypt correctly - this maintains backward compatibility attempt
+      key = crypto.scryptSync(this.config.encryptionKey, 'vps_legacy_salt', 32, { N: 16384, r: 8, p: 1 });
+      iv = Buffer.from(encryptedData.iv, 'hex');
+      encrypted = Buffer.from(encryptedData.encrypted, 'hex');
+    }
+
+    const decipher = crypto.createDecipheriv('aes-256-gcm', key, iv);
     decipher.setAAD(Buffer.from('formulation-of-truth', 'utf8'));
-    decipher.setAuthTag(Buffer.from(encryptedData.tag, 'hex'));
-    
-    let decrypted = decipher.update(encryptedData.encrypted, 'hex', 'utf8');
-    decrypted += decipher.final('utf8');
-    
-    return decrypted;
+    decipher.setAuthTag(Buffer.from(encryptedData.tag, encryptedData.salt ? 'base64' : 'hex'));
+
+    const decrypted = Buffer.concat([
+      decipher.update(encrypted),
+      decipher.final()
+    ]);
+
+    return decrypted.toString('utf8');
   }
 
   // Generate secure hash for integrity verification

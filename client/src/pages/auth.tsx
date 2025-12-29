@@ -119,7 +119,7 @@ export default function AuthPage() {
       }
 
       setStatus("sent");
-      setInfoMessage("Check your email for the apotropaic link to continue.");
+      setInfoMessage("Check your email for the authentication link to continue.");
     } catch (error) {
       setStatus("error");
       const message = error instanceof Error ? error.message : "Failed to send magic link";
@@ -209,17 +209,17 @@ export default function AuthPage() {
               `,
             }}
           >
-            you are this moment
+            we are this moment
           </span>
 
           <div className="my-3 text-3xl leading-none overflow-hidden">
             {Array.from({ length: 16 }, (_, i) => (
               <span
                 key={i}
-                className={i % 2 === 0 ? "om-symbol" : "at-symbol"}
+                className={i === 8 ? "om-symbol" : i % 2 === 0 ? "om-symbol" : "at-symbol"}
                 style={{ animationDelay: `${i * 0.2}s` }}
               >
-                {i % 2 === 0 ? "ॐ" : "@"}
+                {i === 8 ? "ௐ்" : i % 2 === 0 ? "ॐ" : "@"}
               </span>
             ))}
           </div>
@@ -237,7 +237,7 @@ export default function AuthPage() {
               `,
             }}
           >
-            ஸ்ரீ ॥ a formulation of truth ॥ ശ്രീ
+            a formulation of truth
           </span>
         </div>
 
@@ -252,14 +252,13 @@ export default function AuthPage() {
             `,
           }}
         >
-          A practice in self-inquiry these questions invite upon users a
-          reflective state of awareness. Persons' crafted responses (or a
-          non-response!) betray something interior (அகம்) this I--machinations
-          idiosyncratiques--that vivify the subject, as such, a person and a
-          formulation of truth.
+          ...these questions invite upon users reflective states of awareness. A
+          crafted response (or non-response!) betrays something interior (அகம்)
+          this I--idiosyncratic machination that vivify a subject, as such a
+          person and a formulation of truth.
         </p>
 
-        {/* Interactive mystical entry point */}
+        {/* Authentication form */}
         <div className="mt-12">
           <form onSubmit={handleSubmit} className="max-w-xl mx-auto space-y-4">
             <label className="block text-left">
@@ -270,7 +269,7 @@ export default function AuthPage() {
                   color: "#2d1810",
                 }}
               >
-                Enter your email to receive the apotropaic link:
+                Enter your email to receive an authentication link:
               </span>
               <input
                 type="email"
@@ -310,15 +309,6 @@ export default function AuthPage() {
                 {errorMessage}
               </p>
             )}
-            {!infoMessage && status !== "verifying" && (
-              <button
-                type="button"
-                onClick={() => setLocation("/auth-portal")}
-                className="text-sm uppercase tracking-[0.3em] text-[#4d2316] hover:text-[#2d1810] transition-colors"
-              >
-                Enter through the mystical portal instead →
-              </button>
-            )}
           </div>
         </div>
 
@@ -350,7 +340,7 @@ export default function AuthPage() {
                   color: "#2d1810",
                 }}
               >
-                Receive contemplations and updates (stored encrypted through our secure VPN tunnel)
+                Receive updates and notifications. Your email is stored encrypted at rest and in transit.
               </p>
 
               <div className="space-y-3">

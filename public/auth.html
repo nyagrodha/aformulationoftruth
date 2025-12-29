@@ -66,6 +66,7 @@
           headers: {
             'Content-Type': 'application/json'
           },
+          credentials: 'include', // CRITICAL: Required to store session cookie
           body: JSON.stringify({
             token,
             gateSessionId // Pass gate session to link responses
@@ -82,9 +83,9 @@
             localStorage.removeItem('gateSessionId');
           }
 
-          // Redirect to questionnaire
+          // Redirect to Fresh questionnaire app
           setTimeout(() => {
-            window.location.href = '/app.html';
+            window.location.href = '/questionnaire';
           }, 1000);
         } else {
           showError(data.message || 'Authentication failed. Please request a new magic link.');
@@ -137,6 +138,7 @@
             headers: {
               'Content-Type': 'application/json'
             },
+            credentials: 'include', // Include for consistency
             body: JSON.stringify({ email })
           });
 

@@ -18,9 +18,10 @@ export default defineConfig({
   },
   root: path.resolve(__dirname, "client"),
   build: {
-    outDir: path.resolve(__dirname, "dist/public"),
-    emptyOutDir: true,
+    outDir: path.resolve(__dirname, "dist"),
+    emptyOutDir: false, // Don't delete static files from /public
   },
+  publicDir: false, // Don't copy public dir (we manage static files separately)
   server: {
     fs: {
       strict: true,

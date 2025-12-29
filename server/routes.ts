@@ -43,6 +43,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.redirect('/');
   });
 
+  // Gate questions endpoint - no authentication required
+  app.get('/api/gate/questions', async (req, res) => {
+    try {
+      // Gate questions (hardcoded for now)
+      const gateQuestions = [
+        {
+          id: 1,
+          question_text: "What pattern have you been chasing that might not exist?",
+          question_order: 1,
+          required: true
+        },
+        {
+          id: 2,
+          question_text: "Where in your life do you feel the second law of thermodynamics most?\n(total disorder increases in any spontaneous process)",
+          question_order: 2,
+          required: true
+        },
+        {
+          id: 3,
+          question_text: "Which lie do you tell most convincingly?",
+          question_order: 3,
+          required: true
+        },
+        {
+          id: 4,
+          question_text: "Where were you when you first suspected that coincidence might not be coincidental?",
+          question_order: 4,
+          required: false
+        }
+      ];
+
+      res.json({
+        success: true,
+        questions: gateQuestions
+      });
+    } catch (error: any) {
+      console.error('Error fetching gate questions:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to fetch gate questions'
+      });
+    }
+  });
+
   // Gate response endpoint - no authentication required (anonymous)
   app.post('/api/gate/response', async (req, res) => {
     try {
@@ -124,6 +168,150 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get next question for authenticated user (for Fresh questionnaire)
+  app.get("/api/questions/next", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      // Get or create session
+      let session = await storage.getSessionByUserId(userId);
+      if (!session) {
+        const questionOrder = questionService.generateQuestionOrder();
+        session = await storage.createSession({
+          userId,
+          questionOrder,
+          currentQuestionIndex: 0,
+          completedAt: null
+        });
+      }
+
+      // Check if user has gate responses
+      const gateResponses = await storage.getGateResponsesByUserId(userId);
+      const hasGateResponses = gateResponses.length >= 2;
+
+      // Calculate starting index based on gate responses
+      let currentIndex = session.currentQuestionIndex;
+
+      // Skip questions 0 and 1 (ids 1 and 2) if user answered them at gate
+      if (hasGateResponses && currentIndex < 2) {
+        currentIndex = 2; // Start at question index 2 (third question)
+        await storage.updateSessionProgress(session.id, currentIndex);
+      }
+
+      const questionOrder = session.questionOrder as number[];
+
+      // Check if completed
+      if (currentIndex >= questionOrder.length) {
+        return res.json({
+          completed: true,
+          message: "All questions have been answered!"
+        });
+      }
+
+      const questionId = questionOrder[currentIndex];
+      const question = questionService.getQuestion(questionId);
+
+      if (!question) {
+        return res.status(500).json({ message: "Question not found" });
+      }
+
+      // Calculate progress - adjust total if gate questions answered
+      const totalQuestions = questionOrder.length;
+      const answeredGateQuestions = hasGateResponses ? 2 : 0;
+      const effectivePosition = currentIndex + 1 + answeredGateQuestions;
+      const effectiveTotal = totalQuestions + answeredGateQuestions;
+
+      res.json({
+        id: questionId,
+        text: question.text,
+        position: effectivePosition,
+        total: effectiveTotal,
+        sessionId: session.id
+      });
+    } catch (error) {
+      console.error('Get next question error:', error);
+      res.status(500).json({ message: "Failed to get next question" });
+    }
+  });
+
+  // Submit answer for current question (for Fresh questionnaire)
+  app.post("/api/answers", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      const { questionId, answer } = req.body;
+
+      if (!questionId || !answer) {
+        return res.status(400).json({ error: "Missing questionId or answer" });
+      }
+
+      // Get session
+      const session = await storage.getSessionByUserId(userId);
+      if (!session) {
+        return res.status(404).json({ error: "Session not found" });
+      }
+
+      // Validate answer
+      const validationResult = questionService.validateAnswer(answer);
+      if (!validationResult.isValid) {
+        return res.status(400).json({
+          error: "Invalid answer",
+          details: validationResult.errors
+        });
+      }
+
+      // Encrypt and save response
+      const encryptedData = responseEncryptionService.prepareForStorage(answer);
+
+      const existingResponse = await storage.getResponseBySessionAndQuestion(session.id, questionId);
+      if (existingResponse) {
+        await storage.updateResponse(session.id, questionId, encryptedData);
+      } else {
+        await storage.createResponse({
+          sessionId: session.id,
+          questionId,
+          answer: encryptedData.answer,
+          iv: encryptedData.iv,
+          tag: encryptedData.tag,
+          salt: encryptedData.salt,
+          encryptionType: encryptedData.encryptionType
+        });
+      }
+
+      // Update progress
+      const questionOrder = session.questionOrder as number[];
+      const currentIndex = questionOrder.indexOf(questionId);
+      const nextIndex = currentIndex + 1;
+
+      if (nextIndex < questionOrder.length) {
+        await storage.updateSessionProgress(session.id, nextIndex);
+      } else {
+        // Complete session
+        await storage.completeSession(session.id, false);
+
+        // Generate and send PDF
+        const encryptedResponses = await storage.getResponsesBySessionId(session.id);
+        const responses = responseEncryptionService.decryptResponses(encryptedResponses);
+        const pdfBuffer = await pdfService.generateFormulationOfTruthPDF(responses, questionOrder);
+
+        if (req.user?.email) {
+          await emailService.sendCompletionEmail(req.user.email, pdfBuffer);
+        }
+      }
+
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Submit answer error:', error);
+      res.status(500).json({ error: "Failed to save answer" });
+    }
+  });
+
   // Get current question for a session
   app.get("/api/questionnaire/:sessionId/current", isAuthenticated, async (req: any, res) => {
     try {
@@ -177,16 +365,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Session not found" });
       }
 
+      // If session is completed, check if this question is already answered
       if (session.completed) {
+        const existingResponse = await storage.getResponseBySessionAndQuestion(sessionId, questionId);
+        if (existingResponse) {
+          // Question already answered, return the existing response (idempotent)
+          return res.json(existingResponse);
+        }
+        // Session complete but question not answered - shouldn't happen, but block it
         return res.status(400).json({ message: "Session already completed" });
       }
 
       // Validate answer
       const validationResult = questionService.validateAnswer(answer);
       if (!validationResult.isValid) {
-        return res.status(400).json({ 
-          message: "Invalid answer", 
-          details: validationResult.errors 
+        return res.status(400).json({
+          message: "Invalid answer",
+          details: validationResult.errors
         });
       }
 
@@ -219,27 +414,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (nextQuestionIndex < questionOrder.length) {
         await storage.updateSessionProgress(sessionId, nextQuestionIndex);
       } else {
-        // Check if user has completed questionnaire in last 2 months
-        const existingCompletions = await storage.getUserCompletedSessions(userId);
-        const twoMonthsAgo = new Date();
-        twoMonthsAgo.setMonth(twoMonthsAgo.getMonth() - 2);
-        
-        const recentCompletion = existingCompletions.find(session => 
-          session.completedAt && new Date(session.completedAt) > twoMonthsAgo
-        );
+        // Get user to check admin status
+        const user = await storage.getUser(userId);
 
-        if (recentCompletion) {
-          return res.status(400).json({ 
-            message: 'You may only complete the questionnaire once every 2 months',
-            nextAvailable: new Date(new Date(recentCompletion.completedAt!).getTime() + (2 * 30 * 24 * 60 * 60 * 1000))
-          });
+        // Check if user has completed questionnaire in last 2 months (skip for admin users)
+        if (!user?.isAdmin) {
+          const existingCompletions = await storage.getUserCompletedSessions(userId);
+          const twoMonthsAgo = new Date();
+          twoMonthsAgo.setMonth(twoMonthsAgo.getMonth() - 2);
+
+          const recentCompletion = existingCompletions.find(session =>
+            session.completedAt && new Date(session.completedAt) > twoMonthsAgo
+          );
+
+          if (recentCompletion) {
+            return res.status(400).json({
+              message: 'You may only complete the questionnaire once every 2 months',
+              nextAvailable: new Date(new Date(recentCompletion.completedAt!).getTime() + (2 * 30 * 24 * 60 * 60 * 1000))
+            });
+          }
         }
 
         // Complete session and generate PDF
         await storage.completeSession(sessionId, false);
 
-        // Get user and all responses for PDF (decrypt before PDF generation)
-        const user = await storage.getUser(userId);
+        // Get all responses for PDF (decrypt before PDF generation)
         const encryptedAllResponses = await storage.getResponsesBySessionId(sessionId);
         const allResponses = responseEncryptionService.decryptResponses(encryptedAllResponses);
 
@@ -297,20 +496,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: 'User not authenticated' });
       }
 
-      // Check if user has completed questionnaire recently (silent enforcement)
-      const existingCompletions = await storage.getUserCompletedSessions(userId);
-      const restrictionPeriod = new Date();
-      restrictionPeriod.setTime(restrictionPeriod.getTime() - (5688000 * 1000)); // 5,688,000 seconds ago
-      
-      const recentCompletion = existingCompletions.find(session => 
-        session.completedAt && new Date(session.completedAt) > restrictionPeriod
-      );
+      // Get user to check admin status
+      const user = await storage.getUser(userId);
 
-      if (recentCompletion) {
-        // Return a generic error without revealing timing information
-        return res.status(400).json({ 
-          message: 'Unable to complete the inquiry at this time'
-        });
+      // Check if user has completed questionnaire recently (silent enforcement)
+      // Skip this check for admin users
+      if (!user?.isAdmin) {
+        const existingCompletions = await storage.getUserCompletedSessions(userId);
+        const restrictionPeriod = new Date();
+        restrictionPeriod.setTime(restrictionPeriod.getTime() - (5688000 * 1000)); // 5,688,000 seconds ago
+
+        const recentCompletion = existingCompletions.find(session =>
+          session.completedAt && new Date(session.completedAt) > restrictionPeriod
+        );
+
+        if (recentCompletion) {
+          // Return a generic error without revealing timing information
+          return res.status(400).json({
+            message: 'Unable to complete the inquiry at this time'
+          });
+        }
       }
 
       // Verify session belongs to user

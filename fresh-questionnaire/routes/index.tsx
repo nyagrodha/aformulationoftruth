@@ -16,6 +16,7 @@ export const handler: Handlers<IndexData> = {
     try {
       const formData = await req.formData();
       const email = formData.get("email")?.toString();
+      const gateSessionId = formData.get("gateSessionId")?.toString();
 
       if (!email) {
         return ctx.render({ error: "Email is required" });
@@ -27,14 +28,17 @@ export const handler: Handlers<IndexData> = {
         return ctx.render({ error: "Please enter a valid email address" });
       }
 
-      // Send magic link request to backend
+      // Send magic link request to backend with gateSessionId
       const apiBase = Deno.env.get("API_BASE_URL") || "http://localhost:8393";
-      const response = await fetch(`${apiBase}/auth/request`, {
+      const response = await fetch(`${apiBase}/api/auth/magic-link`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({
+          email,
+          gateSessionId
+        }),
       });
 
       const data = await response.json();
@@ -56,7 +60,9 @@ export const handler: Handlers<IndexData> = {
   },
 };
 
-export default function IndexPage({ data }: PageProps<IndexData>) {
+export default function IndexPage({ data, url }: PageProps<IndexData>) {
+  const gateSessionId = url.searchParams.get("gateSession") || "";
+
   return (
     <>
       <Head>
@@ -250,6 +256,7 @@ export default function IndexPage({ data }: PageProps<IndexData>) {
             )}
 
             <form method="POST">
+              <input type="hidden" name="gateSessionId" value={gateSessionId} />
               <div class="form-group">
                 <label for="email">Email Address</label>
                 <input

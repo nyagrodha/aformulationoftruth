@@ -14,38 +14,22 @@ interface QuestionnaireData {
     current: number;
     total: number;
   };
-  token?: string;
 }
 
 export const handler: Handlers<QuestionnaireData> = {
   async GET(req, ctx) {
     try {
       const apiUrl = Deno.env.get("API_BASE_URL") || "http://localhost:8393";
-      const url = new URL(req.url);
 
-      // Get JWT token from query parameter or cookie
-      let token = url.searchParams.get("token");
+      // Forward all cookies from the request to the backend API
+      const cookies = req.headers.get("cookie") || "";
 
-      if (!token) {
-        // Try to get from cookie
-        const cookie = req.headers.get("cookie") || "";
-        const tokenMatch = cookie.match(/token=([^;]+)/);
-        token = tokenMatch ? tokenMatch[1] : null;
-      }
-
-      if (!token) {
-        // No authentication - redirect to begin page
-        return new Response(null, {
-          status: 302,
-          headers: { Location: "/begin" }
-        });
-      }
-
-      // Get next question from API
+      // Get next question from API using session-based auth
       const questionResponse = await fetch(`${apiUrl}/api/questions/next`, {
         headers: {
-          "Authorization": `Bearer ${token}`
+          "Cookie": cookies,
         },
+        credentials: "include",
       });
 
       if (!questionResponse.ok) {
@@ -68,14 +52,7 @@ export const handler: Handlers<QuestionnaireData> = {
         });
       }
 
-      // Store token in response cookie for subsequent requests
-      const headers = new Headers();
-      headers.set("Set-Cookie", `token=${token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=43200`);
-
-      return new Response(null, {
-        status: 200,
-        headers,
-      }).then(() => ctx.render({
+      return ctx.render({
         question: {
           id: questionData.id,
           text: questionData.text,
@@ -84,8 +61,7 @@ export const handler: Handlers<QuestionnaireData> = {
           current: questionData.position,
           total: questionData.total,
         },
-        token,
-      }));
+      });
     } catch (error) {
       console.error("Questionnaire error:", error);
       return ctx.render({
@@ -140,7 +116,7 @@ export default function QuestionnairePage({ data }: PageProps<QuestionnaireData>
     );
   }
 
-  const { question, progress, token } = data;
+  const { question, progress } = data;
 
   // Optional: Insert random images/text at certain questions for cognitive dissonance
   // Uncomment and customize as needed
@@ -241,7 +217,6 @@ export default function QuestionnairePage({ data }: PageProps<QuestionnaireData>
             <QuestionnaireForm
               questionId={question!.id}
               questionText={question!.text}
-              token={token!}
             />
           </div>
 

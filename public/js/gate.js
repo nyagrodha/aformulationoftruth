@@ -5,31 +5,19 @@
 (function() {
   'use strict';
 
-  // Questions to ask at the gate
+  // Questions to ask at the gate (first 3 from Proust Questionnaire)
   const gateQuestions = [
-    "What pattern have you been chasing that might not exist?",
-    "Where in your personal life do you feel the second law of thermodynamics most? Where do you feel it in your professional life?",
-    "Which lie do you tell most convincingly?",
-    "How old were you when you first suspected that coincidence might not be coincidental? (describe the moment.)"
+    "What is your idea of perfect happiness?",
+    "What is your greatest fear?",
+    "What is the trait you most deplore in yourself?"
   ];
 
-  // Configuration
-  const MIN_QUESTIONS = 3;
-  const MAX_QUESTIONS = 4;
-
-  // Select a random question that hasn't been asked
-  function getRandomQuestion(askedIndices) {
-    const availableIndices = [];
-    for (let i = 0; i < gateQuestions.length; i++) {
-      if (!askedIndices.includes(i)) {
-        availableIndices.push(i);
-      }
+  // Get next question in fixed order (0, 1, 2)
+  function getNextQuestion(questionCount) {
+    if (questionCount < gateQuestions.length) {
+      return { index: questionCount, question: gateQuestions[questionCount] };
     }
-
-    if (availableIndices.length === 0) return null;
-
-    const randomIndex = availableIndices[Math.floor(Math.random() * availableIndices.length)];
-    return { index: randomIndex, question: gateQuestions[randomIndex] };
+    return null;
   }
 
   // DOM elements
@@ -46,11 +34,10 @@
 
   // State
   let questionCount = 0;
-  let askedQuestions = [];
   let currentQuestionIndex = null;
-  let thermoAnswerTime = null;
-  let isThermoDynQuestion = false;
   let gateSessionId = null;
+  let lowSignalWarningShown = false;
+  let consecutiveEmptyCount = 0;
 
   // Get or create gate session ID
   function getGateSessionId() {
@@ -69,10 +56,126 @@
     return 'gate_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
   }
 
+  // Normalize text input
+  function normalize(input) {
+    return input
+      .normalize("NFKC")
+      .replace(/\s+/g, " ")
+      .trim();
+  }
+
+  // Classify answer quality
+  function classifyAnswer(raw) {
+    const text = normalize(raw);
+
+    // Empty is fine - users can skip
+    if (!text) {
+      return { ok: true };
+    }
+
+    if (text.length === 1) {
+      return { ok: false, reason: "single_character" };
+    }
+
+    if (/^\d+(\.\d+)?$/.test(text)) {
+      return { ok: false, reason: "numbers_only" };
+    }
+
+    if (/^[^\p{L}\p{N}]+$/u.test(text)) {
+      return { ok: false, reason: "symbols_only" };
+    }
+
+    if (/^(.)\1{4,}$/u.test(text)) {
+      return { ok: false, reason: "repeated_character" };
+    }
+
+    if (/^(asdf|qwer|zxcv|hjkl)+$/i.test(text)) {
+      return { ok: false, reason: "keyboard_mash" };
+    }
+
+    if (text.length < 5) {
+      return { ok: false, reason: "too_short" };
+    }
+
+    return { ok: true };
+  }
+
+  // Show low signal warning
+  function showLowSignalWarning() {
+    const warningDiv = document.createElement('div');
+    warningDiv.className = 'low-signal-warning';
+    warningDiv.innerHTML = `
+      <p class="warning-hindi">दाल में कुछ काला है।</p>
+      <p class="warning-urdu">دال میں کچھ کالا سا محسوس ہوتا ہے۔</p>
+      <p class="warning-message">क्या आप अपने उत्तर पर फिर से विचार करना चाहेंगे?</p>
+      <div class="warning-actions">
+        <button id="reconsider-answer" class="warning-btn-reconsider">फिर से विचार करें</button>
+        <button id="keep-answer" class="warning-btn-keep">जैसा है रहने दें</button>
+      </div>
+    `;
+
+    questionBox.appendChild(warningDiv);
+
+    // Set up button handlers
+    document.getElementById('reconsider-answer').addEventListener('click', () => {
+      warningDiv.remove();
+      lowSignalWarningShown = false;
+      if (responseTextarea) {
+        responseTextarea.focus();
+      }
+    });
+
+    document.getElementById('keep-answer').addEventListener('click', () => {
+      warningDiv.remove();
+      lowSignalWarningShown = false;
+      proceedWithSubmit();
+    });
+  }
+
+  // Show questions preview offer
+  function showQuestionsPreviewOffer() {
+    const previewDiv = document.createElement('div');
+    previewDiv.className = 'telegram-offer';
+    previewDiv.innerHTML = `
+      <p class="telegram-message">Curious about the questions before you devote time to responses?</p>
+      <p class="telegram-hint">
+        <a href="/questions.html" target="_blank" style="color: var(--pondicherry-ochre); text-decoration: underline;">View all 35 questions</a>
+      </p>
+      <div class="telegram-actions">
+        <button id="continue-here" class="telegram-btn-stay">Continue here</button>
+      </div>
+    `;
+
+    questionBox.appendChild(previewDiv);
+
+    // Set up button handler
+    document.getElementById('continue-here').addEventListener('click', () => {
+      previewDiv.remove();
+      consecutiveEmptyCount = 0; // Reset counter
+
+      // Move to next question (response already saved)
+      questionCount++;
+
+      // Hide question box
+      if (questionBox) {
+        questionBox.classList.add('hidden');
+      }
+
+      // Check if we should ask another question or show transition
+      if (questionCount < gateQuestions.length) {
+        setTimeout(() => {
+          showQuestion();
+        }, 400);
+      } else {
+        showTransition();
+      }
+    });
+  }
+
   // Save response to backend
   async function saveResponse(questionText, index, answer, skipped) {
     try {
-      const response = await fetch('/api/gate/response', {
+      const response = await fetch('/gate/submit', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -87,10 +190,17 @@
       });
 
       if (!response.ok) {
-        console.error('Failed to save gate response');
+        const errorText = await response.text();
+        console.error('computer said no:', response.status, errorText);
+        return false;
       }
+
+      const data = await response.json();
+      console.log('Response saved successfully:', data.request_id);
+      return true;
     } catch (error) {
       console.error('Error saving gate response:', error);
+      return false;
     }
   }
 
@@ -139,24 +249,11 @@
       entryBoxes.classList.add('hidden');
     }
 
-    let questionToShow;
+    const nextQuestion = getNextQuestion(questionCount);
 
-    // Question 3 is always the thermodynamics question
-    if (questionCount === 2) {
-      questionToShow = thermoQuestion;
-      isThermoDynQuestion = true;
-    } else {
-      const nextQuestion = getRandomQuestion(askedQuestions);
-      if (nextQuestion) {
-        currentQuestionIndex = nextQuestion.index;
-        askedQuestions.push(nextQuestion.index);
-        questionToShow = nextQuestion.question;
-      }
-      isThermoDynQuestion = false;
-    }
-
-    if (questionToShow && questionBox && questionText) {
-      questionText.textContent = questionToShow;
+    if (nextQuestion && questionBox && questionText) {
+      currentQuestionIndex = nextQuestion.index;
+      questionText.textContent = nextQuestion.question;
       questionBox.classList.remove('hidden');
 
       // Clear previous response
@@ -174,16 +271,66 @@
   }
 
   // Handle submit (with or without answer)
-  function handleSubmit() {
+  async function handleSubmit() {
+    const response = responseTextarea ? responseTextarea.value.trim() : '';
+
+    // Check if empty
+    const isEmpty = !response;
+
+    // Track consecutive empty answers
+    if (isEmpty) {
+      consecutiveEmptyCount++;
+
+      // If 3 consecutive empties, offer questions preview (but save first)
+      if (consecutiveEmptyCount >= 3) {
+        const currentQuestion = questionText ? questionText.textContent : '';
+        await saveResponse(currentQuestion, questionCount, '', false);
+        showQuestionsPreviewOffer();
+        return;
+      }
+    } else {
+      // Reset counter when they provide an answer
+      consecutiveEmptyCount = 0;
+
+      // Validate answer quality for non-empty responses
+      const classification = classifyAnswer(response);
+
+      // If low quality and warning hasn't been shown yet, show warning
+      if (!classification.ok && !lowSignalWarningShown) {
+        lowSignalWarningShown = true;
+        showLowSignalWarning();
+        return;
+      }
+    }
+
+    // Proceed with submission
+    await proceedWithSubmit();
+  }
+
+  // Actually proceed with submission
+  async function proceedWithSubmit() {
     const response = responseTextarea ? responseTextarea.value.trim() : '';
     const currentQuestion = questionText ? questionText.textContent : '';
 
-    // Save response to backend (encrypted server-side)
-    saveResponse(currentQuestion, questionCount, response, false);
+    // Remove any existing warning or telegram offer
+    const existingWarning = questionBox.querySelector('.low-signal-warning');
+    if (existingWarning) {
+      existingWarning.remove();
+    }
+    const existingPreview = questionBox.querySelector('.telegram-offer');
+    if (existingPreview) {
+      existingPreview.remove();
+    }
 
-    // Record time if this was the thermodynamics question
-    if (isThermoDynQuestion) {
-      thermoAnswerTime = Date.now();
+    // Reset warning flag for next question
+    lowSignalWarningShown = false;
+
+    // Save response to backend (encrypted server-side)
+    const saved = await saveResponse(currentQuestion, questionCount, response, false);
+
+    if (!saved) {
+      console.error('Failed to save response, but continuing anyway');
+      // You could show an error message to the user here
     }
 
     questionCount++;
@@ -194,7 +341,7 @@
     }
 
     // Check if we should ask another question or show transition
-    if (questionCount < MIN_QUESTIONS || (questionCount < MAX_QUESTIONS && askedQuestions.length < gateQuestions.length)) {
+    if (questionCount < gateQuestions.length) {
       // Show next question after brief delay
       setTimeout(() => {
         showQuestion();
@@ -206,16 +353,20 @@
   }
 
   // Handle skip (explicitly leaving unanswered)
-  function handleSkip() {
+  async function handleSkip() {
     const currentQuestion = questionText ? questionText.textContent : '';
 
-    // Save skipped response to backend
-    saveResponse(currentQuestion, questionCount, '', true);
+    consecutiveEmptyCount++;
 
-    // Record time if this was the thermodynamics question
-    if (isThermoDynQuestion) {
-      thermoAnswerTime = Date.now();
+    // If 3 consecutive skips, offer questions preview (but save the response first)
+    if (consecutiveEmptyCount >= 3) {
+      await saveResponse(currentQuestion, questionCount, '', true);
+      showQuestionsPreviewOffer();
+      return;
     }
+
+    // Save skipped response to backend
+    await saveResponse(currentQuestion, questionCount, '', true);
 
     questionCount++;
 
@@ -225,7 +376,7 @@
     }
 
     // Check if we should ask another question or show transition
-    if (questionCount < MIN_QUESTIONS || (questionCount < MAX_QUESTIONS && askedQuestions.length < gateQuestions.length)) {
+    if (questionCount < gateQuestions.length) {
       // Show next question after brief delay
       setTimeout(() => {
         showQuestion();
@@ -243,24 +394,8 @@
     }
   }
 
-  // Handle enter button click - check if within thermo window
+  // Handle enter button click
   function handleEnterClick() {
-    // Check if they answered the thermo question and are within the time window
-    if (thermoAnswerTime) {
-      const timeSinceAnswer = Date.now() - thermoAnswerTime;
-      if (timeSinceAnswer <= THERMO_WINDOW) {
-        // Show thermodynamics educational content
-        if (transition) {
-          transition.classList.add('hidden');
-        }
-        if (thermoContent) {
-          thermoContent.classList.remove('hidden');
-        }
-        return;
-      }
-    }
-
-    // Otherwise, proceed to main site
     enterSite();
   }
 
