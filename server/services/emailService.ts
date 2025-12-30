@@ -141,7 +141,7 @@ class EmailService {
         </div>
 
         <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; color: #999; font-size: 14px; text-align: center;">
-          <p>om shree ganapataye namah • a practice in self-inquiry reveals a formulation of truth</p>
+          <p>✦ your responses offer a formulation of truth ✦</p>
         </div>
       </div>
     `;
