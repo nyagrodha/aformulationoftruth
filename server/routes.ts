@@ -38,11 +38,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
   await setupAuth(app);
 
-  // Route for /begin - redirect to questionnaire app
-  app.get('/begin', (req, res) => {
-    res.redirect('/');
-  });
-
   // Gate questions endpoint - no authentication required
   app.get('/api/gate/questions', async (req, res) => {
     try {
@@ -221,8 +216,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Calculate progress - adjust total if gate questions answered
       const totalQuestions = questionOrder.length;
       const answeredGateQuestions = hasGateResponses ? 2 : 0;
-      const effectivePosition = currentIndex + 1 + answeredGateQuestions;
-      const effectiveTotal = totalQuestions + answeredGateQuestions;
+      // For users with gate responses: show as 2/34 when at index 2
+      // For users without: show as 1/35 when at index 0
+      const effectivePosition = hasGateResponses ? currentIndex : currentIndex + 1;
+      const effectiveTotal = hasGateResponses ? totalQuestions - 1 : totalQuestions;
 
       res.json({
         id: questionId,
