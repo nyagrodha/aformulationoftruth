@@ -154,7 +154,7 @@ class EmailService {
           name: process.env.SENDGRID_FROM_NAME || 'A Formulation of Truth',
         },
         replyTo: process.env.SENDGRID_REPLY_TO,
-        subject: 'Your Proust Questionnaire Results',
+        subject: 'Your responses to the Proust Questionnaire',
         html: htmlContent,
         attachments: [
           {
@@ -178,7 +178,7 @@ class EmailService {
       const mailOptions = {
         from: process.env.FROM_EMAIL || process.env.SMTP_USER,
         to: email,
-        subject: 'Your Proust Questionnaire Results',
+        subject: 'Your responses to the Proust Questionnaire',
         html: htmlContent,
         attachments: [
           {
