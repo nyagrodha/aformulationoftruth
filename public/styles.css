@@ -36,21 +36,17 @@ body {
   min-height: 60vh;
 }
 
-/* Death Quote - Neon Red on Left */
+/* Death Quote - Neon Pink with Orange Glow */
 .death-quote {
   font-family: 'Orbitron', monospace;
   font-size: 2rem;
   font-weight: 700;
   line-height: 1.4;
-  color: #ff0000;
+  color: #ff8c94;
   text-shadow:
-    0 0 10px #ff0000,
-    0 0 20px #ff0000,
-    0 0 30px #ff0000,
-    0 0 40px #ff0000,
-    0 0 70px #ff0000,
-    0 0 80px #ff0000,
-    0 0 100px #ff0000;
+    0 0 5px #ff69b4,
+    0 0 10px #ff8866,
+    0 0 20px #ff9966;
   animation: neon-flicker 1.5s infinite alternate;
   padding: 2rem;
   display: flex;
@@ -61,19 +57,14 @@ body {
 @keyframes neon-flicker {
   0%, 18%, 22%, 25%, 53%, 57%, 100% {
     text-shadow:
-      0 0 10px #ff0000,
-      0 0 20px #ff0000,
-      0 0 30px #ff0000,
-      0 0 40px #ff0000,
-      0 0 70px #ff0000,
-      0 0 80px #ff0000,
-      0 0 100px #ff0000;
+      0 0 5px #ff69b4,
+      0 0 10px #ff8866,
+      0 0 20px #ff9966;
   }
   20%, 24%, 55% {
     text-shadow:
-      0 0 5px #ff0000,
-      0 0 10px #ff0000,
-      0 0 15px #ff0000;
+      0 0 3px #ff69b4,
+      0 0 8px #ff8866;
   }
 }
 
@@ -82,10 +73,10 @@ body {
   font-size: 1.2rem;
   margin-top: 2rem;
   font-weight: 400;
-  color: #ff6666;
+  color: #ffb3d9;
   text-shadow:
-    0 0 5px #ff0000,
-    0 0 10px #ff0000;
+    0 0 5px #ff85c1,
+    0 0 8px #ff9966;
 }
 
 /* Hero Image on Right */

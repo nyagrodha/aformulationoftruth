@@ -91,29 +91,11 @@ export default function QuestionnairePage({ data }: PageProps<QuestionnaireData>
   }
 
   if (data.completed) {
-    return (
-      <>
-        <Head>
-          <title>complete - a formulation of truth</title>
-          <link rel="icon" type="image/x-icon" href="/favicon.ico" />
-        </Head>
-        <div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-amber-50 to-orange-100">
-          <div class="max-w-2xl w-full bg-white shadow-xl rounded-lg p-12 text-center">
-            <h1 class="text-4xl font-bold text-amber-800 mb-6">✨ Complete ✨</h1>
-            <p class="text-xl text-gray-700 mb-8">{data.message}</p>
-            <p class="text-gray-600 mb-8">
-              Your answers have been encrypted and saved. Thank you for your introspection.
-            </p>
-            <a
-              href="/"
-              class="inline-block bg-amber-600 text-white px-8 py-3 rounded-lg font-medium hover:bg-amber-700 transition"
-            >
-              Return Home
-            </a>
-          </div>
-        </div>
-      </>
-    );
+    // Redirect to completion page
+    return new Response(null, {
+      status: 302,
+      headers: { Location: "/completion" }
+    });
   }
 
   const { question, progress } = data;

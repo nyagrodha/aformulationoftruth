@@ -121,6 +121,84 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Gate submit endpoint (alias for /api/gate/response with request_id in response)
+  app.post('/api/gate/submit', async (req, res) => {
+    try {
+      const { sessionId, questionText, questionIndex, answer, skipped } = req.body;
+
+      // Validate required fields
+      if (!sessionId || !questionText || questionIndex === undefined) {
+        return res.status(400).json({ message: "Missing required fields" });
+      }
+
+      // Encrypt the answer before storing (unless skipped)
+      let encryptedData;
+      if (skipped || !answer || answer.trim() === '') {
+        // For skipped questions, encrypt empty string
+        encryptedData = encryptionService.encrypt('');
+      } else {
+        encryptedData = encryptionService.encrypt(answer);
+      }
+
+      // Store gate response
+      const gateResponse = await storage.createGateResponse({
+        sessionId,
+        questionText,
+        questionIndex,
+        answer: encryptedData.encrypted,
+        iv: encryptedData.iv,
+        tag: encryptedData.tag,
+        salt: encryptedData.salt,
+        skipped: skipped || false,
+        userId: null, // Will be linked later when user logs in
+      });
+
+      res.json({ success: true, request_id: gateResponse.id });
+    } catch (error: any) {
+      console.error('Error saving gate response:', error);
+      res.status(500).json({ message: error.message || "Failed to save response" });
+    }
+  });
+
+  // Gate submit endpoint without /api prefix (for gate.js compatibility)
+  app.post('/gate/submit', async (req, res) => {
+    try {
+      const { sessionId, questionText, questionIndex, answer, skipped } = req.body;
+
+      // Validate required fields
+      if (!sessionId || !questionText || questionIndex === undefined) {
+        return res.status(400).json({ message: "Missing required fields" });
+      }
+
+      // Encrypt the answer before storing (unless skipped)
+      let encryptedData;
+      if (skipped || !answer || answer.trim() === '') {
+        // For skipped questions, encrypt empty string
+        encryptedData = encryptionService.encrypt('');
+      } else {
+        encryptedData = encryptionService.encrypt(answer);
+      }
+
+      // Store gate response
+      const gateResponse = await storage.createGateResponse({
+        sessionId,
+        questionText,
+        questionIndex,
+        answer: encryptedData.encrypted,
+        iv: encryptedData.iv,
+        tag: encryptedData.tag,
+        salt: encryptedData.salt,
+        skipped: skipped || false,
+        userId: null, // Will be linked later when user logs in
+      });
+
+      res.json({ success: true, request_id: gateResponse.id });
+    } catch (error: any) {
+      console.error('Error saving gate response:', error);
+      res.status(500).json({ message: error.message || "Failed to save response" });
+    }
+  });
+
   // Auth routes
   app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
     try {

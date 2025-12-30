@@ -12,13 +12,13 @@
 .gate-question {
   margin: 2rem 0;
   padding: 2rem;
-  border: 2px solid rgba(255, 0, 0, 0.6);
+  border: 2px solid rgba(255, 136, 102, 0.6);
   border-radius: 8px;
   background: rgba(0, 0, 0, 0.3);
 }
 
 .gate-question h3 {
-  color: #ff6666;
+  color: #ff8c94;
   margin-bottom: 1rem;
   font-size: 1.3rem;
   line-height: 1.4;
@@ -30,7 +30,7 @@
   padding: 1rem;
   font-size: 1rem;
   background: rgba(0, 0, 0, 0.5);
-  border: 1px solid rgba(255, 0, 0, 0.4);
+  border: 1px solid rgba(255, 136, 102, 0.4);
   color: #ffffff;
   font-family: inherit;
   border-radius: 4px;
@@ -40,14 +40,14 @@
 
 .gate-question textarea:focus {
   outline: none;
-  border-color: rgba(255, 0, 0, 0.8);
-  box-shadow: 0 0 10px rgba(255, 0, 0, 0.3);
+  border-color: rgba(255, 136, 102, 0.8);
+  box-shadow: 0 0 10px rgba(255, 153, 102, 0.4);
 }
 
 .gate-question button {
   margin-top: 1rem;
   padding: 0.75rem 2rem;
-  background: rgba(255, 0, 0, 0.8);
+  background: rgba(255, 136, 102, 0.8);
   color: #ffffff;
   border: none;
   border-radius: 4px;
@@ -58,8 +58,8 @@
 }
 
 .gate-question button:hover {
-  background: rgba(255, 0, 0, 1);
-  box-shadow: 0 0 20px rgba(255, 0, 0, 0.5);
+  background: rgba(255, 153, 102, 0.9);
+  box-shadow: 0 0 15px rgba(255, 153, 102, 0.5);
 }
 
 .gate-question button:disabled {
@@ -72,19 +72,19 @@
   font-size: 0.9rem;
   opacity: 0.7;
   font-style: italic;
-  color: #ff9999;
+  color: #ffb3d9;
 }
 
 #email-entry, #email-sent {
   margin: 2rem 0;
   padding: 2rem;
-  border: 2px solid rgba(255, 0, 0, 0.6);
+  border: 2px solid rgba(255, 136, 102, 0.6);
   border-radius: 8px;
   background: rgba(0, 0, 0, 0.3);
 }
 
 #email-entry h3, #email-sent h3 {
-  color: #ff6666;
+  color: #ff8c94;
   margin-bottom: 1rem;
   font-size: 1.5rem;
 }
@@ -94,7 +94,7 @@
   padding: 1rem;
   font-size: 1rem;
   background: rgba(0, 0, 0, 0.5);
-  border: 1px solid rgba(255, 0, 0, 0.4);
+  border: 1px solid rgba(255, 136, 102, 0.4);
   color: #ffffff;
   border-radius: 4px;
   margin: 1rem 0;
@@ -103,13 +103,13 @@
 
 #email-entry input[type="email"]:focus {
   outline: none;
-  border-color: rgba(255, 0, 0, 0.8);
-  box-shadow: 0 0 10px rgba(255, 0, 0, 0.3);
+  border-color: rgba(255, 136, 102, 0.8);
+  box-shadow: 0 0 10px rgba(255, 153, 102, 0.4);
 }
 
 #email-entry button {
   padding: 0.75rem 2rem;
-  background: rgba(255, 0, 0, 0.8);
+  background: rgba(255, 136, 102, 0.8);
   color: #ffffff;
   border: none;
   border-radius: 4px;
@@ -120,8 +120,8 @@
 }
 
 #email-entry button:hover {
-  background: rgba(255, 0, 0, 1);
-  box-shadow: 0 0 20px rgba(255, 0, 0, 0.5);
+  background: rgba(255, 153, 102, 0.9);
+  box-shadow: 0 0 15px rgba(255, 153, 102, 0.5);
 }
 
 #email-sent {
@@ -135,7 +135,7 @@
 }
 
 .error-message {
-  color: #ff4444;
+  color: #ff8c94;
   margin-top: 0.5rem;
   font-size: 0.9rem;
 }
@@ -379,6 +379,32 @@ async function submitEmail() {
     button.textContent = 'Send Magic Link';
   }
 }
+
+// Add Enter key support for textareas (Ctrl/Cmd+Enter to submit, Enter alone adds newline)
+document.addEventListener('DOMContentLoaded', function() {
+  // Add Enter key handler for textareas
+  document.querySelectorAll('.gate-question textarea').forEach((textarea, index) => {
+    textarea.addEventListener('keydown', function(e) {
+      // Ctrl+Enter or Cmd+Enter submits
+      if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+        e.preventDefault();
+        const questionIndex = parseInt(this.id.replace('answer-', ''));
+        submitGateAnswer(questionIndex);
+      }
+    });
+  });
+
+  // Add Enter key handler for email input
+  const emailInput = document.getElementById('email-input');
+  if (emailInput) {
+    emailInput.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        submitEmail();
+      }
+    });
+  }
+});
 </script>
 
   </div>
