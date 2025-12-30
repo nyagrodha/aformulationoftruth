@@ -117,9 +117,9 @@ class EmailService {
     const htmlContent = `
       <div style="font-family: Inter, sans-serif; max-width: 700px; margin: 0 auto; padding: 20px;">
         <div style="text-align: center; margin-bottom: 40px;">
-          <h1 style="color: #1976D2; font-size: 32px; margin-bottom: 10px;">Your Proust Questionnaire</h1>
-          <p style="color: #666; font-size: 18px;">A reflection of your inner thoughts</p>
-          <div style="width: 60px; height: 3px; background: #1976D2; margin: 20px auto;"></div>
+          <img src="https://aformulationoftruth.com/images/itendu2.PNG" alt="" style="max-width: 150px; height: auto; margin: 0 auto 20px;" />
+          <div style="font-family: 'Orbitron', monospace; font-size: 80px; font-weight: 700; color: #1976D2; text-shadow: 0 0 20px rgba(25, 118, 210, 0.5); line-height: 1; margin: 20px 0;">@</div>
+          <h1 style="color: #424242; font-size: 24px; font-weight: 400; margin: 20px 0 40px;">a formulation of truth</h1>
         </div>
 
         <div style="margin-bottom: 30px;">
