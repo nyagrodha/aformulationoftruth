@@ -1,1 +1,637 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><meta name="theme-color" content="#000011"/><meta name="description" content="a formulation of truth - begin here your own slow experiment"/><link rel="icon" href="/favicon.ico"/><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet"><title>a formulation of truth - begin here your own slow experiment</title><script defer="defer" src="/static/js/main.c14dbcd2.js"></script><link href="/static/css/main.bea363a8.css" rel="stylesheet"></head><body><noscript>Kindly enable JavaScript to proceed; or visit http://mij6nirqszu4fltxjb3ytiqugyugnaztt42ya5pzyk3yiqd7lj3jtbad.onion for a python-based, anonymity respecting version</noscript><div id="root"></div></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>To be a person, to act as one ought, to act according to the categorical imperative--in other words to be a unified self through time (having risked titling this something thoughtless) one may not want to identify a 'self' as unified in any person</title>
+
+<!-- Favicons -->
+<link rel="icon" type="image/x-icon" href="/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicons/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicons/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/favicons/apple-touch-icon.png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Rye&family=Spectral:ital,wght@0,400;0,700;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Special+Elite&family=Noto+Sans+Tamil:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/western-theme.css">
+</head>
+<body>
+<!-- Christmas Lights Wire -->
+<div class="lights-wire"></div>
+
+<!-- Christmas Lights -->
+<div class="christmas-lights">
+<div class="light red"></div>
+<div class="light green"></div>
+<div class="light blue"></div>
+<div class="light yellow"></div>
+<div class="light purple"></div>
+<div class="light cyan"></div>
+<div class="light red"></div>
+<div class="light green"></div>
+<div class="light blue"></div>
+<div class="light yellow"></div>
+<div class="light purple"></div>
+<div class="light cyan"></div>
+<div class="light red"></div>
+<div class="light green"></div>
+<div class="light blue"></div>
+<div class="light yellow"></div>
+</div>
+
+<!-- Snowflakes Container -->
+<div class="snowflakes" id="snowflakes"></div>
+
+<!-- Decorative corners -->
+<div class="corner top-left">
+<svg viewBox="0 0 50 50"><path d="M0 50 L0 10 Q0 0 10 0 L50 0 L50 5 L10 5 Q5 5 5 10 L5 50 Z"/></svg>
+</div>
+<div class="corner top-right">
+<svg viewBox="0 0 50 50"><path d="M0 50 L0 10 Q0 0 10 0 L50 0 L50 5 L10 5 Q5 5 5 10 L5 50 Z"/></svg>
+</div>
+<div class="corner bottom-left">
+<svg viewBox="0 0 50 50"><path d="M0 50 L0 10 Q0 0 10 0 L50 0 L50 5 L10 5 Q5 5 5 10 L5 50 Z"/></svg>
+</div>
+<div class="corner bottom-right">
+<svg viewBox="0 0 50 50"><path d="M0 50 L0 10 Q0 0 10 0 L50 0 L50 5 L10 5 Q5 5 5 10 L5 50 Z"/></svg>
+</div>
+
+<!-- Left Sidebar -->
+<aside class="sidebar">
+<a href="/privacy.html" class="sidebar-card">
+  <h3>Privacy First</h3>
+  <p>We believe in radical privacy. All data is encrypted end-to-end. No tracking. No third-party analytics. Your thoughts remain yours.</p>
+</a>
+
+<div class="sidebar-card" id="quote-card">
+  <h3>Contemplations</h3>
+  <p id="quote-text"></p>
+  <p id="quote-author"></p>
+</div>
+</aside>
+
+<!-- Main Content -->
+<div class="container">
+<h1>On the Question of the Questioner: நான் யாரு?</h1>
+
+<div class="hero-symbols">
+  <div class="tamil-numeral-2">௨</div>
+
+  <!-- Spaghetti Bowl SVG 
+  <svg class="spaghetti-bowl" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+    <!-- Bowl 
+    <ellipse cx="100" cy="150" rx="80" ry="30" fill="#8B4513" opacity="0.3"/>
+    <path d="M 30 120 Q 30 100 50 90 L 150 90 Q 170 100 170 120 L 165 150 Q 165 170 100 175 Q 35 170 35 150 Z"
+          fill="#D2691E" stroke="#8B4513" stroke-width="3"/>
+
+    <!-- Spaghetti strands
+    <path d="M 60 110 Q 65 95 70 110 Q 75 125 70 110" stroke="#F4A460" stroke-width="4" fill="none" opacity="0.9"/>
+    <path d="M 75 105 Q 80 90 85 105 Q 90 120 85 105" stroke="#DEB887" stroke-width="4" fill="none" opacity="0.9"/>
+    <path d="M 90 108 Q 95 93 100 108 Q 105 123 100 108" stroke="#F5DEB3" stroke-width="4" fill="none" opacity="0.9"/>
+    <path d="M 105 106 Q 110 91 115 106 Q 120 121 115 106" stroke="#F4A460" stroke-width="4" fill="none" opacity="0.9"/>
+    <path d="M 120 110 Q 125 95 130 110 Q 135 125 130 110" stroke="#DEB887" stroke-width="4" fill="none" opacity="0.9"/>
+
+    <!-- More intertwined strands
+    <path d="M 65 115 Q 70 105 75 115 Q 80 125 85 115" stroke="#F5DEB3" stroke-width="3" fill="none" opacity="0.8"/>
+    <path d="M 95 112 Q 100 102 105 112 Q 110 122 115 112" stroke="#F4A460" stroke-width="3" fill="none" opacity="0.8"/>
+    <path d="M 110 118 Q 115 108 120 118 Q 125 128 130 118" stroke="#DEB887" stroke-width="3" fill="none" opacity="0.8"/>
+
+    <!-- Fork stuck in spaghetti 
+    <g transform="translate(140, 80) rotate(45)">
+      <rect x="0" y="0" width="4" height="40" fill="#C0C0C0"/>
+      <rect x="-2" y="-8" width="2" height="12" fill="#C0C0C0"/>
+      <rect x="2" y="-8" width="2" height="12" fill="#C0C0C0"/>
+      <rect x="6" y="-8" width="2" height="12" fill="#C0C0C0"/>
+      <rect x="10" y="-8" width="2" height="12" fill="#C0C0C0"/>
+    </g>
+
+    <!-- Tomato sauce splatters
+    <circle cx="55" cy="118" r="3" fill="#8B0000" opacity="0.6"/>
+    <circle cx="125" cy="115" r="4" fill="#8B0000" opacity="0.6"/>
+    <circle cx="95" cy="120" r="2" fill="#DC143C" opacity="0.6"/>
+  </svg>
+</div> -->
+
+<div class="subtitle-primary">You are not one self.</div>
+
+<div class="subtitle-secondary">This is not a tRaGedY. It is more like the <span class="weather-text">weather</span>.</div>
+
+<div class="dedication">
+Dedicated to the memory and imaginative talent of<br>
+<span>Richard Brautigan (1935–1984)</span>
+</div>
+<div class="title-border"></div>
+
+<div class="epigraph sanskrit">
+<div class="sanskrit-text">यैरेव पतनं द्रव्यैः सिद्धिस्तैरेव चोदिता</div>
+<em>One rises, perfected, by precisely those things by which one falls.</em>
+<div class="attribution">—Kulārṇava Tantra, 5.47</div>
+</div>
+
+<div class="epigraph benjamin">
+<em>For in happiness all that is earthly seeks its downfall, and only in good fortune is its downfall destined to find it.</em>
+<div class="attribution">—Walter Benjamin, "Theologico-Political Fragment"</div>
+</div>
+
+<div class="divider"></div>
+
+<p class="standalone centered">You are not one self.</p>
+
+<p>This is not a tragedy. It is more like weather.</p>
+
+<div class="divider"></div>
+
+<p>I knew a man once who answered the Proust Questionnaire. It was 1987. His idea of perfect happiness? "A cabin in Montana with good light for reading."</p>
+
+<p>In 1997 happenstantially coming upon the questionnaire that had shifted from within a box and now stained with his soon-to-be crusty sfacim, again he answered. His idea of perfect happiness? Well that had become "for my daughter to stop crying at night."</p>
+
+<p>In 2007 it was "to finish the book I'm writing."</p>
+
+<p>In 2017 it was, like clockwork, "a cabin in Montana with good light for reading."</p>
+
+<p>He thought this meant something. Therein lies the ego's rub not upon the phallusper se. And it did. It meant something the way weather means something.</p>
+
+<div class="divider"></div>
+
+<p>A thousand or so years ago in what was then as now Kashmir a philosopher named Abhinavagupta lived. Doing what polymaths of brahmanical intellectual tradition do, he likely grew a long beard. Abhinava's name against an ornament of 'skrit that causes mis ojos to glitter translates to English as "the secret of being continuously new." fwiw his idears kinda rock one's headspace; unlikely he posed for a picture. But I am aware of one portrait some devotee drew up of the man, the polymath, the legend. Reportedly his eyes shine red—inebriated as we may be by the rasa—surrounded by yoginīs on a raised platform chalice in hand he sips. Though I've yet to see it, the portrait has appeared in a dream. Or so I think I recall.</p>
+
+<p>In any case, Abhinava watched people watch plays, nāṭakam in the 'skrit sans devanagari</p>
+
+<p>And he noticed that when Rāma (whose creator coined the character, nee god's name as upon māra, or murder, he meditated so long around this common thug a valmīk, or termite mound, enveloped him to become known as Valmīkī in the records of how it's been/was) grieved stage left, the audience felt grief. But this grief was not theirs. The audience hadn't lost anyone; neither was it Rāma's grief either—everyone knew it was a nāṭakam, a play.</p>
+
+<p>So whose grief was it?</p>
+
+<p>Abhinavagupta said: it belongs to consciousness recognizing itself.<a href="#fn1" class="footnote-ref">Ψ</a></p>
+
+<p>Doing so it creates this effect that metaphor can't quite capture. Likely with a head full of LSD some folks remark it's like looking in a mirror and seeing that you are also the mirror; I'd paint a different picture with words employing '2-CB'. Recognise within you, the I, as an absence that words alone create the possibility for just as around an inside clay the emptiness of a pot.</p>
+
+<p>He called this <em>camatkāra</em>, which means something like "wonder" or "the shiver."</p>
+
+<p>The shiver doesn't need an object. It just needs you to stop for a second.</p>
+
+<div class="divider"></div>
+
+<p>Lacan was a French psychoanalyst. From today's standard he smoked too many cigarettes. He said things like "the very foundation of interhuman dialogue is misunderstanding.", "the unconscious is structured like a language."; "I think where I am not; therefore, I am where I do not think."</p>
+
+<p>He also said the self, this thing we call 'I' in English is basically a grammatical error. Imagine that bookish cunt we all know start correcting people for saying 'I'... apologies in advance.</p>
+
+<p>We all call ourselves by the same name: I. It's who we are and yet when we say I, per Lacanian theory, we aren't referring to ourselves. Rather, I appeals to a phoneme—this word I—to stand in where oneself ought be. But instead there is this grammatical anomaly.</p>
+
+<p>Remember the clay pot? The emptiness that words create? Pāṇini knew about this two thousand years before Lacan was born.</p>
+
+<p>Pāṇini was an ancient Sanskrit grammarian. He wrote a grammar so precise it could compile computer code if computers had existed in 400 BCE. His rules for how language works are like instructions for a very small machine that builds sentences one atom at a time.</p>
+
+<p>Here's what Pāṇini did that matters: he never gave you a cozy definition like "the nominative case marks the subject." He did something sharper. The nominative—the case of I, the case of naming—only appears when nothing else has claimed the noun. It's a case of exclusion. Of what remains.</p>
+
+<p>In Sanskrit grammar, you don't get to be "I" because you're the doer or the thinker. You get to be "I" because no other relationship seized you first. The nominative is the case of residue. What's left over when every other connection has been mapped and named.</p>
+
+<p>Think about that. "I" is what remains when nothing else applies. Like the empty space in the pot. Like consciousness recognizing itself in a play. The subject isn't a thing. It's an absence that appears when all the relationships have been accounted for and there's still... this. Whatever this is.</p>
+
+<p>Lacan would have loved this. The grammatical anomaly isn't a bug. It's the feature. We're a remainder. A leftover. The space that appears when you've mapped everything else.</p>
+
+<p>This is why talking about yourself feels like trying to catch a trout with your hands.</p>
+
+<p>Every time you grasp at trout fishing in America, they slip. Likely cause of that lube you'd been using earlier to rub one out.</p>
+
+<div class="divider"></div>
+
+<p>The questionnaire has thirty-five questions.</p>
+
+<div class="question">"What is your greatest fear?"</div>
+
+<div class="question">"What is the trait you most deplore in yourself?"</div>
+
+<div class="question">"How would you like to die?"</div>
+
+<p>These are not polite questions. They are holes in the rapidly melting ice.</p>
+
+<p>If you answer honestly, spontaneously, something cold touches your feet.</p>
+
+<div class="divider"></div>
+
+<p>If we think about this too much, we're likely students of Christine Korsgaard's, a Kantian ethicist (retired) at Harvard.</p>
+
+<div style="text-align: center; margin: 2rem 0;">
+  <img src="/images/korsgaardonvacuuming-1200-cropped.webp" alt="Pre-meme meme from 2012: You can't spell vacuum without u" style="max-width: 100%; height: auto; border-radius: 4px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);">
+</div>
+
+<p>Anyhow 'stine says the self is not something we find. It's something we make. And from birth until death we're making a quilt, our lives. Quilts on quilts on quilts--every irl choice a kind of sewing.</p>
+
+<p>We stitch ourselves together (or not!) out of what's available: mother's phrases, a teacher's posture, songs we heard when we were angsty teens, that stranger's coat I saw once at Cafe Roma and never forgot (it was nice!).</p>
+
+<p>We are a quilt. We are only ever made of other people's fabrics. These days in the hellscape that is later-ish (?) capitalizm, priority is given to individuals, and we make like brands to sell a vanishingly fleeting formulation. A you de parvence variously seeking fortune, fame, and all things incompatibile with the realities of being a quilt. A family.</p>
+
+<p>This is not sad. Quilts are warm. This has been brought to you by extending the metaphor.</p>
+
+<div class="divider"></div>
+
+<p>The instruction is this: answer once. Then do your best to forget the questions. That dude up there he answered it four times. Frankly, tha's a lot.</p>
+
+<p>This is important.</p>
+
+<p>If we think about the questions too often, our responses start to become performative. It creates this vicious cycle that, once embarked upon wittingly or not, the ego's in control and the value of the mechanic is diminished. We soon (so soon!) start to believe the answers to be who we are. But questions are not who you, or I, or anyone else are. They are who we were on a Tuesday in November when our I's were tired and the light was grey.</p>
+
+<p>Ten years later, having all but perfectly forgotten, we'll be someone else. That person, who is sitting in room different than the one you are in now, may answer the same questions and experience a good dose of that camatkāra.</p>
+
+<p>The questions don't change. I do.</p>
+
+<p>This is like a river passing the same bridge twice. The bridge thinks it's seeing the same river. The river knows better.</p>
+
+<div class="divider"></div>
+
+<p>Lacan thought up a concept he called <em>objet petit a</em>. The little object. The thing we're always looking for but can never find.</p>
+
+<p>It's the hole in your sould that makes you open the refrigerator late at night/early in the AM when you're not even hungry.</p>
+
+<p>It's the hole in your ass... I mean, self-understanding that makes anyone think to answer a questionnaire in the first place!</p>
+
+<p>We're seeking something. We don't know what that is. Engaged thusly a seeker, we wouldn't recognize it. But the looking the perfecting feels important.</p>
+
+<p>The looking is the thing.</p>
+
+<div class="divider"></div>
+
+<p>In what is today India long time back some poet put together a word: <em>pratyabhijñā</em>. In english it means recognition.</p>
+
+<p>Not seeking, not looking for something new. Remembering something. Becoming Buddha. Buddha being a simple past passive participle in Sanskrit. In English it means that which is known. Past in that we always knew it, but forgot; passive because we don't gotta do anything to understand it. Precisely the opposite!</p>
+
+<p>Like when I walked into a room and suddenly remembered I'd been there before, in a dream or another life or (more likely) last Thursday.</p>
+
+<p>That shiver.</p>
+
+<p>The questionnaire is a machine I host here for producing that shiver.</p>
+
+<p>Not the answers.</p>
+
+<p>The moment between having read the question and beginning to see the answer... that pause wherein I am really nobody in particular, the absence I imagine who can translate a memory. This is what the eye is therefore. Have we the courage not to correct but just to answer? Who is it, anyway, who thinks I shouldn't write that? Stop giving a fuck. We are a speaking quilt, wondering what it will say next. </p>
+
+<p>That pause is uninterrupted delight, the freedom  and bliss of cosnciousness recognizing itself.</p>
+
+<p>The eleventh-century Kashmiris had a word for that too: <em>svātantrya</em>. It means "not needing anything outside yourself to be what you are."</p>
+
+<p>Like a cat in a sunbeam. The cat isn't waiting for anything. The cat is complete.</p>
+
+<p>You are also complete. I just keep forgetting it about you bc we're such bitches to one another because... well, late (?) capitsalizm.</p>
+
+<div class="divider"></div>
+
+<p> And the world moves faster now.</p>
+
+<p>In 1890, when Proust answered these questions somewhere in Paris, a person might be one thing for their whole life. A baker. A countess. A disappointment to their father.</p>
+
+<p>Now you or I can be twelve things before lunch! We can purge in the restroom and be another 7 to 9 before bed.</p>
+
+<p>This is confusing, it is far from naturalized, but it also may be an opportunity.</p>
+
+<p>If we are not one self, I don't have to defend any particular self, any version of me against the others. I do get to watch though as come for the second time in a day and go like clouds.</p>
+
+<p>Clouds are beautiful. Nobody argues with clouds.</p>
+
+<div class="divider"></div>
+
+<p class="standalone centered">What is your idea of perfect happiness?</p>
+
+<p>The question is a door.</p>
+
+<p>Behind the door is another door.</p>
+
+<p>Behind that door is a room with no floor, only a cloud-filled sky.</p>
+
+<p>You've been falling through that sky your whole life.</p>
+
+<p>How did the clouds even get inside? And where am I falling to?</p>
+
+<p>The fall is the happiness.</p>
+
+<div class="divider">Whatever nature may there be is in the fall.</div>
+
+<p>Answer. Wait ten years. Answer again.</p>
+
+<p>Notice something different.</p>
+
+<p>Notice the same.</p>
+
+<p>Notice "different" and "same" are words, and we are not a word.</p>
+
+<p>We are the ones using the words with one another.</p>
+
+<p>We are the ones who put down or lift up. And all of us do both. But we gotta practice doing more the lifting up one another.</p>
+
+<div class="closing">
+<div class="final-sanskrit">
+<div class="sanskrit-text">सर्वथा पुनर् अविच्छिन्नचमत्कारनिरपेक्षस्वातन्त्र्याहंविमर्शे</div>
+<em>The freedom of the uninterrupted delight of I-consciousness is completely independent of any reference to anything else.</em>
+</div>
+<div class="final-attribution">—Abhinavagupta</div>
+
+<div class="coda">
+<p>The cat in the sunbeam knows this.</p>
+<p>The river knows this.</p>
+<p>Now you know it too.</p>
+<p>Or you always did.</p>
+<p>That's the whole point.</p>
+</div>
+</div>
+
+<div class="footnotes" id="fn1">
+<h3>Notes</h3>
+<div class="footnote">
+See <em>Abhinavabhāratī</em>, Abhinavagupta's commentary on Bharata's <em>Nāṭyaśāstra</em>, particularly his gloss on the <em>rasasūtra</em> (NS 6.31). The Kashmiris called the broader philosophical framework <em>pratyabhijñā</em>—recognition. You don't acquire your nature; you remember it. The aesthetic shiver and the liberating insight share the same structure: <em>saṃvid</em> glimpsing <em>saṃvid</em>. Rasa opens a crack; through it, consciousness catches sight of itself. Cf. the famous compound: <em>sarvathā punar avicchinnacamatkāranirapekṣasvātantryāhaṃvimarśe</em>—the freedom of the uninterrupted delight [in] I-consciousness (<em>ahamvimarśe</em>), is completely independent of any reference to anything else.
+</div>
+</div>
+
+<div class="end-mark">☆</div>
+
+<!-- Begin Questionnaire Call-to-Action -->
+<div style="text-align: center; margin: 3rem 0; padding: 2rem; background: rgba(139, 69, 19, 0.1); border-radius: 8px; border: 2px solid var(--border-color);">
+  <h3 style="font-family: 'Noto Sans Tamil', serif; font-size: 2rem; margin-bottom: 1rem; color: var(--text-color);">
+    <a href="/begin" style="color: inherit; text-decoration: none; transition: all 0.3s ease;">
+      தொடங்கு
+    </a>
+  </h3>
+  <p style="font-style: italic; color: var(--text-muted); margin: 0;">Begin the questionnaire</p>
+</div>
+
+<!-- Newsletter Section -->
+<div class="newsletter-section">
+<h3>✦ Stay Connected ✦</h3>
+<p>Receive occasional updates about new essays, philosophical explorations, and contemplative content.</p>
+<form id="newsletter-form" class="newsletter-form">
+  <input
+    type="email"
+    id="newsletter-email"
+    class="newsletter-input"
+    placeholder="your.email@example.com"
+    required
+    autocomplete="email"
+  />
+  <button type="submit" class="newsletter-button" id="newsletter-button">
+    Subscribe
+  </button>
+  <div id="newsletter-message" class="newsletter-message"></div>
+  <p class="privacy-note">🔐 AES-256-GCM encrypted before storage</p>
+</form>
+</div>
+
+</div>
+
+<!-- Right Sidebar -->
+<aside class="sidebar">
+<a href="/about.html" class="sidebar-card">
+  <h3>About</h3>
+  <p>Learn more about this slow experiment and the ideas that inform this space and hopefully inspire those who visit.</p>
+</a>
+
+<a href="/contact.html" class="sidebar-card">
+  <h3>Contact</h3>
+  <p>Reach out to share feedback, ask questions, or discuss collaboration opportunities. All inquiries welcome.</p>
+</a>
+</aside>
+
+<script src="/js/api-failover.js"></script>
+<script>
+// Weather-synced snow effect
+(function() {
+  const snowflakesContainer = document.getElementById('snowflakes');
+
+  // Check weather conditions (coordinates only, no location reference)
+  async function checkWeatherConditions() {
+    try {
+      const lat = 43.0731;
+      const lon = -89.4012;
+
+      const response = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`);
+      const data = await response.json();
+
+      if (data.current_weather) {
+        const weatherCode = data.current_weather.weathercode;
+        // Weather codes 71, 73, 75, 77, 85, 86 indicate snow
+        const isSnowing = [71, 73, 75, 77, 85, 86].includes(weatherCode);
+
+        if (isSnowing) {
+          activateSnow();
+        }
+      }
+    } catch (error) {
+      // Silently fail
+    }
+  }
+
+  function activateSnow() {
+    snowflakesContainer.classList.add('active');
+
+    // Create 50 snowflakes
+    for (let i = 0; i < 50; i++) {
+      createSnowflake();
+    }
+  }
+
+  function createSnowflake() {
+    const snowflake = document.createElement('div');
+    snowflake.className = 'snowflake';
+    snowflake.textContent = '❄';
+
+    // Random position
+    snowflake.style.left = Math.random() * 100 + '%';
+
+    // Random size
+    const size = Math.random() * 0.5 + 0.5;
+    snowflake.style.fontSize = size + 'em';
+
+    // Random animation duration
+    const duration = Math.random() * 10 + 10;
+    snowflake.style.animationDuration = duration + 's';
+
+    // Random delay
+    const delay = Math.random() * 10;
+    snowflake.style.animationDelay = delay + 's';
+
+    // Random opacity
+    snowflake.style.opacity = Math.random() * 0.5 + 0.3;
+
+    snowflakesContainer.appendChild(snowflake);
+  }
+
+  // Check weather on load
+  checkWeatherConditions();
+
+  // Check every 15 minutes
+  setInterval(checkWeatherConditions, 15 * 60 * 1000);
+})();
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ROTATING QUOTES
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// HOW TO ADD NEW QUOTES:
+// 1. Copy one of the quote objects below (everything between { and })
+// 2. Paste it anywhere in the quotes array
+// 3. Update the "text" with your new quote
+// 4. Update the "author" with the attribution (include the — dash)
+// 5. Make sure there's a comma after the closing }
+//
+// Example:
+//   {
+//     text: "Your quote text here",
+//     author: "—Author Name"
+//   },
+//
+// The quotes will automatically shuffle on each page load!
+// ═══════════════════════════════════════════════════════════════════════════
+
+const quotes = [
+  {
+    text: "The observer is the observed.",
+    author: "—Jiddu Krishnamurti"
+  },
+  {
+    text: "What we call reality is merely a relation, the only reality being the subject which has the representation.",
+    author: "—Jacques Lacan"
+  },
+  {
+    text: "The highest form of human intelligence is to observe yourself without judgment.",
+    author: "—Jiddu Krishnamurti"
+  },
+  {
+    text: "We must find time to stop and thank the people who make a difference in our lives.",
+    author: "—Marcel Proust"
+  },
+  {
+    text: "Desire is always the desire of the Other.",
+    author: "—Jacques Lacan"
+  },
+  {
+    text: "Freedom from the desire for an answer is essential to the understanding of a problem.",
+    author: "—Jiddu Krishnamurti"
+  },
+  {
+    text: "The real voyage of discovery consists not in seeking new landscapes, but in having new eyes.",
+    author: "—Marcel Proust"
+  },
+  {
+    text: "It is no measure of health to be well adjusted to a profoundly sick society.",
+    author: "—Jiddu Krishnamurti"
+  },
+  {
+    text: "Let us be grateful to the people who make us happy; they are the charming gardeners who make our souls blossom.",
+    author: "—Marcel Proust"
+  },
+  {
+    text: "The unconscious is structured like a language.",
+    author: "—Jacques Lacan"
+  }
+];
+
+// Fisher-Yates shuffle algorithm - shuffles quotes on each page load
+function shuffleArray(array) {
+  const shuffled = [...array];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+}
+
+// Shuffle the quotes when page loads
+const shuffledQuotes = shuffleArray(quotes);
+let currentQuoteIndex = 0;
+
+function displayQuote() {
+  const quoteText = document.getElementById('quote-text');
+  const quoteAuthor = document.getElementById('quote-author');
+
+  if (quoteText && quoteAuthor) {
+    const quote = shuffledQuotes[currentQuoteIndex];
+    quoteText.textContent = `"${quote.text}"`;
+    quoteAuthor.textContent = quote.author;
+
+    currentQuoteIndex = (currentQuoteIndex + 1) % shuffledQuotes.length;
+  }
+}
+
+function getRandomInterval() {
+  // Random interval between 27 and 53 seconds (in milliseconds)
+  return (Math.floor(Math.random() * (53 - 27 + 1)) + 27) * 1000;
+}
+
+function scheduleNextQuote() {
+  setTimeout(() => {
+    displayQuote();
+    scheduleNextQuote();
+  }, getRandomInterval());
+}
+
+// Display first quote immediately
+displayQuote();
+// Schedule subsequent quotes
+scheduleNextQuote();
+
+// Newsletter subscription handler
+const newsletterForm = document.getElementById('newsletter-form');
+const newsletterEmail = document.getElementById('newsletter-email');
+const newsletterButton = document.getElementById('newsletter-button');
+const newsletterMessage = document.getElementById('newsletter-message');
+
+function showNewsletterMessage(text, type) {
+  newsletterMessage.textContent = text;
+  newsletterMessage.className = `newsletter-message ${type}`;
+  newsletterMessage.style.display = 'block';
+
+  if (type === 'success') {
+    setTimeout(() => {
+      newsletterMessage.style.display = 'none';
+    }, 5000);
+  }
+}
+
+newsletterForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+
+  const email = newsletterEmail.value.trim();
+
+  if (!email) {
+    showNewsletterMessage('Please enter an email address', 'error');
+    return;
+  }
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    showNewsletterMessage('Please enter a valid email address', 'error');
+    return;
+  }
+
+  newsletterButton.disabled = true;
+  newsletterButton.textContent = 'Subscribing...';
+  showNewsletterMessage('Encrypting and storing your email securely...', 'info');
+
+  try {
+    const response = await fetch('/api/newsletter/subscribe', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email })
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      if (data.alreadySubscribed) {
+        showNewsletterMessage('✓ This email is already subscribed', 'info');
+      } else {
+        showNewsletterMessage('✓ Successfully subscribed!', 'success');
+        newsletterEmail.value = '';
+      }
+    } else {
+      showNewsletterMessage(`✗ Subscription failed: ${data.error || 'Unknown error'}`, 'error');
+    }
+  } catch (error) {
+    console.error('Subscription error:', error);
+    showNewsletterMessage(`✗ Network error: ${error.message}`, 'error');
+  } finally {
+    newsletterButton.disabled = false;
+    newsletterButton.textContent = 'Subscribe';
+  }
+});
+</script>
+</body>
+</html>
