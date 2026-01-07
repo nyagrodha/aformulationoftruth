@@ -31,7 +31,13 @@ const envSchema = z.object({
       return !(normalized === 'false' || normalized === '0');
     }),
   DATABASE_CA_CERT_PATH: z.string().optional(),
-  VPN_INTERFACE: z.string().optional()
+  VPN_INTERFACE: z.string().optional(),
+
+  // Twilio Verify API configuration
+  TWILIO_ACCOUNT_SID: z.string().optional(),
+  TWILIO_AUTH_TOKEN: z.string().optional(),
+  TWILIO_VERIFY_SERVICE_SID: z.string().optional(),
+  TWILIO_PHONE_NUMBER: z.string().optional()
 });
 
 const parsed = envSchema.safeParse(process.env);
