@@ -7,288 +7,8 @@
     <meta name="description" content="A philosophical questionnaire rooted in Kashmir Shaivism and tantric aesthetics. Explore yourself through the questions of Proust, reimagined through the lens of Abhinavagupta's consciousness philosophy.">
     
     <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
-    
-    <style>
-        :root {
-            --prakasha: #1976D2;
-            --vimarsha: #0D47A1;
-            --spanda: #E3F2FD;
-            --camatkara: #FF6F00;
-            --shanta: #37474F;
-            --akasha: #FAFAFA;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        html {
-            scroll-behavior: smooth;
-        }
-
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: linear-gradient(
-                180deg,
-                var(--akasha) 0%,
-                var(--spanda) 40%,
-                var(--prakasha) 100%
-            );
-            min-height: 100vh;
-            color: var(--shanta);
-            line-height: 1.8;
-        }
-
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 4rem 2rem;
-        }
-
-        header {
-            text-align: center;
-            margin-bottom: 4rem;
-        }
-
-        .mantra {
-            font-family: 'Cormorant Garamond', Georgia, serif;
-            font-size: 0.9rem;
-            letter-spacing: 0.3em;
-            color: var(--prakasha);
-            margin-bottom: 1.5rem;
-            text-transform: uppercase;
-        }
-
-        h1 {
-            font-family: 'Cormorant Garamond', Georgia, serif;
-            font-size: clamp(2.5rem, 6vw, 4rem);
-            font-weight: 400;
-            color: var(--vimarsha);
-            margin-bottom: 1rem;
-            line-height: 1.2;
-        }
-
-        .subtitle {
-            font-size: 1.1rem;
-            font-weight: 300;
-            color: var(--shanta);
-            opacity: 0.9;
-        }
-
-        .subtitle .tamil {
-            font-size: 1.3rem;
-            display: block;
-            margin-top: 0.5rem;
-            color: var(--prakasha);
-        }
-
-        .symbol {
-            width: 120px;
-            height: 120px;
-            margin: 3rem auto;
-            position: relative;
-        }
-
-        .symbol::before {
-            content: '॰';
-            font-size: 4rem;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            color: var(--prakasha);
-            animation: breathe 4s ease-in-out infinite;
-        }
-
-        @keyframes breathe {
-            0%, 100% { 
-                opacity: 0.6; 
-                transform: translate(-50%, -50%) scale(1);
-            }
-            50% { 
-                opacity: 1; 
-                transform: translate(-50%, -50%) scale(1.1);
-            }
-        }
-
-        .symbol::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            border: 2px solid var(--prakasha);
-            border-radius: 50%;
-            opacity: 0.3;
-            animation: pulse 4s ease-in-out infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); opacity: 0.3; }
-            50% { transform: scale(1.2); opacity: 0.1; }
-        }
-
-        .content {
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 24px;
-            padding: 3rem;
-            box-shadow: 
-                0 4px 6px rgba(0, 0, 0, 0.05),
-                0 10px 40px rgba(25, 118, 210, 0.1);
-            margin-bottom: 3rem;
-        }
-
-        .intro {
-            font-family: 'Cormorant Garamond', Georgia, serif;
-            font-size: 1.3rem;
-            font-style: italic;
-            text-align: center;
-            color: var(--shanta);
-            margin-bottom: 2rem;
-            padding-bottom: 2rem;
-            border-bottom: 1px solid var(--spanda);
-        }
-
-        .description {
-            font-size: 1rem;
-            color: var(--shanta);
-            margin-bottom: 2rem;
-        }
-
-        .description p {
-            margin-bottom: 1rem;
-        }
-
-        .features {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1.5rem;
-            margin: 2rem 0;
-        }
-
-        .feature {
-            padding: 1.5rem;
-            background: var(--spanda);
-            border-radius: 16px;
-            text-align: center;
-        }
-
-        .feature-icon {
-            font-size: 2rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .feature h3 {
-            font-family: 'Cormorant Garamond', Georgia, serif;
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: var(--vimarsha);
-            margin-bottom: 0.5rem;
-        }
-
-        .feature p {
-            font-size: 0.85rem;
-            color: var(--shanta);
-            opacity: 0.8;
-        }
-
-        .languages {
-            text-align: center;
-            margin: 2rem 0;
-            padding: 1.5rem;
-            background: linear-gradient(90deg, transparent, var(--spanda), transparent);
-            border-radius: 12px;
-        }
-
-        .languages h4 {
-            font-family: 'Cormorant Garamond', Georgia, serif;
-            font-size: 0.9rem;
-            letter-spacing: 0.15em;
-            text-transform: uppercase;
-            color: var(--prakasha);
-            margin-bottom: 0.75rem;
-        }
-
-        .language-list {
-            font-size: 0.95rem;
-            color: var(--shanta);
-        }
-
-        .cta-section {
-            text-align: center;
-            margin-top: 2rem;
-        }
-
-        .cta-button {
-            display: inline-block;
-            background: linear-gradient(135deg, var(--prakasha), var(--vimarsha));
-            color: white;
-            font-family: 'Inter', sans-serif;
-            font-size: 1rem;
-            font-weight: 500;
-            padding: 1rem 2.5rem;
-            border-radius: 50px;
-            text-decoration: none;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(25, 118, 210, 0.3);
-        }
-
-        .cta-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 25px rgba(25, 118, 210, 0.4);
-        }
-
-        .cta-note {
-            font-size: 0.85rem;
-            color: var(--shanta);
-            opacity: 0.7;
-            margin-top: 1rem;
-        }
-
-        footer {
-            text-align: center;
-            padding: 2rem;
-            color: white;
-        }
-
-        .sanskrit-verse {
-            font-family: 'Cormorant Garamond', Georgia, serif;
-            font-size: 1.1rem;
-            font-style: italic;
-            margin-bottom: 0.5rem;
-            opacity: 0.9;
-        }
-
-        .verse-translation {
-            font-size: 0.85rem;
-            opacity: 0.7;
-        }
-
-        .attribution {
-            margin-top: 2rem;
-            font-size: 0.8rem;
-            opacity: 0.6;
-        }
-
-        @media (max-width: 600px) {
-            .container {
-                padding: 2rem 1rem;
-            }
-
-            .content {
-                padding: 2rem 1.5rem;
-            }
-
-            .features {
-                grid-template-columns: 1fr;
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="/css/fonts.css">
+    <link rel="stylesheet" href="/css/proust.css">
 </head>
 <body>
     <div class="container">
@@ -310,40 +30,92 @@
                 <small>— Abhinavagupta, Anubhavavinivedana</small>
             </p>
 
+            <!-- Abhinavagupta Quotes -->
+            <div class="abhinava-quotes">
+                <h4>From the Masters</h4>
+
+                <div class="quote-block">
+                    <p class="sharada">𑆖𑆴𑆠𑆴𑆂 𑆱𑇀𑆮𑆠𑆤𑇀𑆠𑇀𑆫𑆳 𑆮𑆴𑆯𑇀𑆮𑆱𑆴𑆢𑇀𑆣𑆴𑆲𑆼𑆠𑆶𑆂</p>
+                    <p class="iast">citiḥ svatantrā viśvasiddhihetuḥ</p>
+                    <p class="quote-translation">"Free thought is the means to perfect everything in the world."</p>
+                    <p class="quote-source">— Pratyabhijñāhṛdayam, Sūtra 1</p>
+                </div>
+
+                <div class="quote-block">
+                    <p class="sharada">𑆱𑇀𑆮𑆼𑆖𑇀𑆗𑆪𑆳 𑆱𑇀𑆮𑆯𑆑𑇀𑆠𑆴𑆥𑇀𑆫𑆑𑆳𑆯𑆤𑆼</p>
+                    <p class="iast">svecchayā svaśaktiprakāśane</p>
+                    <p class="quote-translation">"By its own will, it manifests its own power."</p>
+                    <p class="quote-source">— Tantrāloka</p>
+                </div>
+
+                <div class="quote-block">
+                    <p class="sharada">𑆥𑇀𑆫𑆠𑇀𑆪𑆨𑆴𑆘𑇀𑆚𑆳 𑆲𑆸𑆢𑆪𑆩𑇀</p>
+                    <p class="iast">pratyabhijñā hṛdayam</p>
+                    <p class="quote-translation">"Recognition is the heart."</p>
+                    <p class="quote-source">— Kṣemarāja</p>
+                </div>
+            </div>
+
             <div class="description">
                 <p>
-                    The Proust Questionnaire, born in 19th-century Parisian salons, finds new life 
-                    through the lens of Kashmir Shaivism. Here, each question becomes a threshold 
-                    (<em>dvāra</em>), each answer an act of recognition (<em>pratyabhijñā</em>).
+                    The Proust Questionnaire, born in late 18th/19th-century European salons, wills its
+                    metempsychosis here at aformulationoftruth.com for the edification and enlightenment
+                    of a culture in dire straits. We may regard each question as a threshold (<em>dvāra</em>),
+                    each answer a seed for recognition (<em>pratyabhijñā</em>). Respond, then forget the
+                    questions and how you answered. Let time work its alchemy. And when you return to them,
+                    a former self awaits. Your self no longer because, like a stranger, some of those responses
+                    you could not fathom. And in rereading them, you recognize an aspect of our nature.
+                    Language is the means we have to suggest one Self toward a more perfected treatment of
+                    one another.
                 </p>
                 <p>
-                    This is not merely a questionnaire—it is a practice of <strong>svātantrya</strong>, 
-                    the absolute freedom of consciousness recognizing itself through form. 
-                    What is your chief characteristic? What do you most value? Each response 
-                    ripples through the fabric of awareness, creating patterns of meaning.
+                    Each question opens a threshold; each answer plants a seed for recognition. Respond,
+                    then forget. Only to return to encounter a stranger who speaks in your name—words now
+                    opaque, with certainties foreign. This is not failure but structure: the subject is
+                    more often elsewhere, barred from itself by the language through which a cultural
+                    evolution speaks.
                 </p>
+                <p>
+                    What we call 'self-knowledge' is retroactive, a fiction we construct in the
+                    return<a href="#fn1" class="footnote-ref"><sup>1</sup></a>. Yet something—desire,
+                    ego—transmits along though the nonce. Language—insufficient though it seems with its
+                    slips of the tongue that betray truer depths—remains the only means we have to incline
+                    one speaking being toward another. Not to perfect understanding, for there exists nothing
+                    to perfect, but to the recognition that we are all, equally, subjects of this same habit speech.
+                </p>
+            </div>
+
+            <div class="footnotes">
+                <ol>
+                    <li id="fn1">
+                        <strong>Literal return</strong> — Coming back to the questionnaire years later, re-reading your old answers.<br>
+                        <strong>Retroaction</strong> (<em>Nachträglichkeit</em>) — Meaning is always constructed backwards. You don't know what you meant until later. The trauma, the truth, the significance arrives <em>après-coup</em>—after the fact. Your past answers only become meaningful when you return to interpret them.<br>
+                        <strong>The return of the repressed</strong> — What you couldn't say, what slipped out, what you avoided—it comes back. Your old answers reveal not what you consciously meant but what was speaking through you.<br>
+                        <strong>The eternal return of the signifier</strong> — We're caught in circuits of repetition. You return to the same questions, thinking you've changed, only to find the same structures, the same patterns, the same impossible desire inscribed differently.
+                    </li>
+                </ol>
             </div>
 
             <div class="features">
                 <div class="feature">
-                    <div class="feature-icon">📿</div>
                     <h3>35 Questions</h3>
                     <p>Inquiries spanning virtue, fault, dreams, and desires</p>
                 </div>
                 <div class="feature">
-                    <div class="feature-icon">🌊</div>
-                    <h3>Auto-Save</h3>
-                    <p>Your reflections preserved as you write</p>
+                    <h3>Privacy-First Auto-Save</h3>
+                    <p>Your reflections preserved as you write, secured with AES-256 encryption. No one can ever again view what is recorded at A Formulation of Truth, unless you so choose.</p>
                 </div>
                 <div class="feature">
-                    <div class="feature-icon">📜</div>
                     <h3>PDF Export</h3>
                     <p>Generate a document & behold the capaciousness of consciousness</p>
                 </div>
-                <div class="feature">
-                    <div class="feature-icon">🔐</div>
-                    <h3>Private</h3>
-                    <p>Magic link authentication—no passwords stored</p>
+                <div class="feature sign-in-feature">
+                    <h3>Begin</h3>
+                    <form id="sign-in-form" class="sign-in-form">
+                        <input type="email" name="email" placeholder="Enter your email" required>
+                        <button type="submit">Send Magic Link</button>
+                    </form>
+                    <p class="sign-in-note">We'll send you a link to sign in—no password needed.</p>
                 </div>
             </div>
 
@@ -378,5 +150,50 @@
             </p>
         </footer>
     </div>
+
+    <script>
+        document.getElementById('sign-in-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const form = e.target;
+            const button = form.querySelector('button');
+            const email = form.querySelector('input[name="email"]').value;
+
+            // Remove any existing message
+            const existingMsg = form.parentElement.querySelector('.sign-in-message');
+            if (existingMsg) existingMsg.remove();
+
+            button.disabled = true;
+            button.textContent = 'Sending...';
+
+            try {
+                const response = await fetch('/api/auth/magic-link', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email })
+                });
+
+                const data = await response.json();
+
+                const msg = document.createElement('p');
+                msg.className = 'sign-in-message ' + (response.ok ? 'success' : 'error');
+                msg.textContent = response.ok
+                    ? 'Check your email for the magic link.'
+                    : (data.error || 'Something went wrong. Please try again.');
+                form.parentElement.appendChild(msg);
+
+                if (response.ok) {
+                    form.reset();
+                }
+            } catch (err) {
+                const msg = document.createElement('p');
+                msg.className = 'sign-in-message error';
+                msg.textContent = 'Network error. Please try again.';
+                form.parentElement.appendChild(msg);
+            } finally {
+                button.disabled = false;
+                button.textContent = 'Send Magic Link';
+            }
+        });
+    </script>
 </body>
 </html>

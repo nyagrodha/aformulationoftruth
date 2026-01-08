@@ -1,14 +1,14 @@
 # Dependencies
+node_modules
 node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-package-lock.json
 
 # Environment variables
 .env
-.env.*
 .env.save
+.env.*
 .env.local
 .env.*.local
 .env.development.local
@@ -16,33 +16,20 @@ package-lock.json
 .env.production.local
 
 # Build outputs
+dist
 dist/
+build
 build/
 .vite
 
-# Database
-*.db
-*.sqlite
-*.sqlite3
+# IDE & Editor
+.vscode/
+!.vscode/extensions.json
+.idea
+*.swp
+*.swo
+*~
 
-# Logs
-logs/
-*.log
-npm-debug.log*
-cache/
-tmp/
-
-# Runtime data
-pids
-*.pid
-*.seed
-*.pid.lock
-
-# Coverage directory used by tools like istanbul
-coverage
-*.lcov
-
-# OS generated files
 .DS_Store
 .DS_Store?
 ._*
@@ -51,21 +38,28 @@ coverage
 ehthumbs.db
 Thumbs.db
 
-# IDE & Editor
-.vscode/*
-!.vscode/extensions.json
-.idea/
-.idea
-*.swp
-*.swo
-*~
-
 # Claude Code
 .claude/
 
-# Temporary files
-*.tmp
-*.temp
+# Logs & temp data
+logs
+logs/
+*.log
+cache/
+tmp/
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage & test artifacts
+coverage
+*.lcov
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
 
 # Keys and certificates
 keys/
@@ -75,27 +69,14 @@ keys/
 # Uploads and storage
 uploads/
 vps-storage/
+attached_assets/
 
-# Backups
+# Backups & archives
 *.backup
 *.bak
-public.backup*/
-
-# Server public files
-server/public
-
-# Vite config temp files
-vite.config.ts.*
-
-# Archives
 *.tar.gz
 *.zip
-
-# VPS server file (contains sensitive info)
-vps-server.js
-
-# Attached assets (likely temporary uploads)
-attached_assets/
+public.backup.*/
 
 # Generated files
 .eslintrc.js
@@ -105,7 +86,7 @@ backend
 frontend
 www/
 
-# Application-specific
+# Application-specific directories
 apps/
 assets/
 archived_html/
@@ -113,17 +94,23 @@ construction-vite/
 drizzle/
 maintenance/
 packages/
-scripts/
-services/
+/services/
 shared/
-src/
 static/
-tests/
+server/public
+vite.config.ts.*
 
-# Config files (managed separately)
+# Config files managed elsewhere
 Caddyfile
-package.json
+vps-server.js
 
-# Documentation (can be added selectively)
+# Documentation (track selected files only)
 *.md
 !README.md
+!DATABASE_SETUP.md
+!NETWORK_SETUP.md
+!public/SHUFFLE-IMPLEMENTATION.md
+
+# Allow project configuration tracked in this repository
+!package.json
+!package-lock.json
