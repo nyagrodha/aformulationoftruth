@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>welcome - about a formulation of truth</title>
+
+
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="/css/themes.css">
+
+    <meta name="description" content="Learn about the Proust Questionnaire and the practice of self-inquiry">
+
+    <style>
+        .about-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 3rem 1rem;
+            min-height: 100vh;
+        }
+
+        .about-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .about-header h1 {
+            margin-bottom: 1rem;
+        }
+
+        .about-content {
+            background: var(--bg-card);
+            backdrop-filter: blur(12px);
+            border: 2px solid var(--border-color);
+            border-radius: 20px;
+            padding: 3rem 2.5rem;
+            box-shadow: 0 8px 24px var(--shadow-color);
+            margin-bottom: 2rem;
+        }
+
+        .about-content h2 {
+            color: var(--accent-1);
+            margin: 2rem 0 1rem;
+            font-size: 1.8rem;
+        }
+
+        .about-content h2:first-child {
+            margin-top: 0;
+        }
+
+        .about-content p {
+            margin-bottom: 1.5rem;
+            line-height: 1.8;
+        }
+
+        .about-content ul {
+            margin: 1rem 0 1.5rem 2rem;
+            line-height: 1.8;
+        }
+
+        .about-content li {
+            margin-bottom: 0.5rem;
+        }
+
+        .about-content em {
+            color: var(--accent-2);
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-top: 2rem;
+        }
+
+        @media (max-width: 768px) {
+            .about-content {
+                padding: 2rem 1.5rem;
+            }
+        }
+
+        /* Enhanced typography respecting theme system */
+        .about-content {
+            max-width: 65ch;
+            font-family: "Georgia", "Times New Roman", Times, serif;
+            color: var(--text-primary);
+            line-height: 1.7;
+        }
+
+        .about-content h2 {
+            font-family: 'Orbitron', 'Palatino Linotype', serif;
+            font-size: 1.4rem;
+            margin: 2rem 0 0.8rem 0;
+            letter-spacing: -0.01em;
+            color: var(--accent-1);
+            text-transform: none;
+            text-shadow: 0 0 8px var(--glow-1);
+        }
+
+        .about-content h2:first-child {
+            margin-top: 0;
+        }
+
+        .about-content p {
+            margin: 0 0 1.4rem 0;
+            font-size: 1.05rem;
+            text-align: left;
+            color: var(--text-primary);
+        }
+
+        /* Ornament block inserted between paragraphs */
+        .ornament {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 1rem 0 1.2rem 0;
+            opacity: 0.7;
+        }
+
+        /* SVG styling — inherits theme accent color */
+        .ornament svg {
+            width: 120px;
+            height: 14px;
+            display: block;
+            stroke: var(--accent-2);
+            fill: var(--accent-3);
+            stroke-width: 1.5;
+            filter: drop-shadow(0 0 4px var(--glow-2));
+        }
+
+        /* Subtle smallcaps for the heading after ornament */
+        .about-content .subtle {
+            font-variant: small-caps;
+            font-size: 0.95rem;
+            color: var(--accent-3);
+            letter-spacing: .08em;
+            margin-bottom: 0.5rem;
+            text-shadow: 0 0 6px var(--glow-3);
+        }
+
+        /* Slightly larger first paragraph for emphasis */
+        .about-content p.lead {
+            font-size: 1.12rem;
+            margin-top: 0.25rem;
+            color: var(--text-primary);
+        }
+
+        /* Links within content */
+        .about-content a {
+            color: var(--accent-2);
+            text-decoration: underline;
+            text-decoration-color: var(--accent-3);
+            transition: all 0.3s ease;
+        }
+
+        .about-content a:hover {
+            color: var(--accent-1);
+            text-shadow: 0 0 10px var(--glow-1);
+        }
+
+        /* Emphasis text */
+        .about-content em {
+            color: var(--accent-3);
+            font-style: italic;
+            text-shadow: 0 0 4px var(--glow-3);
+        }
+
+        /* Responsive tweaks */
+        @media (max-width: 720px) {
+            .about-content {
+                padding: 1.5rem;
+                max-width: 100%;
+            }
+            .ornament svg {
+                width: 90px;
+                height: 12px;
+            }
+        }
+</style>
+</head>
+<body>
+    <!-- Theme Toggle -->
+    <div class="theme-toggle">
+        <button class="theme-btn active" data-theme="tamas" aria-label="Tamas theme">Tamas</button>
+        <button class="theme-btn" data-theme="nila" aria-label="Nīla theme">Nīla</button>
+        <button class="theme-btn" data-theme="uruvam" aria-label="Uruvam theme">Uruvam</button>
+    </div>
+
+    <div class="about-container">
+        <!-- Header -->
+        <div class="about-header">
+            <h1>first and form: the name</h1>
+            <p style="color: var(--text-secondary);">a bit on the creator's vidyātīrtha</p>
+        </div>
+
+        <!-- Content -->
+ <div class="about-content">
+  <h2>what is a formulation of truth?</h2>
+
+  <p class="lead">
+    A formulation of truth is a website and an archive. A place where users remember in the mode of fragments. We create at once a repository and an electronic arcade. Here, artifacts of impressions both private and public pass under this glass, shimmering an afterimage of lived experiences, resurfacing within a respondent's awareness, translated from a remembered past. Here at a formulation of truth  memory is not linear narrative, but a constellation: unicum, curious memories, seemingly silly (the boundary line between hair/no hair at a man's ankle, a photograph of text, or a newspaper clipping) that, when held together, produce a sudden, dialectical image of a life today. The past very much in collision with the present, as when a knock on the door startles from a dream a subject awake and uncertain. The dreamer drenched in amber light--photons traveling from the heart of the sun more ancient than civilization--is this a fever dream?</p>
+
+  <div class="ornament" aria-hidden="true">
+    <!-- simple filigree SVG — color inherits from text -->
+    <svg viewBox="0 0 120 14" xmlns="http://www.w3.org/2000/svg" role="img" aria-hidden="true">
+      <path d="M6 7 C24 1, 36 13, 54 7 C72 1, 84 13, 102 7" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="20" cy="7" r="1.2" />
+      <circle cx="100" cy="7" r="1.2" />
+    </svg>
+  </div>
+
+  <h2 class="subtle">vividhā racanā: variegated composition</h2>
+
+  <p>
+    I envision this website as an instrument users may avail themselves to focus attention: not as a test, but a mechanic for rendering legible the past in the present. The Proust questionnaire dba karuppacāmi keḷvittaḷ captures, in contemporary parlance, a selfie taken from within--subject and archive colluding--so that when shared the singularity of this moment may be compared, contrasted, placed beside, felt through an other. The social dimension of the site treats these responses like worn, unique objects in an ornate cabinet: luminous curiosites susceptible to yet unknown meanings when parsed against different eyes responses. Reproducibility here  does not diminish aura; the site's structure is meant to redistribute it, allowing echoes to be heard in different rooms.
+  </p>
+
+  <div class="ornament" aria-hidden="true">
+    <svg viewBox="0 0 120 14" xmlns="http://www.w3.org/2000/svg" role="img" aria-hidden="true">
+      <path d="M6 7 C24 1, 36 13, 54 7 C72 1, 84 13, 102 7" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </div>
+
+  <p>
+    Though Karuppacami as the dark lord, protector of boundaries, and the incarnation of Śiva as Kāla Bhairava stand apart in name, both point to the same inexorable reality: time consecrates all as much as it consumes everything. We cultivate a sense of self within the living grammars of language, wherein words seemingly magical shape perception and speech which come to recognize one another in objects that reflect our intellects' capacious interiors. Being forever peripheral to the culture that quickens my heart-mind — an outsider by birth, an adherent by longing, and in the eyes of lineage a kind of outcaste — I have learned that reverence alone will not be adequate to unlearn how to recognize the simple truths that may exist if we allow. I practice something intentionally ambivalent: a startlng admixture of homage and its contrary, a devotion that questions and a critique that bows. This irreverence is not negation but method; it is the spanda of awareness rattling with laughter settled, stilted forms that they may be seen naked. At peace. Thus with heady truths, not as abstract propositions but recognition in habitus within which a self discovers itself within and amidst languages, ritual, knowledge, and the relentless passage of time.
+  </p>
+
+  <div class="ornament" aria-hidden="true">
+    <svg viewBox="0 0 120 14" xmlns="http://www.w3.org/2000/svg" role="img" aria-hidden="true">
+      <path d="M6 7 C24 1, 36 13, 54 7 C72 1, 84 13, 102 7" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="60" cy="7" r="1.0" />
+    </svg>
+  </div>
+
+  <p>
+  Technology is not neutral; it is the means by which this archive we may create acquires its contours and, at times, loses its aura. In our fascinating age so when a palimpsest is rare, our endeavour is that this site  becomes from many a visitor's responses an archive that receives, erases, and receives again to preserve the faint afterimage of what was and what yet endures. What we enliven now today. The servers, the apotropaic intention that admits a visitor, the shaping of type and script — these are not mere apparatus but the warp and weft by which we weave remembrance. A tapestry translated from delight, horripilation, anger, love, and more into a forum to see what's inside us each one among us and how similar yet different our lives are. The backend technology of this site subject that weaving to a privacy-first ethic: responses are guarded in transit (TLS 1.3) and kept encrypted at rest (AES-256), held behind strict access controls and practices of minimal retention — precautions that do not pretend to be talismans against all peril but that nevertheless constitute a vigilant custodianship over what users entrust to us.
+  </p>
+
+  <div class="ornament" aria-hidden="true">
+    <svg viewBox="0 0 120 14" xmlns="http://www.w3.org/2000/svg" role="img" aria-hidden="true">
+      <path d="M6 7 C24 1, 36 13, 54 7 C72 1, 84 13, 102 7" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </div>
+
+  <p>
+    Your site's creator beckons you enter as as a flâneur to the inner life: linger with on a question, return to reread a fragment, follow an odd hyperlink, get lost in the pages that may accumulate like collected objects on a table. We aim not to settle history into a cohesive narrative but to enable a possiblity for the archive render heretofore unknown perspective on oneself through new constellations — to let what we ourselves or others remember disturb what we think we know, and in that disturbance, to find a clearer, stranger sense of truth.
+
+  <div class="ornament" aria-hidden="true">
+    <svg viewBox="0 0 120 14" xmlns="http://www.w3.org/2000/svg" role="img" aria-hidden="true">
+      <path d="M6 7 C24 1, 36 13, 54 7 C72 1, 84 13, 102 7" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="100" cy="7" r="1.2" />
+    </svg>
+  </div>
+
+  <p>
+    I promote this questionnaire because of what it taught me about myself — a lesson learned the slow, patient way that memory teaches when it is allowed its little shocks. Contemporary life rushes past with a speed that would have seemed indecent to the cultural worlds that most quicken my heart; yet because it rushes, the self fractures and recomposes more readily, so that one may find oneself, at different periods in life, almost a stranger to the same questions. I answered these questions at twenty and again at thirty-two; looking back from thirty-two upon the twenty-year-old’s replies produced a startling disjunction — a tiny, melancholic revelation of how a single sensibility can reinvent itself to the point of becoming to itself foreign. From the vantage of today the thirty-two-year-old’s answers feel less strange, as if the middle layer of the palimpsest has begun to blend with the newer script; yet the fact remains: the two respondents were one person, and that identity’s persistence through alteration is the phenomenon the questionnaire rendered legible to me. For you end users I wish that it arrests the hurry, gathers fragments, and allows the slow work of recognition to proceed. We change — culturally, bodily, in the subtle economy of our tastes and affections — and that change is not failure but evidence of life; to witness it, in oneself and in others, is both consolation and method.
+  </p>
+</div>
+
+        <!-- Back Link -->
+        <div style="text-align: center;">
+            <a href="/" class="btn btn-primary back-link">திரும்பவும்</a>
+            <a href="/questionnaire.html" class="btn btn-secondary back-link" style="margin-left: 1rem;">தொடங்கு</a>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="/js/theme-toggle.js"></script>
+</body>
+</html>

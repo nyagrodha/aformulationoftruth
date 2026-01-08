@@ -1,0 +1,227 @@
+/* Self-hosted Fonts */
+
+/* ============================================ */
+/* ORBITRON - Futuristic/Neon headings */
+/* ============================================ */
+
+@font-face {
+  font-family: 'Orbitron';
+  src: url('/fonts/orbitron-light-webfont.woff') format('woff'),
+       url('/fonts/orbitron-light-webfont.ttf') format('truetype');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Orbitron';
+  src: url('/fonts/orbitron-medium-webfont.woff') format('woff'),
+       url('/fonts/orbitron-medium-webfont.ttf') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Orbitron';
+  src: url('/fonts/orbitron-bold-webfont.woff') format('woff'),
+       url('/fonts/orbitron-bold-webfont.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Orbitron';
+  src: url('/fonts/orbitron-black-webfont.woff') format('woff'),
+       url('/fonts/orbitron-black-webfont.ttf') format('truetype');
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* ============================================ */
+/* BLACKOUT - Bold display font for neon pages */
+/* ============================================ */
+
+@font-face {
+  font-family: 'Blackout Midnight';
+  src: url('/fonts/blackout_midnight-webfont.woff') format('woff'),
+       url('/fonts/blackout_midnight-webfont.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Blackout Sunrise';
+  src: url('/fonts/blackout_sunrise-webfont.woff') format('woff'),
+       url('/fonts/blackout_sunrise-webfont.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Blackout Two AM';
+  src: url('/fonts/blackout_two_am-webfont.woff') format('woff'),
+       url('/fonts/blackout_two_am-webfont.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* ============================================ */
+/* LEAGUE SPARTAN - Modern sans-serif headings */
+/* ============================================ */
+
+@font-face {
+  font-family: 'League Spartan';
+  src: url('/fonts/LeagueSpartan-VF.woff2') format('woff2-variations'),
+       url('/fonts/LeagueSpartan-SemiBold.ttf') format('truetype');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* ============================================ */
+/* RYE - Spaghetti Western display font */
+/* ============================================ */
+
+/* ============================================ */
+/* SANCREEK - Western saloon display font */
+/* ============================================ */
+
+/* ============================================ */
+/* SPECIAL ELITE - Typewriter font */
+/* ============================================ */
+
+@font-face {
+  font-family: 'Special Elite';
+  src: url('/fonts/special-elite-latin-400-normal.woff2') format('woff2'),
+       url('/fonts/special-elite-latin-400-normal.woff') format('woff');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'Special Elite';
+  src: url('/fonts/special-elite-latin-ext-400-normal.woff2') format('woff2'),
+       url('/fonts/special-elite-latin-ext-400-normal.woff') format('woff');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+  font-family: 'Sancreek';
+  src: url('/fonts/sancreek-latin-400-normal.woff2') format('woff2'),
+       url('/fonts/sancreek-latin-400-normal.woff') format('woff');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'Sancreek';
+  src: url('/fonts/sancreek-latin-ext-400-normal.woff2') format('woff2'),
+       url('/fonts/sancreek-latin-ext-400-normal.woff') format('woff');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+  font-family: 'Rye';
+  src: url('/fonts/rye-latin-400-normal.woff2') format('woff2'),
+       url('/fonts/rye-latin-400-normal.woff') format('woff');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'Rye';
+  src: url('/fonts/rye-latin-ext-400-normal.woff2') format('woff2'),
+       url('/fonts/rye-latin-ext-400-normal.woff') format('woff');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+/* ============================================ */
+/* SORTS MILL GOUDY - Elegant serif body text */
+/* ============================================ */
+
+@font-face {
+  font-family: 'Sorts Mill Goudy';
+  src: url('/fonts/GoudyStM-webfont.woff') format('woff'),
+       url('/fonts/GoudyStM-webfont.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Sorts Mill Goudy';
+  src: url('/fonts/GoudyStM-Italic-webfont.woff') format('woff'),
+       url('/fonts/GoudyStM-Italic-webfont.ttf') format('truetype');
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* ============================================ */
+/* NOTO SANS SHARADA - Kashmiri Sharada script */
+/* ============================================ */
+
+@font-face {
+  font-family: 'Noto Sans Sharada';
+  src: url('/fonts/NotoSansSharada-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* ============================================ */
+/* NOTO SERIF - Full IAST/diacritics support */
+/* ============================================ */
+
+@font-face {
+  font-family: 'Noto Serif';
+  src: url('/fonts/NotoSerif-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Noto Serif';
+  src: url('/fonts/NotoSerif-Italic.ttf') format('truetype');
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Noto Serif';
+  src: url('/fonts/NotoSerif-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Noto Serif';
+  src: url('/fonts/NotoSerif-BoldItalic.ttf') format('truetype');
+  font-weight: 700;
+  font-style: italic;
+  font-display: swap;
+}

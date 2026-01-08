@@ -1,7 +1,116 @@
-cat <<EOF > .gitignore
+# Dependencies
+node_modules
 node_modules/
-*.log
-*.sqlite
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment variables
 .env
+.env.save
+.env.*
+.env.local
+.env.*.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Build outputs
+dist
+dist/
+build
+build/
+.vite
+
+# IDE & Editor
+.vscode/
+!.vscode/extensions.json
+.idea
+*.swp
+*.swo
+*~
+
 .DS_Store
-EOF
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Claude Code
+.claude/
+
+# Logs & temp data
+logs
+logs/
+*.log
+cache/
+tmp/
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage & test artifacts
+coverage
+*.lcov
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Keys and certificates
+keys/
+*.key
+*.pem
+
+# Uploads and storage
+uploads/
+vps-storage/
+attached_assets/
+
+# Backups & archives
+*.backup
+*.bak
+*.tar.gz
+*.zip
+public.backup.*/
+
+# Generated files
+.eslintrc.js
+
+# Symlinks (tracked separately)
+backend
+frontend
+www/
+
+# Application-specific directories
+apps/
+assets/
+archived_html/
+construction-vite/
+drizzle/
+maintenance/
+packages/
+/services/
+shared/
+static/
+server/public
+vite.config.ts.*
+
+# Config files managed elsewhere
+Caddyfile
+vps-server.js
+
+# Documentation (track selected files only)
+*.md
+!README.md
+!DATABASE_SETUP.md
+!NETWORK_SETUP.md
+!public/SHUFFLE-IMPLEMENTATION.md
+
+# Allow project configuration tracked in this repository
+!package.json
+!package-lock.json

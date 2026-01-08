@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>aformulationoftruth.com</title>
+  <link rel="stylesheet" href="/css/fonts.css">
+  <style>
+    /* Base page chaos */
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      background: url('/assets/thereisnogod.JPG') center/cover no-repeat fixed;
+      color: #fff;
+      font-family: 'Orbitron', sans-serif;
+      overflow: hidden;
+    }
+
+    .container {
+      max-width: 700px;
+      margin: 5% auto;
+      padding: 1rem;
+      text-align: center;
+      border: 6px double #ff00ff;
+      background: rgba(0, 0, 0, 0.6);
+      animation: border-flash 2s infinite alternate;
+    }
+
+    @keyframes border-flash {
+      0% { border-color: #ff00ff; }
+      25% { border-color: #00ffff; }
+      50% { border-color: #ffff00; }
+      75% { border-color: #ff6600; }
+      100% { border-color: #ff00ff; }
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      text-shadow: 3px 3px #ff0000, -3px -3px #00ffff;
+      animation: text-pulse 1s infinite alternate;
+    }
+
+    @keyframes text-pulse {
+      0% { color: #ff00ff; }
+      50% { color: #00ff00; }
+      100% { color: #ffff00; }
+    }
+
+    p {
+      font-size: 1.3rem;
+      color: #00ffff;
+      text-shadow: 0 0 10px #ff00ff;
+    }
+
+    /* Bhairava Section */
+    .bhairava-section {
+      margin-top: 2rem;
+      text-align: center;
+      background: url('https://i.imgur.com/xv9q1QG.gif') repeat;
+      padding: 1rem;
+      border: 4px ridge gold;
+    }
+
+    .bhairava-om {
+      font-size: 2.5rem;
+      font-family: 'Noto Serif Devanagari', serif;
+      font-weight: bold;
+      color: #ff00ff;
+      text-shadow:
+        2px 2px 0 #00ffff,
+        -2px -2px 0 #ffff00,
+        0 0 15px #ff0000;
+      animation: colorflash 1s infinite;
+    }
+
+    @keyframes colorflash {
+      0% { color: #ff00ff; }
+      25% { color: #00ffff; }
+      50% { color: #ffff00; }
+      75% { color: #00ff00; }
+      100% { color: #ff00ff; }
+    }
+
+    /* Video */
+    .bhairava-video {
+      margin-top: 1rem;
+      border: 4px solid #ff00ff;
+      box-shadow: 0 0 20px #ffff00;
+    }
+
+    /* Flying salmon */
+    .salmon {
+      position: absolute;
+      width: 80px;
+      animation: swim 15s linear infinite;
+    }
+
+    @keyframes swim {
+      0% { transform: translate(-100px, 10vh) rotateY(0); }
+      50% { transform: translate(100vw, 50vh) rotateY(180deg); }
+      100% { transform: translate(-100px, 90vh) rotateY(0); }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>this space is taking shape</h1>
+    <p>please return soon</p>
+
+    <div class="bhairava-section">
+      <p class="bhairava-om">
+        <marquee behavior="alternate" scrollamount="8">
+          🌸 ॐ कालभैरवाय नमः 🌸
+        </marquee>
+      </p>
+      <!-- Embedded autoplay video -->
+      <iframe class="bhairava-video" width="560" height="315" src="https://www.youtube-nocookie.com/embed/1EdUjlawLJM?si=27wHing8BBkiQT4S" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+    </div>
+  </div>
+
+  <!-- Flying salmon -->
+  <img src="https://i.imgur.com/3T6b6uP.png" class="salmon" style="top:5%; animation-delay: 0s;">
+  <img src="https://i.imgur.com/3T6b6uP.png" class="salmon" style="top:30%; animation-delay: 5s;">
+  <img src="https://i.imgur.com/3T6b6uP.png" class="salmon" style="top:60%; animation-delay: 10s;">
+</body>
+</html>
