@@ -1,18 +1,10 @@
-import 'dotenv/config';
 import express, { type Request, Response, NextFunction } from "express";
-import fs from "fs";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { reminderService } from "./services/reminderService";
-import { setupSecurity, healthCheck } from "./middleware/security";
+import { setupSecurity, healthCheck, shutdownRateLimiter } from "./middleware/security";
 
 const app = express();
-
-// Apply security middleware first
-setupSecurity(app);
-
-// Add health check endpoints
-healthCheck(app);
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
@@ -48,6 +40,12 @@ app.use((req, res, next) => {
 });
 
 (async () => {
+  // Apply security middleware first (async for Redis connection)
+  await setupSecurity(app);
+
+  // Add health check endpoints
+  healthCheck(app);
+
   const server = await registerRoutes(app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
@@ -72,54 +70,36 @@ app.use((req, res, next) => {
   // this serves both the API and the client.
   // It is the only port that is not firewalled.
   const port = parseInt(process.env.PORT || '5000', 10);
-  const socketPath = process.env.SOCKET_PATH;
+  server.listen({
+    port,
+    host: "0.0.0.0",
+    reusePort: true,
+  }, () => {
+    log(`serving on port ${port}`);
 
-  if (socketPath) {
-    // Clean up stale socket file
-    try {
-      const stat = fs.statSync(socketPath);
-      if (stat.isSocket()) fs.unlinkSync(socketPath);
-    } catch (err: any) {
-      if (err.code !== "ENOENT") {
-        log(`Socket cleanup warning: ${err.message}`);
-      }
-    }
+    // Start the reminder service
+    reminderService.start();
+  });
 
-    // Try to bind to Unix socket with fallback
-    const tryUnix = () => {
-      return new Promise<void>((resolve, reject) => {
-        server
-          .listen(socketPath, resolve)
-          .once("error", reject);
-      });
-    };
+  // Graceful shutdown handling
+  const shutdown = async (signal: string) => {
+    log(`${signal} received, shutting down gracefully...`);
 
-    try {
-      await tryUnix();
-      log(`serving on unix socket ${socketPath}`);
-      reminderService.start();
-    } catch (err: any) {
-      log(`Unix socket failed: ${err.message}`);
-      server.listen({
-        port,
-        host: "127.0.0.1",
-        reusePort: true,
-      }, () => {
-        log(`serving on localhost:${port} (fallback mode)`);
-        reminderService.start();
-      });
-    }
-  } else {
-    // Bind to TCP port (backward compatibility)
-    server.listen({
-      port,
-      host: "127.0.0.1",
-      reusePort: true,
-    }, () => {
-      log(`serving on port ${port}`);
-
-      // Start the reminder service
-      reminderService.start();
+    // Stop accepting new connections
+    server.close(() => {
+      log('HTTP server closed');
     });
-  }
+
+    // Stop reminder service
+    reminderService.stop();
+
+    // Close Redis connection
+    await shutdownRateLimiter();
+
+    log('Graceful shutdown complete');
+    process.exit(0);
+  };
+
+  process.on('SIGTERM', () => shutdown('SIGTERM'));
+  process.on('SIGINT', () => shutdown('SIGINT'));
 })();

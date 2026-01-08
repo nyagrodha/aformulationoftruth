@@ -3,411 +3,1515 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>a formulation of truth</title>
-<link rel="stylesheet" href="/styles.css">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+<title>To be a person, to act as one ought, to act according to the categorical imperative--in other words to be a unified self through time (having risked titling this something thoughtless) one may not want to identify a 'self' as unified in any person</title>
+
+<!-- Favicons -->
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+
+<link rel="stylesheet" href="/css/fonts.css">
 <style>
-.gate-question {
-  margin: 2rem 0;
-  padding: 2rem;
-  border: 2px solid rgba(255, 136, 102, 0.6);
-  border-radius: 8px;
-  background: rgba(0, 0, 0, 0.3);
+:root {
+--dust: #C4B8A8;
+--parchment: #D8CFC0;
+--taupe: #B8A99A;
+--burnt-sienna: #8B4513;
+--dried-blood: #722F37;
+--saddle-brown: #5C4033;
+--sun-bleached: #CEC4B4;
+--shadow: #2C1810;
+--rust: #B7410E;
+--bone: #D4CCC0;
+--midnight: #1a1a1a;
+--obsidian: #0a0a0a;
 }
 
-.gate-question h3 {
-  color: #ff8c94;
-  margin-bottom: 1rem;
-  font-size: 1.3rem;
-  line-height: 1.4;
+* {
+margin: 0;
+padding: 0;
+box-sizing: border-box;
 }
 
-.gate-question textarea {
-  width: 100%;
-  min-height: 120px;
-  padding: 1rem;
-  font-size: 1rem;
-  background: rgba(0, 0, 0, 0.5);
-  border: 1px solid rgba(255, 136, 102, 0.4);
-  color: #ffffff;
-  font-family: inherit;
-  border-radius: 4px;
-  resize: vertical;
-  line-height: 1.6;
+body {
+font-family: 'Sorts Mill Goudy', Georgia, serif;
+background: var(--parchment);
+color: #1E1510;
+line-height: 1.9;
+font-size: 36.2px;
+min-height: 100vh;
+background-image:
+url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+background-blend-mode: multiply;
+display: grid;
+grid-template-columns: 280px 1fr 280px;
+gap: 2rem;
+padding: 2rem;
+padding-top: 100px;
 }
 
-.gate-question textarea:focus {
-  outline: none;
-  border-color: rgba(255, 136, 102, 0.8);
-  box-shadow: 0 0 10px rgba(255, 153, 102, 0.4);
+@media (max-width: 1200px) {
+body {
+grid-template-columns: 1fr;
+padding-top: 100px;
+}
 }
 
-.gate-question button {
-  margin-top: 1rem;
-  padding: 0.75rem 2rem;
-  background: rgba(255, 136, 102, 0.8);
-  color: #ffffff;
-  border: none;
-  border-radius: 4px;
-  font-size: 1.1rem;
-  cursor: pointer;
-  font-weight: bold;
-  transition: all 0.3s ease;
+/* Worn paper texture overlay */
+body::before {
+content: '';
+position: fixed;
+top: 0;
+left: 0;
+width: 100%;
+height: 100%;
+background:
+radial-gradient(ellipse at 20% 20%, transparent 60%, rgba(139, 69, 19, 0.08) 100%),
+radial-gradient(ellipse at 80% 80%, transparent 60%, rgba(139, 69, 19, 0.08) 100%);
+pointer-events: none;
+z-index: 1000;
 }
 
-.gate-question button:hover {
-  background: rgba(255, 153, 102, 0.9);
-  box-shadow: 0 0 15px rgba(255, 153, 102, 0.5);
+/* Christmas Lights - Adafruit Style */
+.christmas-lights {
+position: fixed;
+top: 0;
+left: 0;
+width: 100%;
+height: 80px;
+z-index: 2000;
+pointer-events: none;
+display: flex;
+justify-content: space-around;
+align-items: flex-start;
+padding-top: 10px;
 }
 
-.gate-question button:disabled {
+.light {
+width: 20px;
+height: 30px;
+border-radius: 50% 50% 40% 40%;
+position: relative;
+animation: twinkle 2s ease-in-out infinite;
+}
+
+.light::before {
+content: '';
+position: absolute;
+top: -8px;
+left: 50%;
+transform: translateX(-50%);
+width: 4px;
+height: 10px;
+background: #2C1810;
+border-radius: 2px;
+}
+
+.light::after {
+content: '';
+position: absolute;
+top: 0;
+left: 0;
+width: 100%;
+height: 100%;
+border-radius: 50% 50% 40% 40%;
+background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.8), transparent);
+}
+
+.light.red {
+background: linear-gradient(135deg, #ff0000, #cc0000);
+box-shadow: 0 0 20px #ff0000, 0 0 40px #ff0000;
+animation-delay: 0s;
+}
+
+.light.green {
+background: linear-gradient(135deg, #00ff00, #00cc00);
+box-shadow: 0 0 20px #00ff00, 0 0 40px #00ff00;
+animation-delay: 0.3s;
+}
+
+.light.blue {
+background: linear-gradient(135deg, #0000ff, #0000cc);
+box-shadow: 0 0 20px #0000ff, 0 0 40px #0000ff;
+animation-delay: 0.6s;
+}
+
+.light.yellow {
+background: linear-gradient(135deg, #ffff00, #cccc00);
+box-shadow: 0 0 20px #ffff00, 0 0 40px #ffff00;
+animation-delay: 0.9s;
+}
+
+.light.purple {
+background: linear-gradient(135deg, #ff00ff, #cc00cc);
+box-shadow: 0 0 20px #ff00ff, 0 0 40px #ff00ff;
+animation-delay: 1.2s;
+}
+
+.light.cyan {
+background: linear-gradient(135deg, #00ffff, #00cccc);
+box-shadow: 0 0 20px #00ffff, 0 0 40px #00ffff;
+animation-delay: 1.5s;
+}
+
+@keyframes twinkle {
+0%, 100% {
+  opacity: 1;
+  filter: brightness(1);
+}
+50% {
   opacity: 0.5;
-  cursor: not-allowed;
+  filter: brightness(1.5);
+}
 }
 
-.gate-note {
-  margin-top: 0.5rem;
-  font-size: 0.9rem;
-  opacity: 0.7;
-  font-style: italic;
-  color: #ffb3d9;
+/* Wire for lights */
+.lights-wire {
+position: fixed;
+top: 20px;
+left: 0;
+width: 100%;
+height: 2px;
+background: repeating-linear-gradient(
+  90deg,
+  #2C1810 0px,
+  #2C1810 5px,
+  transparent 5px,
+  transparent 10px
+);
+z-index: 1999;
+pointer-events: none;
 }
 
-#email-entry, #email-sent {
-  margin: 2rem 0;
-  padding: 2rem;
-  border: 2px solid rgba(255, 136, 102, 0.6);
-  border-radius: 8px;
-  background: rgba(0, 0, 0, 0.3);
+/* Snowflake Container */
+.snowflakes {
+position: fixed;
+top: 0;
+left: 0;
+width: 100%;
+height: 100%;
+pointer-events: none;
+z-index: 1500;
+display: none;
 }
 
-#email-entry h3, #email-sent h3 {
-  color: #ff8c94;
-  margin-bottom: 1rem;
-  font-size: 1.5rem;
+.snowflakes.active {
+display: block;
 }
 
-#email-entry input[type="email"] {
-  width: 100%;
+.snowflake {
+position: absolute;
+top: -10px;
+color: #fff;
+font-size: 1em;
+opacity: 0.8;
+animation: fall linear infinite;
+text-shadow: 0 0 5px rgba(255, 255, 255, 0.8);
+}
+
+@keyframes fall {
+to {
+  transform: translateY(100vh) rotate(360deg);
+}
+}
+
+/* Sidebar Cards */
+.sidebar {
+position: sticky;
+top: 120px;
+height: fit-content;
+display: flex;
+flex-direction: column;
+gap: 1.5rem;
+}
+
+.sidebar-card {
+background: linear-gradient(135deg, var(--parchment) 0%, var(--dust) 100%);
+border: 3px solid var(--burnt-sienna);
+padding: 1.5rem;
+box-shadow:
+inset 0 0 20px rgba(139, 69, 19, 0.1),
+4px 4px 0 rgba(44, 24, 16, 0.2);
+position: relative;
+text-decoration: none;
+display: block;
+transition: all 0.3s ease;
+}
+
+.sidebar-card:hover {
+transform: translateY(-2px);
+box-shadow:
+inset 0 0 20px rgba(139, 69, 19, 0.15),
+6px 6px 0 rgba(44, 24, 16, 0.25);
+}
+
+.sidebar-card h3 {
+font-family: 'Rye', cursive;
+font-size: 0.6rem;
+letter-spacing: 0.15em;
+color: var(--shadow);
+text-transform: uppercase;
+margin-bottom: 0.5rem;
+text-shadow: 1px 1px 0 var(--dust);
+}
+
+.sidebar-card p {
+font-size: 0.4rem;
+line-height: 1.5;
+color: var(--saddle-brown);
+margin-bottom: 0;
+}
+
+.sidebar-card a {
+color: var(--burnt-sienna);
+text-decoration: underline;
+}
+
+.sidebar-card a:hover {
+color: var(--dried-blood);
+}
+
+/* Quote Card Specific */
+#quote-card {
+min-height: 200px;
+}
+
+#quote-text {
+font-style: italic;
+font-size: 0.45rem;
+line-height: 1.6;
+color: var(--shadow);
+margin-bottom: 0.75rem;
+}
+
+#quote-author {
+font-family: 'Rye', cursive;
+font-size: 0.4rem;
+color: var(--burnt-sienna);
+text-align: right;
+letter-spacing: 0.1em;
+}
+
+.container {
+max-width: 720px;
+margin: 0 auto;
+padding: 80px 40px 120px;
+position: relative;
+grid-column: 2;
+}
+
+@media (max-width: 1200px) {
+.container {
+grid-column: 1;
+}
+.sidebar {
+position: relative;
+top: 0;
+}
+}
+
+/* Title styling - Spaghetti Western Wanted Poster */
+h1 {
+font-family: 'Rye', cursive;
+font-size: clamp(2rem, 6vw, 3.5rem);
+color: var(--shadow);
+text-align: center;
+text-transform: uppercase;
+letter-spacing: 0.15em;
+margin-bottom: 0.3em;
+text-shadow: 2px 2px 0 var(--dust);
+position: relative;
+}
+
+h1::before,
+h1::after {
+content: '✦';
+font-size: 0.4em;
+vertical-align: middle;
+margin: 0 0.5em;
+color: var(--burnt-sienna);
+}
+
+/* Tamil 2 and Spaghetti Container */
+.hero-symbols {
+display: flex;
+align-items: center;
+justify-content: center;
+gap: 2rem;
+margin: 2rem 0;
+flex-wrap: wrap;
+}
+
+/* Obsidian Tamil numeral 2 */
+.tamil-numeral-2 {
+font-family: 'Noto Sans Tamil', sans-serif;
+font-size: clamp(4rem, 10vw, 7rem);
+font-weight: 700;
+color: var(--obsidian);
+text-shadow:
+  0 0 1px rgba(255, 255, 255, 0.3),
+  1px 1px 2px rgba(255, 255, 255, 0.2),
+  -1px -1px 2px rgba(255, 255, 255, 0.1);
+filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.5));
+animation: obsidianShimmer 3s ease-in-out infinite;
+position: relative;
+transform: skewY(-2deg);
+}
+
+@keyframes obsidianShimmer {
+0%, 100% {
+  text-shadow:
+    0 0 1px rgba(255, 255, 255, 0.3),
+    1px 1px 2px rgba(255, 255, 255, 0.2),
+    -1px -1px 2px rgba(255, 255, 255, 0.1);
+}
+50% {
+  text-shadow:
+    0 0 2px rgba(255, 255, 255, 0.5),
+    2px 2px 3px rgba(255, 255, 255, 0.3),
+    -2px -2px 3px rgba(255, 255, 255, 0.2);
+}
+}
+
+/* Spaghetti Bowl SVG */
+.spaghetti-bowl {
+width: clamp(80px, 15vw, 120px);
+height: clamp(80px, 15vw, 120px);
+filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.3));
+}
+
+/* Subtitle elements below title */
+.subtitle-primary {
+font-family: 'Rye', cursive;
+font-size: clamp(1.6rem, 4.8vw, 2.8rem);
+color: var(--shadow);
+text-align: center;
+letter-spacing: 0.12em;
+margin: 0.5em 0 0.3em;
+text-shadow: 2px 2px 0 var(--dust);
+font-weight: 400;
+}
+
+.subtitle-secondary {
+font-family: 'Rye', cursive;
+font-size: clamp(1.4rem, 4.2vw, 2.45rem);
+color: var(--saddle-brown);
+text-align: center;
+letter-spacing: 0.08em;
+margin: 0.3em 0 1.5em;
+text-shadow: 1px 1px 0 var(--sun-bleached);
+font-weight: 700;
+line-height: 1.4;
+}
+
+.subtitle-secondary .weather-text {
+color: var(--burnt-sienna);
+font-style: italic;
+}
+
+.dedication {
+text-align: center;
+font-style: italic;
+font-size: 0.95rem;
+color: var(--saddle-brown);
+margin-bottom: 4rem;
+letter-spacing: 0.05em;
+line-height: 1.6;
+}
+
+.dedication span {
+display: block;
+font-style: normal;
+font-family: 'Special Elite', monospace;
+font-size: 0.85rem;
+letter-spacing: 0.15em;
+margin-top: 0.3rem;
+color: var(--burnt-sienna);
+}
+
+/* Decorative border under title */
+.title-border {
+width: 60%;
+max-width: 300px;
+height: 3px;
+background: linear-gradient(90deg,
+transparent,
+var(--burnt-sienna) 20%,
+var(--burnt-sienna) 80%,
+transparent);
+margin: 0 auto 4rem;
+position: relative;
+}
+
+.title-border::before {
+content: '◆';
+position: absolute;
+left: 50%;
+top: 50%;
+transform: translate(-50%, -50%);
+background: var(--parchment);
+padding: 0 10px;
+color: var(--burnt-sienna);
+font-size: 0.8rem;
+}
+
+/* Epigraph styling - BOLD, dramatic, like a proclamation */
+.epigraph {
+border-left: 6px solid var(--dried-blood);
+padding: 2.5rem 3rem;
+margin: 4rem 0;
+background: linear-gradient(135deg,
+rgba(114, 47, 55, 0.12) 0%,
+rgba(139, 69, 19, 0.06) 100%);
+position: relative;
+box-shadow:
+inset 0 0 30px rgba(139, 69, 19, 0.1),
+4px 4px 0 rgba(44, 24, 16, 0.15);
+}
+
+.epigraph.sanskrit {
+text-align: center;
+border-left: none;
+border: none;
+padding: 3rem 2rem;
+background: var(--shadow);
+color: var(--parchment);
+box-shadow:
+inset 0 0 60px rgba(0, 0, 0, 0.5),
+0 8px 32px rgba(44, 24, 16, 0.4);
+position: relative;
+}
+
+.epigraph.sanskrit::before,
+.epigraph.sanskrit::after {
+content: '✦ ✦ ✦';
+display: block;
+letter-spacing: 0.5em;
+color: var(--rust);
+font-size: 0.8rem;
+opacity: 0.8;
+}
+
+.epigraph.sanskrit::before {
+margin-bottom: 1.5rem;
+}
+
+.epigraph.sanskrit::after {
+margin-top: 1.5rem;
+}
+
+.sanskrit-text {
+font-size: clamp(1.4rem, 4vw, 1.8rem);
+color: var(--dust);
+margin-bottom: 1.5rem;
+font-weight: 700;
+line-height: 1.6;
+text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.epigraph.sanskrit em {
+display: block;
+font-style: italic;
+color: var(--parchment);
+font-size: clamp(1.1rem, 3vw, 1.4rem);
+font-weight: 700;
+margin-bottom: 1rem;
+line-height: 1.5;
+}
+
+.epigraph.sanskrit .attribution {
+font-family: 'Rye', cursive;
+font-size: 1rem;
+color: var(--rust);
+letter-spacing: 0.15em;
+text-transform: uppercase;
+}
+
+/* Benjamin quote - western proclamation style */
+.epigraph.benjamin {
+border-left: none;
+border: 4px solid var(--burnt-sienna);
+text-align: center;
+padding: 3rem;
+background:
+linear-gradient(135deg, var(--parchment) 0%, var(--dust) 100%);
+position: relative;
+}
+
+.epigraph.benjamin::before {
+content: '❝';
+position: absolute;
+top: -0.3em;
+left: 50%;
+transform: translateX(-50%);
+font-size: 3rem;
+color: var(--burnt-sienna);
+background: var(--parchment);
+padding: 0 0.5rem;
+line-height: 1;
+}
+
+.epigraph.benjamin em {
+display: block;
+font-style: italic;
+color: var(--shadow);
+font-size: clamp(1.15rem, 3vw, 1.35rem);
+font-weight: 700;
+margin-bottom: 1.5rem;
+line-height: 1.7;
+}
+
+.epigraph .attribution {
+font-family: 'Rye', cursive;
+font-size: 0.95rem;
+color: var(--burnt-sienna);
+letter-spacing: 0.12em;
+text-transform: uppercase;
+}
+
+/* Section dividers - like a horizon line */
+.divider {
+text-align: center;
+margin: 4rem 0;
+color: var(--burnt-sienna);
+font-size: 1.5rem;
+letter-spacing: 1em;
+opacity: 0.6;
+}
+
+.divider::before {
+content: '— ☆ —';
+}
+
+/* Body text */
+p {
+margin-bottom: 1.5rem;
+text-align: left;
+text-indent: 0;
+}
+
+/* Standalone short lines - like dialogue in a western */
+.standalone {
+font-size: 1.1rem;
+margin: 2.5rem 0;
+padding-left: 2rem;
+border-left: 2px solid var(--rust);
+color: var(--shadow);
+}
+
+.standalone.centered {
+text-align: center;
+border-left: none;
+padding-left: 0;
+}
+
+/* Questions - like wanted poster items */
+.question {
+font-family: 'Special Elite', monospace;
+font-size: 1rem;
+color: var(--dried-blood);
+margin: 1.5rem 0;
+padding: 0.5rem 1rem;
+background: rgba(139, 69, 19, 0.08);
+border-left: 4px solid var(--rust);
+}
+
+/* Emphasis */
+em {
+font-style: italic;
+color: var(--burnt-sienna);
+}
+
+strong {
+font-weight: 700;
+color: var(--shadow);
+}
+
+/* Final section - the closing */
+.closing {
+text-align: center;
+margin-top: 5rem;
+padding-top: 3rem;
+border-top: 1px solid var(--burnt-sienna);
+}
+
+.closing p {
+text-align: center;
+font-size: 1.1rem;
+}
+
+.final-sanskrit {
+font-size: 1rem;
+color: var(--dried-blood);
+margin: 3rem 0 1rem;
+padding: 2rem;
+background: linear-gradient(135deg,
+rgba(114, 47, 55, 0.08) 0%,
+transparent 100%);
+border: 1px solid var(--burnt-sienna);
+}
+
+.final-attribution {
+font-family: 'Rye', cursive;
+font-size: 1rem;
+letter-spacing: 0.2em;
+color: var(--saddle-brown);
+margin-top: 1rem;
+}
+
+/* Coda */
+.coda {
+margin-top: 4rem;
+font-style: italic;
+color: var(--saddle-brown);
+}
+
+.coda p {
+margin-bottom: 0.8rem;
+}
+
+/* The end mark */
+.end-mark {
+text-align: center;
+margin-top: 5rem;
+font-size: 2rem;
+color: var(--burnt-sienna);
+opacity: 0.5;
+}
+
+/* Footnote styling - triśūla */
+.footnote-ref {
+font-size: 0.75em;
+vertical-align: super;
+color: var(--dried-blood);
+text-decoration: none;
+font-weight: 700;
+margin-left: 2px;
+}
+
+.footnotes {
+margin-top: 5rem;
+padding-top: 2rem;
+border-top: 2px solid var(--burnt-sienna);
+}
+
+.footnotes h3 {
+font-family: 'Rye', cursive;
+font-size: 1rem;
+letter-spacing: 0.2em;
+color: var(--saddle-brown);
+margin-bottom: 1.5rem;
+text-transform: uppercase;
+}
+
+.footnote {
+font-size: 0.9rem;
+line-height: 1.7;
+margin-bottom: 1.5rem;
+padding-left: 2rem;
+position: relative;
+color: var(--saddle-brown);
+}
+
+.footnote::before {
+content: 'Ψ';
+position: absolute;
+left: 0;
+color: var(--dried-blood);
+font-weight: 700;
+}
+
+.footnote em {
+color: var(--shadow);
+}
+
+/* Newsletter Section - moved to bottom */
+.newsletter-section {
+margin: 5rem auto 3rem;
+padding: 3rem 2rem;
+background: var(--midnight);
+border: 3px solid var(--burnt-sienna);
+box-shadow:
+  inset 0 0 30px rgba(139, 69, 19, 0.2),
+  0 8px 32px rgba(44, 24, 16, 0.3);
+max-width: 600px;
+}
+
+.newsletter-section h3 {
+font-family: 'Rye', cursive;
+font-size: clamp(1.5rem, 4vw, 2rem);
+color: var(--dust);
+text-align: center;
+letter-spacing: 0.1em;
+text-transform: uppercase;
+margin-bottom: 1rem;
+text-shadow: 2px 2px 0 var(--burnt-sienna);
+}
+
+.newsletter-section p {
+font-size: 0.9rem;
+text-align: center;
+color: var(--dust);
+margin-bottom: 1.5rem;
+line-height: 1.6;
+}
+
+.newsletter-form {
+display: flex;
+flex-direction: column;
+gap: 1rem;
+}
+
+.newsletter-input {
+padding: 0.75rem;
+font-size: 1rem;
+font-family: 'Sorts Mill Goudy', serif;
+background: var(--parchment);
+border: 2px solid var(--burnt-sienna);
+color: var(--shadow);
+border-radius: 4px;
+transition: all 0.3s ease;
+}
+
+.newsletter-input:focus {
+outline: none;
+border-color: var(--rust);
+box-shadow: 0 0 10px rgba(183, 65, 14, 0.3);
+}
+
+.newsletter-input::placeholder {
+color: var(--saddle-brown);
+opacity: 0.7;
+}
+
+.newsletter-button {
+padding: 0.75rem 1.5rem;
+font-family: 'Rye', cursive;
+font-size: 1rem;
+letter-spacing: 0.1em;
+background: var(--burnt-sienna);
+color: var(--parchment);
+border: 2px solid var(--rust);
+border-radius: 4px;
+cursor: pointer;
+text-transform: uppercase;
+transition: all 0.3s ease;
+box-shadow: 0 4px 8px rgba(44, 24, 16, 0.3);
+}
+
+.newsletter-button:hover {
+background: var(--rust);
+transform: translateY(-2px);
+box-shadow: 0 6px 12px rgba(44, 24, 16, 0.4);
+}
+
+.newsletter-button:disabled {
+opacity: 0.5;
+cursor: not-allowed;
+transform: none;
+}
+
+.newsletter-message {
+margin-top: 1rem;
+padding: 0.75rem;
+border-radius: 4px;
+text-align: center;
+font-size: 0.9rem;
+display: none;
+}
+
+.newsletter-message.success {
+background: rgba(34, 197, 94, 0.2);
+border: 1px solid #22c55e;
+color: #22c55e;
+}
+
+.newsletter-message.error {
+background: rgba(239, 68, 68, 0.2);
+border: 1px solid #ef4444;
+color: #ef4444;
+}
+
+.newsletter-message.info {
+background: rgba(59, 130, 246, 0.2);
+border: 1px solid #3b82f6;
+color: #3b82f6;
+}
+
+.privacy-note {
+font-size: 0.75rem;
+text-align: center;
+color: var(--dust);
+margin-top: 1rem;
+font-style: italic;
+}
+
+/* Decorative corners */
+.corner {
+position: fixed;
+width: 60px;
+height: 60px;
+opacity: 0.3;
+pointer-events: none;
+z-index: 900;
+}
+
+.corner svg {
+width: 100%;
+height: 100%;
+fill: var(--burnt-sienna);
+}
+
+.corner.top-left { top: 80px; left: 20px; }
+.corner.top-right { top: 80px; right: 20px; transform: rotate(90deg); }
+.corner.bottom-left { bottom: 20px; left: 20px; transform: rotate(-90deg); }
+.corner.bottom-right { bottom: 20px; right: 20px; transform: rotate(180deg); }
+
+/* Responsive */
+@media (max-width: 600px) {
+body {
   padding: 1rem;
-  font-size: 1rem;
-  background: rgba(0, 0, 0, 0.5);
-  border: 1px solid rgba(255, 136, 102, 0.4);
-  color: #ffffff;
-  border-radius: 4px;
-  margin: 1rem 0;
-  font-family: inherit;
+  padding-top: 100px;
 }
 
-#email-entry input[type="email"]:focus {
-  outline: none;
-  border-color: rgba(255, 136, 102, 0.8);
-  box-shadow: 0 0 10px rgba(255, 153, 102, 0.4);
+.container {
+  padding: 60px 25px 80px;
 }
 
-#email-entry button {
-  padding: 0.75rem 2rem;
-  background: rgba(255, 136, 102, 0.8);
-  color: #ffffff;
-  border: none;
-  border-radius: 4px;
-  font-size: 1.1rem;
-  cursor: pointer;
-  font-weight: bold;
-  width: 100%;
+.sidebar {
+  display: none;
 }
 
-#email-entry button:hover {
-  background: rgba(255, 153, 102, 0.9);
-  box-shadow: 0 0 15px rgba(255, 153, 102, 0.5);
+h1 {
+  letter-spacing: 0.08em;
 }
 
-#email-sent {
-  text-align: center;
-  background: rgba(0, 255, 0, 0.1);
-  border-color: rgba(0, 255, 0, 0.6);
+h1::before,
+h1::after {
+  display: none;
 }
 
-#email-sent h3 {
-  color: #66ff66;
+.epigraph {
+  padding: 1rem 1.5rem;
 }
 
-.error-message {
-  color: #ff8c94;
-  margin-top: 0.5rem;
-  font-size: 0.9rem;
+.corner {
+  display: none;
 }
 
-.success-message {
-  color: #66ff66;
-  margin-top: 0.5rem;
-  font-size: 0.9rem;
+.hero-symbols {
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.christmas-lights {
+  height: 60px;
+}
+
+.light {
+  width: 15px;
+  height: 22px;
+}
+}
+
+/* Subtle animation - like heat shimmer */
+@keyframes shimmer {
+0%, 100% { opacity: 0.3; }
+50% { opacity: 0.5; }
+}
+
+.corner {
+animation: shimmer 8s ease-in-out infinite;
 }
 </style>
 </head>
 <body>
-<div id="scroll-container">
-  <div id="scroll-content">
+<!-- Christmas Lights Wire -->
+<div class="lights-wire"></div>
 
-    <!-- Hero Section with Quote and Image -->
-    <div class="hero-grid">
-      <div class="death-quote">
-        "We say that the hour of death cannot be forecast, but when we say this we imagine that hour as placed in an obscure and distant future. It never occurs to us that it has any connection with the day already begun or that death could arrive this same afternoon, this afternoon which is so certain and which has every hour filled in advance."
-        <span class="quote-author">— Marcel Proust</span>
-      </div>
+<!-- Christmas Lights -->
+<div class="christmas-lights">
+<div class="light red"></div>
+<div class="light green"></div>
+<div class="light blue"></div>
+<div class="light yellow"></div>
+<div class="light purple"></div>
+<div class="light cyan"></div>
+<div class="light red"></div>
+<div class="light green"></div>
+<div class="light blue"></div>
+<div class="light yellow"></div>
+<div class="light purple"></div>
+<div class="light cyan"></div>
+<div class="light red"></div>
+<div class="light green"></div>
+<div class="light blue"></div>
+<div class="light yellow"></div>
+</div>
 
-      <div class="hero-image">
-        <img src="/images/proustOptics-1200.webp" alt="Proust Optics">
-      </div>
-    </div>
+<!-- Snowflakes Container -->
+<div class="snowflakes" id="snowflakes"></div>
 
-    <h1 class="neon-text">a formulation of truth</h1>
+<!-- Decorative corners -->
+<div class="corner top-left">
+<svg viewBox="0 0 50 50"><path d="M0 50 L0 10 Q0 0 10 0 L50 0 L50 5 L10 5 Q5 5 5 10 L5 50 Z"/></svg>
+</div>
+<div class="corner top-right">
+<svg viewBox="0 0 50 50"><path d="M0 50 L0 10 Q0 0 10 0 L50 0 L50 5 L10 5 Q5 5 5 10 L5 50 Z"/></svg>
+</div>
+<div class="corner bottom-left">
+<svg viewBox="0 0 50 50"><path d="M0 50 L0 10 Q0 0 10 0 L50 0 L50 5 L10 5 Q5 5 5 10 L5 50 Z"/></svg>
+</div>
+<div class="corner bottom-right">
+<svg viewBox="0 0 50 50"><path d="M0 50 L0 10 Q0 0 10 0 L50 0 L50 5 L10 5 Q5 5 5 10 L5 50 Z"/></svg>
+</div>
 
-    <div class="neon-paragraph tamil">
-      <p>நான் யாரு? ௨</p>
-    </div>
+<!-- Left Sidebar -->
+<aside class="sidebar">
+<a href="/privacy.html" class="sidebar-card">
+  <h3>Privacy First</h3>
+  <p>We believe in radical privacy. All data is encrypted end-to-end. No tracking. No third-party analytics. Your thoughts remain yours.</p>
+</a>
 
-    <div class="neon-paragraph">
-      <h2>Prolegomenon</h2>
-    </div>
+<div class="sidebar-card" id="quote-card">
+  <h3>Contemplations</h3>
+  <p id="quote-text"></p>
+  <p id="quote-author"></p>
+</div>
+</aside>
 
-    <div class="neon-paragraph">
-      <p>You are not one self.</p>
-      <p>This is not a tragedy. It is more like the weather.</p>
-    </div>
+<!-- Main Content -->
+<div class="container">
+<h1>On the Question of the Questioner: நான் யாரு?</h1>
 
-    <div class="neon-paragraph">
-      <p><em>Dedicated to the memory and imaginative talent of Richard Brautigan (1935–1984)</em></p>
-    </div>
+<div class="hero-symbols">
+  <div class="tamil-numeral-2">௨</div>
 
-    <div class="spacer"></div>
+  <!-- Spaghetti Bowl SVG -->
+  <svg class="spaghetti-bowl" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+    <!-- Bowl -->
+    <ellipse cx="100" cy="150" rx="80" ry="30" fill="#8B4513" opacity="0.3"/>
+    <path d="M 30 120 Q 30 100 50 90 L 150 90 Q 170 100 170 120 L 165 150 Q 165 170 100 175 Q 35 170 35 150 Z"
+          fill="#D2691E" stroke="#8B4513" stroke-width="3"/>
 
-    <div class="neon-paragraph">
-      <p>I knew a man once who answered the Proust Questionnaire. It was 1987. His idea of perfect happiness? "A cabin in Montana with good light for reading."</p>
-    </div>
+    <!-- Spaghetti strands -->
+    <path d="M 60 110 Q 65 95 70 110 Q 75 125 70 110" stroke="#F4A460" stroke-width="4" fill="none" opacity="0.9"/>
+    <path d="M 75 105 Q 80 90 85 105 Q 90 120 85 105" stroke="#DEB887" stroke-width="4" fill="none" opacity="0.9"/>
+    <path d="M 90 108 Q 95 93 100 108 Q 105 123 100 108" stroke="#F5DEB3" stroke-width="4" fill="none" opacity="0.9"/>
+    <path d="M 105 106 Q 110 91 115 106 Q 120 121 115 106" stroke="#F4A460" stroke-width="4" fill="none" opacity="0.9"/>
+    <path d="M 120 110 Q 125 95 130 110 Q 135 125 130 110" stroke="#DEB887" stroke-width="4" fill="none" opacity="0.9"/>
 
-    <div class="neon-paragraph">
-      <p>In 1997 happenstantially coming upon the questionnaire that had shifted from within a box and now stained with his soon-to-be crusty sfacim, again he answered. His idea of perfect happiness? Well that had become "for my daughter to stop crying at night."</p>
-    </div>
+    <!-- More intertwined strands -->
+    <path d="M 65 115 Q 70 105 75 115 Q 80 125 85 115" stroke="#F5DEB3" stroke-width="3" fill="none" opacity="0.8"/>
+    <path d="M 95 112 Q 100 102 105 112 Q 110 122 115 112" stroke="#F4A460" stroke-width="3" fill="none" opacity="0.8"/>
+    <path d="M 110 118 Q 115 108 120 118 Q 125 128 130 118" stroke="#DEB887" stroke-width="3" fill="none" opacity="0.8"/>
 
-    <div class="neon-paragraph">
-      <p>In 2007 it was "to finish the book I'm writing."</p>
-    </div>
+    <!-- Fork stuck in spaghetti -->
+    <g transform="translate(140, 80) rotate(45)">
+      <rect x="0" y="0" width="4" height="40" fill="#C0C0C0"/>
+      <rect x="-2" y="-8" width="2" height="12" fill="#C0C0C0"/>
+      <rect x="2" y="-8" width="2" height="12" fill="#C0C0C0"/>
+      <rect x="6" y="-8" width="2" height="12" fill="#C0C0C0"/>
+      <rect x="10" y="-8" width="2" height="12" fill="#C0C0C0"/>
+    </g>
 
-    <div class="neon-paragraph">
-      <p>In 2017 it was, like clockwork, "a cabin in Montana with good light for reading."</p>
-    </div>
+    <!-- Tomato sauce splatters -->
+    <circle cx="55" cy="118" r="3" fill="#8B0000" opacity="0.6"/>
+    <circle cx="125" cy="115" r="4" fill="#8B0000" opacity="0.6"/>
+    <circle cx="95" cy="120" r="2" fill="#DC143C" opacity="0.6"/>
+  </svg>
+</div>
 
-    <div class="neon-paragraph">
-      <p>He thought this meant something. Therein lies the ego's rub not upon the phallus per se. And it did. It meant something the way weather means something.</p>
-    </div>
+<div class="subtitle-primary">You are not one self.</div>
 
-    <div class="spacer"></div>
+<div class="subtitle-secondary">This is not a tRaGedY. It is more like the <span class="weather-text">weather</span>.</div>
 
-    <div class="neon-paragraph">
-      <p>The questionnaire has thirty-five questions.</p>
-      <p>"What is your greatest fear?"</p>
-      <p>"What is the trait you most deplore in yourself?"</p>
-      <p>"How would you like to die?"</p>
-    </div>
+<div class="dedication">
+Dedicated to the memory and imaginative talent of<br>
+<span>Richard Brautigan (1935–1984)</span>
+</div>
+<div class="title-border"></div>
 
-    <div class="neon-paragraph">
-      <p>These are not polite questions. They are holes in the ice.</p>
-      <p>If you answer them honestly, something cold touches your feet.</p>
-    </div>
+<div class="epigraph sanskrit">
+<div class="sanskrit-text">यैरेव पतनं द्रव्यैः सिद्धिस्तैरेव चोदिता</div>
+<em>One rises, perfected, by precisely those things by which one falls.</em>
+<div class="attribution">—Kulārṇava Tantra, 5.47</div>
+</div>
 
-    <div class="spacer"></div>
+<div class="epigraph benjamin">
+<em>For in happiness all that is earthly seeks its downfall, and only in good fortune is its downfall destined to find it.</em>
+<div class="attribution">—Walter Benjamin, "Theologico-Political Fragment"</div>
+</div>
 
-    <div class="neon-paragraph">
-      <p>Answer. Wait ten years. Answer again.</p>
-      <p>Notice that you are different.</p>
-      <p>Notice that you are the same.</p>
-      <p>Notice that "different" and "same" are just words, and you are not a word.</p>
-    </div>
+<div class="divider"></div>
 
-    <div class="neon-paragraph">
-      <p>You are the one using the words.</p>
-      <p>You are the one who can put them down.</p>
-    </div>
+<p class="standalone centered">You are not one self.</p>
 
-    <div class="neon-paragraph">
-      <div id="gate-questionnaire">
-        <!-- Question 0 -->
-        <div id="question-0" class="gate-question" style="display: block;">
-          <h3>What is your idea of perfect happiness?</h3>
-          <textarea id="answer-0" rows="4" placeholder="Take your time to reflect..."></textarea>
-          <button onclick="submitGateAnswer(0)">Continue →</button>
-          <p class="gate-note">Your response is encrypted immediately.</p>
-        </div>
+<p>This is not a tragedy. It is more like weather.</p>
 
-        <!-- Question 1 -->
-        <div id="question-1" class="gate-question" style="display: none;">
-          <h3>What is your greatest fear?</h3>
-          <textarea id="answer-1" rows="4" placeholder="Be honest with yourself..."></textarea>
-          <button onclick="submitGateAnswer(1)">Continue →</button>
-          <p class="gate-note">Your response is encrypted immediately.</p>
-        </div>
+<div class="divider"></div>
 
-        <!-- Email entry -->
-        <div id="email-entry" style="display: none;">
-          <h3>One more step...</h3>
-          <p>Enter your email to receive a magic link and continue with the remaining 33 questions.</p>
-          <input type="email" id="email-input" placeholder="your@email.com" required>
-          <button onclick="submitEmail()">Send Magic Link</button>
-          <p class="gate-note" id="email-status"></p>
-        </div>
+<p>I knew a man once who answered the Proust Questionnaire. It was 1987. His idea of perfect happiness? "A cabin in Montana with good light for reading."</p>
 
-        <!-- Success message -->
-        <div id="email-sent" style="display: none;">
-          <h3>Check your email!</h3>
-          <p>We've sent you a magic link. Click it to continue the questionnaire.</p>
-        </div>
-      </div>
-    </div>
+<p>In 1997 happenstantially coming upon the questionnaire that had shifted from within a box and now stained with his soon-to-be crusty sfacim, again he answered. His idea of perfect happiness? Well that had become "for my daughter to stop crying at night."</p>
 
+<p>In 2007 it was "to finish the book I'm writing."</p>
+
+<p>In 2017 it was, like clockwork, "a cabin in Montana with good light for reading."</p>
+
+<p>He thought this meant something. Therein lies the ego's rub not upon the phallusper se. And it did. It meant something the way weather means something.</p>
+
+<div class="divider"></div>
+
+<p>A thousand or so years ago in what was then as now Kashmir a philosopher named Abhinavagupta lived. Doing what polymaths of brahmanical intellectual tradition do, he likely grew a long beard. Abhinava's name against an ornament of 'skrit that causes mis ojos to glitter translates to English as "the secret of being continuously new." fwiw his idears kinda rock one's headspace; unlikely he posed for a picture. But I am aware of one portrait some devotee drew up of the man, the polymath, the legend. Reportedly his eyes shine red—inebriated as we may be by the rasa—surrounded by yoginīs on a raised platform chalice in hand he sips. Though I've yet to see it, the portrait has appeared in a dream. Or so I think I recall.</p>
+
+<p>In any case, Abhinava watched people watch plays, nāṭakam in the 'skrit sans devanagari</p>
+
+<p>And he noticed that when Rāma (whose creator coined the character, nee god's name as upon māra, or murder, he meditated so long around this common thug a valmīk, or termite mound, enveloped him to become known as Valmīkī in the records of how it's been/was) grieved stage left, the audience felt grief. But this grief was not theirs. The audience hadn't lost anyone; neither was it Rāma's grief either—everyone knew it was a nāṭakam, a play.</p>
+
+<p>So whose grief was it?</p>
+
+<p>Abhinavagupta said: it belongs to consciousness recognizing itself.<a href="#fn1" class="footnote-ref">Ψ</a></p>
+
+<p>Doing so it creates this effect that metaphor can't quite capture. Likely with a head full of LSD some folks remark it's like looking in a mirror and seeing that you are also the mirror; I'd paint a different picture with words employing '2-CB'. Recognise within you, the I, as an absence. Words alone engender and inaugurate its possibility just as around the inside clay the emptiness of a pot.</p>
+
+<p>He called this <em>camatkāra</em>, which means something like "wonder" or "the shiver."</p>
+
+<p>The shiver doesn't need an object. It just needs you to stop for a second.</p>
+
+<div class="divider"></div>
+
+<p>Lacan was a French psychoanalyst who smoked too many cigarettes and said things like "the unconscious is structured like a language."</p>
+
+<p>He also said the self is basically a grammatical error.</p>
+
+<p>When you say "I," you are not referring to yourself. You are referring to a word that stands where you should be. The real you—if there is one—is somewhere else, hiding behind the sentence.</p>
+
+<p>This is why talking about yourself feels like trying to catch a fish with your hands.</p>
+
+<p>Every time you grab, it slips.</p>
+
+<div class="divider"></div>
+
+<p>The questionnaire has thirty-five questions.</p>
+
+<div class="question">"What is your greatest fear?"</div>
+
+<div class="question">"What is the trait you most deplore in yourself?"</div>
+
+<div class="question">"How would you like to die?"</div>
+
+<p>These are not polite questions. They are holes in the ice.</p>
+
+<p>If you answer them honestly, something cold touches your feet.</p>
+
+<div class="divider"></div>
+
+<p>Christine Korsgaard is a philosopher at Harvard. She says the self is not something you find. It is something you make.</p>
+
+<p>Every choice is a kind of sewing.</p>
+
+<p>You stitch yourself together out of what's available: your mother's phrases, your teacher's posture, songs you heard when you were seventeen, a stranger's coat you saw once and never forgot.</p>
+
+<p>You are a quilt made of other people's fabric.</p>
+
+<p>This is not sad. Quilts are warm.</p>
+
+<div class="divider"></div>
+
+<p>The instruction is: answer once. Then forget the questions for ten years.</p>
+
+<p>This is important.</p>
+
+<p>If you think about the questions too often, you will start to believe your answers are who you are. They are not who you are. They are who you were on a Tuesday in November when you were tired and the light was gray.</p>
+
+<p>Ten years later you will be someone else answering the same questions.</p>
+
+<p>The questions don't change. You do.</p>
+
+<p>This is like a river passing the same bridge twice. The bridge thinks it's seeing the same river. The river knows better.</p>
+
+<div class="divider"></div>
+
+<p>Lacan had a concept called <em>objet petit a</em>. The little object. The thing you're always looking for but can never find.</p>
+
+<p>It's the reason you open the refrigerator when you're not hungry.</p>
+
+<p>It's the reason you answer questionnaires about yourself.</p>
+
+<p>You're looking for something. You don't know what it is. If you found it, you wouldn't recognize it. But looking feels important.</p>
+
+<p>The looking is the thing.</p>
+
+<div class="divider"></div>
+
+<p>In India they have a word: <em>pratyabhijñā</em>. It means recognition.</p>
+
+<p>Not learning something new. Remembering something you always knew but forgot.</p>
+
+<p>Like when you walk into a room and suddenly remember you've been there before, in a dream or another life or last Thursday.</p>
+
+<p>That shiver.</p>
+
+<p>The questionnaire is a machine for producing that shiver.</p>
+
+<p>Not the answers. The moment between the question and the answer. The pause where you are nobody in particular, just consciousness wondering what it will say.</p>
+
+<p>That pause is freedom.</p>
+
+<p>The eleventh-century Kashmiris had a word for that too: <em>svātantrya</em>. It means "not needing anything outside yourself to be what you are."</p>
+
+<p>Like a cat in a sunbeam. The cat isn't waiting for anything. The cat is complete.</p>
+
+<p>You are also complete. You just keep forgetting.</p>
+
+<div class="divider"></div>
+
+<p>The world moves faster now.</p>
+
+<p>In 1890, when Proust answered these questions in a parlor in Paris, a person might be one thing for their whole life. A baker. A countess. A disappointment to their father.</p>
+
+<p>Now you can be twelve things before lunch.</p>
+
+<p>This is confusing but it is also an opportunity.</p>
+
+<p>If you are not one self, you don't have to defend any particular self. You can watch them come and go like clouds.</p>
+
+<p>Clouds are beautiful. Nobody argues with clouds.</p>
+
+<div class="divider"></div>
+
+<p class="standalone centered">What is your idea of perfect happiness?</p>
+
+<p>The question is a door.</p>
+
+<p>Behind the door is another door.</p>
+
+<p>Behind that door is a room with no floor, only sky.</p>
+
+<p>You've been falling through that sky your whole life.</p>
+
+<p>The fall is the happiness.</p>
+
+<div class="divider"></div>
+
+<p>Answer. Wait ten years. Answer again.</p>
+
+<p>Notice that you are different.</p>
+
+<p>Notice that you are the same.</p>
+
+<p>Notice that "different" and "same" are just words, and you are not a word.</p>
+
+<p>You are the one using the words.</p>
+
+<p>You are the one who can put them down.</p>
+
+<div class="closing">
+<div class="final-sanskrit">
+<div class="sanskrit-text">सर्वथा पुनर् अविच्छिन्नचमत्कारनिरपेक्षस्वातन्त्र्याहंविमर्शे</div>
+<em>The freedom of the uninterrupted delight of I-consciousness is completely independent of any reference to anything else.</em>
+</div>
+<div class="final-attribution">—Abhinavagupta</div>
+
+<div class="coda">
+<p>The cat in the sunbeam knows this.</p>
+<p>The river knows this.</p>
+<p>Now you know it too.</p>
+<p>Or you always did.</p>
+<p>That's the whole point.</p>
+</div>
+</div>
+
+<div class="footnotes" id="fn1">
+<h3>Notes</h3>
+<div class="footnote">
+See <em>Abhinavabhāratī</em>, Abhinavagupta's commentary on Bharata's <em>Nāṭyaśāstra</em>, particularly his gloss on the <em>rasasūtra</em> (NS 6.31). The Kashmiris called the broader philosophical framework <em>pratyabhijñā</em>—recognition. You don't acquire your nature; you remember it. The aesthetic shiver and the liberating insight share the same structure: <em>saṃvid</em> glimpsing <em>saṃvid</em>. Rasa opens a crack; through it, consciousness catches sight of itself. Cf. the famous compound: <em>sarvathā punar avicchinnacamatkāranirapekṣasvātantryāhaṃvimarśe</em>—the freedom of the uninterrupted delight [in] I-consciousness (<em>ahamvimarśe</em>), is completely independent of any reference to anything else.
+</div>
+</div>
+
+<div class="end-mark">☆</div>
+
+<!-- Newsletter Section -->
+<div class="newsletter-section">
+<h3>✦ Stay Connected ✦</h3>
+<p>Receive occasional updates about new essays, philosophical explorations, and contemplative content.</p>
+<form id="newsletter-form" class="newsletter-form">
+  <input
+    type="email"
+    id="newsletter-email"
+    class="newsletter-input"
+    placeholder="your.email@example.com"
+    required
+    autocomplete="email"
+  />
+  <button type="submit" class="newsletter-button" id="newsletter-button">
+    Subscribe
+  </button>
+  <div id="newsletter-message" class="newsletter-message"></div>
+  <p class="privacy-note">🔐 AES-256-GCM encrypted before storage</p>
+</form>
+</div>
+
+</div>
+
+<!-- Right Sidebar -->
+<aside class="sidebar">
+<a href="/about.html" class="sidebar-card">
+  <h3>About</h3>
+  <p>Learn more about this slow experiment and the ideas that inform this space and hopefully inspire those who visit.</p>
+</a>
+
+<a href="/contact.html" class="sidebar-card">
+  <h3>Contact</h3>
+  <p>Reach out to share feedback, ask questions, or discuss collaboration opportunities. All inquiries welcome.</p>
+</a>
+</aside>
+
+<script src="/js/api-failover.js"></script>
 <script>
-// Generate or retrieve gate session ID
-function getGateSessionId() {
-  let sessionId = localStorage.getItem('gateSessionId');
-  if (!sessionId) {
-    sessionId = 'gate_' + crypto.randomUUID();
-    localStorage.setItem('gateSessionId', sessionId);
+// Weather-synced snow effect
+(function() {
+  const snowflakesContainer = document.getElementById('snowflakes');
+
+  // Check weather conditions (coordinates only, no location reference)
+  async function checkWeatherConditions() {
+    try {
+      const lat = 43.0731;
+      const lon = -89.4012;
+
+      const response = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`);
+      const data = await response.json();
+
+      if (data.current_weather) {
+        const weatherCode = data.current_weather.weathercode;
+        // Weather codes 71, 73, 75, 77, 85, 86 indicate snow
+        const isSnowing = [71, 73, 75, 77, 85, 86].includes(weatherCode);
+
+        if (isSnowing) {
+          activateSnow();
+        }
+      }
+    } catch (error) {
+      // Silently fail
+    }
   }
-  return sessionId;
+
+  function activateSnow() {
+    snowflakesContainer.classList.add('active');
+
+    // Create 50 snowflakes
+    for (let i = 0; i < 50; i++) {
+      createSnowflake();
+    }
+  }
+
+  function createSnowflake() {
+    const snowflake = document.createElement('div');
+    snowflake.className = 'snowflake';
+    snowflake.textContent = '❄';
+
+    // Random position
+    snowflake.style.left = Math.random() * 100 + '%';
+
+    // Random size
+    const size = Math.random() * 0.5 + 0.5;
+    snowflake.style.fontSize = size + 'em';
+
+    // Random animation duration
+    const duration = Math.random() * 10 + 10;
+    snowflake.style.animationDuration = duration + 's';
+
+    // Random delay
+    const delay = Math.random() * 10;
+    snowflake.style.animationDelay = delay + 's';
+
+    // Random opacity
+    snowflake.style.opacity = Math.random() * 0.5 + 0.3;
+
+    snowflakesContainer.appendChild(snowflake);
+  }
+
+  // Check weather on load
+  checkWeatherConditions();
+
+  // Check every 15 minutes
+  setInterval(checkWeatherConditions, 15 * 60 * 1000);
+})();
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ROTATING QUOTES
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// HOW TO ADD NEW QUOTES:
+// 1. Copy one of the quote objects below (everything between { and })
+// 2. Paste it anywhere in the quotes array
+// 3. Update the "text" with your new quote
+// 4. Update the "author" with the attribution (include the — dash)
+// 5. Make sure there's a comma after the closing }
+//
+// Example:
+//   {
+//     text: "Your quote text here",
+//     author: "—Author Name"
+//   },
+//
+// The quotes will automatically shuffle on each page load!
+// ═══════════════════════════════════════════════════════════════════════════
+
+const quotes = [
+  {
+    text: "The observer is the observed.",
+    author: "—Jiddu Krishnamurti"
+  },
+  {
+    text: "What we call reality is merely a relation, the only reality being the subject which has the representation.",
+    author: "—Jacques Lacan"
+  },
+  {
+    text: "The highest form of human intelligence is to observe yourself without judgment.",
+    author: "—Jiddu Krishnamurti"
+  },
+  {
+    text: "We must find time to stop and thank the people who make a difference in our lives.",
+    author: "—Marcel Proust"
+  },
+  {
+    text: "Desire is always the desire of the Other.",
+    author: "—Jacques Lacan"
+  },
+  {
+    text: "Freedom from the desire for an answer is essential to the understanding of a problem.",
+    author: "—Jiddu Krishnamurti"
+  },
+  {
+    text: "The real voyage of discovery consists not in seeking new landscapes, but in having new eyes.",
+    author: "—Marcel Proust"
+  },
+  {
+    text: "It is no measure of health to be well adjusted to a profoundly sick society.",
+    author: "—Jiddu Krishnamurti"
+  },
+  {
+    text: "Let us be grateful to the people who make us happy; they are the charming gardeners who make our souls blossom.",
+    author: "—Marcel Proust"
+  },
+  {
+    text: "The unconscious is structured like a language.",
+    author: "—Jacques Lacan"
+  }
+];
+
+// Fisher-Yates shuffle algorithm - shuffles quotes on each page load
+function shuffleArray(array) {
+  const shuffled = [...array];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
 }
 
-// Submit gate answer
-async function submitGateAnswer(questionIndex) {
-  const answerId = 'answer-' + questionIndex;
-  const answerTextarea = document.getElementById(answerId);
-  const answer = answerTextarea.value.trim();
+// Shuffle the quotes when page loads
+const shuffledQuotes = shuffleArray(quotes);
+let currentQuoteIndex = 0;
 
-  if (!answer) {
-    alert('Please provide an answer before continuing.');
+function displayQuote() {
+  const quoteText = document.getElementById('quote-text');
+  const quoteAuthor = document.getElementById('quote-author');
+
+  if (quoteText && quoteAuthor) {
+    const quote = shuffledQuotes[currentQuoteIndex];
+    quoteText.textContent = `"${quote.text}"`;
+    quoteAuthor.textContent = quote.author;
+
+    currentQuoteIndex = (currentQuoteIndex + 1) % shuffledQuotes.length;
+  }
+}
+
+function getRandomInterval() {
+  // Random interval between 27 and 53 seconds (in milliseconds)
+  return (Math.floor(Math.random() * (53 - 27 + 1)) + 27) * 1000;
+}
+
+function scheduleNextQuote() {
+  setTimeout(() => {
+    displayQuote();
+    scheduleNextQuote();
+  }, getRandomInterval());
+}
+
+// Display first quote immediately
+displayQuote();
+// Schedule subsequent quotes
+scheduleNextQuote();
+
+// Newsletter subscription handler
+const newsletterForm = document.getElementById('newsletter-form');
+const newsletterEmail = document.getElementById('newsletter-email');
+const newsletterButton = document.getElementById('newsletter-button');
+const newsletterMessage = document.getElementById('newsletter-message');
+
+function showNewsletterMessage(text, type) {
+  newsletterMessage.textContent = text;
+  newsletterMessage.className = `newsletter-message ${type}`;
+  newsletterMessage.style.display = 'block';
+
+  if (type === 'success') {
+    setTimeout(() => {
+      newsletterMessage.style.display = 'none';
+    }, 5000);
+  }
+}
+
+newsletterForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+
+  const email = newsletterEmail.value.trim();
+
+  if (!email) {
+    showNewsletterMessage('Please enter an email address', 'error');
     return;
   }
 
-  const questionTexts = [
-    "What is your idea of perfect happiness?",
-    "What is your greatest fear?"
-  ];
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    showNewsletterMessage('Please enter a valid email address', 'error');
+    return;
+  }
 
-  const button = event.target;
-  button.disabled = true;
-  button.textContent = 'Saving...';
+  newsletterButton.disabled = true;
+  newsletterButton.textContent = 'Subscribing...';
+  showNewsletterMessage('Encrypting and storing your email securely...', 'info');
 
   try {
-    const response = await fetch('/api/gate/submit', {
+    const response = await fetch('/api/newsletter/subscribe', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        sessionId: getGateSessionId(),
-        questionText: questionTexts[questionIndex],
-        questionIndex: questionIndex,
-        answer: answer,
-        skipped: false
-      })
+      body: JSON.stringify({ email })
     });
 
-    if (!response.ok) {
-      throw new Error('Failed to save answer');
-    }
+    const data = await response.json();
 
-    // Hide current question
-    document.getElementById('question-' + questionIndex).style.display = 'none';
-
-    // Show next question or email entry
-    if (questionIndex === 0) {
-      document.getElementById('question-1').style.display = 'block';
+    if (response.ok) {
+      if (data.alreadySubscribed) {
+        showNewsletterMessage('✓ This email is already subscribed', 'info');
+      } else {
+        showNewsletterMessage('✓ Successfully subscribed!', 'success');
+        newsletterEmail.value = '';
+      }
     } else {
-      document.getElementById('email-entry').style.display = 'block';
+      showNewsletterMessage(`✗ Subscription failed: ${data.error || 'Unknown error'}`, 'error');
     }
   } catch (error) {
-    console.error('Error submitting answer:', error);
-    alert('Failed to save your answer. Please try again.');
-    button.disabled = false;
-    button.textContent = 'Continue →';
-  }
-}
-
-// Submit email for magic link
-async function submitEmail() {
-  const emailInput = document.getElementById('email-input');
-  const email = emailInput.value.trim();
-  const statusEl = document.getElementById('email-status');
-  const button = event.target;
-
-  if (!email || !email.includes('@')) {
-    statusEl.textContent = 'Please enter a valid email address.';
-    statusEl.className = 'gate-note error-message';
-    return;
-  }
-
-  button.disabled = true;
-  button.textContent = 'Sending...';
-  statusEl.textContent = 'Sending magic link...';
-  statusEl.className = 'gate-note';
-
-  try {
-    const response = await fetch('/api/auth/magic-link', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: JSON.stringify({
-        email: email,
-        gateSessionId: getGateSessionId()
-      })
-    });
-
-    if (!response.ok) {
-      throw new Error('Failed to send magic link');
-    }
-
-    // Hide email entry, show success
-    document.getElementById('email-entry').style.display = 'none';
-    document.getElementById('email-sent').style.display = 'block';
-
-    // Clear session ID after linking (will be linked to user after auth)
-    // Don't remove yet - backend needs it for verification
-  } catch (error) {
-    console.error('Error sending magic link:', error);
-    statusEl.textContent = 'Failed to send magic link. Please try again.';
-    statusEl.className = 'gate-note error-message';
-    button.disabled = false;
-    button.textContent = 'Send Magic Link';
-  }
-}
-
-// Add Enter key support for textareas (Ctrl/Cmd+Enter to submit, Enter alone adds newline)
-document.addEventListener('DOMContentLoaded', function() {
-  // Add Enter key handler for textareas
-  document.querySelectorAll('.gate-question textarea').forEach((textarea, index) => {
-    textarea.addEventListener('keydown', function(e) {
-      // Ctrl+Enter or Cmd+Enter submits
-      if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
-        e.preventDefault();
-        const questionIndex = parseInt(this.id.replace('answer-', ''));
-        submitGateAnswer(questionIndex);
-      }
-    });
-  });
-
-  // Add Enter key handler for email input
-  const emailInput = document.getElementById('email-input');
-  if (emailInput) {
-    emailInput.addEventListener('keydown', function(e) {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        submitEmail();
-      }
-    });
+    console.error('Subscription error:', error);
+    showNewsletterMessage(`✗ Network error: ${error.message}`, 'error');
+  } finally {
+    newsletterButton.disabled = false;
+    newsletterButton.textContent = 'Subscribe';
   }
 });
 </script>
-
-  </div>
-</div>
 </body>
 </html>

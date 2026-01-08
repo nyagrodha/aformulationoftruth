@@ -1,92 +1,116 @@
 # Dependencies
+node_modules
 node_modules/
-package-lock.json
-yarn.lock
-
-# Logs
-*.log
-logs/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-lerna-debug.log*
 
 # Environment variables
 .env
+.env.save
+.env.*
 .env.local
-.env.production
-.env.development
-.env.test
+.env.*.local
+.env.development.local
+.env.test.local
+.env.production.local
 
-# Database files
-*.db
-*.sqlite
-*.sqlite3
-data.db
-karuppacami.db
-magic_links.db
-data/
-
-# Build output
+# Build outputs
+dist
 dist/
+build
 build/
-*.tsbuildinfo
+.vite
 
-# IDEs and editors
+# IDE & Editor
 .vscode/
-.idea/
+!.vscode/extensions.json
+.idea
 *.swp
 *.swo
 *~
-.DS_Store
 
-# OS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
 Thumbs.db
-.DS_Store
 
-# Backup files
+# Claude Code
+.claude/
+
+# Logs & temp data
+logs
+logs/
+*.log
+cache/
+tmp/
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage & test artifacts
+coverage
+*.lcov
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Keys and certificates
+keys/
+*.key
+*.pem
+
+# Uploads and storage
+uploads/
+vps-storage/
+attached_assets/
+
+# Backups & archives
 *.backup
 *.bak
-*.save
-*_backup
-server_*.js
-*.old
+*.tar.gz
+*.zip
+public.backup.*/
 
-# Test coverage
-coverage/
-.nyc_output/
+# Generated files
+.eslintrc.js
 
-# Temporary files
-tmp/
-temp/
-*.tmp
+# Symlinks (tracked separately)
+backend
+frontend
+www/
 
-# PM2
-.pm2/
+# Application-specific directories
+apps/
+assets/
+archived_html/
+construction-vite/
+drizzle/
+maintenance/
+packages/
+/services/
+shared/
+static/
+server/public
+vite.config.ts.*
 
-# Docker
-.dockerignore
+# Config files managed elsewhere
+Caddyfile
+vps-server.js
 
-# SSL certificates (keep templates, ignore actual certs)
-*.pem
-*.key
-*.crt
-*.cert
-!*.pem.example
-!*.key.example
+# Documentation (track selected files only)
+*.md
+!README.md
+!DATABASE_SETUP.md
+!NETWORK_SETUP.md
+!public/SHUFFLE-IMPLEMENTATION.md
 
-# Upload directories
-uploads/
-public/uploads/
-
-# PDF files (generated)
-pdfs/
-*.pdf
-
-# macOS
-.AppleDouble
-.LSOverride
-
-# Cache
-.cache/
-.parcel-cache/
+# Allow project configuration tracked in this repository
+!package.json
+!package-lock.json

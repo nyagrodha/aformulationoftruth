@@ -16,7 +16,7 @@ export const sessions = pgTable(
 
 // User storage table
 export const users = pgTable("users", {
-  id: varchar("id").primaryKey(),
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   email: text("email").unique(),
   firstName: varchar("first_name"),
   lastName: varchar("last_name"),
@@ -39,7 +39,6 @@ export const magicLinks = pgTable("magic_links", {
   token: text("token").notNull().unique(),
   expiresAt: timestamp("expires_at").notNull(),
   used: boolean("used").default(false).notNull(),
-  gateSessionId: varchar("gate_session_id", { length: 255 }),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -49,7 +48,7 @@ export const newsletterEmails = pgTable("newsletter_emails", {
   encryptedEmail: text("encrypted_email").notNull(),
   iv: text("iv").notNull(), // Initialization vector for AES-256-GCM
   tag: text("tag").notNull(), // Authentication tag for AES-256-GCM
-  salt: text("salt"), // Random salt for key derivation (null for legacy entries)
+  salt: text("salt"), // Per-encryption salt (null for legacy data using static salt)
   unsubscribeToken: text("unsubscribe_token").notNull().unique(), // Secure token for one-click unsubscribe
   subscribed: boolean("subscribed").default(true).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -91,14 +90,9 @@ export const responses = pgTable("responses", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   sessionId: varchar("session_id").notNull().references(() => questionnaireSessions.id),
   questionId: integer("question_id").notNull(),
-  // Server-side AES-256-GCM encryption (default for all users)
-  // The 'answer' field stores the encrypted ciphertext (base64)
-  answer: text("answer").notNull(), // Encrypted ciphertext (base64)
-  iv: text("iv"), // Initialization vector for AES-256-GCM (base64)
-  tag: text("tag"), // Authentication tag for AES-256-GCM (base64)
-  salt: text("salt"), // Per-response salt for key derivation (base64)
-  encryptionType: varchar("encryption_type").default("server").notNull(), // 'server' | 'client' | 'plaintext' (legacy)
-  // For client-side encrypted responses (paid users with Model C encryption)
+  answer: text("answer").notNull(), // Plain text for server-side, encrypted for client-side
+  encryptionType: varchar("encryption_type").default("server").notNull(), // 'server' | 'client'
+  // For client-side encrypted responses (paid users)
   encryptedData: text("encrypted_data"), // X25519-encrypted response
   nonce: text("nonce"), // Nonce for client-side encryption
   // Version history for paid users
@@ -106,23 +100,6 @@ export const responses = pgTable("responses", {
   previousVersionId: varchar("previous_version_id"), // Reference to previous version
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
-
-// Gate responses - encrypted landing page questionnaire responses
-export const gateResponses = pgTable("gate_responses", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  sessionId: varchar("session_id").notNull(), // Anonymous session ID initially
-  userId: varchar("user_id").references(() => users.id), // Linked after login via magic link
-  questionText: text("question_text").notNull(), // Store question text for reference
-  questionIndex: integer("question_index").notNull(), // Order in which question was asked (0-3)
-  // AES-256-GCM encryption for all gate responses
-  answer: text("answer").notNull(), // Encrypted ciphertext (base64)
-  iv: text("iv").notNull(), // Initialization vector (base64)
-  tag: text("tag").notNull(), // Authentication tag (base64)
-  salt: text("salt").notNull(), // Per-response salt (base64)
-  skipped: boolean("skipped").default(false).notNull(), // Whether user skipped this question
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  linkedAt: timestamp("linked_at"), // When response was linked to user account
 });
 
 // Relations
@@ -150,18 +127,6 @@ export const insertUserSchema = createInsertSchema(users).pick({
   email: true,
 });
 
-export const insertGateResponseSchema = createInsertSchema(gateResponses).pick({
-  sessionId: true,
-  userId: true,
-  questionText: true,
-  questionIndex: true,
-  answer: true,
-  iv: true,
-  tag: true,
-  salt: true,
-  skipped: true,
-});
-
 export const insertMagicLinkSchema = createInsertSchema(magicLinks).pick({
   email: true,
   token: true,
@@ -177,10 +142,6 @@ export const insertResponseSchema = createInsertSchema(responses).pick({
   sessionId: true,
   questionId: true,
   answer: true,
-  iv: true,
-  tag: true,
-  salt: true,
-  encryptionType: true,
 });
 
 export const insertNewsletterEmailSchema = createInsertSchema(newsletterEmails).pick({
@@ -202,8 +163,6 @@ export const insertPaymentCodeSchema = createInsertSchema(paymentCodes).pick({
 
 // Types
 export type User = typeof users.$inferSelect;
-export type GateResponse = typeof gateResponses.$inferSelect;
-export type InsertGateResponse = z.infer<typeof insertGateResponseSchema>;
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type UpsertUser = typeof users.$inferInsert;
 

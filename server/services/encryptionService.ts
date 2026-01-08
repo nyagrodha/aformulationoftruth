@@ -1,6 +1,6 @@
-import crypto from 'crypto';
+import * as crypto from 'crypto';
 
-// Legacy format (existing encrypted data)
+// Legacy format (without salt) - for backward compatibility
 interface LegacyEncryptedData {
   encrypted: string;
   iv: string;
@@ -31,9 +31,7 @@ const SCRYPT_PARAMS = {
 };
 
 // Legacy static salt for backward compatibility with existing data
-// Allowing an override ensures deployments can align the salt with other
-// services (e.g. newsletter encryption) without altering the code.
-const LEGACY_SALT = process.env.LEGACY_ENCRYPTION_SALT || 'aformulationoftruth_encryption_salt_2025';
+const LEGACY_SALT = 'salt';
 
 export class EncryptionService {
   private encryptionKey: string;
@@ -42,17 +40,8 @@ export class EncryptionService {
     // Use VPS encryption key or generate one from environment
     this.encryptionKey = process.env.VPS_ENCRYPTION_KEY || process.env.ENCRYPTION_KEY || '';
 
-    this.validateKeyStrength();
-  }
-
-  // Validate encryption key presence and basic strength requirements
-  private validateKeyStrength(): void {
     if (!this.encryptionKey) {
       throw new Error('ENCRYPTION_KEY or VPS_ENCRYPTION_KEY must be set in environment variables');
-    }
-
-    if (this.encryptionKey.length < 32) {
-      throw new Error('Encryption key must be at least 32 characters long for sufficient entropy');
     }
   }
 
@@ -66,8 +55,7 @@ export class EncryptionService {
     // Generate random salt for each encryption
     const salt = crypto.randomBytes(16);
     const key = this.deriveKey(salt);
-    // 96-bit IV (12 bytes) is recommended for AES-GCM to balance security and performance
-    const iv = crypto.randomBytes(12);
+    const iv = crypto.randomBytes(12);  // 12 bytes is recommended for GCM
 
     const cipher = crypto.createCipheriv('aes-256-gcm', key, iv);
 
@@ -94,14 +82,14 @@ export class EncryptionService {
     let encrypted: Buffer;
 
     if (hasSalt(encryptedData)) {
-      // New format with per-encryption salt
+      // New format with per-encryption salt (base64 encoded)
       const salt = Buffer.from(encryptedData.salt, 'base64');
       key = this.deriveKey(salt);
       iv = Buffer.from(encryptedData.iv, 'base64');
       tag = Buffer.from(encryptedData.tag, 'base64');
       encrypted = Buffer.from(encryptedData.encrypted, 'base64');
     } else {
-      // Legacy format with static salt
+      // Legacy format with static salt (hex encoded)
       key = this.deriveKey(LEGACY_SALT);
       iv = Buffer.from(encryptedData.iv, 'hex');
       tag = Buffer.from(encryptedData.tag, 'hex');
@@ -111,12 +99,21 @@ export class EncryptionService {
     const decipher = crypto.createDecipheriv('aes-256-gcm', key, iv);
     decipher.setAuthTag(tag);
 
-    const decrypted = Buffer.concat([
+    return Buffer.concat([
       decipher.update(encrypted),
       decipher.final(),
-    ]);
+    ]).toString('utf8');
+  }
 
-    return decrypted.toString('utf8');
+  // Re-encrypt data with new salt (for migrating legacy data)
+  reEncrypt(encryptedData: EncryptedPayload): EncryptedData {
+    const plaintext = this.decrypt(encryptedData);
+    return this.encrypt(plaintext);
+  }
+
+  // Check if data uses legacy format (no salt)
+  isLegacyFormat(encryptedData: EncryptedPayload): boolean {
+    return !hasSalt(encryptedData);
   }
 
   // Generate secure hash for integrity verification
@@ -126,14 +123,22 @@ export class EncryptionService {
       .digest('hex');
   }
 
-  // Verify integrity of encrypted data
+  // Verify integrity of encrypted data (timing-safe comparison)
   verifyHash(data: string, hash: string): boolean {
     const computed = this.generateHash(data);
-    return crypto.timingSafeEqual(
-      Buffer.from(computed, 'hex'),
-      Buffer.from(hash, 'hex')
-    );
+    try {
+      return crypto.timingSafeEqual(
+        Buffer.from(computed, 'hex'),
+        Buffer.from(hash, 'hex')
+      );
+    } catch {
+      // If buffers are different lengths, they don't match
+      return false;
+    }
   }
 }
 
 export const encryptionService = new EncryptionService();
+
+// Export types for use in other modules
+export type { EncryptedData, LegacyEncryptedData, EncryptedPayload };
