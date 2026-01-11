@@ -1,637 +1,1291 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>To be a person, to act as one ought, to act according to the categorical imperative--in other words to be a unified self through time (having risked titling this something thoughtless) one may not want to identify a 'self' as unified in any person</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>a formulation of truth</title>
+    <meta name="description" content="here, a device: the ātmanoptican as a formulation of truth. Self-inquiry through the Proust Questionnaire.">
 
-<!-- Favicons -->
-<link rel="icon" type="image/x-icon" href="/favicon.ico">
-<link rel="icon" type="image/png" sizes="32x32" href="/favicons/favicon-32x32.png">
-<link rel="icon" type="image/png" sizes="16x16" href="/favicons/favicon-16x16.png">
-<link rel="apple-touch-icon" sizes="180x180" href="/favicons/apple-touch-icon.png">
+    <!-- Open Graph / Twitter -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://aformulationoftruth.com/">
+    <meta property="og:title" content="a formulation of truth">
+    <meta property="og:description" content="here, a device: the ātmanoptican as a formulation of truth. Self-inquiry through the Proust Questionnaire.">
+    <meta property="og:image" content="https://aformulationoftruth.com/images/dreamMore...always.JPG">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:url" content="https://aformulationoftruth.com/">
+    <meta name="twitter:title" content="a formulation of truth">
+    <meta name="twitter:description" content="here, a device: the ātmanoptican as a formulation of truth.">
+    <meta name="twitter:image" content="https://aformulationoftruth.com/images/dreamMore...always.JPG">
 
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Rye&family=Spectral:ital,wght@0,400;0,700;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Special+Elite&family=Noto+Sans+Tamil:wght@400;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/css/western-theme.css">
+    <!-- Favicons -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicons/favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/favicons/apple-touch-icon.png">
+
+
+    <style>
+        :root {
+            --void: #000000;
+            --obsidian: #0a0a0a;
+            --slate: #1a1a1a;
+            --ghost: #2a2a2a;
+            --mist: #888888;
+            --pearl: #cccccc;
+            --bone: #e8e8e8;
+            --light: #ffffff;
+
+            --neon-pink: #ff69b4;
+            --neon-orange: #ff8c42;
+            --neon-emerald: #00ff88;
+            --pink-glow: rgba(255, 105, 180, 0.4);
+            --orange-glow: rgba(255, 140, 66, 0.4);
+            --emerald-glow: rgba(0, 255, 136, 0.4);
+            --pink-dim: rgba(255, 105, 180, 0.15);
+            --orange-dim: rgba(255, 140, 66, 0.1);
+            --emerald-dim: rgba(0, 255, 136, 0.15);
+            --neon-purple: #9f5fff;
+            --purple-glow: rgba(159, 95, 255, 0.4);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            font-size: 16px;
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background: var(--void);
+            color: var(--pearl);
+            font-family: 'Space Mono', monospace;
+            line-height: 1.7;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Tamil text rendering */
+        .tamil-text {
+            font-family: 'Noto Serif Tamil', 'Noto Sans Tamil', 'Lohit Tamil', serif;
+        }
+
+        /* Subtle grid background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image:
+                linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+            background-size: 60px 60px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* Navigation */
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 1.5rem 3rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 100;
+            background: linear-gradient(to bottom, var(--void) 0%, transparent 100%);
+        }
+
+        .logo {
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 600;
+            font-size: 0.75rem;
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+            color: var(--mist);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .logo:hover {
+            color: var(--light);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 3rem;
+        }
+
+        .nav-links a {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.75rem;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: var(--mist);
+            text-decoration: none;
+            position: relative;
+            transition: color 0.3s ease;
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 0;
+            width: 0;
+            height: 1px;
+            background: var(--neon-pink);
+            box-shadow: 0 0 8px var(--pink-glow);
+            transition: width 0.3s ease;
+        }
+
+        .nav-links a:hover {
+            color: var(--light);
+        }
+
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+        /* Hero Section */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 8rem 2rem 4rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero-content {
+            text-align: center;
+            max-width: 900px;
+        }
+
+        .tagline {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.7rem;
+            letter-spacing: 0.5em;
+            text-transform: uppercase;
+            color: var(--mist);
+            margin-bottom: 2rem;
+            opacity: 0;
+            animation: fadeSlideUp 1s ease 0.2s forwards;
+        }
+
+        .title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: clamp(2rem, 6vw, 4rem);
+            font-weight: 400;
+            letter-spacing: -0.02em;
+            color: var(--light);
+            margin-bottom: 2rem;
+            opacity: 0;
+            animation: fadeSlideUp 1s ease 0.4s forwards;
+            position: relative;
+            white-space: nowrap;
+        }
+
+        .title-wrapper {
+            position: relative;
+            display: inline-block;
+        }
+
+        /* The gradient title text */
+        .title-text {
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--neon-pink) 0%, var(--neon-orange) 50%, var(--neon-emerald) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            filter: drop-shadow(0 0 20px var(--pink-glow)) drop-shadow(0 0 40px var(--orange-glow));
+            opacity: 0.85;
+        }
+
+        /* Flickering pink portion: "rmulat" - 15% more opaque */
+        .title-flicker {
+            position: absolute;
+            top: 0;
+            left: 0;
+            font-weight: 700;
+            color: transparent;
+            -webkit-text-fill-color: transparent;
+            pointer-events: none;
+        }
+
+        .title-flicker .flicker-pink {
+            color: var(--neon-pink);
+            -webkit-text-fill-color: var(--neon-pink);
+            text-shadow: 0 0 20px var(--pink-glow), 0 0 40px var(--pink-glow), 0 0 60px var(--pink-glow);
+            animation: pinkSputter 6s ease-in-out infinite;
+            opacity: 1;
+        }
+
+        /* The background "4" glyph - moved to the left, as faint as possible */
+        .bg-four {
+            position: absolute;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2.1em;
+            font-weight: 900;
+            color: #7fff9f;
+            -webkit-text-stroke: 1px #1b4e2d;
+            text-shadow:
+                0 0 25px rgba(100, 200, 140, 0.3),
+                0 0 50px rgba(100, 200, 140, 0.15);
+            z-index: -1;
+            top: 50%;
+            left: -0.5em;
+            transform: translateY(-50%);
+            opacity: 0.08;
+            animation: fourFlicker 6s ease-in-out infinite;
+            pointer-events: none;
+        }
+
+        /* Multicoloured neon watermark with dynamic colors */
+        .neon-watermark {
+            position: absolute;
+            top: 45%;
+            right: 5%;
+            transform: translateY(-150%);
+            font-family: 'Orbitron', sans-serif;
+            font-size: clamp(2.5rem, 7vw, 5rem);
+            font-weight: 900;
+            z-index: 0;
+            pointer-events: none;
+            opacity: 0.12;
+            background: linear-gradient(
+                90deg,
+                var(--neon-pink) 0%,
+                var(--neon-orange) 20%,
+                var(--neon-emerald) 40%,
+                var(--neon-purple) 60%,
+                #00d4ff 80%,
+                var(--neon-pink) 100%
+            );
+            background-size: 200% 100%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: neonWatermarkFlow 8s linear infinite, neonWatermarkPulse 4s ease-in-out infinite;
+            filter: blur(0.5px);
+            text-shadow:
+                0 0 40px rgba(255, 105, 180, 0.3),
+                0 0 80px rgba(255, 140, 66, 0.2),
+                0 0 120px rgba(0, 255, 136, 0.15);
+        }
+
+        @keyframes neonWatermarkFlow {
+            0% {
+                background-position: 0% 50%;
+            }
+            100% {
+                background-position: 200% 50%;
+            }
+        }
+
+        @keyframes neonWatermarkPulse {
+            0%, 100% {
+                opacity: 0.12;
+                filter: blur(0.5px);
+            }
+            50% {
+                opacity: 0.18;
+                filter: blur(1px);
+            }
+        }
+
+        /* Synchronized flickering animations */
+        @keyframes pinkSputter {
+            0%, 100% {
+                opacity: 1;
+                text-shadow: 0 0 15px var(--pink-glow), 0 0 30px var(--pink-glow);
+            }
+            /* Pink sputters out */
+            25% {
+                opacity: 0.7;
+                text-shadow: 0 0 8px var(--pink-glow);
+            }
+            35% {
+                opacity: 0.15;
+                text-shadow: 0 0 2px var(--pink-glow);
+            }
+            40% {
+                opacity: 0.05;
+                text-shadow: none;
+            }
+            /* Pink stays dim while 4 is visible */
+            50% {
+                opacity: 0.02;
+            }
+            /* Pink comes back */
+            60% {
+                opacity: 0.1;
+            }
+            70% {
+                opacity: 0.5;
+                text-shadow: 0 0 5px var(--pink-glow);
+            }
+            75% {
+                opacity: 0.9;
+            }
+            85% {
+                opacity: 1;
+                text-shadow: 0 0 15px var(--pink-glow), 0 0 30px var(--pink-glow);
+            }
+        }
+
+        @keyframes fourFlicker {
+            0%, 100% {
+                opacity: 0.04;
+                text-shadow: 0 0 10px rgba(100, 200, 140, 0.08);
+            }
+            /* 4 starts becoming visible as pink dims */
+            30% {
+                opacity: 0.08;
+            }
+            /* 4 is most legible when pink is out */
+            40% {
+                opacity: 0.15;
+                text-shadow:
+                    0 0 20px rgba(100, 200, 140, 0.2),
+                    0 0 40px rgba(100, 200, 140, 0.1);
+            }
+            50% {
+                opacity: 0.18;
+                text-shadow:
+                    0 0 25px rgba(100, 200, 140, 0.25),
+                    0 0 50px rgba(0, 255, 136, 0.15);
+            }
+            /* 4 sputters out */
+            60% {
+                opacity: 0.12;
+            }
+            70% {
+                opacity: 0.06;
+            }
+            75% {
+                opacity: 0.04;
+                text-shadow: 0 0 10px rgba(100, 200, 140, 0.08);
+            }
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            color: var(--pearl);
+            max-width: 600px;
+            margin: 0 auto 3rem;
+            line-height: 1.9;
+            opacity: 0;
+            animation: fadeSlideUp 1s ease 0.6s forwards;
+        }
+
+        .subtitle .weather-link {
+            color: var(--pearl);
+            text-decoration: none;
+            transition: color 0.3s ease, text-shadow 0.3s ease;
+        }
+
+        .subtitle .weather-link:hover {
+            color: var(--neon-emerald);
+            text-shadow: 0 0 15px var(--emerald-glow);
+        }
+
+        .cta-group {
+            display: flex;
+            gap: 1.5rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            opacity: 0;
+            animation: fadeSlideUp 1s ease 0.8s forwards;
+        }
+
+        .cta {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.8rem;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            padding: 1rem 2.5rem;
+            border: 1px solid var(--ghost);
+            background: transparent;
+            color: var(--pearl);
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cta::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: var(--pink-dim);
+            transition: left 0.3s ease;
+            z-index: -1;
+        }
+
+        .cta:hover {
+            border-color: var(--neon-pink);
+            color: var(--light);
+            box-shadow: 0 0 20px var(--pink-glow);
+        }
+
+        .cta:hover::before {
+            left: 0;
+        }
+
+        .cta-primary {
+            background: linear-gradient(135deg, var(--neon-pink), var(--neon-orange));
+            color: var(--void);
+            border: none;
+            font-weight: 700;
+        }
+
+        .cta-primary:hover {
+            background: linear-gradient(135deg, var(--neon-orange), var(--neon-emerald));
+            box-shadow: 0 0 30px var(--orange-glow), 0 0 60px var(--emerald-glow);
+            color: var(--void);
+        }
+
+        .cta-primary::before {
+            display: none;
+        }
+
+        /* Scroll indicator */
+        .scroll-indicator {
+            position: absolute;
+            bottom: 3rem;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            animation: fadeIn 1s ease 1.2s forwards, float 2s ease-in-out infinite 1.2s;
+        }
+
+        .scroll-indicator span {
+            display: block;
+            width: 2px;
+            height: 50px;
+            background: linear-gradient(to bottom, var(--neon-emerald), var(--neon-pink), transparent);
+            box-shadow: 0 0 10px var(--emerald-glow);
+        }
+
+        /* Philosophy Section */
+        .section {
+            padding: 8rem 2rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .section-inner {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .section-label {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.65rem;
+            letter-spacing: 0.4em;
+            text-transform: uppercase;
+            color: var(--neon-emerald);
+            text-shadow: 0 0 10px var(--emerald-glow);
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .section-label::before {
+            content: '';
+            width: 30px;
+            height: 1px;
+            background: var(--neon-emerald);
+            box-shadow: 0 0 8px var(--emerald-glow);
+        }
+
+        .section-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: clamp(1.8rem, 4vw, 2.5rem);
+            font-weight: 500;
+            color: var(--light);
+            margin-bottom: 2rem;
+            line-height: 1.3;
+        }
+
+        .section-text {
+            font-size: 1rem;
+            color: var(--pearl);
+            margin-bottom: 1.5rem;
+            line-height: 1.9;
+        }
+
+        .section-text em {
+            color: var(--bone);
+            font-style: italic;
+        }
+
+        /* Quote block */
+        .quote-block {
+            border-left: 2px solid var(--neon-orange);
+            padding: 2rem;
+            margin: 3rem 0;
+            background: linear-gradient(135deg, var(--pink-dim) 0%, var(--orange-dim) 100%);
+            box-shadow: 0 0 30px rgba(255, 140, 66, 0.1);
+        }
+
+        .quote-block p {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 400;
+            color: var(--bone);
+            line-height: 1.7;
+            margin-bottom: 1rem;
+        }
+
+        .quote-block cite {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.75rem;
+            color: var(--mist);
+            letter-spacing: 0.1em;
+        }
+
+        /* Gate Section */
+        .gate-section {
+            background: var(--obsidian);
+            border-top: 1px solid var(--ghost);
+            border-bottom: 1px solid var(--ghost);
+        }
+
+        .gate-content {
+            max-width: 700px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .gate-icon {
+            display: block;
+            width: 120px;
+            height: auto;
+            margin: 0 auto 2rem;
+            transform: rotate(-3deg);
+            filter: drop-shadow(0 0 25px var(--pink-glow)) drop-shadow(0 0 37px var(--orange-glow));
+            animation: neon-pulse-img 2s ease-in-out infinite;
+        }
+
+        @keyframes neon-pulse-img {
+            0%, 100% {
+                filter: drop-shadow(0 0 25px var(--pink-glow)) drop-shadow(0 0 37px var(--orange-glow));
+                opacity: 1;
+            }
+            50% {
+                filter: drop-shadow(0 0 35px var(--pink-glow)) drop-shadow(0 0 57px var(--orange-glow)) drop-shadow(0 0 80px var(--emerald-glow));
+                opacity: 0.85;
+            }
+        }
+
+        @keyframes neon-pulse {
+            0%, 100% {
+                text-shadow: 0 0 20px var(--pink-glow), 0 0 40px var(--orange-glow);
+                opacity: 1;
+            }
+            50% {
+                text-shadow: 0 0 30px var(--pink-glow), 0 0 60px var(--orange-glow), 0 0 80px var(--emerald-glow);
+                opacity: 0.85;
+            }
+        }
+
+        .gate-title {
+            font-family: 'Noto Serif Tamil', 'Noto Sans Tamil', 'Lohit Tamil', serif;
+            font-size: 2.5rem;
+            font-weight: 500;
+            color: var(--neon-orange);
+            text-shadow: 0 0 15px var(--orange-glow);
+            margin-bottom: 1.5rem;
+        }
+
+        .gate-description {
+            font-size: 0.95rem;
+            color: var(--pearl);
+            margin-bottom: 3rem;
+            line-height: 1.8;
+        }
+
+        .gate-form {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .form-group {
+            margin-bottom: 2rem;
+            text-align: left;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.8rem;
+            letter-spacing: 0.1em;
+            color: var(--bone);
+            margin-bottom: 0.75rem;
+            font-weight: 500;
+        }
+
+        .question-number {
+            display: inline-block;
+            font-family: 'Noto Sans Tamil', sans-serif;
+            color: var(--neon-pink);
+            margin-right: 0.5rem;
+            transform: rotate(-3deg);
+            text-shadow: 0 0 8px var(--pink-glow);
+        }
+
+        .form-group textarea,
+        .form-group input {
+            width: 100%;
+            padding: 1rem;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.95rem;
+            background: var(--void);
+            border: 1px solid var(--ghost);
+            color: var(--light);
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .form-group textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .form-group input[type="email"] {
+            min-height: auto;
+        }
+
+        .form-group textarea:focus,
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--neon-pink);
+            box-shadow: 0 0 20px var(--pink-glow), 0 0 40px var(--orange-glow);
+        }
+
+        .form-group textarea::placeholder,
+        .form-group input::placeholder {
+            color: var(--mist);
+        }
+
+        /* Email section styling */
+        .email-section {
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--ghost);
+        }
+
+        .email-section label {
+            color: var(--neon-emerald);
+            text-shadow: 0 0 8px var(--emerald-glow);
+        }
+
+        .form-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 1.25rem 2rem;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.9rem;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            background: linear-gradient(135deg, var(--neon-pink), var(--neon-orange));
+            color: var(--void);
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .submit-btn:hover:not(:disabled) {
+            background: linear-gradient(135deg, var(--neon-orange), var(--neon-emerald));
+            box-shadow: 0 0 30px var(--orange-glow), 0 0 60px var(--emerald-glow);
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        .submit-btn.loading {
+            background: var(--ghost);
+            color: var(--pearl);
+        }
+
+        .submit-btn.success {
+            background: var(--neon-emerald);
+            color: var(--void);
+        }
+
+        /* Status message */
+        .status-message {
+            padding: 1rem;
+            margin-top: 1rem;
+            font-size: 0.85rem;
+            text-align: center;
+            border-radius: 2px;
+            display: none;
+        }
+
+        .status-message.visible {
+            display: block;
+        }
+
+        .status-message.success {
+            background: var(--emerald-dim);
+            border: 1px solid var(--neon-emerald);
+            color: var(--neon-emerald);
+        }
+
+        .status-message.error {
+            background: var(--pink-dim);
+            border: 1px solid var(--neon-pink);
+            color: var(--neon-pink);
+        }
+
+        .status-message.info {
+            background: var(--orange-dim);
+            border: 1px solid var(--neon-orange);
+            color: var(--neon-orange);
+        }
+
+        .accessibility-note {
+            font-size: 0.7rem;
+            color: var(--mist);
+            margin-top: 1.5rem;
+            text-align: center;
+        }
+
+        .accessibility-note a {
+            color: var(--neon-emerald);
+            text-decoration: none;
+            text-shadow: 0 0 8px var(--emerald-glow);
+        }
+
+        .accessibility-note a:hover {
+            text-decoration: underline;
+            color: var(--neon-pink);
+            text-shadow: 0 0 8px var(--pink-glow);
+        }
+
+        .encryption-note {
+            font-size: 0.65rem;
+            color: var(--mist);
+            margin-top: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .encryption-note::before {
+            content: '🔐';
+        }
+
+        /* Hosting blurb - subtle, small */
+        .hosting-blurb {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 2rem 2rem 1rem;
+            text-align: center;
+        }
+
+        .hosting-blurb p {
+            font-size: 0.6rem;
+            color: var(--mist);
+            line-height: 1.6;
+            margin-bottom: 0.75rem;
+        }
+
+        .hosting-blurb a {
+            color: var(--mist);
+            text-decoration: none;
+        }
+
+        .hosting-blurb a:hover {
+            color: var(--pearl);
+        }
+
+        .floki-link {
+            display: inline-block;
+            margin-top: 0.5rem;
+            opacity: 0.5;
+            transition: opacity 0.3s ease;
+        }
+
+        .floki-link:hover {
+            opacity: 0.8;
+        }
+
+        .floki-logo {
+            max-width: 80px;
+            height: auto;
+        }
+
+        /* Footer */
+        footer {
+            padding: 4rem 2rem;
+            border-top: 1px solid var(--ghost);
+            position: relative;
+            z-index: 1;
+        }
+
+        .footer-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 2rem;
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .footer-links a {
+            font-size: 0.75rem;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--mist);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .footer-links a:hover {
+            color: var(--light);
+        }
+
+        .footer-copy {
+            font-size: 0.7rem;
+            color: var(--mist);
+            letter-spacing: 0.05em;
+        }
+
+        /* Animations */
+        @keyframes fadeSlideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            to {
+                opacity: 0.5;
+            }
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translateX(-50%) translateY(0);
+            }
+            50% {
+                transform: translateX(-50%) translateY(10px);
+            }
+        }
+
+        /* Mobile responsive */
+        @media (max-width: 768px) {
+            nav {
+                padding: 1rem 1.5rem;
+            }
+
+            .nav-links {
+                gap: 1.5rem;
+            }
+
+            .nav-links a {
+                font-size: 0.65rem;
+            }
+
+            .hero {
+                padding: 6rem 1.5rem 3rem;
+            }
+
+            .section {
+                padding: 5rem 1.5rem;
+            }
+
+            .cta-group {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .cta {
+                width: 100%;
+                max-width: 280px;
+                text-align: center;
+            }
+
+            .footer-inner {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .gate-icon {
+                font-size: 4rem;
+            }
+
+            .form-group textarea {
+                min-height: 100px;
+            }
+
+            .neon-watermark {
+                font-size: clamp(2rem, 6vw, 3.5rem);
+                right: 2%;
+                opacity: 0.10;
+            }
+
+            .bg-four {
+                left: -1em;
+                opacity: 0.06;
+            }
+        }
+
+        /* Reduced motion */
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+    </style>
 </head>
 <body>
-<!-- Christmas Lights Wire -->
-<div class="lights-wire"></div>
-
-<!-- Christmas Lights -->
-<div class="christmas-lights">
-<div class="light red"></div>
-<div class="light green"></div>
-<div class="light blue"></div>
-<div class="light yellow"></div>
-<div class="light purple"></div>
-<div class="light cyan"></div>
-<div class="light red"></div>
-<div class="light green"></div>
-<div class="light blue"></div>
-<div class="light yellow"></div>
-<div class="light purple"></div>
-<div class="light cyan"></div>
-<div class="light red"></div>
-<div class="light green"></div>
-<div class="light blue"></div>
-<div class="light yellow"></div>
-</div>
-
-<!-- Snowflakes Container -->
-<div class="snowflakes" id="snowflakes"></div>
-
-<!-- Decorative corners -->
-<div class="corner top-left">
-<svg viewBox="0 0 50 50"><path d="M0 50 L0 10 Q0 0 10 0 L50 0 L50 5 L10 5 Q5 5 5 10 L5 50 Z"/></svg>
-</div>
-<div class="corner top-right">
-<svg viewBox="0 0 50 50"><path d="M0 50 L0 10 Q0 0 10 0 L50 0 L50 5 L10 5 Q5 5 5 10 L5 50 Z"/></svg>
-</div>
-<div class="corner bottom-left">
-<svg viewBox="0 0 50 50"><path d="M0 50 L0 10 Q0 0 10 0 L50 0 L50 5 L10 5 Q5 5 5 10 L5 50 Z"/></svg>
-</div>
-<div class="corner bottom-right">
-<svg viewBox="0 0 50 50"><path d="M0 50 L0 10 Q0 0 10 0 L50 0 L50 5 L10 5 Q5 5 5 10 L5 50 Z"/></svg>
-</div>
-
-<!-- Left Sidebar -->
-<aside class="sidebar">
-<a href="/privacy.html" class="sidebar-card">
-  <h3>Privacy First</h3>
-  <p>We believe in radical privacy. All data is encrypted end-to-end. No tracking. No third-party analytics. Your thoughts remain yours.</p>
-</a>
-
-<div class="sidebar-card" id="quote-card">
-  <h3>Contemplations</h3>
-  <p id="quote-text"></p>
-  <p id="quote-author"></p>
-</div>
-</aside>
-
-<!-- Main Content -->
-<div class="container">
-<h1>On the Question of the Questioner: நான் யாரு?</h1>
-
-<div class="hero-symbols">
-  <div class="tamil-numeral-2">௨</div>
-
-  <!-- Spaghetti Bowl SVG 
-  <svg class="spaghetti-bowl" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
-    <!-- Bowl 
-    <ellipse cx="100" cy="150" rx="80" ry="30" fill="#8B4513" opacity="0.3"/>
-    <path d="M 30 120 Q 30 100 50 90 L 150 90 Q 170 100 170 120 L 165 150 Q 165 170 100 175 Q 35 170 35 150 Z"
-          fill="#D2691E" stroke="#8B4513" stroke-width="3"/>
-
-    <!-- Spaghetti strands
-    <path d="M 60 110 Q 65 95 70 110 Q 75 125 70 110" stroke="#F4A460" stroke-width="4" fill="none" opacity="0.9"/>
-    <path d="M 75 105 Q 80 90 85 105 Q 90 120 85 105" stroke="#DEB887" stroke-width="4" fill="none" opacity="0.9"/>
-    <path d="M 90 108 Q 95 93 100 108 Q 105 123 100 108" stroke="#F5DEB3" stroke-width="4" fill="none" opacity="0.9"/>
-    <path d="M 105 106 Q 110 91 115 106 Q 120 121 115 106" stroke="#F4A460" stroke-width="4" fill="none" opacity="0.9"/>
-    <path d="M 120 110 Q 125 95 130 110 Q 135 125 130 110" stroke="#DEB887" stroke-width="4" fill="none" opacity="0.9"/>
-
-    <!-- More intertwined strands
-    <path d="M 65 115 Q 70 105 75 115 Q 80 125 85 115" stroke="#F5DEB3" stroke-width="3" fill="none" opacity="0.8"/>
-    <path d="M 95 112 Q 100 102 105 112 Q 110 122 115 112" stroke="#F4A460" stroke-width="3" fill="none" opacity="0.8"/>
-    <path d="M 110 118 Q 115 108 120 118 Q 125 128 130 118" stroke="#DEB887" stroke-width="3" fill="none" opacity="0.8"/>
-
-    <!-- Fork stuck in spaghetti 
-    <g transform="translate(140, 80) rotate(45)">
-      <rect x="0" y="0" width="4" height="40" fill="#C0C0C0"/>
-      <rect x="-2" y="-8" width="2" height="12" fill="#C0C0C0"/>
-      <rect x="2" y="-8" width="2" height="12" fill="#C0C0C0"/>
-      <rect x="6" y="-8" width="2" height="12" fill="#C0C0C0"/>
-      <rect x="10" y="-8" width="2" height="12" fill="#C0C0C0"/>
-    </g>
-
-    <!-- Tomato sauce splatters
-    <circle cx="55" cy="118" r="3" fill="#8B0000" opacity="0.6"/>
-    <circle cx="125" cy="115" r="4" fill="#8B0000" opacity="0.6"/>
-    <circle cx="95" cy="120" r="2" fill="#DC143C" opacity="0.6"/>
-  </svg>
-</div> -->
-
-<div class="subtitle-primary">You are not one self.</div>
-
-<div class="subtitle-secondary">This is not a tRaGedY. It is more like the <span class="weather-text">weather</span>.</div>
-
-<div class="dedication">
-Dedicated to the memory and imaginative talent of<br>
-<span>Richard Brautigan (1935–1984)</span>
-</div>
-<div class="title-border"></div>
-
-<div class="epigraph sanskrit">
-<div class="sanskrit-text">यैरेव पतनं द्रव्यैः सिद्धिस्तैरेव चोदिता</div>
-<em>One rises, perfected, by precisely those things by which one falls.</em>
-<div class="attribution">—Kulārṇava Tantra, 5.47</div>
-</div>
-
-<div class="epigraph benjamin">
-<em>For in happiness all that is earthly seeks its downfall, and only in good fortune is its downfall destined to find it.</em>
-<div class="attribution">—Walter Benjamin, "Theologico-Political Fragment"</div>
-</div>
-
-<div class="divider"></div>
-
-<p class="standalone centered">You are not one self.</p>
-
-<p>This is not a tragedy. It is more like weather.</p>
-
-<div class="divider"></div>
-
-<p>I knew a man once who answered the Proust Questionnaire. It was 1987. His idea of perfect happiness? "A cabin in Montana with good light for reading."</p>
-
-<p>In 1997 happenstantially coming upon the questionnaire that had shifted from within a box and now stained with his soon-to-be crusty sfacim, again he answered. His idea of perfect happiness? Well that had become "for my daughter to stop crying at night."</p>
-
-<p>In 2007 it was "to finish the book I'm writing."</p>
-
-<p>In 2017 it was, like clockwork, "a cabin in Montana with good light for reading."</p>
-
-<p>He thought this meant something. Therein lies the ego's rub not upon the phallusper se. And it did. It meant something the way weather means something.</p>
-
-<div class="divider"></div>
-
-<p>A thousand or so years ago in what was then as now Kashmir a philosopher named Abhinavagupta lived. Doing what polymaths of brahmanical intellectual tradition do, he likely grew a long beard. Abhinava's name against an ornament of 'skrit that causes mis ojos to glitter translates to English as "the secret of being continuously new." fwiw his idears kinda rock one's headspace; unlikely he posed for a picture. But I am aware of one portrait some devotee drew up of the man, the polymath, the legend. Reportedly his eyes shine red—inebriated as we may be by the rasa—surrounded by yoginīs on a raised platform chalice in hand he sips. Though I've yet to see it, the portrait has appeared in a dream. Or so I think I recall.</p>
-
-<p>In any case, Abhinava watched people watch plays, nāṭakam in the 'skrit sans devanagari</p>
-
-<p>And he noticed that when Rāma (whose creator coined the character, nee god's name as upon māra, or murder, he meditated so long around this common thug a valmīk, or termite mound, enveloped him to become known as Valmīkī in the records of how it's been/was) grieved stage left, the audience felt grief. But this grief was not theirs. The audience hadn't lost anyone; neither was it Rāma's grief either—everyone knew it was a nāṭakam, a play.</p>
-
-<p>So whose grief was it?</p>
-
-<p>Abhinavagupta said: it belongs to consciousness recognizing itself.<a href="#fn1" class="footnote-ref">Ψ</a></p>
-
-<p>Doing so it creates this effect that metaphor can't quite capture. Likely with a head full of LSD some folks remark it's like looking in a mirror and seeing that you are also the mirror; I'd paint a different picture with words employing '2-CB'. Recognise within you, the I, as an absence that words alone create the possibility for just as around an inside clay the emptiness of a pot.</p>
-
-<p>He called this <em>camatkāra</em>, which means something like "wonder" or "the shiver."</p>
-
-<p>The shiver doesn't need an object. It just needs you to stop for a second.</p>
-
-<div class="divider"></div>
-
-<p>Lacan was a French psychoanalyst. From today's standard he smoked too many cigarettes. He said things like "the very foundation of interhuman dialogue is misunderstanding.", "the unconscious is structured like a language."; "I think where I am not; therefore, I am where I do not think."</p>
-
-<p>He also said the self, this thing we call 'I' in English is basically a grammatical error. Imagine that bookish cunt we all know start correcting people for saying 'I'... apologies in advance.</p>
-
-<p>We all call ourselves by the same name: I. It's who we are and yet when we say I, per Lacanian theory, we aren't referring to ourselves. Rather, I appeals to a phoneme—this word I—to stand in where oneself ought be. But instead there is this grammatical anomaly.</p>
-
-<p>Remember the clay pot? The emptiness that words create? Pāṇini knew about this two thousand years before Lacan was born.</p>
-
-<p>Pāṇini was an ancient Sanskrit grammarian. He wrote a grammar so precise it could compile computer code if computers had existed in 400 BCE. His rules for how language works are like instructions for a very small machine that builds sentences one atom at a time.</p>
-
-<p>Here's what Pāṇini did that matters: he never gave you a cozy definition like "the nominative case marks the subject." He did something sharper. The nominative—the case of I, the case of naming—only appears when nothing else has claimed the noun. It's a case of exclusion. Of what remains.</p>
-
-<p>In Sanskrit grammar, you don't get to be "I" because you're the doer or the thinker. You get to be "I" because no other relationship seized you first. The nominative is the case of residue. What's left over when every other connection has been mapped and named.</p>
-
-<p>Think about that. "I" is what remains when nothing else applies. Like the empty space in the pot. Like consciousness recognizing itself in a play. The subject isn't a thing. It's an absence that appears when all the relationships have been accounted for and there's still... this. Whatever this is.</p>
-
-<p>Lacan would have loved this. The grammatical anomaly isn't a bug. It's the feature. We're a remainder. A leftover. The space that appears when you've mapped everything else.</p>
-
-<p>This is why talking about yourself feels like trying to catch a trout with your hands.</p>
-
-<p>Every time you grasp at trout fishing in America, they slip. Likely cause of that lube you'd been using earlier to rub one out.</p>
-
-<div class="divider"></div>
-
-<p>The questionnaire has thirty-five questions.</p>
-
-<div class="question">"What is your greatest fear?"</div>
-
-<div class="question">"What is the trait you most deplore in yourself?"</div>
-
-<div class="question">"How would you like to die?"</div>
-
-<p>These are not polite questions. They are holes in the rapidly melting ice.</p>
-
-<p>If you answer honestly, spontaneously, something cold touches your feet.</p>
-
-<div class="divider"></div>
-
-<p>If we think about this too much, we're likely students of Christine Korsgaard's, a Kantian ethicist (retired) at Harvard.</p>
-
-<div style="text-align: center; margin: 2rem 0;">
-  <img src="/images/korsgaardonvacuuming-1200-cropped.webp" alt="Pre-meme meme from 2012: You can't spell vacuum without u" style="max-width: 100%; height: auto; border-radius: 4px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);">
-</div>
-
-<p>Anyhow 'stine says the self is not something we find. It's something we make. And from birth until death we're making a quilt, our lives. Quilts on quilts on quilts--every irl choice a kind of sewing.</p>
-
-<p>We stitch ourselves together (or not!) out of what's available: mother's phrases, a teacher's posture, songs we heard when we were angsty teens, that stranger's coat I saw once at Cafe Roma and never forgot (it was nice!).</p>
-
-<p>We are a quilt. We are only ever made of other people's fabrics. These days in the hellscape that is later-ish (?) capitalizm, priority is given to individuals, and we make like brands to sell a vanishingly fleeting formulation. A you de parvence variously seeking fortune, fame, and all things incompatibile with the realities of being a quilt. A family.</p>
-
-<p>This is not sad. Quilts are warm. This has been brought to you by extending the metaphor.</p>
-
-<div class="divider"></div>
-
-<p>The instruction is this: answer once. Then do your best to forget the questions. That dude up there he answered it four times. Frankly, tha's a lot.</p>
-
-<p>This is important.</p>
-
-<p>If we think about the questions too often, our responses start to become performative. It creates this vicious cycle that, once embarked upon wittingly or not, the ego's in control and the value of the mechanic is diminished. We soon (so soon!) start to believe the answers to be who we are. But questions are not who you, or I, or anyone else are. They are who we were on a Tuesday in November when our I's were tired and the light was grey.</p>
-
-<p>Ten years later, having all but perfectly forgotten, we'll be someone else. That person, who is sitting in room different than the one you are in now, may answer the same questions and experience a good dose of that camatkāra.</p>
-
-<p>The questions don't change. I do.</p>
-
-<p>This is like a river passing the same bridge twice. The bridge thinks it's seeing the same river. The river knows better.</p>
-
-<div class="divider"></div>
-
-<p>Lacan thought up a concept he called <em>objet petit a</em>. The little object. The thing we're always looking for but can never find.</p>
-
-<p>It's the hole in your sould that makes you open the refrigerator late at night/early in the AM when you're not even hungry.</p>
-
-<p>It's the hole in your ass... I mean, self-understanding that makes anyone think to answer a questionnaire in the first place!</p>
-
-<p>We're seeking something. We don't know what that is. Engaged thusly a seeker, we wouldn't recognize it. But the looking the perfecting feels important.</p>
-
-<p>The looking is the thing.</p>
-
-<div class="divider"></div>
-
-<p>In what is today India long time back some poet put together a word: <em>pratyabhijñā</em>. In english it means recognition.</p>
-
-<p>Not seeking, not looking for something new. Remembering something. Becoming Buddha. Buddha being a simple past passive participle in Sanskrit. In English it means that which is known. Past in that we always knew it, but forgot; passive because we don't gotta do anything to understand it. Precisely the opposite!</p>
-
-<p>Like when I walked into a room and suddenly remembered I'd been there before, in a dream or another life or (more likely) last Thursday.</p>
-
-<p>That shiver.</p>
-
-<p>The questionnaire is a machine I host here for producing that shiver.</p>
-
-<p>Not the answers.</p>
-
-<p>The moment between having read the question and beginning to see the answer... that pause wherein I am really nobody in particular, the absence I imagine who can translate a memory. This is what the eye is therefore. Have we the courage not to correct but just to answer? Who is it, anyway, who thinks I shouldn't write that? Stop giving a fuck. We are a speaking quilt, wondering what it will say next. </p>
-
-<p>That pause is uninterrupted delight, the freedom  and bliss of cosnciousness recognizing itself.</p>
-
-<p>The eleventh-century Kashmiris had a word for that too: <em>svātantrya</em>. It means "not needing anything outside yourself to be what you are."</p>
-
-<p>Like a cat in a sunbeam. The cat isn't waiting for anything. The cat is complete.</p>
-
-<p>You are also complete. I just keep forgetting it about you bc we're such bitches to one another because... well, late (?) capitsalizm.</p>
-
-<div class="divider"></div>
-
-<p> And the world moves faster now.</p>
-
-<p>In 1890, when Proust answered these questions somewhere in Paris, a person might be one thing for their whole life. A baker. A countess. A disappointment to their father.</p>
-
-<p>Now you or I can be twelve things before lunch! We can purge in the restroom and be another 7 to 9 before bed.</p>
-
-<p>This is confusing, it is far from naturalized, but it also may be an opportunity.</p>
-
-<p>If we are not one self, I don't have to defend any particular self, any version of me against the others. I do get to watch though as come for the second time in a day and go like clouds.</p>
-
-<p>Clouds are beautiful. Nobody argues with clouds.</p>
-
-<div class="divider"></div>
-
-<p class="standalone centered">What is your idea of perfect happiness?</p>
-
-<p>The question is a door.</p>
-
-<p>Behind the door is another door.</p>
-
-<p>Behind that door is a room with no floor, only a cloud-filled sky.</p>
-
-<p>You've been falling through that sky your whole life.</p>
-
-<p>How did the clouds even get inside? And where am I falling to?</p>
-
-<p>The fall is the happiness.</p>
-
-<div class="divider">Whatever nature may there be is in the fall.</div>
-
-<p>Answer. Wait ten years. Answer again.</p>
-
-<p>Notice something different.</p>
-
-<p>Notice the same.</p>
-
-<p>Notice "different" and "same" are words, and we are not a word.</p>
-
-<p>We are the ones using the words with one another.</p>
-
-<p>We are the ones who put down or lift up. And all of us do both. But we gotta practice doing more the lifting up one another.</p>
-
-<div class="closing">
-<div class="final-sanskrit">
-<div class="sanskrit-text">सर्वथा पुनर् अविच्छिन्नचमत्कारनिरपेक्षस्वातन्त्र्याहंविमर्शे</div>
-<em>The freedom of the uninterrupted delight of I-consciousness is completely independent of any reference to anything else.</em>
-</div>
-<div class="final-attribution">—Abhinavagupta</div>
-
-<div class="coda">
-<p>The cat in the sunbeam knows this.</p>
-<p>The river knows this.</p>
-<p>Now you know it too.</p>
-<p>Or you always did.</p>
-<p>That's the whole point.</p>
-</div>
-</div>
-
-<div class="footnotes" id="fn1">
-<h3>Notes</h3>
-<div class="footnote">
-See <em>Abhinavabhāratī</em>, Abhinavagupta's commentary on Bharata's <em>Nāṭyaśāstra</em>, particularly his gloss on the <em>rasasūtra</em> (NS 6.31). The Kashmiris called the broader philosophical framework <em>pratyabhijñā</em>—recognition. You don't acquire your nature; you remember it. The aesthetic shiver and the liberating insight share the same structure: <em>saṃvid</em> glimpsing <em>saṃvid</em>. Rasa opens a crack; through it, consciousness catches sight of itself. Cf. the famous compound: <em>sarvathā punar avicchinnacamatkāranirapekṣasvātantryāhaṃvimarśe</em>—the freedom of the uninterrupted delight [in] I-consciousness (<em>ahamvimarśe</em>), is completely independent of any reference to anything else.
-</div>
-</div>
-
-<div class="end-mark">☆</div>
-
-<!-- Begin Questionnaire Call-to-Action -->
-<div style="text-align: center; margin: 3rem 0; padding: 2rem; background: rgba(139, 69, 19, 0.1); border-radius: 8px; border: 2px solid var(--border-color);">
-  <h3 style="font-family: 'Noto Sans Tamil', serif; font-size: 2rem; margin-bottom: 1rem; color: var(--text-color);">
-    <a href="/begin" style="color: inherit; text-decoration: none; transition: all 0.3s ease;">
-      தொடங்கு
-    </a>
-  </h3>
-  <p style="font-style: italic; color: var(--text-muted); margin: 0;">Begin the questionnaire</p>
-</div>
-
-<!-- Newsletter Section -->
-<div class="newsletter-section">
-<h3>✦ Stay Connected ✦</h3>
-<p>Receive occasional updates about new essays, philosophical explorations, and contemplative content.</p>
-<form id="newsletter-form" class="newsletter-form">
-  <input
-    type="email"
-    id="newsletter-email"
-    class="newsletter-input"
-    placeholder="your.email@example.com"
-    required
-    autocomplete="email"
-  />
-  <button type="submit" class="newsletter-button" id="newsletter-button">
-    Subscribe
-  </button>
-  <div id="newsletter-message" class="newsletter-message"></div>
-  <p class="privacy-note">🔐 AES-256-GCM encrypted before storage</p>
-</form>
-</div>
-
-</div>
-
-<!-- Right Sidebar -->
-<aside class="sidebar">
-<a href="/about.html" class="sidebar-card">
-  <h3>About</h3>
-  <p>Learn more about this slow experiment and the ideas that inform this space and hopefully inspire those who visit.</p>
-</a>
-
-<a href="/contact.html" class="sidebar-card">
-  <h3>Contact</h3>
-  <p>Reach out to share feedback, ask questions, or discuss collaboration opportunities. All inquiries welcome.</p>
-</a>
-</aside>
-
-<script src="/js/api-failover.js"></script>
-<script>
-// Weather-synced snow effect
-(function() {
-  const snowflakesContainer = document.getElementById('snowflakes');
-
-  // Check weather conditions (coordinates only, no location reference)
-  async function checkWeatherConditions() {
-    try {
-      const lat = 43.0731;
-      const lon = -89.4012;
-
-      const response = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`);
-      const data = await response.json();
-
-      if (data.current_weather) {
-        const weatherCode = data.current_weather.weathercode;
-        // Weather codes 71, 73, 75, 77, 85, 86 indicate snow
-        const isSnowing = [71, 73, 75, 77, 85, 86].includes(weatherCode);
-
-        if (isSnowing) {
-          activateSnow();
+    <nav>
+        <a href="/" class="logo">A4T</a>
+        <div class="nav-links">
+            <a href="/about.html">About</a>
+            <a href="/contact.html">Contact</a>
+        </div>
+    </nav>
+
+    <main>
+        <section class="hero">
+            <!-- Multicoloured neon watermark -->
+            <div class="neon-watermark" aria-hidden="true">a4unəsatyasya</div>
+
+            <div class="hero-content">
+                <p class="tagline">here, a device: the ātmanoptican as</p>
+                <h1 class="title">
+                    <span class="bg-four">4</span>
+                    <span class="title-wrapper">
+                        <span class="title-text">a formulation of truth</span>
+                        <span class="title-flicker" aria-hidden="true">a fo<span class="flicker-pink">rmulat</span>ion of truth</span>
+                    </span>
+                </h1>
+                <p class="subtitle">
+                    You are not one self. This is not a tragedy.<br>
+                    It's more like &nbsp; &nbsp; the &nbsp; <a href="https://www.youtube.com/watch?v=tCjVGvrs-dk" target="_blank" rel="noopener" class="weather-link">weather</a>.
+                </p>
+                <div class="cta-group">
+                    <a href="#begin" class="cta cta-primary">தொடங்கு</a>
+                    <a href="/about.html" class="cta">Learn More</a>
+                </div>
+            </div>
+            <div class="scroll-indicator">
+                <span></span>
+            </div>
+        </section>
+
+        <section class="section">
+            <div class="section-inner">
+                <span class="section-label">a long experiment; a practice in self-inquiry; a formulation of truth</span>
+                <h2 class="section-title">the questionnaire as mechanic—an <em>ātmanopticon</em>, a lens to that which is known and may it hereby become yet more commonly recognized</h2>
+                <p class="section-text">
+                    These questions aren't polite. They are holes in the ice. When we answer honestly, something cold touches the feet.
+                </p>
+                <p class="section-text">
+                    All are invited to <a href="https://github.com/nyagrodha/aformulationoftruth" target="_blank" rel="noopener">take a look at the codebase</a>—it may appear as if woven by a spider on LSD. But we got here, eventually. Transparency and a privacy-first design ethic shaped a formulation of truth from the get go.
+                </p>
+                <p class="section-text">
+                    Anything you write is encrypted here. The goal is zk encryption but I'm not quite there yet. No one is going to see what you've composed—no one but whom you may choose to share it with. You can delete your responses.
+                </p>
+                <p class="section-text">
+                    <a href="https://billing.flokinet.is/aff.php?aff=543" target="_blank" rel="noopener">FlokiNET</a> hosts a formulation of truth. Here in Iceland we've developed a black hole in the internet. As inspiration remember Periyar, a Dravidian revolutionary fighting to advance women's rights and science who said: <span class="tamil-text">"கடவுள் இல்லை, கடவுள் இல்லை, கடவுள் இல்லவே இல்லை"</span>—"There is no god, there is no god, there is no god at all." There is no god here to judge, no one but oneself. Therein the why behind this site: <em>Who am I?</em>
+                </p>
+                <div class="dual-images" style="display: flex; justify-content: center; align-items: center; gap: 3rem; margin: 2rem auto; flex-wrap: wrap;">
+                    <img src="/images/thereIsNoGod.png" alt="Periyar - There is no god" style="max-width: 280px; filter: drop-shadow(0 0 15px var(--pink-glow));">
+                    <img src="/images/naanyaaru.png" alt="Naan Yaaru - Who am I?" style="max-width: 280px; filter: drop-shadow(0 0 15px var(--emerald-glow));">
+                </div>
+                <p class="section-text">
+                    The self in all its variegated form emerges clearest in thoughts we rush to suppress—the slip of the tongue, the unbidden images... that first well up within before the inner editor intervenes. May we happen upon those moments in our remembrance and muster the courage to compose it here, where our reflective mind is both archaeologist and subject. A queer point we seek to illuminate how porous we are. We are each porous to one another and we are not one self in this fast-paced, sickened culture of capital at any cost. There is no god and we are not one self and here at a formulation of truth we host a slow experiment that may just show a way—an <em>upāya</em>—to recognize something we've all already known.
+                </p>
+                <p class="section-text" style="font-style: italic;">
+                    It has been said that beauty brings a promise of happiness, but it could be otherwise that the possibility of joy is the beginning of beauty.
+                </p>
+                <p class="section-text">
+                    Loosen any reflex to moderate or censor—type it, speak it—and then wait. The site enforces waiting. You may take your time, but you can't complete two questionnaires in a row.
+                </p>
+            </div>
+        </section>
+
+        <section id="begin" class="section gate-section">
+            <div class="gate-content">
+                <img src="/images/irendu2.png" alt="irendu — Tamil for 'two'" class="gate-icon" title="irendu — Tamil for 'two'">
+                <h2 class="gate-title">வாயில்</h2>
+                <p class="gate-description tamil-text">
+                    Proust கேள்வித்தாள்—கருப்பசாமி கேள்வித்தாள் என்ற பெயரில்—உங்களை வரவேற்கிறது
+                </p>
+
+                <form class="gate-form" id="gate-form">
+                    <div class="form-group">
+                        <label for="answer1">
+                            <span class="question-number">௧</span>
+                            What is your idea of perfect happiness?
+                        </label>
+                        <textarea
+                            id="answer1"
+                            name="answer1"
+                            placeholder="Take your time..."
+                            aria-describedby="accessibility-hint"
+                        ></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="answer2">
+                            <span class="question-number">௨</span>
+                            What is your greatest fear?
+                        </label>
+                        <textarea
+                            id="answer2"
+                            name="answer2"
+                            placeholder="Or leave unanswered..."
+                        ></textarea>
+                    </div>
+
+                    <div class="form-group email-section">
+                        <label for="email">
+                            Enter your email to receive a magic link
+                        </label>
+                        <input
+                            type="email"
+                            id="email"
+                            name="email"
+                            placeholder="your@email.com"
+                            required
+                            autocomplete="email"
+                        >
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="submit-btn" id="submit-btn">
+                            Continue to Questionnaire
+                        </button>
+                    </div>
+
+                    <div class="status-message" id="status-message"></div>
+
+                    <p class="accessibility-note" id="accessibility-hint">
+                        For voice input, use <a href="https://github.com/cjpais/Handy" target="_blank" rel="noopener">Handy</a> — free offline speech-to-text
+                    </p>
+
+                    <p class="encryption-note">
+                        Responses encrypted with age (X25519) before storage
+                    </p>
+                </form>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="hosting-blurb">
+            <p>
+                Why Iceland? As an American anti-fascist, I refuse to host user data under the jurisdiction of the Five Eyes surveillance alliance. Iceland offers the strongest privacy protections in the world—no data retention laws, robust press freedom, and a legal framework that prioritizes individual rights over state surveillance. <a href="https://flokinet.is" target="_blank" rel="noopener">FlokiNET</a> operates with a strict no-logs policy and has a proven track record of protecting journalists, activists, and whistleblowers.
+            </p>
+            <p>
+                You are subtly powerful and your words enjoy sanctuary here @ aformulationoftruth.com. A sanctuary that no one can offer in the land of the (un)free and the home of the racist administration. May the ignominious names of sycophants and scoundrels be forever damned, held in contempt by due process, and may those who support them be consumed by the contempt they insist upon Black people, and all immigrants. Black lives matter. Black trans and gay lives matter. Far more than the Barrons. We resist.
+            </p>
+            <a href="https://billing.flokinet.is/aff.php?aff=543" target="_blank" rel="noopener" class="floki-link">
+                <img src="/images/floki_logo.svg" alt="FlokiNET - Privacy-focused hosting" class="floki-logo">
+            </a>
+        </div>
+        <div class="footer-inner">
+            <div class="footer-links">
+                <a href="/about.html">About</a>
+                <a href="/contact.html">Contact</a>
+                <a href="/privacy.html">Privacy</a>
+            </div>
+            <p class="footer-copy">
+                Hosted with zero logs in Iceland
+            </p>
+        </div>
+        <div class="vivirme-container" style="display: flex; justify-content: center; padding: 3rem 2rem; background: var(--void);">
+            <div style="position: relative; max-width: 500px;">
+                <img src="/images/parteDeTusRetroceseMentalesParaquevolveraVivirmeunPocoMas-1200.webp"
+                     alt="parte de tus retrocesos mentales para que volvera vivirme un poco más"
+                     style="width: 100%; mix-blend-mode: multiply; filter: invert(1);">
+                <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #00d4ff 0%, #00ff88 40%, #ffff00 100%); mix-blend-mode: screen; pointer-events: none;"></div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Smooth scroll for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        });
+
+        // Form handling
+        const form = document.getElementById('gate-form');
+        const submitBtn = document.getElementById('submit-btn');
+        const statusMessage = document.getElementById('status-message');
+
+        function showStatus(message, type) {
+            statusMessage.textContent = message;
+            statusMessage.className = `status-message visible ${type}`;
         }
-      }
-    } catch (error) {
-      // Silently fail
-    }
-  }
 
-  function activateSnow() {
-    snowflakesContainer.classList.add('active');
+        function hideStatus() {
+            statusMessage.className = 'status-message';
+        }
 
-    // Create 50 snowflakes
-    for (let i = 0; i < 50; i++) {
-      createSnowflake();
-    }
-  }
+        function setButtonState(state, text) {
+            submitBtn.textContent = text;
+            submitBtn.className = `submit-btn ${state}`;
+            submitBtn.disabled = state === 'loading';
+        }
 
-  function createSnowflake() {
-    const snowflake = document.createElement('div');
-    snowflake.className = 'snowflake';
-    snowflake.textContent = '❄';
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            hideStatus();
 
-    // Random position
-    snowflake.style.left = Math.random() * 100 + '%';
+            const email = document.getElementById('email').value.trim();
+            const answer1 = document.getElementById('answer1').value.trim();
+            const answer2 = document.getElementById('answer2').value.trim();
 
-    // Random size
-    const size = Math.random() * 0.5 + 0.5;
-    snowflake.style.fontSize = size + 'em';
+            // Validate email
+            if (!email) {
+                showStatus('Please enter your email address', 'error');
+                return;
+            }
 
-    // Random animation duration
-    const duration = Math.random() * 10 + 10;
-    snowflake.style.animationDuration = duration + 's';
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                showStatus('Please enter a valid email address', 'error');
+                return;
+            }
 
-    // Random delay
-    const delay = Math.random() * 10;
-    snowflake.style.animationDelay = delay + 's';
+            // Build gate answers array
+            const gateAnswers = [];
+            if (answer1) {
+                gateAnswers.push({
+                    question: 'What is your idea of perfect happiness?',
+                    answer: answer1
+                });
+            }
+            if (answer2) {
+                gateAnswers.push({
+                    question: 'What is your greatest fear?',
+                    answer: answer2
+                });
+            }
 
-    // Random opacity
-    snowflake.style.opacity = Math.random() * 0.5 + 0.3;
+            // Update UI - encrypting
+            setButtonState('loading', 'Encrypting...');
+            showStatus('Securing your responses...', 'info');
 
-    snowflakesContainer.appendChild(snowflake);
-  }
 
-  // Check weather on load
-  checkWeatherConditions();
+            // Small delay for UX
+            await new Promise(resolve => setTimeout(resolve, 800));
 
-  // Check every 15 minutes
-  setInterval(checkWeatherConditions, 15 * 60 * 1000);
-})();
+            // Update UI - sending
+            setButtonState('loading', 'Sending magic link...');
+            showStatus('Requesting magic link...', 'info');
 
-// ═══════════════════════════════════════════════════════════════════════════
-// ROTATING QUOTES
-// ═══════════════════════════════════════════════════════════════════════════
-//
-// HOW TO ADD NEW QUOTES:
-// 1. Copy one of the quote objects below (everything between { and })
-// 2. Paste it anywhere in the quotes array
-// 3. Update the "text" with your new quote
-// 4. Update the "author" with the attribution (include the — dash)
-// 5. Make sure there's a comma after the closing }
-//
-// Example:
-//   {
-//     text: "Your quote text here",
-//     author: "—Author Name"
-//   },
-//
-// The quotes will automatically shuffle on each page load!
-// ═══════════════════════════════════════════════════════════════════════════
+            try {
+                const response = await fetch('/auth/request', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email })
+                });
 
-const quotes = [
-  {
-    text: "The observer is the observed.",
-    author: "—Jiddu Krishnamurti"
-  },
-  {
-    text: "What we call reality is merely a relation, the only reality being the subject which has the representation.",
-    author: "—Jacques Lacan"
-  },
-  {
-    text: "The highest form of human intelligence is to observe yourself without judgment.",
-    author: "—Jiddu Krishnamurti"
-  },
-  {
-    text: "We must find time to stop and thank the people who make a difference in our lives.",
-    author: "—Marcel Proust"
-  },
-  {
-    text: "Desire is always the desire of the Other.",
-    author: "—Jacques Lacan"
-  },
-  {
-    text: "Freedom from the desire for an answer is essential to the understanding of a problem.",
-    author: "—Jiddu Krishnamurti"
-  },
-  {
-    text: "The real voyage of discovery consists not in seeking new landscapes, but in having new eyes.",
-    author: "—Marcel Proust"
-  },
-  {
-    text: "It is no measure of health to be well adjusted to a profoundly sick society.",
-    author: "—Jiddu Krishnamurti"
-  },
-  {
-    text: "Let us be grateful to the people who make us happy; they are the charming gardeners who make our souls blossom.",
-    author: "—Marcel Proust"
-  },
-  {
-    text: "The unconscious is structured like a language.",
-    author: "—Jacques Lacan"
-  }
-];
+                const data = await response.json();
 
-// Fisher-Yates shuffle algorithm - shuffles quotes on each page load
-function shuffleArray(array) {
-  const shuffled = [...array];
-  for (let i = shuffled.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-  }
-  return shuffled;
-}
+                if (response.ok) {
+                    setButtonState('success', 'Magic link sent!');
+                    showStatus('Check your inbox for your magic link to continue the questionnaire.', 'success');
 
-// Shuffle the quotes when page loads
-const shuffledQuotes = shuffleArray(quotes);
-let currentQuoteIndex = 0;
+                    // Clear form but keep answers in sessionStorage
+                    form.reset();
 
-function displayQuote() {
-  const quoteText = document.getElementById('quote-text');
-  const quoteAuthor = document.getElementById('quote-author');
+                    // Reset button after delay
+                    setTimeout(() => {
+                        setButtonState('', 'Continue to Questionnaire');
+                    }, 5000);
+                } else {
+                    // Clear stored answers on error
+                    sessionStorage.removeItem('pendingGateAnswers');
+                    throw new Error(data.error || 'Failed to send magic link');
+                }
+            } catch (error) {
+                console.error('Submission error:', error);
+                sessionStorage.removeItem('pendingGateAnswers');
+                setButtonState('', 'Continue to Questionnaire');
+                showStatus(error.message || 'Something went wrong. Please try again.', 'error');
+            }
+        });
 
-  if (quoteText && quoteAuthor) {
-    const quote = shuffledQuotes[currentQuoteIndex];
-    quoteText.textContent = `"${quote.text}"`;
-    quoteAuthor.textContent = quote.author;
+        // Intersection Observer for scroll animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
 
-    currentQuoteIndex = (currentQuoteIndex + 1) % shuffledQuotes.length;
-  }
-}
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
 
-function getRandomInterval() {
-  // Random interval between 27 and 53 seconds (in milliseconds)
-  return (Math.floor(Math.random() * (53 - 27 + 1)) + 27) * 1000;
-}
-
-function scheduleNextQuote() {
-  setTimeout(() => {
-    displayQuote();
-    scheduleNextQuote();
-  }, getRandomInterval());
-}
-
-// Display first quote immediately
-displayQuote();
-// Schedule subsequent quotes
-scheduleNextQuote();
-
-// Newsletter subscription handler
-const newsletterForm = document.getElementById('newsletter-form');
-const newsletterEmail = document.getElementById('newsletter-email');
-const newsletterButton = document.getElementById('newsletter-button');
-const newsletterMessage = document.getElementById('newsletter-message');
-
-function showNewsletterMessage(text, type) {
-  newsletterMessage.textContent = text;
-  newsletterMessage.className = `newsletter-message ${type}`;
-  newsletterMessage.style.display = 'block';
-
-  if (type === 'success') {
-    setTimeout(() => {
-      newsletterMessage.style.display = 'none';
-    }, 5000);
-  }
-}
-
-newsletterForm.addEventListener('submit', async (e) => {
-  e.preventDefault();
-
-  const email = newsletterEmail.value.trim();
-
-  if (!email) {
-    showNewsletterMessage('Please enter an email address', 'error');
-    return;
-  }
-
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailRegex.test(email)) {
-    showNewsletterMessage('Please enter a valid email address', 'error');
-    return;
-  }
-
-  newsletterButton.disabled = true;
-  newsletterButton.textContent = 'Subscribing...';
-  showNewsletterMessage('Encrypting and storing your email securely...', 'info');
-
-  try {
-    const response = await fetch('/api/newsletter/subscribe', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email })
-    });
-
-    const data = await response.json();
-
-    if (response.ok) {
-      if (data.alreadySubscribed) {
-        showNewsletterMessage('✓ This email is already subscribed', 'info');
-      } else {
-        showNewsletterMessage('✓ Successfully subscribed!', 'success');
-        newsletterEmail.value = '';
-      }
-    } else {
-      showNewsletterMessage(`✗ Subscription failed: ${data.error || 'Unknown error'}`, 'error');
-    }
-  } catch (error) {
-    console.error('Subscription error:', error);
-    showNewsletterMessage(`✗ Network error: ${error.message}`, 'error');
-  } finally {
-    newsletterButton.disabled = false;
-    newsletterButton.textContent = 'Subscribe';
-  }
-});
-</script>
+        // Observe sections for fade-in
+        document.querySelectorAll('.section-inner, .gate-content').forEach(el => {
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(30px)';
+            el.style.transition = 'opacity 0.8s ease, transform 0.8s ease';
+            observer.observe(el);
+        });
+    </script>
 </body>
 </html>
