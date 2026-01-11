@@ -5,15 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>contact: a formulation of truth</title>
 
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;800&family=Noto+Sans+Tamil:wght@400;700&display=swap" rel="stylesheet">
 
     <!-- Stylesheets -->
+    <link rel="stylesheet" href="/css/fonts.css">
+
     <link rel="stylesheet" href="/css/themes.css">
 
-    <meta name="description" content="Contact the creator of A Formulation of Truth">
+    <meta name="description" content="contact your creator @ a formulation of truth">
 
     <style>
         .contact-container {
@@ -90,7 +88,10 @@
         }
 
         .contact-content h2 {
+            font-family: 'League Spartan', sans-serif;
+
             font-family: 'Orbitron', 'Palatino Linotype', serif;
+
             font-size: 1.4rem;
             margin: 2rem 0 0.8rem 0;
             letter-spacing: -0.01em;
@@ -263,6 +264,7 @@
             animation: sparkle-animation 1.5s ease-in-out;
         }
 
+
         /* Newsletter signup section */
         .newsletter-section {
             margin: 2rem 0;
@@ -420,14 +422,7 @@
     </style>
 </head>
 <body>
-    <!-- Theme Toggle -->
-    <div class="theme-toggle">
-        <button class="theme-btn active" data-theme="tamas" aria-label="Tamas theme">🥴</button>
-        <button class="theme-btn" data-theme="nila" aria-label="Nīla theme">🫠</button>
-        <button class="theme-btn" data-theme="uruvam" aria-label="Uruvam theme">🕳️<button>
-    </div>  
-
-    <div class="contact-container">
+        <div class="contact-container">
         <!-- Header -->
         <div class="contact-header">
             <h1>reach out</h1>
@@ -457,7 +452,7 @@
                 <div class="contact-info">
                     <div class="contact-label">Electronic Mail</div>
                     <div class="contact-value">
-                        <a href="mailto:formitselfisemptines@aformulationoftruth.com">contact</a>
+                        <a href="mailto:formitselfisemptiness@aformulationoftruth.com">contact</a>
                     </div>
                 </div>
             </div>
@@ -628,6 +623,14 @@
                 </div>
             </div>
 
+
+            <h2>gopyatā: privacy</h2>
+
+            <p>
+                Communications sent to this address are treated with the same respect for privacy that governs all interactions on this site. Your correspondence will not be shared, sold, or used for purposes other than responding to your inquiry. I maintain minimal logs and employ industry-standard encryption for all communications.
+            </p>
+
+
             <div class="ornament" aria-hidden="true">
                 <svg viewBox="0 0 120 14" xmlns="http://www.w3.org/2000/svg" role="img" aria-hidden="true">
                     <path d="M6 7 C24 1, 36 13, 54 7 C72 1, 84 13, 102 7" stroke-linecap="round" stroke-linejoin="round"/>
@@ -659,7 +662,8 @@
     </div>
 
     <!-- Scripts -->
-    <script src="/js/theme-toggle.js"></script>
+HEAD
+    <script src="/js/api-failover.js"></script>
     <script>
         // Newsletter subscription handler
         const form = document.getElementById('newsletter-form');
@@ -686,19 +690,10 @@
 
                 showMessage('Encrypting and storing your email securely...', 'info');
 
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 10000);
-
-                const response = await fetch('/api/newsletter/subscribe', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ email }),
-                    signal: controller.signal,
+                // Using apiPost with built-in timeout and failover
+                const response = await apiPost('/api/newsletter/subscribe', { email }, {
+                    timeout: 10000 // 10 second timeout
                 });
-
-                clearTimeout(timeoutId);
 
                 const data = await response.json();
 

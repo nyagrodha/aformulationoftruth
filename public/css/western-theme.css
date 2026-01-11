@@ -1,0 +1,1273 @@
+:root {
+--dust: #C4B8A8;
+--parchment: #D8CFC0;
+--taupe: #B8A99A;
+--burnt-sienna: #8B4513;
+--dried-blood: #722F37;
+--saddle-brown: #5C4033;
+--sun-bleached: #CEC4B4;
+--shadow: #2C1810;
+--rust: #B7410E;
+--bone: #D4CCC0;
+--midnight: #1a1a1a;
+--obsidian: #0a0a0a;
+}
+
+* {
+margin: 0;
+padding: 0;
+box-sizing: border-box;
+}
+
+body {
+font-family: 'Spectral', 'Libre Baskerville', Georgia, serif;
+background: var(--parchment);
+color: #1E1510;
+line-height: 1.9;
+font-size: 36.2px;
+min-height: 100vh;
+background-image:
+url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+background-blend-mode: multiply;
+display: grid;
+grid-template-columns: 200px 1fr 200px;
+gap: 2rem;
+padding: 2rem;
+padding-top: 100px;
+}
+
+@media (max-width: 1200px) {
+body {
+grid-template-columns: 1fr;
+padding-top: 100px;
+}
+}
+
+/* Worn paper texture overlay */
+body::before {
+content: '';
+position: fixed;
+top: 0;
+left: 0;
+width: 100%;
+height: 100%;
+background:
+radial-gradient(ellipse at 20% 20%, transparent 60%, rgba(139, 69, 19, 0.08) 100%),
+radial-gradient(ellipse at 80% 80%, transparent 60%, rgba(139, 69, 19, 0.08) 100%);
+pointer-events: none;
+z-index: 1000;
+}
+
+/* Snowflake Container */
+.snowflakes {
+position: fixed;
+top: 0;
+left: 0;
+width: 100%;
+height: 100%;
+pointer-events: none;
+z-index: 1500;
+display: none;
+}
+
+.snowflakes.active {
+display: block;
+}
+
+.snowflake {
+position: absolute;
+top: -10px;
+color: #fff;
+font-size: 1em;
+opacity: 0.8;
+animation: fall linear infinite;
+text-shadow: 0 0 5px rgba(255, 255, 255, 0.8);
+}
+
+@keyframes fall {
+to {
+  transform: translateY(100vh) rotate(360deg);
+}
+}
+
+/* Sidebar Cards */
+.sidebar {
+position: sticky;
+top: 120px;
+height: fit-content;
+display: flex;
+flex-direction: column;
+gap: 1.5rem;
+}
+
+.sidebar-card {
+background: linear-gradient(135deg, var(--parchment) 0%, var(--dust) 100%);
+border: 3px solid var(--burnt-sienna);
+padding: 1.5rem;
+box-shadow:
+inset 0 0 20px rgba(139, 69, 19, 0.1),
+4px 4px 0 rgba(44, 24, 16, 0.2);
+position: relative;
+text-decoration: none;
+display: block;
+transition: all 0.3s ease;
+}
+
+.sidebar-card:hover {
+transform: translateY(-2px);
+box-shadow:
+inset 0 0 20px rgba(139, 69, 19, 0.15),
+6px 6px 0 rgba(44, 24, 16, 0.25);
+}
+
+.sidebar-card h3 {
+font-family: 'Rye', cursive;
+font-size: 0.6rem;
+letter-spacing: 0.15em;
+color: var(--shadow);
+text-transform: uppercase;
+margin-bottom: 0.5rem;
+text-shadow: 1px 1px 0 var(--dust);
+}
+
+.sidebar-card p {
+font-size: 0.4rem;
+line-height: 1.5;
+color: var(--saddle-brown);
+margin-bottom: 0;
+}
+
+.sidebar-card a {
+color: var(--burnt-sienna);
+text-decoration: underline;
+}
+
+.sidebar-card a:hover {
+color: var(--dried-blood);
+}
+
+/* Quote Card Specific */
+#quote-card {
+min-height: 200px;
+}
+
+#quote-text {
+font-style: italic;
+font-size: 0.45rem;
+line-height: 1.6;
+color: var(--shadow);
+margin-bottom: 0.75rem;
+}
+
+#quote-author {
+font-family: 'Rye', cursive;
+font-size: 0.4rem;
+color: var(--burnt-sienna);
+text-align: right;
+letter-spacing: 0.1em;
+}
+
+.container {
+max-width: 720px;
+margin: 0 auto;
+padding: 80px 40px 120px;
+position: relative;
+grid-column: 2;
+}
+
+@media (max-width: 1200px) {
+.container {
+grid-column: 1;
+}
+.sidebar {
+position: relative;
+top: 0;
+}
+}
+
+/* Title styling - Spaghetti Western Wanted Poster */
+h1 {
+font-family: 'Rye', cursive;
+font-size: clamp(2rem, 6vw, 3.5rem);
+color: var(--shadow);
+text-align: center;
+text-transform: uppercase;
+letter-spacing: 0.15em;
+margin-bottom: 0.3em;
+text-shadow: 2px 2px 0 var(--dust);
+position: relative;
+}
+
+h1::before,
+h1::after {
+content: '✦';
+font-size: 0.4em;
+vertical-align: middle;
+margin: 0 0.5em;
+color: var(--burnt-sienna);
+}
+
+/* Tamil 2 and Spaghetti Container */
+.hero-symbols {
+display: flex;
+align-items: center;
+justify-content: center;
+gap: 2rem;
+margin: 2rem 0;
+flex-wrap: wrap;
+}
+
+/* Obsidian Tamil numeral 2 */
+.tamil-numeral-2 {
+font-family: 'Noto Sans Tamil', sans-serif;
+font-size: clamp(4rem, 10vw, 7rem);
+font-weight: 700;
+color: var(--obsidian);
+text-shadow:
+  0 0 1px rgba(255, 255, 255, 0.3),
+  1px 1px 2px rgba(255, 255, 255, 0.2),
+  -1px -1px 2px rgba(255, 255, 255, 0.1);
+filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.5));
+animation: obsidianShimmer 3s ease-in-out infinite;
+position: relative;
+transform: skewY(-2deg);
+}
+
+@keyframes obsidianShimmer {
+0%, 100% {
+  text-shadow:
+    0 0 1px rgba(255, 255, 255, 0.3),
+    1px 1px 2px rgba(255, 255, 255, 0.2),
+    -1px -1px 2px rgba(255, 255, 255, 0.1);
+}
+50% {
+  text-shadow:
+    0 0 2px rgba(255, 255, 255, 0.5),
+    2px 2px 3px rgba(255, 255, 255, 0.3),
+    -2px -2px 3px rgba(255, 255, 255, 0.2);
+  }
+}
+/* ---------------------------------------------------------
+   Tamil ௨ — Marginal Reveal (dvitīya-prakāśa)
+   
+   The numeral hovers in monumental obsidian. On interaction,
+   explanatory text reveals in the margin—the vimarśa that
+   accompanies prakāśa.
+   --------------------------------------------------------- */
+
+.two-reveal {
+  position: relative;
+  display: inline-block;
+}
+
+/* Remove default details marker */
+.two-reveal summary {
+  list-style: none;
+  cursor: pointer;
+}
+.two-reveal summary::-webkit-details-marker {
+  display: none;
+}
+
+/* ---------------------------------------------------------
+   Tamil ௨ — marginal gloss, manuscript logic
+
+   The numeral as prakāśa; the gloss as vimarśa.
+   Hover on desktop reveals incidentally.
+   Tap on mobile invokes deliberately.
+   --------------------------------------------------------- */
+
+.two-reveal {
+  position: relative;
+  display: inline-block;
+}
+
+/* Remove summary UI completely */
+.two-reveal summary {
+  all: unset;
+  display: block;
+  text-align: center;
+  cursor: pointer;
+}
+
+/* The numeral itself — monumental obsidian */
+.tamil-numeral-2 {
+  display: block;
+  font-family: 'Noto Sans Tamil', sans-serif;
+  font-size: clamp(6rem, 14vw, 10rem);
+  font-weight: 700;
+  line-height: 1;
+  margin: 0 auto;
+  color: var(--obsidian);
+  text-shadow:
+    0 0 1px rgba(255, 255, 255, 0.3),
+    1px 1px 2px rgba(255, 255, 255, 0.2);
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.5));
+  animation: obsidianShimmer 3s ease-in-out infinite;
+  transform: skewY(-2deg);
+}
+
+/* The marginal gloss */
+.two-reveal .two-text {
+  position: absolute;
+  top: 0.3em;
+  left: 115%;
+
+  width: max-content;
+  max-width: min(440px, 90vw);
+
+  background: rgba(10, 10, 12, 0.95);
+  color: var(--bone);
+  font-size: 0.9rem;
+  line-height: 1.5;
+  padding: 0.9rem 1.1rem;
+
+  border-radius: 4px;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.4);
+
+  text-align: left;
+  white-space: normal;
+
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+  z-index: 30;
+}
+
+/* Desktop: hover as incidental access */
+@media (hover: hover) and (pointer: fine) {
+  .two-reveal:hover .two-text {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .two-reveal[open] .two-text {
+    opacity: 0;
+  }
+}
+
+/* Mobile: tap to invoke */
+@media (hover: none) {
+  .two-reveal[open] .two-text {
+    opacity: 1;
+    pointer-events: auto;
+  }
+}
+
+/* Mobile reflow — margins don't exist, gloss enters flow */
+@media (max-width: 700px) {
+  .two-reveal .two-text {
+    position: static;
+    margin-top: 1.2rem;
+    max-width: 100%;
+  }
+}
+
+/* ---------------------------------------------------------
+   Micro-ornament echo for ௨ (inline scholium)
+   --------------------------------------------------------- */
+
+.one-anchor {
+  position: relative;
+  display: inline-block;
+}
+
+.two-trigger {
+  font-size: 0.6em;
+  color: var(--burnt-sienna);
+  margin-left: 0.05em;
+  vertical-align: super;
+  cursor: help;
+}
+
+/* Tooltip positioning: just above the word */
+.one-anchor .two-text {
+  position: absolute;
+  left: 50%;
+  bottom: 1.8em;
+  transform: translateX(-50%);
+  max-width: 320px;
+
+  background: rgba(10,10,12,0.95);
+  color: var(--bone);
+  font-size: 0.85rem;
+  line-height: 1.45;
+  padding: 0.75rem 0.9rem;
+
+  border-radius: 6px;
+  box-shadow: 0 10px 28px rgba(0,0,0,0.4);
+
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+  z-index: 30;
+}
+
+/* Reveal on hover */
+.one-anchor:hover .two-text,
+.two-trigger:hover + .two-text {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+
+/* Subtitle elements below title */
+
+.subtitle-primary {
+font-family: 'Rye', cursive;
+font-size: clamp(1.6rem, 4.8vw, 2.8rem);
+color: var(--shadow);
+text-align: center;
+letter-spacing: 0.12em;
+margin: 0.5em 0 0.3em;
+text-shadow: 2px 2px 0 var(--dust);
+font-weight: 400;
+}
+
+.subtitle-secondary {
+font-family: 'Rye', cursive;
+font-size: clamp(1.4rem, 4.2vw, 2.45rem);
+color: var(--saddle-brown);
+text-align: center;
+letter-spacing: 0.08em;
+margin: 0.3em 0 1.5em;
+text-shadow: 1px 1px 0 var(--sun-bleached);
+font-weight: 700;
+line-height: 1.4;
+}
+
+.subtitle-secondary .weather-text {
+color: var(--burnt-sienna);
+font-style: italic;
+}
+
+.dedication {
+text-align: center;
+font-style: italic;
+font-size: 0.95rem;
+color: var(--saddle-brown);
+margin-bottom: 4rem;
+letter-spacing: 0.05em;
+line-height: 1.6;
+}
+
+.dedication span {
+display: block;
+font-style: normal;
+font-family: 'Special Elite', monospace;
+font-size: 0.85rem;
+letter-spacing: 0.15em;
+margin-top: 0.3rem;
+color: var(--burnt-sienna);
+}
+
+/* Decorative border under title */
+.title-border {
+width: 60%;
+max-width: 300px;
+height: 3px;
+background: linear-gradient(90deg,
+transparent,
+var(--burnt-sienna) 20%,
+var(--burnt-sienna) 80%,
+transparent);
+margin: 0 auto 4rem;
+position: relative;
+}
+
+.title-border::before {
+content: '◆';
+position: absolute;
+left: 50%;
+top: 50%;
+transform: translate(-50%, -50%);
+background: var(--parchment);
+padding: 0 10px;
+color: var(--burnt-sienna);
+font-size: 0.8rem;
+}
+
+/* Epigraph styling - BOLD, dramatic, like a proclamation */
+.epigraph {
+border-left: 6px solid var(--dried-blood);
+padding: 2.5rem 3rem;
+margin: 4rem 0;
+background: linear-gradient(135deg,
+rgba(114, 47, 55, 0.12) 0%,
+rgba(139, 69, 19, 0.06) 100%);
+position: relative;
+box-shadow:
+inset 0 0 30px rgba(139, 69, 19, 0.1),
+4px 4px 0 rgba(44, 24, 16, 0.15);
+}
+
+.epigraph.sanskrit {
+text-align: center;
+border-left: none;
+border: none;
+padding: 3rem 2rem;
+background: var(--shadow);
+color: var(--parchment);
+box-shadow:
+inset 0 0 60px rgba(0, 0, 0, 0.5),
+0 8px 32px rgba(44, 24, 16, 0.4);
+position: relative;
+}
+
+.epigraph.sanskrit::before,
+.epigraph.sanskrit::after {
+content: '✦ ✦ ✦';
+display: block;
+letter-spacing: 0.5em;
+color: var(--rust);
+font-size: 0.8rem;
+opacity: 0.8;
+}
+
+.epigraph.sanskrit::before {
+margin-bottom: 1.5rem;
+}
+
+.epigraph.sanskrit::after {
+margin-top: 1.5rem;
+}
+
+.sanskrit-text {
+font-size: clamp(1.4rem, 4vw, 1.8rem);
+color: var(--dust);
+margin-bottom: 1.5rem;
+font-weight: 700;
+line-height: 1.6;
+text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.epigraph.sanskrit em {
+display: block;
+font-style: italic;
+color: var(--parchment);
+font-size: clamp(1.1rem, 3vw, 1.4rem);
+font-weight: 700;
+margin-bottom: 1rem;
+line-height: 1.5;
+}
+
+.epigraph.sanskrit .attribution {
+font-family: 'Rye', cursive;
+font-size: 1rem;
+color: var(--rust);
+letter-spacing: 0.15em;
+text-transform: uppercase;
+}
+
+/* Benjamin quote - western proclamation style */
+.epigraph.benjamin {
+border-left: none;
+border: 4px solid var(--burnt-sienna);
+text-align: center;
+padding: 3rem;
+background:
+linear-gradient(135deg, var(--parchment) 0%, var(--dust) 100%);
+position: relative;
+}
+
+.epigraph.benjamin::before {
+content: '❝';
+position: absolute;
+top: -0.3em;
+left: 50%;
+transform: translateX(-50%);
+font-size: 3rem;
+color: var(--burnt-sienna);
+background: var(--parchment);
+padding: 0 0.5rem;
+line-height: 1;
+}
+
+.epigraph.benjamin em {
+display: block;
+font-style: italic;
+color: var(--shadow);
+font-size: clamp(1.15rem, 3vw, 1.35rem);
+font-weight: 700;
+margin-bottom: 1.5rem;
+line-height: 1.7;
+}
+
+.epigraph .attribution {
+font-family: 'Rye', cursive;
+font-size: 0.95rem;
+color: var(--burnt-sienna);
+letter-spacing: 0.12em;
+text-transform: uppercase;
+}
+
+/* Section dividers - like a horizon line */
+.divider {
+text-align: center;
+margin: 4rem 0;
+color: var(--burnt-sienna);
+font-size: 1.5rem;
+letter-spacing: 1em;
+opacity: 0.6;
+}
+
+.divider::before {
+content: '— ☆ —';
+}
+
+/* Body text */
+p {
+margin-bottom: 1.5rem;
+text-align: left;
+text-indent: 0;
+}
+
+/* Standalone short lines - like dialogue in a western */
+.standalone {
+font-size: 1.1rem;
+margin: 2.5rem 0;
+padding-left: 2rem;
+border-left: 2px solid var(--rust);
+color: var(--shadow);
+}
+
+.standalone.centered {
+text-align: center;
+border-left: none;
+padding-left: 0;
+}
+
+/* Questions - like wanted poster items */
+.question {
+font-family: 'Special Elite', monospace;
+font-size: 1rem;
+color: var(--dried-blood);
+margin: 1.5rem 0;
+padding: 0.5rem 1rem;
+background: rgba(139, 69, 19, 0.08);
+border-left: 4px solid var(--rust);
+}
+
+/* Emphasis */
+em {
+font-style: italic;
+color: var(--burnt-sienna);
+}
+
+strong {
+font-weight: 700;
+color: var(--shadow);
+}
+
+/* Final section - the closing */
+.closing {
+text-align: center;
+margin-top: 5rem;
+padding-top: 3rem;
+border-top: 1px solid var(--burnt-sienna);
+}
+
+.closing p {
+text-align: center;
+font-size: 1.1rem;
+}
+
+.final-sanskrit {
+font-size: 1rem;
+color: var(--dried-blood);
+margin: 3rem 0 1rem;
+padding: 2rem;
+background: linear-gradient(135deg,
+rgba(114, 47, 55, 0.08) 0%,
+transparent 100%);
+border: 1px solid var(--burnt-sienna);
+}
+
+.final-attribution {
+font-family: 'Rye', cursive;
+font-size: 1rem;
+letter-spacing: 0.2em;
+color: var(--saddle-brown);
+margin-top: 1rem;
+}
+
+/* Coda */
+.coda {
+margin-top: 4rem;
+font-style: italic;
+color: var(--saddle-brown);
+}
+
+.coda p {
+margin-bottom: 0.8rem;
+}
+
+/* The end mark */
+.end-mark {
+text-align: center;
+margin-top: 5rem;
+font-size: 2rem;
+color: var(--burnt-sienna);
+opacity: 0.5;
+}
+
+/* Footnote styling - triśūla */
+.footnote-ref {
+font-size: 0.75em;
+vertical-align: super;
+color: var(--dried-blood);
+text-decoration: none;
+font-weight: 700;
+margin-left: 2px;
+}
+
+.footnotes {
+margin-top: 5rem;
+padding-top: 2rem;
+border-top: 2px solid var(--burnt-sienna);
+}
+
+.footnotes h3 {
+font-family: 'Rye', cursive;
+font-size: 1rem;
+letter-spacing: 0.2em;
+color: var(--saddle-brown);
+margin-bottom: 1.5rem;
+text-transform: uppercase;
+}
+
+.footnote {
+font-size: 0.9rem;
+line-height: 1.7;
+margin-bottom: 1.5rem;
+padding-left: 2rem;
+position: relative;
+color: var(--saddle-brown);
+}
+
+.footnote::before {
+content: 'Ψ';
+position: absolute;
+left: 0;
+color: var(--dried-blood);
+font-weight: 700;
+}
+
+.footnote em {
+color: var(--shadow);
+}
+/* Tamil CTA - the gateway */
+.tamil-cta {
+  font-family: 'Noto Sans Tamil', serif;
+  font-size: 2rem;
+  text-align: center;
+  margin: 3rem 0;
+}
+
+.tamil-cta a {
+  color: var(--dried-blood);
+  text-decoration: none;
+  padding: 0.5rem 2rem;
+  border: 2px solid var(--burnt-sienna);
+  transition: all 0.3s ease;
+}
+
+.tamil-cta a:hover {
+  background: var(--burnt-sienna);
+  color: var(--parchment);
+}
+/* Newsletter Section - moved to bottom */
+.newsletter-section {
+margin: 5rem auto 3rem;
+padding: 3rem 2rem;
+background: var(--midnight);
+border: 3px solid var(--burnt-sienna);
+box-shadow:
+  inset 0 0 30px rgba(139, 69, 19, 0.2),
+  0 8px 32px rgba(44, 24, 16, 0.3);
+max-width: 600px;
+}
+
+.newsletter-section h3 {
+font-family: 'Rye', cursive;
+font-size: clamp(1.5rem, 4vw, 2rem);
+color: var(--dust);
+text-align: center;
+letter-spacing: 0.1em;
+text-transform: uppercase;
+margin-bottom: 1rem;
+text-shadow: 2px 2px 0 var(--burnt-sienna);
+}
+
+.newsletter-section p {
+font-size: 0.9rem;
+text-align: center;
+color: var(--dust);
+margin-bottom: 1.5rem;
+line-height: 1.6;
+}
+
+.newsletter-form {
+display: flex;
+flex-direction: column;
+gap: 1rem;
+}
+
+.newsletter-input {
+padding: 0.75rem;
+font-size: 1rem;
+font-family: 'Spectral', serif;
+background: var(--parchment);
+border: 2px solid var(--burnt-sienna);
+color: var(--shadow);
+border-radius: 4px;
+transition: all 0.3s ease;
+}
+
+.newsletter-input:focus {
+outline: none;
+border-color: var(--rust);
+box-shadow: 0 0 10px rgba(183, 65, 14, 0.3);
+}
+
+.newsletter-input::placeholder {
+color: var(--saddle-brown);
+opacity: 0.7;
+}
+
+.newsletter-button {
+padding: 0.75rem 1.5rem;
+font-family: 'Rye', cursive;
+font-size: 1rem;
+letter-spacing: 0.1em;
+background: var(--burnt-sienna);
+color: var(--parchment);
+border: 2px solid var(--rust);
+border-radius: 4px;
+cursor: pointer;
+text-transform: uppercase;
+transition: all 0.3s ease;
+box-shadow: 0 4px 8px rgba(44, 24, 16, 0.3);
+}
+
+.newsletter-button:hover {
+background: var(--rust);
+transform: translateY(-2px);
+box-shadow: 0 6px 12px rgba(44, 24, 16, 0.4);
+}
+
+.newsletter-button:disabled {
+opacity: 0.5;
+cursor: not-allowed;
+transform: none;
+}
+
+.newsletter-message {
+margin-top: 1rem;
+padding: 0.75rem;
+border-radius: 4px;
+text-align: center;
+font-size: 0.9rem;
+display: none;
+}
+
+.newsletter-message.success {
+background: rgba(34, 197, 94, 0.2);
+border: 1px solid #22c55e;
+color: #22c55e;
+}
+
+.newsletter-message.error {
+background: rgba(239, 68, 68, 0.2);
+border: 1px solid #ef4444;
+color: #ef4444;
+}
+
+.newsletter-message.info {
+background: rgba(59, 130, 246, 0.2);
+border: 1px solid #3b82f6;
+color: #3b82f6;
+}
+
+.privacy-note {
+font-size: 0.75rem;
+text-align: center;
+color: var(--dust);
+margin-top: 1rem;
+font-style: italic;
+}
+
+/* Decorative corners - buffalo skulls */
+.corner.skull {
+position: fixed;
+width: 150px;
+height: 110px;
+opacity: 0;
+pointer-events: none;
+z-index: 900;
+color: var(--shadow);
+transition: opacity 1.2s ease;
+}
+
+.corner.skull.buffalo svg {
+width: 100%;
+height: 100%;
+}
+
+/* Christmas lights on buffalo skulls */
+.skull-light {
+  animation: skullTwinkle 2s ease-in-out infinite;
+}
+
+.skull-light:nth-child(4) { animation-delay: 0s; }
+.skull-light:nth-child(5) { animation-delay: 0.3s; }
+.skull-light:nth-child(6) { animation-delay: 0.6s; }
+.skull-light:nth-child(7) { animation-delay: 0.9s; }
+.skull-light:nth-child(8) { animation-delay: 1.2s; }
+.skull-light:nth-child(9) { animation-delay: 1.5s; }
+
+@keyframes skullTwinkle {
+  0%, 100% {
+    opacity: 1;
+    filter: brightness(1) drop-shadow(0 0 3px currentColor);
+  }
+  50% {
+    opacity: 0.4;
+    filter: brightness(1.5) drop-shadow(0 0 6px currentColor);
+  }
+}
+
+.corner.top-left {
+top: 80px;
+left: 20px;
+}
+
+.corner.top-right {
+top: 80px;
+right: 20px;
+transform: scaleX(-1);
+}
+
+.corner.bottom-left {
+bottom: 20px;
+left: 20px;
+transform: scaleY(-1);
+}
+
+.corner.bottom-right {
+bottom: 20px;
+right: 20px;
+transform: scale(-1, -1);
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+body {
+  padding: 1rem;
+  padding-top: 100px;
+}
+
+.container {
+  padding: 60px 25px 80px;
+}
+
+.sidebar {
+  display: none;
+}
+
+h1 {
+  letter-spacing: 0.08em;
+}
+
+h1::before,
+h1::after {
+  display: none;
+}
+
+.epigraph {
+  padding: 1rem 1.5rem;
+}
+
+.corner {
+  display: none;
+}
+
+.hero-symbols {
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.christmas-lights {
+  height: 60px;
+}
+
+.light {
+  width: 15px;
+  height: 22px;
+}
+}
+
+/* Subtle animation - like heat shimmer */
+@keyframes shimmer {
+0%, 100% { opacity: 0.3; }
+50% { opacity: 0.5; }
+}
+
+.corner {
+animation: shimmer 8s ease-in-out infinite;
+}
+
+/* =========================================================
+   EDITORIAL OVERRIDES — argument-driven layout intervention
+   ========================================================= */
+
+
+/* ---------------------------------------------------------
+   1. TEXTUAL DESCENT
+   Authority thins as the argument deepens
+   --------------------------------------------------------- */
+
+/* Entry remains monumental */
+body {
+  font-size: 36.2px;
+}
+
+/* Middle descent: Abhinava → Panini → Lacan */
+.container p:nth-of-type(n+12):nth-of-type(-n+45) {
+  font-size: 0.92em;
+}
+
+/* Final descent: questionnaire → fall → recognition */
+.container p:nth-of-type(n+46) {
+  font-size: 0.88em;
+  line-height: 1.85;
+}
+
+
+/* ---------------------------------------------------------
+   2. ORNAMENT DELAY
+   No delight before conceptual labor
+   --------------------------------------------------------- */
+
+
+/* Buffalo skulls initially hidden */
+.corner.skull {
+  opacity: 0;
+}
+
+
+/* ---------------------------------------------------------
+   3. SIDEBAR WITHDRAWAL
+   The Other recedes; solitude becomes possible
+   --------------------------------------------------------- */
+
+/* Mid-essay attenuation */
+.container:has(.divider:nth-of-type(3)) ~ .sidebar {
+  opacity: 0.25;
+  filter: grayscale(1);
+  transition: opacity 1s ease, filter 1s ease;
+}
+
+/* Deep essay: full withdrawal */
+.container:has(.divider:nth-of-type(5)) ~ .sidebar {
+  display: none;
+}
+
+
+/* ---------------------------------------------------------
+   4. NOMINATIVE ZONE
+   Grammatical nakedness where "I" is theorized
+   --------------------------------------------------------- */
+
+/* Strip texture and ornament reminders */
+.container p.nominal,
+.container p.nominative {
+  background: none !important;
+  box-shadow: none !important;
+  border: none !important;
+  padding-left: 0 !important;
+  text-indent: 0;
+  color: var(--shadow);
+}
+
+
+/* ---------------------------------------------------------
+   5. DIVIDER EROSION
+   From structure → atmosphere
+   --------------------------------------------------------- */
+
+.divider {
+  opacity: 0.6;
+}
+
+.container .divider:nth-of-type(n+4) {
+  opacity: 0.3;
+  letter-spacing: 0.6em;
+}
+
+/* =========================================================
+   SCROLL STATES — enacted philosophy
+   ========================================================= */
+
+
+/* ---------------------------------------------------------
+   STATE 0: ENTRY (default)
+   Monumental, instructive, structured
+   --------------------------------------------------------- */
+
+
+/* ---------------------------------------------------------
+   STATE 1: PASSED ORIENTATION
+   Ornament becomes permissible
+   --------------------------------------------------------- */
+
+body.passed-orientation .corner.skull {
+  opacity: 0.18;
+}
+
+
+/* ---------------------------------------------------------
+   STATE 2: ENTERED NOMINATIVE
+   The Other recedes; texture thins
+   --------------------------------------------------------- */
+
+body.entered-nominative .sidebar {
+  opacity: 0.25;
+  filter: grayscale(1);
+  transition: opacity 1s ease, filter 1s ease;
+}
+
+body.entered-nominative .container p {
+  font-size: 0.92em;
+}
+
+
+/* ---------------------------------------------------------
+   STATE 3: ENTERED RECOGNITION
+   Solitude; authority dissolves
+   --------------------------------------------------------- */
+
+body.entered-recognition .sidebar {
+  display: none;
+}
+
+body.entered-recognition .container p {
+  font-size: 0.88em;
+  line-height: 1.85;
+}
+
+body.entered-recognition .divider {
+  opacity: 0.3;
+  letter-spacing: 0.6em;
+}
+
+/* =========================================================
+   PROLEGOMENON SECTION
+   ========================================================= */
+
+/* Drop-in: Clearnet Prolegomenon */
+.prolegomenon{
+  --bg: #000;
+  --fg: #eae7df;
+  --muted: rgba(234,231,223,.72);
+  --hair: rgba(234,231,223,.18);
+  --accent: rgba(234,231,223,.92);
+
+  max-width: 68ch;
+  margin: 5rem auto;
+  padding: 0 1.25rem;
+  color: var(--fg);
+  line-height: 1.75;
+  position: relative;
+  font-size: 1.02rem;
+}
+
+/* "Not entirely" OM: single faint watermark */
+.prolegomenon.clearnet::before{
+  content: "ॐ";
+  position: absolute;
+  top: -1.6rem;
+  right: 1rem;
+  font-size: 4rem;
+  opacity: .05;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* Onion variant (no watermark) */
+.prolegomenon.onion{
+  /* inherits base styles, no ::before watermark */
+}
+
+/* Threshold line */
+.prolegomenon .threshold{
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  font-size: .85rem;
+  color: var(--muted);
+  margin: 0 0 1.25rem 0;
+}
+
+/* Itendu numeral image */
+.itendu-numeral {
+  display: inline-block;
+  height: 1.2em;
+  width: auto;
+  vertical-align: baseline;
+  margin-left: 0.15em;
+  filter: opacity(0.9);
+}
+
+/* Subhead */
+.prolegomenon .kicker{
+  font-size: .98rem;
+  letter-spacing: .04em;
+  color: var(--muted);
+  margin: 0 0 1.5rem 0;
+}
+
+/* Line variant (similar to threshold) */
+.prolegomenon .line{
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  font-size: .85rem;
+  color: var(--muted);
+  margin: 1.25rem 0;
+}
+
+/* Hairline divider */
+.prolegomenon .sigil{
+  border: 0;
+  border-top: 1px solid var(--hair);
+  margin: 2rem 0;
+}
+
+/* Triad paragraph */
+.prolegomenon .triad{
+  color: var(--accent);
+  margin-top: 1.25rem;
+}
+
+/* Mantra block */
+.prolegomenon .mantra{
+  margin-top: 2rem;
+  padding-left: 1rem;
+  border-left: 2px solid var(--hair);
+  color: var(--accent);
+}
+
+/* Closing */
+.prolegomenon .close{
+  margin-top: 1.5rem;
+  color: var(--muted);
+}
+
+/* Links (if any appear inside) */
+.prolegomenon a{
+  color: var(--fg);
+  text-decoration: none;
+  border-bottom: 1px solid var(--hair);
+}
+.prolegomenon a:hover{
+  border-bottom-color: var(--fg);
+}

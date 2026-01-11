@@ -1,0 +1,106 @@
+/* ---------- Root Atmosphere ---------- */
+:root {
+  --bg-deep: #060812;
+  --bg-mid: #0b1020;
+  --ink-soft: #cfe8e8;
+  --cyan-dim: rgba(0, 255, 255, 0.6);
+  --pink-dim: rgba(255, 0, 255, 0.55);
+  --green-dim: rgba(120, 255, 180, 0.45);
+}
+
+/* ---------- Global ---------- */
+body {
+  margin: 0;
+  padding: 0;
+  background: radial-gradient(
+    ellipse at top,
+    var(--bg-mid) 0%,
+    var(--bg-deep) 70%
+  );
+  font-family: 'Inter', 'Noto Serif Tamil', system-ui, sans-serif;
+  color: var(--ink-soft);
+  overflow: hidden;
+  letter-spacing: 0.01em;
+}
+
+/* ---------- Scroll Container ---------- */
+#scroll-container {
+  height: 100vh;
+  overflow-y: auto;
+  scroll-behavior: smooth;
+  scrollbar-width: thin;
+  scrollbar-color: var(--cyan-dim) transparent;
+}
+
+#scroll-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+#scroll-container::-webkit-scrollbar-thumb {
+  background: linear-gradient(
+    to bottom,
+    var(--pink-dim),
+    var(--cyan-dim)
+  );
+  border-radius: 4px;
+}
+
+/* ---------- Content ---------- */
+#scroll-content {
+  min-height: 300vh;
+  padding: 6rem 1.5rem 10rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18rem;
+}
+
+/* ---------- Headline / Threshold Text ---------- */
+.neon-text {
+  font-family: 'Orbitron', sans-serif;
+  font-size: clamp(2.2rem, 4vw, 3.2rem);
+  color: #ffd6ff;
+  text-shadow:
+    0 0 6px var(--pink-dim),
+    0 0 14px rgba(255, 0, 255, 0.35);
+  opacity: 0.9;
+  margin-top: 40vh;
+}
+
+/* ---------- Paragraphs ---------- */
+.neon-paragraph {
+  max-width: 48ch;
+  font-size: 1.1rem;
+  line-height: 1.7;
+  color: rgba(220, 245, 245, 0.85);
+  text-shadow: none;
+  opacity: 0.85;
+}
+
+/* ---------- Quiet Emphasis ---------- */
+.neon-paragraph em {
+  font-style: normal;
+  color: #ffffff;
+  opacity: 0.95;
+}
+
+/* ---------- Transitional Spacers ---------- */
+.spacer {
+  height: 120vh;
+}
+
+/* ---------- Subtle Fade-In (optional) ---------- */
+.fade-in {
+  animation: fadeUp 1.2s ease forwards;
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

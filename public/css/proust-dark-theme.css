@@ -1,0 +1,464 @@
+/* ============================================ */
+/* PROUST DARK THEME - Brothel Aesthetic */
+/* Inspired by Apple design with dark purple/blue → orange gradients */
+/* Neon pink accents, Orbitron typography */
+/* ============================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&display=swap');
+
+/* ============================================ */
+/* COLOR PALETTE - BASE */
+/* ============================================ */
+
+:root {
+  /* Primary dark backgrounds */
+  --brothel-deep-purple: #1a0a2e;
+  --brothel-dark-blue: #0f051d;
+  --brothel-midnight: #0a0515;
+
+  /* Gradient colors */
+  --brothel-purple: #2d1b4e;
+  --brothel-violet: #4a1e7a;
+  --brothel-indigo: #1e1b4b;
+  --brothel-orange: #ff6b35;
+  --brothel-burnt-orange: #d94a1f;
+  --brothel-amber: #ff8c42;
+
+  /* Neon accents */
+  --neon-pink: #ff0080;
+  --neon-pink-glow: rgba(255, 0, 128, 0.6);
+  --neon-orange: #ff6b35;
+  --neon-orange-glow: rgba(255, 107, 53, 0.5);
+  --neon-purple: #b24bf3;
+
+  /* Text colors */
+  --text-primary: #e8e4f3;
+  --text-secondary: #b8b0cc;
+  --text-dim: #8a7f99;
+  --text-bright: #ffffff;
+
+  /* Subtle lighting */
+  --dim-light: rgba(255, 107, 53, 0.08);
+  --warm-glow: rgba(255, 107, 53, 0.12);
+  --purple-mist: rgba(74, 30, 122, 0.15);
+
+  /* Transitions */
+  --transition-smooth: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-fast: all 0.2s ease;
+  --transition-slow: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ============================================ */
+/* DAY/NIGHT MODIFIERS */
+/* Applied based on solar data from Pondicherry */
+/* ============================================ */
+
+/* Daytime: Slightly lighter, warmer tones */
+body.time-day {
+  --brothel-deep-purple: #2d1b4e;
+  --brothel-dark-blue: #1a1235;
+  --brothel-midnight: #150a28;
+  --dim-light: rgba(255, 107, 53, 0.12);
+  --warm-glow: rgba(255, 107, 53, 0.18);
+}
+
+/* Night: Deeper, cooler, more saturated neons */
+body.time-night {
+  --brothel-deep-purple: #0f0520;
+  --brothel-dark-blue: #080312;
+  --brothel-midnight: #040208;
+  --neon-pink: #ff1a8c;
+  --neon-orange: #ff7c4d;
+  --dim-light: rgba(255, 0, 128, 0.06);
+  --warm-glow: rgba(255, 0, 128, 0.1);
+}
+
+/* Twilight/Dawn: Transitional state */
+body.time-twilight {
+  --brothel-deep-purple: #1f1239;
+  --brothel-dark-blue: #12091f;
+  --neon-pink: #ff3d99;
+  --neon-orange: #ff7442;
+  --dim-light: rgba(255, 61, 153, 0.1);
+}
+
+/* ============================================ */
+/* TOR/NOIR MODIFIER */
+/* Extra spare, minimal lighting */
+/* ============================================ */
+
+body.noir-mode {
+  --brothel-deep-purple: #000000;
+  --brothel-dark-blue: #050208;
+  --brothel-midnight: #000000;
+  --dim-light: rgba(255, 0, 128, 0.03);
+  --warm-glow: rgba(255, 0, 128, 0.05);
+  --text-primary: #9a8fad;
+  --text-secondary: #6b6179;
+}
+
+/* ============================================ */
+/* BASE STYLES */
+/* ============================================ */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  font-size: 16px;
+}
+
+body {
+  font-family: 'Spectral', Georgia, serif;
+  background: var(--brothel-midnight);
+  color: var(--text-primary);
+  line-height: 1.6;
+  min-height: 100vh;
+  position: relative;
+  overflow-x: hidden;
+  transition: var(--transition-slow);
+
+  /* Base gradient background */
+  background: linear-gradient(
+    135deg,
+    var(--brothel-midnight) 0%,
+    var(--brothel-deep-purple) 25%,
+    var(--brothel-dark-blue) 50%,
+    var(--brothel-purple) 75%,
+    var(--brothel-burnt-orange) 100%
+  );
+  background-attachment: fixed;
+}
+
+/* Dimly lit overlay - "brothel lighting" */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(
+    ellipse at 20% 30%,
+    var(--dim-light) 0%,
+    transparent 40%
+  ),
+  radial-gradient(
+    ellipse at 80% 70%,
+    var(--warm-glow) 0%,
+    transparent 45%
+  ),
+  radial-gradient(
+    circle at 50% 50%,
+    var(--purple-mist) 0%,
+    transparent 60%
+  );
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0.6;
+}
+
+/* Texture overlay for depth */
+body::after {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 2;
+  mix-blend-mode: overlay;
+}
+
+/* ============================================ */
+/* TYPOGRAPHY - Orbitron for Headlines */
+/* ============================================ */
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--text-bright);
+  text-shadow: 0 0 20px var(--neon-pink-glow);
+  line-height: 1.2;
+}
+
+h1 {
+  font-size: clamp(2.5rem, 8vw, 5rem);
+  font-weight: 900;
+  background: linear-gradient(
+    135deg,
+    var(--neon-pink) 0%,
+    var(--neon-orange) 50%,
+    var(--neon-purple) 100%
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 1.5rem;
+  position: relative;
+  z-index: 10;
+}
+
+h2 {
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  font-weight: 800;
+  color: var(--neon-orange);
+  margin-bottom: 1.2rem;
+}
+
+h3 {
+  font-size: clamp(1.5rem, 4vw, 2.5rem);
+  font-weight: 700;
+  color: var(--neon-pink);
+  margin-bottom: 1rem;
+}
+
+p {
+  font-family: 'Spectral', Georgia, serif;
+  font-size: clamp(1rem, 2vw, 1.125rem);
+  color: var(--text-secondary);
+  margin-bottom: 1rem;
+  line-height: 1.8;
+}
+
+a {
+  color: var(--neon-pink);
+  text-decoration: none;
+  transition: var(--transition-fast);
+  position: relative;
+}
+
+a:hover {
+  color: var(--neon-orange);
+  text-shadow: 0 0 12px var(--neon-orange-glow);
+}
+
+/* ============================================ */
+/* CONTAINER & LAYOUT */
+/* Mobile-first approach */
+/* ============================================ */
+
+.container {
+  width: 100%;
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 1rem;
+  position: relative;
+  z-index: 10;
+}
+
+@media (min-width: 768px) {
+  .container {
+    padding: 2rem;
+    max-width: 90%;
+  }
+}
+
+@media (min-width: 1024px) {
+  .container {
+    padding: 3rem;
+    max-width: 1200px;
+  }
+}
+
+@media (min-width: 1440px) {
+  .container {
+    padding: 4rem;
+    max-width: 1400px;
+  }
+}
+
+/* ============================================ */
+/* SECTIONS - Smooth reveal on scroll */
+/* ============================================ */
+
+section {
+  min-height: 60vh;
+  padding: 4rem 0;
+  opacity: 0;
+  transform: translateY(30px);
+  transition: var(--transition-slow);
+  position: relative;
+  z-index: 10;
+}
+
+section.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ============================================ */
+/* JUNGIAN ARCHETYPE BUTTONS */
+/* Circular action buttons with archetype symbols */
+/* ============================================ */
+
+.archetype-button {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  background: linear-gradient(
+    135deg,
+    var(--brothel-purple) 0%,
+    var(--brothel-indigo) 100%
+  );
+  border: 2px solid var(--neon-pink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: var(--transition-fast);
+  position: relative;
+  box-shadow:
+    0 0 20px var(--neon-pink-glow),
+    inset 0 0 15px rgba(0, 0, 0, 0.5);
+}
+
+.archetype-button:hover {
+  transform: scale(1.1);
+  box-shadow:
+    0 0 30px var(--neon-orange-glow),
+    inset 0 0 20px rgba(255, 107, 53, 0.3);
+  border-color: var(--neon-orange);
+}
+
+.archetype-button::before {
+  content: '';
+  position: absolute;
+  top: -4px;
+  left: -4px;
+  right: -4px;
+  bottom: -4px;
+  border-radius: 50%;
+  background: linear-gradient(
+    45deg,
+    var(--neon-pink) 0%,
+    var(--neon-orange) 50%,
+    var(--neon-purple) 100%
+  );
+  z-index: -1;
+  opacity: 0;
+  transition: var(--transition-fast);
+}
+
+.archetype-button:hover::before {
+  opacity: 0.5;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.5; transform: scale(1); }
+  50% { opacity: 0.8; transform: scale(1.05); }
+}
+
+/* Archetype icon placeholder */
+.archetype-icon {
+  font-size: 2rem;
+  color: var(--neon-pink);
+  filter: drop-shadow(0 0 8px var(--neon-pink-glow));
+}
+
+/* ============================================ */
+/* IMAGE CONTAINERS - Floating/layered */
+/* ============================================ */
+
+.image-container {
+  position: relative;
+  width: 100%;
+  margin: 2rem 0;
+  perspective: 1000px;
+}
+
+.floating-image {
+  width: 100%;
+  height: auto;
+  border-radius: 12px;
+  box-shadow:
+    0 20px 60px rgba(0, 0, 0, 0.5),
+    0 0 40px var(--neon-pink-glow);
+  transition: var(--transition-smooth);
+  position: relative;
+}
+
+.floating-image:hover {
+  transform: translateY(-10px) rotateX(2deg);
+  box-shadow:
+    0 30px 80px rgba(0, 0, 0, 0.6),
+    0 0 60px var(--neon-orange-glow);
+}
+
+/* Layered image effect */
+.image-layer {
+  position: absolute;
+  opacity: 0.3;
+  filter: blur(20px);
+  z-index: -1;
+}
+
+.image-layer.layer-1 {
+  top: 20px;
+  left: 20px;
+  transform: scale(0.95);
+}
+
+.image-layer.layer-2 {
+  top: 40px;
+  left: 40px;
+  transform: scale(0.9);
+}
+
+/* ============================================ */
+/* UTILITY CLASSES */
+/* ============================================ */
+
+.neon-text {
+  color: var(--neon-pink);
+  text-shadow:
+    0 0 10px var(--neon-pink-glow),
+    0 0 20px var(--neon-pink-glow),
+    0 0 30px var(--neon-pink-glow);
+}
+
+.dimly-lit {
+  opacity: 0.7;
+  transition: var(--transition-fast);
+}
+
+.dimly-lit:hover {
+  opacity: 1;
+}
+
+.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.visible {
+  opacity: 1;
+  pointer-events: all;
+}
+
+/* ============================================ */
+/* SCROLL ANIMATIONS */
+/* ============================================ */
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-on-scroll {
+  animation: fadeInUp 0.8s ease-out forwards;
+}

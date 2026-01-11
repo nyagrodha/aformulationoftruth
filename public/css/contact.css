@@ -1,0 +1,728 @@
+/* Madras fabric-inspired background pattern */
+.contact-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 3rem 1rem;
+    min-height: 100vh;
+    position: relative;
+}
+
+.contact-container::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background:
+        repeating-linear-gradient(
+            90deg,
+            transparent,
+            transparent 40px,
+            var(--accent-1) 40px,
+            var(--accent-1) 42px,
+            transparent 42px,
+            transparent 80px,
+            var(--accent-2) 80px,
+            var(--accent-2) 82px
+        ),
+        repeating-linear-gradient(
+            0deg,
+            transparent,
+            transparent 40px,
+            var(--accent-3) 40px,
+            var(--accent-3) 42px,
+            transparent 42px,
+            transparent 80px,
+            var(--accent-2) 80px,
+            var(--accent-2) 82px
+        );
+    opacity: 0.03;
+    z-index: -1;
+    pointer-events: none;
+}
+
+.contact-header {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.contact-header h1 {
+    margin-bottom: 1rem;
+}
+
+.contact-content {
+    background: var(--bg-card);
+    backdrop-filter: blur(12px);
+    border: 4px solid var(--border-color);
+    border-radius: 20px;
+    padding: 3rem 2.5rem;
+    box-shadow:
+        0 8px 24px var(--shadow-color),
+        inset 0 0 0 1px var(--accent-1),
+        inset 0 0 0 3px var(--bg-card),
+        inset 0 0 0 4px var(--accent-2);
+    margin-bottom: 2rem;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Madras fabric corner accents */
+.contact-content::after {
+    content: '';
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    width: 60px;
+    height: 60px;
+    background:
+        linear-gradient(45deg,
+            var(--accent-1) 0%,
+            var(--accent-1) 25%,
+            var(--accent-2) 25%,
+            var(--accent-2) 50%,
+            var(--accent-3) 50%,
+            var(--accent-3) 75%,
+            var(--accent-1) 75%
+        );
+    opacity: 0.15;
+    border-radius: 0 20px 0 0;
+    pointer-events: none;
+}
+
+.contact-content h2 {
+    color: var(--accent-1);
+    margin: 2rem 0 1rem;
+    font-size: 1.8rem;
+}
+
+.contact-content h2:first-child {
+    margin-top: 0;
+}
+
+.contact-content p {
+    margin-bottom: 1.5rem;
+    line-height: 1.8;
+}
+
+.contact-content ul {
+    margin: 1rem 0 1.5rem 2rem;
+    line-height: 1.8;
+}
+
+.contact-content li {
+    margin-bottom: 0.5rem;
+}
+
+.contact-content em {
+    color: var(--accent-2);
+}
+
+.back-link {
+    display: inline-block;
+    margin-top: 2rem;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    text-decoration: none;
+    font-family: 'Orbitron', sans-serif;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+/* Bottom navigation section */
+.contact-container > div[style*="text-align: center"] {
+    margin: 3rem auto 2rem;
+    padding: 2rem 1rem;
+}
+
+/* Button styles for navigation links - Madras fabric borders */
+.btn-primary {
+    background: var(--accent-1);
+    color: var(--bg-primary);
+    border: 3px solid var(--accent-1);
+    box-shadow:
+        0 0 15px var(--glow-1),
+        inset 0 0 0 2px var(--bg-primary),
+        inset 0 0 0 4px var(--accent-2);
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-primary::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background:
+        repeating-linear-gradient(
+            45deg,
+            transparent,
+            transparent 8px,
+            rgba(255, 255, 255, 0.05) 8px,
+            rgba(255, 255, 255, 0.05) 9px
+        );
+    pointer-events: none;
+}
+
+.btn-primary:hover {
+    box-shadow:
+        0 0 25px var(--glow-1),
+        0 0 40px var(--glow-1),
+        inset 0 0 0 2px var(--bg-primary),
+        inset 0 0 0 4px var(--accent-3);
+    transform: translateY(-2px);
+}
+
+.btn-secondary {
+    background: var(--bg-secondary);
+    color: var(--accent-2);
+    border-left: 4px solid var(--accent-2);
+    border-right: 4px solid var(--accent-3);
+    border-top: 2px solid var(--accent-1);
+    border-bottom: 2px solid var(--accent-1);
+    box-shadow: 0 0 10px var(--glow-2);
+}
+
+.btn-secondary:hover {
+    background: var(--accent-2);
+    color: var(--bg-primary);
+    border-left-color: var(--accent-3);
+    border-right-color: var(--accent-2);
+    box-shadow:
+        0 0 20px var(--glow-2),
+        0 0 35px var(--glow-2);
+    transform: translateY(-2px);
+}
+
+/* Responsive button layout */
+@media (max-width: 768px) {
+    .contact-content {
+        padding: 2rem 1.5rem;
+    }
+
+    .back-link {
+        display: block;
+        margin: 1rem auto !important;
+        max-width: 280px;
+    }
+
+    .contact-container > div[style*="text-align: center"] {
+        padding: 1.5rem 0.5rem;
+    }
+}
+
+/* Enhanced typography respecting theme system */
+.contact-content {
+    max-width: 70ch;
+    font-family: "Georgia", "Times New Roman", Times, serif;
+    color: var(--text-primary);
+    line-height: 1.8;
+    letter-spacing: 0.01em;
+}
+
+.contact-content h2 {
+    font-family: 'Orbitron', 'Palatino Linotype', serif;
+    font-size: 1.5rem;
+    margin: 2.5rem 0 1rem 0;
+    letter-spacing: 0.02em;
+    color: var(--accent-1);
+    text-transform: none;
+    text-shadow: 0 0 6px var(--glow-1);
+    font-weight: 600;
+}
+
+.contact-content h2:first-child {
+    margin-top: 0;
+}
+
+.contact-content p {
+    margin: 0 0 1.5rem 0;
+    font-size: 1.06rem;
+    text-align: left;
+    color: var(--text-primary);
+}
+
+.contact-content strong {
+    color: var(--accent-1);
+    font-weight: 600;
+}
+
+/* Ornament block inserted between paragraphs - Madras inspired */
+.ornament {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 2rem 0 2rem 0;
+    opacity: 0.8;
+    position: relative;
+}
+
+.ornament::before,
+.ornament::after {
+    content: '';
+    flex: 1;
+    height: 2px;
+    background: linear-gradient(
+        to right,
+        transparent,
+        var(--accent-1) 20%,
+        var(--accent-2) 50%,
+        var(--accent-3) 80%,
+        transparent
+    );
+    margin: 0 1rem;
+    opacity: 0.3;
+}
+
+/* SVG styling — vibrant Madras colors */
+.ornament svg {
+    width: 120px;
+    height: 14px;
+    display: block;
+    stroke: var(--accent-1);
+    fill: var(--accent-2);
+    stroke-width: 2;
+    filter:
+        drop-shadow(0 0 3px var(--accent-1))
+        drop-shadow(0 0 6px var(--glow-2));
+}
+
+/* Subtle smallcaps for the heading after ornament */
+.contact-content .subtle {
+    font-variant: small-caps;
+    font-size: 0.95rem;
+    color: var(--accent-3);
+    letter-spacing: .08em;
+    margin-bottom: 0.5rem;
+    text-shadow: 0 0 6px var(--glow-3);
+}
+
+/* Slightly larger first paragraph for emphasis */
+.contact-content p.lead {
+    font-size: 1.12rem;
+    margin-top: 0.25rem;
+    color: var(--text-primary);
+}
+
+/* Links within content */
+.contact-content a {
+    color: var(--accent-2);
+    text-decoration: underline;
+    text-decoration-color: var(--accent-3);
+    transition: all 0.3s ease;
+}
+
+.contact-content a:hover {
+    color: var(--accent-1);
+    text-shadow: 0 0 10px var(--glow-1);
+}
+
+/* Emphasis text */
+.contact-content em {
+    color: var(--accent-3);
+    font-style: italic;
+    text-shadow: 0 0 4px var(--glow-3);
+}
+
+/* Contact methods styling - Madras fabric inspired */
+.contact-method {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.25rem;
+    background: var(--bg-secondary);
+    border-left: 5px solid var(--accent-1);
+    border-right: 5px solid var(--accent-2);
+    border-top: 2px solid var(--accent-3);
+    border-bottom: 2px solid var(--accent-3);
+    border-radius: 8px;
+    margin: 1rem 0;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.contact-method::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background:
+        repeating-linear-gradient(
+            45deg,
+            transparent,
+            transparent 10px,
+            var(--accent-1) 10px,
+            var(--accent-1) 11px
+        );
+    opacity: 0.03;
+    pointer-events: none;
+}
+
+.contact-method:hover {
+    border-left-color: var(--accent-2);
+    border-right-color: var(--accent-1);
+    box-shadow:
+        0 0 20px var(--glow-1),
+        inset 0 0 30px rgba(var(--accent-1-rgb), 0.05);
+    transform: translateX(4px);
+}
+
+.contact-icon {
+    font-size: 1.5rem;
+    color: var(--accent-1);
+    min-width: 32px;
+    text-align: center;
+}
+
+.contact-info {
+    flex: 1;
+}
+
+.contact-label {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.85rem;
+    color: var(--accent-2);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.25rem;
+}
+
+.contact-value {
+    font-size: 1.1rem;
+    color: var(--text-primary);
+}
+
+/* Responsive tweaks */
+@media (max-width: 720px) {
+    .contact-content {
+        padding: 1.5rem;
+        max-width: 100%;
+    }
+    .ornament svg {
+        width: 90px;
+        height: 12px;
+    }
+}
+
+/* Sanskrit verse styling */
+.sanskrit-verse {
+    color: #d4af37;
+    text-shadow: 0 0 10px rgba(212, 175, 55, 0.5), 0 0 20px rgba(212, 175, 55, 0.3);
+    font-size: 1.1rem;
+    line-height: 1.9;
+    padding: 1.5rem;
+    background: radial-gradient(ellipse at center, rgba(212, 175, 55, 0.05) 0%, transparent 70%);
+    border-radius: 12px;
+}
+
+.sparkle-word {
+    position: relative;
+    display: inline-block;
+}
+
+.sparkle {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    width: 12px;
+    height: 12px;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.sparkle::before,
+.sparkle::after {
+    content: '✨';
+    position: absolute;
+    font-size: 12px;
+    color: #ffd700;
+    text-shadow: 0 0 8px rgba(255, 215, 0, 0.8);
+}
+
+@keyframes sparkle-animation {
+    0% { opacity: 0; transform: scale(0) rotate(0deg); }
+    50% { opacity: 1; transform: scale(1.2) rotate(180deg); }
+    100% { opacity: 0; transform: scale(0) rotate(360deg); }
+}
+
+.sparkle.active {
+    animation: sparkle-animation 1.5s ease-in-out;
+}
+
+/* Newsletter signup section - Madras fabric weave pattern */
+.newsletter-section {
+    margin: 2rem 0;
+    padding: 2rem;
+    background: var(--bg-secondary);
+    border-left: 6px solid var(--accent-2);
+    border-right: 6px solid var(--accent-1);
+    border-top: 3px solid var(--accent-3);
+    border-bottom: 3px solid var(--accent-3);
+    border-radius: 12px;
+    box-shadow:
+        0 0 20px var(--glow-2),
+        inset 0 2px 0 var(--accent-1),
+        inset 0 -2px 0 var(--accent-2);
+    position: relative;
+    overflow: hidden;
+}
+
+.newsletter-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background:
+        repeating-linear-gradient(
+            0deg,
+            transparent,
+            transparent 15px,
+            var(--accent-2) 15px,
+            var(--accent-2) 16px
+        ),
+        repeating-linear-gradient(
+            90deg,
+            transparent,
+            transparent 15px,
+            var(--accent-1) 15px,
+            var(--accent-1) 16px
+        );
+    opacity: 0.04;
+    pointer-events: none;
+}
+
+.newsletter-title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.3rem;
+    color: var(--accent-1);
+    margin-bottom: 1rem;
+    text-shadow: 0 0 10px var(--glow-1);
+}
+
+.newsletter-description {
+    font-size: 1rem;
+    margin-bottom: 1.5rem;
+    color: var(--text-secondary);
+}
+
+.email-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.email-input {
+    padding: 0.75rem;
+    font-size: 1rem;
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    font-family: 'Georgia', serif;
+    transition: all 0.3s ease;
+}
+
+.email-input:focus {
+    outline: none;
+    border-color: var(--accent-1);
+    box-shadow: 0 0 15px var(--glow-1);
+}
+
+.email-input::placeholder {
+    color: var(--text-secondary);
+    opacity: 0.6;
+}
+
+.subscribe-button {
+    padding: 0.75rem 2rem;
+    font-size: 1rem;
+    font-family: 'Orbitron', sans-serif;
+    border: none;
+    border-radius: 8px;
+    background: linear-gradient(90deg, var(--accent-1), var(--accent-2));
+    color: var(--bg-primary);
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 0 15px var(--glow-1);
+    transition: transform 0.2s ease;
+}
+
+.subscribe-button:hover {
+    transform: scale(1.05);
+}
+
+.subscribe-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.message {
+    margin-top: 1rem;
+    padding: 0.75rem;
+    border-radius: 8px;
+    font-size: 0.9rem;
+}
+
+.message.success {
+    background: rgba(0, 255, 0, 0.1);
+    border: 1px solid rgba(0, 255, 0, 0.4);
+    color: #00ff00;
+}
+
+.message.error {
+    background: rgba(255, 0, 0, 0.1);
+    border: 1px solid rgba(255, 0, 0, 0.4);
+    color: #ff6b6b;
+}
+
+.message.info {
+    background: rgba(0, 255, 255, 0.1);
+    border: 1px solid rgba(0, 255, 255, 0.4);
+    color: var(--accent-2);
+}
+
+.encryption-note {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin-top: 0.5rem;
+    font-style: italic;
+    text-align: center;
+}
+
+/* Privacy section styling */
+.privacy-practices {
+    margin: 2rem 0;
+}
+
+.privacy-practices h3 {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.2rem;
+    color: var(--accent-2);
+    margin: 2rem 0 1rem;
+    text-shadow: 0 0 6px var(--glow-2);
+    font-weight: 600;
+    letter-spacing: 0.02em;
+}
+
+.privacy-practices ul {
+    margin: 0.5rem 0 1rem 1.5rem;
+    line-height: 1.8;
+}
+
+.privacy-practices li {
+    margin-bottom: 0.5rem;
+    color: var(--text-primary);
+}
+
+.highlight-box {
+    padding: 1.5rem;
+    background: rgba(0, 255, 255, 0.05);
+    border-left: 6px solid var(--accent-1);
+    border-right: 3px solid var(--accent-2);
+    border-top: 2px solid var(--accent-3);
+    border-bottom: 2px solid var(--accent-3);
+    margin: 1.5rem 0;
+    border-radius: 8px;
+    position: relative;
+    overflow: hidden;
+}
+
+.highlight-box::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 50px;
+    height: 50px;
+    background:
+        linear-gradient(135deg,
+            transparent 40%,
+            var(--accent-1) 40%,
+            var(--accent-1) 45%,
+            var(--accent-2) 45%,
+            var(--accent-2) 50%,
+            var(--accent-3) 50%,
+            var(--accent-3) 55%,
+            transparent 55%
+        );
+    opacity: 0.2;
+    border-radius: 0 0 8px 0;
+}
+
+.code-ref {
+    font-family: 'Courier New', monospace;
+    font-size: 0.9rem;
+    background: var(--bg-secondary);
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    color: var(--accent-3);
+}
+
+@media (max-width: 768px) {
+    .newsletter-section {
+        padding: 1.5rem;
+    }
+}
+
+/* Donation button - vibrant neon pink Madras weave */
+.btn-donation {
+    background: linear-gradient(135deg, #ff1493 0%, #ff69b4 100%);
+    color: #fff;
+    border-left: 4px solid #ff1493;
+    border-right: 4px solid #ff69b4;
+    border-top: 3px solid #ffb6c1;
+    border-bottom: 3px solid #ff1493;
+    box-shadow:
+        0 0 20px #ff1493,
+        0 0 40px rgba(255, 20, 147, 0.5),
+        inset 0 0 0 2px rgba(255, 255, 255, 0.2);
+    text-shadow:
+        0 0 10px rgba(255, 255, 255, 0.8),
+        0 0 20px rgba(255, 20, 147, 0.6);
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-donation::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background:
+        repeating-linear-gradient(
+            90deg,
+            transparent,
+            transparent 12px,
+            rgba(255, 255, 255, 0.1) 12px,
+            rgba(255, 255, 255, 0.1) 13px
+        ),
+        repeating-linear-gradient(
+            0deg,
+            transparent,
+            transparent 12px,
+            rgba(255, 105, 180, 0.2) 12px,
+            rgba(255, 105, 180, 0.2) 13px
+        );
+    pointer-events: none;
+}
+
+.btn-donation:hover {
+    box-shadow:
+        0 0 30px #ff1493,
+        0 0 60px rgba(255, 20, 147, 0.7),
+        0 0 80px rgba(255, 20, 147, 0.4),
+        inset 0 0 0 2px rgba(255, 255, 255, 0.3);
+    transform: translateY(-2px) scale(1.02);
+    border-top-color: #ff1493;
+    border-bottom-color: #ff69b4;
+}

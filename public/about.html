@@ -3,233 +3,155 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>About - A Formulation of Truth</title>
+    <title>welcome - about a formulation of truth</title>
+
+
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="/css/madras-theme.css">
+
+    <meta name="description" content="Learn about the Proust Questionnaire and the practice of self-inquiry">
+
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            background: #000;
-            color: #00ffff;
-            font-family: 'Courier New', monospace;
-            min-height: 100vh;
-        }
-
-        .hero {
-            position: relative;
-            height: 60vh;
-            min-height: 400px;
-            background-image: url('/assets/thereisnogod.JPG');
-            background-size: cover;
-            background-position: center;
-            background-attachment: fixed;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .hero::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.6);
-        }
-
-        .hero-content {
-            position: relative;
-            z-index: 1;
-            text-align: center;
-            padding: 2rem;
-        }
-
-        .hero h1 {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-            color: #ff00ff;
-            text-shadow: 0 0 20px #ff00ff;
-        }
-
-        .hero-tagline {
-            font-size: 1.2rem;
-            color: #00ffff;
-            font-style: italic;
-        }
-
-        .container {
-            max-width: 900px;
-            margin: 0 auto;
-            padding: 4rem 2rem;
-        }
-
-        .section {
-            margin-bottom: 3rem;
-            padding: 2rem;
-            border: 1px solid rgba(0, 255, 255, 0.3);
-            border-radius: 10px;
-            background: rgba(0, 255, 255, 0.05);
-        }
-
-        .section h2 {
-            font-size: 2rem;
-            margin-bottom: 1.5rem;
-            color: #ff00ff;
-            border-bottom: 2px solid #ff00ff;
-            padding-bottom: 0.5rem;
-        }
-
-        .section p {
-            line-height: 1.8;
-            margin-bottom: 1rem;
-            color: #cccccc;
-        }
-
-        .section em {
-            color: #00ffff;
-            font-style: italic;
-        }
-
-        .section strong {
-            color: #ff00ff;
-        }
-
-        .quote {
-            border-left: 4px solid #00ffff;
-            padding-left: 1.5rem;
-            margin: 2rem 0;
-            font-style: italic;
-            color: #00ffff;
-        }
-
-        nav {
-            text-align: center;
-            padding: 2rem;
-            margin-top: 3rem;
-            border-top: 1px solid rgba(0, 255, 255, 0.3);
-        }
-
-        nav a {
-            color: #00ffff;
-            text-decoration: none;
-            margin: 0 1.5rem;
-            font-size: 1rem;
-            transition: all 0.3s ease;
-        }
-
-        nav a:hover {
-            color: #ff00ff;
-            text-shadow: 0 0 10px #ff00ff;
-        }
-
-        @media (max-width: 768px) {
-            .hero h1 {
-                font-size: 2rem;
-            }
-
-            .hero-tagline {
-                font-size: 1rem;
-            }
-
-            .section {
-                padding: 1.5rem;
-            }
-
-            .section h2 {
-                font-size: 1.5rem;
-            }
-        }
-    </style>
+        /* Page loads with Madras theme - no additional overrides needed */
+</style>
 </head>
 <body>
-    <div class="hero">
-        <div class="hero-content">
-            <h1>A Formulation of Truth</h1>
-            <p class="hero-tagline">Self-Inquiry • Recollection • Translation</p>
+    <!-- Theme Toggle -->
+    <div class="theme-toggle">
+        <button class="theme-btn active" data-theme="tamas" aria-label="Tamas theme">Tamas</button>
+        <button class="theme-btn" data-theme="nila" aria-label="Nīla theme">Nīla</button>
+        <button class="theme-btn" data-theme="uruvam" aria-label="Uruvam theme">Uruvam</button>
+    </div>
+
+    <div class="about-container">
+        <!-- Header -->
+        <div class="about-header">
+            <img src="/images/AusrbachianPassion.JPG" alt="Karuppacami - with auerbachian passion" class="about-header-image">
+            <h1>first and form: the name</h1>
+            <p style="color: var(--text-secondary);">a bit on the creator's vidyātīrtha</p>
+        </div>
+
+        <!-- Content -->
+ <div class="about-content">
+  <h2>what is a formulation of truth?</h2>
+
+  <p class="lead">
+    A formulation of truth is a website and an archive. A place where users remember in the mode of fragments. We create at once a repository and an electronic arcade. Here, artifacts of impressions both private and public pass under this glass, shimmering an afterimage of lived experiences, resurfacing within a respondent's awareness, translated from a remembered past. Here at a formulation of truth  memory is not linear narrative, but a constellation: unicum, curious memories, seemingly silly (the boundary line between hair/no hair at a man's ankle, a photograph of text, or a newspaper clipping) that, when held together, produce a sudden, dialectical image of a life today. The past very much in collision with the present, as when a knock on the door startles from a dream a subject awake and uncertain. The dreamer drenched in amber light--photons traveling from the heart of the sun more ancient than civilization--is this a fever dream?</p>
+
+  <div class="ornament" aria-hidden="true">
+    <!-- simple filigree SVG — color inherits from text -->
+    <svg viewBox="0 0 120 14" xmlns="http://www.w3.org/2000/svg" role="img" aria-hidden="true">
+      <path d="M6 7 C24 1, 36 13, 54 7 C72 1, 84 13, 102 7" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="20" cy="7" r="1.2" />
+      <circle cx="100" cy="7" r="1.2" />
+    </svg>
+  </div>
+
+  <h2 class="subtle">vividhā racanā: variegated composition</h2>
+
+  <p>
+    I envision this website as an instrument users may avail themselves to focus attention: not as a test, but a mechanic for rendering legible the past in the present. The Proust questionnaire dba karuppacāmi keḷvittaḷ captures, in contemporary parlance, a selfie taken from within--subject and archive colluding--so that when shared the singularity of this moment may be compared, contrasted, placed beside, felt through an other. The social dimension of the site treats these responses like worn, unique objects in an ornate cabinet: luminous curiosites susceptible to yet unknown meanings when parsed against different eyes responses. Reproducibility here  does not diminish aura; the site's structure is meant to redistribute it, allowing echoes to be heard in different rooms.
+  </p>
+
+  <div class="ornament" aria-hidden="true">
+    <svg viewBox="0 0 120 14" xmlns="http://www.w3.org/2000/svg" role="img" aria-hidden="true">
+      <path d="M6 7 C24 1, 36 13, 54 7 C72 1, 84 13, 102 7" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </div>
+
+  <p>
+    Though Karuppacami as the dark lord, protector of boundaries, and the incarnation of Śiva as Kāla Bhairava stand apart in name, both point to the same inexorable reality: time consecrates all as much as it consumes everything. We cultivate a sense of self within the living grammars of language, wherein words seemingly magical shape perception and speech which come to recognize one another in objects that reflect our intellects' capacious interiors. Being forever peripheral to the culture that quickens my heart-mind — an outsider by birth, an adherent by longing, and in the eyes of lineage a kind of outcaste — I have learned that reverence alone will not be adequate to unlearn how to recognize the simple truths that may exist if we allow. I practice something intentionally ambivalent: a startlng admixture of homage and its contrary, a devotion that questions and a critique that bows. This irreverence is not negation but method; it is the spanda of awareness rattling with laughter settled, stilted forms that they may be seen naked. At peace. Thus with heady truths, not as abstract propositions but recognition in habitus within which a self discovers itself within and amidst languages, ritual, knowledge, and the relentless passage of time.
+  </p>
+
+  <div class="ornament" aria-hidden="true">
+    <svg viewBox="0 0 120 14" xmlns="http://www.w3.org/2000/svg" role="img" aria-hidden="true">
+      <path d="M6 7 C24 1, 36 13, 54 7 C72 1, 84 13, 102 7" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="60" cy="7" r="1.0" />
+    </svg>
+  </div>
+
+  <p>
+  Technology is not neutral; it is the means by which this archive we may create acquires its contours and, at times, loses its aura. In our fascinating age so when a palimpsest is rare, our endeavour is that this site  becomes from many a visitor's responses an archive that receives, erases, and receives again to preserve the faint afterimage of what was and what yet endures. What we enliven now today. The servers, the apotropaic intention that admits a visitor, the shaping of type and script — these are not mere apparatus but the warp and weft by which we weave remembrance. A tapestry translated from delight, horripilation, anger, love, and more into a forum to see what's inside us each one among us and how similar yet different our lives are. The backend technology of this site subject that weaving to a privacy-first ethic: responses are guarded in transit (TLS 1.3) and kept encrypted at rest (AES-256), held behind strict access controls and practices of minimal retention — precautions that do not pretend to be talismans against all peril but that nevertheless constitute a vigilant custodianship over what users entrust to us.
+  </p>
+
+  <div class="ornament" aria-hidden="true">
+    <svg viewBox="0 0 120 14" xmlns="http://www.w3.org/2000/svg" role="img" aria-hidden="true">
+      <path d="M6 7 C24 1, 36 13, 54 7 C72 1, 84 13, 102 7" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </div>
+
+  <p>
+    Your site's creator beckons you enter as as a flâneur to the inner life: linger with on a question, return to reread a fragment, follow an odd hyperlink, get lost in the pages that may accumulate like collected objects on a table. We aim not to settle history into a cohesive narrative but to enable a possiblity for the archive render heretofore unknown perspective on oneself through new constellations — to let what we ourselves or others remember disturb what we think we know, and in that disturbance, to find a clearer, stranger sense of truth.
+
+  <div class="ornament" aria-hidden="true">
+    <svg viewBox="0 0 120 14" xmlns="http://www.w3.org/2000/svg" role="img" aria-hidden="true">
+      <path d="M6 7 C24 1, 36 13, 54 7 C72 1, 84 13, 102 7" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="100" cy="7" r="1.2" />
+    </svg>
+  </div>
+
+  <p>
+    I promote this questionnaire because of what it taught me about myself — a lesson learned the slow, patient way that memory teaches when it is allowed its little shocks. Contemporary life rushes past with a speed that would have seemed indecent to the cultural worlds that most quicken my heart; yet because it rushes, the self fractures and recomposes more readily, so that one may find oneself, at different periods in life, almost a stranger to the same questions. I answered these questions at twenty and again at thirty-two; looking back from thirty-two upon the twenty-year-old’s replies produced a startling disjunction — a tiny, melancholic revelation of how a single sensibility can reinvent itself to the point of becoming to itself foreign. From the vantage of today the thirty-two-year-old’s answers feel less strange, as if the middle layer of the palimpsest has begun to blend with the newer script; yet the fact remains: the two respondents were one person, and that identity’s persistence through alteration is the phenomenon the questionnaire rendered legible to me. For you end users I wish that it arrests the hurry, gathers fragments, and allows the slow work of recognition to proceed. We change — culturally, bodily, in the subtle economy of our tastes and affections — and that change is not failure but evidence of life; to witness it, in oneself and in others, is both consolation and method.
+  </p>
+</div>
+
+        <!-- Support Section -->
+        <div class="support-section">
+            <div class="support-header">
+                <h3>Support This Work</h3>
+                <p>If you enjoy this site consider supporting its continuation. We are grateful to anyone who contributes.</p>
+            </div>
+
+            <div class="crypto-support">
+                <div class="crypto-label">
+                    <span class="crypto-icon">⚡</span>
+                    <span>Zcash</span>
+                </div>
+                <div class="address-container">
+                    <code class="crypto-address" id="zcash-address">u17h46njzzm0gal5tplz8qtq009tqyxtvqu7c25uvun46nmrkux7u9064jgdk8lm8schulpz5t3rjpj7hd3rwcdsp4f86l9lxrsdxggqjffp46ry52z0hqg4g5mjvag8k4z6fkvakmtq5222qdsx20lu70l03xyn322tvz5qzeqygljjc7</code>
+                    <button class="copy-btn" onclick="copyZcashAddress()" aria-label="Copy Zcash address">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M13 5.5h-2V2H2v9h2.5v2H13V5.5zm-2.5 7H3v-7h2V3h5.5v2.5z" fill="currentColor"/>
+                        </svg>
+                        <span class="copy-text">Copy</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Back Link -->
+        <div style="text-align: center;">
+            <a href="/" class="btn btn-primary back-link">திரும்பவும்</a>
+            <a href="/questionnaire.html" class="btn btn-secondary back-link" style="margin-left: 1rem;">தொடங்கு</a>
         </div>
     </div>
 
-    <div class="container">
-        <div class="section">
-            <h2>On Self-Inquiry</h2>
-            <p>
-                <strong>Ramana Maharshi</strong> taught that the path to truth begins with the simple question: <em>"Who am I?"</em>
-                This practice of <strong>self-inquiry</strong> (ātma-vicāra) strips away the layers of identification with thoughts,
-                emotions, and experiences, revealing the unchanging witness beneath.
-            </p>
-            <div class="quote">
-                "The question 'Who am I?' is not really meant to get an answer, the question 'Who am I?'
-                is meant to dissolve the questioner."
-            </div>
-            <p>
-                The questionnaire you encounter here is not a psychological survey, but an invitation to this same inquiry—
-                an archaeology of the self, excavating the assumptions and identifications that construct the "I."
-            </p>
-        </div>
+    <!-- Scripts -->
+    <script>
+        function copyZcashAddress() {
+            const address = document.getElementById('zcash-address').textContent;
+            const button = event.target.closest('.copy-btn');
+            const copyText = button.querySelector('.copy-text');
 
-        <div class="section">
-            <h2>Recollection as Translation</h2>
-            <p>
-                <strong>Marcel Proust</strong>, in <em>In Search of Lost Time</em>, demonstrated that memory is not mere retrieval
-                but re-creation. The past exists not as fixed fact but as a living reconstruction, forever colored by the present
-                consciousness that recalls it.
-            </p>
-            <p>
-                <strong>Recollection is translation.</strong> What is a subject doing when it remembers, when it reflects, when it
-                articulates inner experience? It is rendering shareable something that is inherently <em>first-personal</em>—
-                translating the untranslatable, making public the private, transforming the ineffable into language.
-            </p>
-            <div class="quote">
-                "The real voyage of discovery consists not in seeking new landscapes, but in having new eyes."
-                <br>— Marcel Proust
-            </div>
-            <p>
-                Every response to a question about yourself is an act of translation. The prereflective experience becomes
-                reflective awareness becomes linguistic expression. In this process, truth is not discovered but <em>formulated</em>.
-            </p>
-        </div>
+            navigator.clipboard.writeText(address).then(() => {
+                copyText.textContent = 'Copied!';
+                button.style.background = 'var(--peacock-blue)';
+                button.style.color = 'var(--kolam-white)';
 
-        <div class="section">
-            <h2>The Paradox of Sharing the Unshared</h2>
-            <p>
-                There is a profound paradox at the heart of self-knowledge: the self that knows is attempting to know itself.
-                The subject becomes its own object. The <em>first-personal</em> perspective—that irreducible "what it is like"
-                to be you—must be translated into <em>third-personal</em> language to be communicated.
-            </p>
-            <p>
-                This questionnaire asks you to perform this impossible task: to make shareable what is fundamentally private,
-                to externalize what is internal, to objectify what is subjective. In doing so, you may discover that the self
-                you are trying to describe is transformed by the very act of description.
-            </p>
-            <p>
-                <strong>Truth</strong>, then, is not found but <strong>formulated</strong>. It emerges in the gap between
-                experience and expression, between being and articulation, between the questioner and the question itself.
-            </p>
-        </div>
-
-        <div class="section">
-            <h2>This Practice</h2>
-            <p>
-                Like Ramana's inquiry, this is a practice of dissolution. Like Proust's recollection, this is an act of
-                translation. The questions are mirrors, the answers are translations, and the truth—if there is such a
-                thing—lives in the space between.
-            </p>
-            <p>
-                There is no god to judge your answers. There is only you, attempting to render yourself legible to yourself,
-                discovering that the self is both the translator and the text, both the question and the answer, both the
-                formulation and the truth.
-            </p>
-        </div>
-
-        <nav>
-            <a href="/">Home</a>
-            <a href="/questionnaire">Begin Questionnaire</a>
-            <a href="/contact">Contact</a>
-        </nav>
-    </div>
+                setTimeout(() => {
+                    copyText.textContent = 'Copy';
+                    button.style.background = '';
+                    button.style.color = '';
+                }, 2000);
+            }).catch(err => {
+                console.error('Failed to copy:', err);
+                copyText.textContent = 'Failed';
+                setTimeout(() => {
+                    copyText.textContent = 'Copy';
+                }, 2000);
+            });
+        }
+    </script>
+    <script src="/js/theme-toggle.js"></script>
 </body>
 </html>

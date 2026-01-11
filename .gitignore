@@ -1,33 +1,65 @@
 # Dependencies
+node_modules
 node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
 # Environment variables
 .env
 .env.save
+.env.*
 .env.local
 .env.*.local
+.env.development.local
+.env.test.local
+.env.production.local
 
 # Build outputs
+dist
 dist/
+build
 build/
+.vite
 
 # IDE & Editor
 .vscode/
-.idea/
+!.vscode/extensions.json
+.idea
 *.swp
 *.swo
 *~
+
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
 
 # Claude Code
 .claude/
 
-# Logs
+# Logs & temp data
+logs
 logs/
 *.log
-npm-debug.log*
 cache/
 tmp/
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage & test artifacts
+coverage
+*.lcov
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
 
 # Keys and certificates
 keys/
@@ -37,10 +69,13 @@ keys/
 # Uploads and storage
 uploads/
 vps-storage/
+attached_assets/
 
-# Backups
+# Backups & archives
 *.backup
 *.bak
+*.tar.gz
+*.zip
 public.backup.*/
 
 # Generated files
@@ -51,27 +86,25 @@ backend
 frontend
 www/
 
-# Application-specific
+# Application-specific directories
 apps/
 assets/
-attached_assets/
 archived_html/
 construction-vite/
 drizzle/
 maintenance/
 packages/
-scripts/
-!server/scripts/
-services/
+/services/
 shared/
-src/
 static/
-tests/
+server/public
+vite.config.ts.*
 
-# Config files (managed separately)
+# Config files managed elsewhere
 Caddyfile
+vps-server.js
 
-# Documentation (ignored by default)
+# Documentation (track selected files only)
 *.md
 !README.md
 !DATABASE_SETUP.md
