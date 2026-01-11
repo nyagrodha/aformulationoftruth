@@ -108,7 +108,6 @@ vps-server.js
 *.md
 !README.md
 !DATABASE_SETUP.md
-!NETWORK_SETUP.md
 !public/SHUFFLE-IMPLEMENTATION.md
 
 # Allow project configuration tracked in this repository

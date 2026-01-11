@@ -1,0 +1,78 @@
+{
+	# ACME contact (optional but recommended)
+	email admin@aformulationoftruth.com
+}
+
+# --- Reusable snippets ---
+(header_security) {
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "no-referrer-when-downgrade"
+		Permissions-Policy "geolocation=(), microphone=(), camera=()"
+	}
+}
+
+(common) {
+	encode zstd gzip
+	import header_security
+	log {
+		output file /var/log/caddy/access.log
+		format json
+	}
+}
+
+# --- Primary Sites ---
+https://aformulationoftruth.com, https://www.aformulationoftruth.com, https://app.aformulationoftruth.com {
+	bind 37.228.129.173 2a06:1700:1:45::435c:c15f
+	import common
+
+	# API proxy to backend server
+	handle /api/* {
+		reverse_proxy http://localhost:3000
+	}
+
+	# Auth endpoints proxy to backend
+	handle /auth/* {
+		reverse_proxy http://localhost:3000
+	}
+
+	# Uploads
+	handle_path /uploads/* {
+		root * /var/www/aformulationoftruth/uploads
+		file_server
+	}
+
+	# Static frontend files
+	handle {
+		root * /var/www/aformulationoftruth/public
+		try_files {path} /index.html
+		file_server
+	}
+}
+
+# Proust Questionnaire - Gupta Vidyā Gateway (End-to-End Encrypted)
+https://proust.aformulationoftruth.com {
+	bind 37.228.129.173 2a06:1700:1:45::435c:c15f
+	import common
+
+	# API proxy to Proust server (encrypted auth endpoints)
+	handle /api/* {
+		reverse_proxy http://localhost:5743
+	}
+
+	# Static frontend files for Proust questionnaire
+	handle {
+		root * /var/www/aformulationoftruth/apps/proust/public
+		try_files {path} /index.html
+		file_server
+	}
+}
+
+# VPN Management Interface (keep operational during maintenance)
+https://vpn.aformulationoftruth.com {
+	bind 37.228.129.173 2a06:1700:1:45::435c:c15f
+	import common
+	reverse_proxy http://172.17.0.2:51821
+}
