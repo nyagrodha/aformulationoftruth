@@ -5,7 +5,9 @@
 import * as $0 from "./routes/index.tsx";
 import * as $1 from "./routes/auth.tsx";
 import * as $2 from "./routes/questionnaire.tsx";
+import * as $3 from "./routes/begin.tsx";
 import * as $$0 from "./islands/QuestionnaireForm.tsx";
+import * as $$1 from "./islands/GateQuestions.tsx";
 
 import type { Manifest } from "$fresh/server.ts";
 
@@ -14,9 +16,11 @@ const manifest = {
     "./routes/index.tsx": $0,
     "./routes/auth.tsx": $1,
     "./routes/questionnaire.tsx": $2,
+    "./routes/begin.tsx": $3,
   },
   islands: {
     "./islands/QuestionnaireForm.tsx": $$0,
+    "./islands/GateQuestions.tsx": $$1,
   },
   baseUrl: import.meta.url,
 } satisfies Manifest;
