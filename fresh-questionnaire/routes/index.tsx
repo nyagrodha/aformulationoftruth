@@ -9,6 +9,18 @@ interface IndexData {
 
 export const handler: Handlers<IndexData> = {
   async GET(req, ctx) {
+    const url = new URL(req.url);
+    const gateSessionId = url.searchParams.get("gateSession");
+
+    // If no gate session, redirect to begin page for sequential questions
+    if (!gateSessionId) {
+      return new Response(null, {
+        status: 302,
+        headers: { Location: "/begin" },
+      });
+    }
+
+    // If gate session exists, show email form to continue
     return ctx.render({});
   },
 
