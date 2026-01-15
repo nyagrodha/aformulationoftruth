@@ -1,39 +1,46 @@
 {
-  "nodeModulesDir": "auto",
+  "$schema": "https://deno.land/x/deno/cli/schemas/config-file.v1.json",
+  "lock": false,
   "tasks": {
-    "dev": "deno run --allow-net --allow-read --allow-write --allow-env --watch backend/server-deno.ts",
-    "start": "deno run --allow-net --allow-read --allow-write --allow-env backend/server-deno.ts",
-    "test": "deno test --allow-net --allow-read --allow-write --allow-env"
+    "check": "deno fmt --check && deno lint && deno check **/*.ts **/*.tsx",
+    "dev": "deno run -A --watch=static/,routes/ dev.ts",
+    "build": "deno run -A dev.ts build",
+    "preview": "deno run -A main.ts",
+    "start": "deno run --allow-net=:7268 --allow-env=PORT,DATABASE_URL,PGHOST,PGPORT,PGDATABASE,PGUSER,PGPASSWORD,PGSSLMODE,BASE_URL,DENO_ENV,SENDGRID_API_KEY,TWILIO_ACCOUNT_SID,TWILIO_AUTH_TOKEN,TWILIO_VERIFY_SERVICE_SID --allow-read=./static,./public,./.env --deny-write --deny-run main.ts",
+    "db:migrate": "deno run --allow-net --allow-env --allow-read=./db/migrations migrate.ts"
   },
   "imports": {
-    "oak": "https://deno.land/x/oak@v17.1.4/mod.ts",
-    "cors": "https://deno.land/x/cors@v1.2.2/mod.ts",
-    "dotenv": "https://deno.land/std@0.224.0/dotenv/mod.ts",
+    "$fresh/": "https://deno.land/x/fresh@1.7.3/",
+    "$std/": "https://deno.land/std@0.224.0/",
+    "preact": "https://esm.sh/preact@10.24.3",
+    "preact/": "https://esm.sh/preact@10.24.3/",
+    "@preact/signals": "https://esm.sh/*@preact/signals@1.3.1",
+    "@preact/signals-core": "https://esm.sh/*@preact/signals-core@1.8.0",
     "postgres": "https://deno.land/x/postgres@v0.19.3/mod.ts",
-    "bcrypt": "https://deno.land/x/bcrypt@v0.4.1/mod.ts",
-    "djwt": "https://deno.land/x/djwt@v3.0.2/mod.ts",
-    "path": "https://deno.land/std@0.224.0/path/mod.ts",
-    "fs": "https://deno.land/std@0.224.0/fs/mod.ts",
-    "crypto": "https://deno.land/std@0.224.0/crypto/mod.ts",
-    "nodemailer": "npm:nodemailer@^7.0.5",
-    "@sendgrid/mail": "npm:@sendgrid/mail@^8.1.6"
+    "zod": "https://deno.land/x/zod@v3.23.8/mod.ts"
   },
   "compilerOptions": {
-    "allowJs": true,
-    "lib": ["deno.window", "dom"],
-    "strict": true
+    "lib": ["dom", "dom.iterable", "dom.asynciterable", "deno.ns"],
+    "jsx": "react-jsx",
+    "jsxImportSource": "preact"
+  },
+  "nodeModulesDir": "none",
+  "fmt": {
+    "useTabs": false,
+    "lineWidth": 100,
+    "indentWidth": 2,
+    "singleQuote": true
   },
   "lint": {
     "rules": {
-      "tags": ["recommended"]
+      "tags": ["recommended"],
+      "include": ["no-unused-vars"]
     }
   },
-  "fmt": {
-    "useTabs": false,
-    "lineWidth": 120,
-    "indentWidth": 2,
-    "semiColons": true,
-    "singleQuote": true,
-    "proseWrap": "preserve"
-  }
+  "exclude": [
+    "node_modules/",
+    "dist/",
+    "trash/",
+    "_fresh/"
+  ]
 }

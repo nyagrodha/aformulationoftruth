@@ -30,7 +30,7 @@ background-image:
 url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
 background-blend-mode: multiply;
 display: grid;
-grid-template-columns: 200px 1fr 200px;
+grid-template-columns: 280px 1fr 280px;
 gap: 2rem;
 padding: 2rem;
 padding-top: 100px;
@@ -56,6 +56,117 @@ radial-gradient(ellipse at 20% 20%, transparent 60%, rgba(139, 69, 19, 0.08) 100
 radial-gradient(ellipse at 80% 80%, transparent 60%, rgba(139, 69, 19, 0.08) 100%);
 pointer-events: none;
 z-index: 1000;
+}
+
+/* Christmas Lights - Adafruit Style */
+.christmas-lights {
+position: fixed;
+top: 0;
+left: 0;
+width: 100%;
+height: 80px;
+z-index: 2000;
+pointer-events: none;
+display: flex;
+justify-content: space-around;
+align-items: flex-start;
+padding-top: 10px;
+}
+
+.light {
+width: 20px;
+height: 30px;
+border-radius: 50% 50% 40% 40%;
+position: relative;
+animation: twinkle 2s ease-in-out infinite;
+}
+
+.light::before {
+content: '';
+position: absolute;
+top: -8px;
+left: 50%;
+transform: translateX(-50%);
+width: 4px;
+height: 10px;
+background: #2C1810;
+border-radius: 2px;
+}
+
+.light::after {
+content: '';
+position: absolute;
+top: 0;
+left: 0;
+width: 100%;
+height: 100%;
+border-radius: 50% 50% 40% 40%;
+background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.8), transparent);
+}
+
+.light.red {
+background: linear-gradient(135deg, #ff0000, #cc0000);
+box-shadow: 0 0 20px #ff0000, 0 0 40px #ff0000;
+animation-delay: 0s;
+}
+
+.light.green {
+background: linear-gradient(135deg, #00ff00, #00cc00);
+box-shadow: 0 0 20px #00ff00, 0 0 40px #00ff00;
+animation-delay: 0.3s;
+}
+
+.light.blue {
+background: linear-gradient(135deg, #0000ff, #0000cc);
+box-shadow: 0 0 20px #0000ff, 0 0 40px #0000ff;
+animation-delay: 0.6s;
+}
+
+.light.yellow {
+background: linear-gradient(135deg, #ffff00, #cccc00);
+box-shadow: 0 0 20px #ffff00, 0 0 40px #ffff00;
+animation-delay: 0.9s;
+}
+
+.light.purple {
+background: linear-gradient(135deg, #ff00ff, #cc00cc);
+box-shadow: 0 0 20px #ff00ff, 0 0 40px #ff00ff;
+animation-delay: 1.2s;
+}
+
+.light.cyan {
+background: linear-gradient(135deg, #00ffff, #00cccc);
+box-shadow: 0 0 20px #00ffff, 0 0 40px #00ffff;
+animation-delay: 1.5s;
+}
+
+@keyframes twinkle {
+0%, 100% {
+  opacity: 1;
+  filter: brightness(1);
+}
+50% {
+  opacity: 0.5;
+  filter: brightness(1.5);
+}
+}
+
+/* Wire for lights */
+.lights-wire {
+position: fixed;
+top: 20px;
+left: 0;
+width: 100%;
+height: 2px;
+background: repeating-linear-gradient(
+  90deg,
+  #2C1810 0px,
+  #2C1810 5px,
+  transparent 5px,
+  transparent 10px
+);
+z-index: 1999;
+pointer-events: none;
 }
 
 /* Snowflake Container */
@@ -245,174 +356,17 @@ transform: skewY(-2deg);
     0 0 2px rgba(255, 255, 255, 0.5),
     2px 2px 3px rgba(255, 255, 255, 0.3),
     -2px -2px 3px rgba(255, 255, 255, 0.2);
-  }
 }
-/* ---------------------------------------------------------
-   Tamil ௨ — Marginal Reveal (dvitīya-prakāśa)
-   
-   The numeral hovers in monumental obsidian. On interaction,
-   explanatory text reveals in the margin—the vimarśa that
-   accompanies prakāśa.
-   --------------------------------------------------------- */
-
-.two-reveal {
-  position: relative;
-  display: inline-block;
 }
 
-/* Remove default details marker */
-.two-reveal summary {
-  list-style: none;
-  cursor: pointer;
+/* Spaghetti Bowl SVG */
+.spaghetti-bowl {
+width: clamp(80px, 15vw, 120px);
+height: clamp(80px, 15vw, 120px);
+filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.3));
 }
-.two-reveal summary::-webkit-details-marker {
-  display: none;
-}
-
-/* ---------------------------------------------------------
-   Tamil ௨ — marginal gloss, manuscript logic
-
-   The numeral as prakāśa; the gloss as vimarśa.
-   Hover on desktop reveals incidentally.
-   Tap on mobile invokes deliberately.
-   --------------------------------------------------------- */
-
-.two-reveal {
-  position: relative;
-  display: inline-block;
-}
-
-/* Remove summary UI completely */
-.two-reveal summary {
-  all: unset;
-  display: block;
-  text-align: center;
-  cursor: pointer;
-}
-
-/* The numeral itself — monumental obsidian */
-.tamil-numeral-2 {
-  display: block;
-  font-family: 'Noto Sans Tamil', sans-serif;
-  font-size: clamp(6rem, 14vw, 10rem);
-  font-weight: 700;
-  line-height: 1;
-  margin: 0 auto;
-  color: var(--obsidian);
-  text-shadow:
-    0 0 1px rgba(255, 255, 255, 0.3),
-    1px 1px 2px rgba(255, 255, 255, 0.2);
-  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.5));
-  animation: obsidianShimmer 3s ease-in-out infinite;
-  transform: skewY(-2deg);
-}
-
-/* The marginal gloss */
-.two-reveal .two-text {
-  position: absolute;
-  top: 0.3em;
-  left: 115%;
-
-  width: max-content;
-  max-width: min(440px, 90vw);
-
-  background: rgba(10, 10, 12, 0.95);
-  color: var(--bone);
-  font-size: 0.9rem;
-  line-height: 1.5;
-  padding: 0.9rem 1.1rem;
-
-  border-radius: 4px;
-  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.4);
-
-  text-align: left;
-  white-space: normal;
-
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.15s ease;
-  z-index: 30;
-}
-
-/* Desktop: hover as incidental access */
-@media (hover: hover) and (pointer: fine) {
-  .two-reveal:hover .two-text {
-    opacity: 1;
-    pointer-events: auto;
-  }
-
-  .two-reveal[open] .two-text {
-    opacity: 0;
-  }
-}
-
-/* Mobile: tap to invoke */
-@media (hover: none) {
-  .two-reveal[open] .two-text {
-    opacity: 1;
-    pointer-events: auto;
-  }
-}
-
-/* Mobile reflow — margins don't exist, gloss enters flow */
-@media (max-width: 700px) {
-  .two-reveal .two-text {
-    position: static;
-    margin-top: 1.2rem;
-    max-width: 100%;
-  }
-}
-
-/* ---------------------------------------------------------
-   Micro-ornament echo for ௨ (inline scholium)
-   --------------------------------------------------------- */
-
-.one-anchor {
-  position: relative;
-  display: inline-block;
-}
-
-.two-trigger {
-  font-size: 0.6em;
-  color: var(--burnt-sienna);
-  margin-left: 0.05em;
-  vertical-align: super;
-  cursor: help;
-}
-
-/* Tooltip positioning: just above the word */
-.one-anchor .two-text {
-  position: absolute;
-  left: 50%;
-  bottom: 1.8em;
-  transform: translateX(-50%);
-  max-width: 320px;
-
-  background: rgba(10,10,12,0.95);
-  color: var(--bone);
-  font-size: 0.85rem;
-  line-height: 1.45;
-  padding: 0.75rem 0.9rem;
-
-  border-radius: 6px;
-  box-shadow: 0 10px 28px rgba(0,0,0,0.4);
-
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.15s ease;
-  z-index: 30;
-}
-
-/* Reveal on hover */
-.one-anchor:hover .two-text,
-.two-trigger:hover + .two-text {
-  opacity: 1;
-  pointer-events: auto;
-}
-
 
 /* Subtitle elements below title */
-
 .subtitle-primary {
 font-family: 'Rye', cursive;
 font-size: clamp(1.6rem, 4.8vw, 2.8rem);
@@ -756,26 +710,7 @@ font-weight: 700;
 .footnote em {
 color: var(--shadow);
 }
-/* Tamil CTA - the gateway */
-.tamil-cta {
-  font-family: 'Noto Sans Tamil', serif;
-  font-size: 2rem;
-  text-align: center;
-  margin: 3rem 0;
-}
 
-.tamil-cta a {
-  color: var(--dried-blood);
-  text-decoration: none;
-  padding: 0.5rem 2rem;
-  border: 2px solid var(--burnt-sienna);
-  transition: all 0.3s ease;
-}
-
-.tamil-cta a:hover {
-  background: var(--burnt-sienna);
-  color: var(--parchment);
-}
 /* Newsletter Section - moved to bottom */
 .newsletter-section {
 margin: 5rem auto 3rem;
@@ -897,68 +832,26 @@ margin-top: 1rem;
 font-style: italic;
 }
 
-/* Decorative corners - buffalo skulls */
-.corner.skull {
+/* Decorative corners */
+.corner {
 position: fixed;
-width: 150px;
-height: 110px;
-opacity: 0;
+width: 60px;
+height: 60px;
+opacity: 0.3;
 pointer-events: none;
 z-index: 900;
-color: var(--shadow);
-transition: opacity 1.2s ease;
 }
 
-.corner.skull.buffalo svg {
+.corner svg {
 width: 100%;
 height: 100%;
+fill: var(--burnt-sienna);
 }
 
-/* Christmas lights on buffalo skulls */
-.skull-light {
-  animation: skullTwinkle 2s ease-in-out infinite;
-}
-
-.skull-light:nth-child(4) { animation-delay: 0s; }
-.skull-light:nth-child(5) { animation-delay: 0.3s; }
-.skull-light:nth-child(6) { animation-delay: 0.6s; }
-.skull-light:nth-child(7) { animation-delay: 0.9s; }
-.skull-light:nth-child(8) { animation-delay: 1.2s; }
-.skull-light:nth-child(9) { animation-delay: 1.5s; }
-
-@keyframes skullTwinkle {
-  0%, 100% {
-    opacity: 1;
-    filter: brightness(1) drop-shadow(0 0 3px currentColor);
-  }
-  50% {
-    opacity: 0.4;
-    filter: brightness(1.5) drop-shadow(0 0 6px currentColor);
-  }
-}
-
-.corner.top-left {
-top: 80px;
-left: 20px;
-}
-
-.corner.top-right {
-top: 80px;
-right: 20px;
-transform: scaleX(-1);
-}
-
-.corner.bottom-left {
-bottom: 20px;
-left: 20px;
-transform: scaleY(-1);
-}
-
-.corner.bottom-right {
-bottom: 20px;
-right: 20px;
-transform: scale(-1, -1);
-}
+.corner.top-left { top: 80px; left: 20px; }
+.corner.top-right { top: 80px; right: 20px; transform: rotate(90deg); }
+.corner.bottom-left { bottom: 20px; left: 20px; transform: rotate(-90deg); }
+.corner.bottom-right { bottom: 20px; right: 20px; transform: rotate(180deg); }
 
 /* Responsive */
 @media (max-width: 600px) {
@@ -1015,259 +908,4 @@ h1::after {
 
 .corner {
 animation: shimmer 8s ease-in-out infinite;
-}
-
-/* =========================================================
-   EDITORIAL OVERRIDES — argument-driven layout intervention
-   ========================================================= */
-
-
-/* ---------------------------------------------------------
-   1. TEXTUAL DESCENT
-   Authority thins as the argument deepens
-   --------------------------------------------------------- */
-
-/* Entry remains monumental */
-body {
-  font-size: 36.2px;
-}
-
-/* Middle descent: Abhinava → Panini → Lacan */
-.container p:nth-of-type(n+12):nth-of-type(-n+45) {
-  font-size: 0.92em;
-}
-
-/* Final descent: questionnaire → fall → recognition */
-.container p:nth-of-type(n+46) {
-  font-size: 0.88em;
-  line-height: 1.85;
-}
-
-
-/* ---------------------------------------------------------
-   2. ORNAMENT DELAY
-   No delight before conceptual labor
-   --------------------------------------------------------- */
-
-
-/* Buffalo skulls initially hidden */
-.corner.skull {
-  opacity: 0;
-}
-
-
-/* ---------------------------------------------------------
-   3. SIDEBAR WITHDRAWAL
-   The Other recedes; solitude becomes possible
-   --------------------------------------------------------- */
-
-/* Mid-essay attenuation */
-.container:has(.divider:nth-of-type(3)) ~ .sidebar {
-  opacity: 0.25;
-  filter: grayscale(1);
-  transition: opacity 1s ease, filter 1s ease;
-}
-
-/* Deep essay: full withdrawal */
-.container:has(.divider:nth-of-type(5)) ~ .sidebar {
-  display: none;
-}
-
-
-/* ---------------------------------------------------------
-   4. NOMINATIVE ZONE
-   Grammatical nakedness where "I" is theorized
-   --------------------------------------------------------- */
-
-/* Strip texture and ornament reminders */
-.container p.nominal,
-.container p.nominative {
-  background: none !important;
-  box-shadow: none !important;
-  border: none !important;
-  padding-left: 0 !important;
-  text-indent: 0;
-  color: var(--shadow);
-}
-
-
-/* ---------------------------------------------------------
-   5. DIVIDER EROSION
-   From structure → atmosphere
-   --------------------------------------------------------- */
-
-.divider {
-  opacity: 0.6;
-}
-
-.container .divider:nth-of-type(n+4) {
-  opacity: 0.3;
-  letter-spacing: 0.6em;
-}
-
-/* =========================================================
-   SCROLL STATES — enacted philosophy
-   ========================================================= */
-
-
-/* ---------------------------------------------------------
-   STATE 0: ENTRY (default)
-   Monumental, instructive, structured
-   --------------------------------------------------------- */
-
-
-/* ---------------------------------------------------------
-   STATE 1: PASSED ORIENTATION
-   Ornament becomes permissible
-   --------------------------------------------------------- */
-
-body.passed-orientation .corner.skull {
-  opacity: 0.18;
-}
-
-
-/* ---------------------------------------------------------
-   STATE 2: ENTERED NOMINATIVE
-   The Other recedes; texture thins
-   --------------------------------------------------------- */
-
-body.entered-nominative .sidebar {
-  opacity: 0.25;
-  filter: grayscale(1);
-  transition: opacity 1s ease, filter 1s ease;
-}
-
-body.entered-nominative .container p {
-  font-size: 0.92em;
-}
-
-
-/* ---------------------------------------------------------
-   STATE 3: ENTERED RECOGNITION
-   Solitude; authority dissolves
-   --------------------------------------------------------- */
-
-body.entered-recognition .sidebar {
-  display: none;
-}
-
-body.entered-recognition .container p {
-  font-size: 0.88em;
-  line-height: 1.85;
-}
-
-body.entered-recognition .divider {
-  opacity: 0.3;
-  letter-spacing: 0.6em;
-}
-
-/* =========================================================
-   PROLEGOMENON SECTION
-   ========================================================= */
-
-/* Drop-in: Clearnet Prolegomenon */
-.prolegomenon{
-  --bg: #000;
-  --fg: #eae7df;
-  --muted: rgba(234,231,223,.72);
-  --hair: rgba(234,231,223,.18);
-  --accent: rgba(234,231,223,.92);
-
-  max-width: 68ch;
-  margin: 5rem auto;
-  padding: 0 1.25rem;
-  color: var(--fg);
-  line-height: 1.75;
-  position: relative;
-  font-size: 1.02rem;
-}
-
-/* "Not entirely" OM: single faint watermark */
-.prolegomenon.clearnet::before{
-  content: "ॐ";
-  position: absolute;
-  top: -1.6rem;
-  right: 1rem;
-  font-size: 4rem;
-  opacity: .05;
-  pointer-events: none;
-  user-select: none;
-}
-
-/* Onion variant (no watermark) */
-.prolegomenon.onion{
-  /* inherits base styles, no ::before watermark */
-}
-
-/* Threshold line */
-.prolegomenon .threshold{
-  letter-spacing: .08em;
-  text-transform: uppercase;
-  font-size: .85rem;
-  color: var(--muted);
-  margin: 0 0 1.25rem 0;
-}
-
-/* Itendu numeral image */
-.itendu-numeral {
-  display: inline-block;
-  height: 1.2em;
-  width: auto;
-  vertical-align: baseline;
-  margin-left: 0.15em;
-  filter: opacity(0.9);
-}
-
-/* Subhead */
-.prolegomenon .kicker{
-  font-size: .98rem;
-  letter-spacing: .04em;
-  color: var(--muted);
-  margin: 0 0 1.5rem 0;
-}
-
-/* Line variant (similar to threshold) */
-.prolegomenon .line{
-  letter-spacing: .08em;
-  text-transform: uppercase;
-  font-size: .85rem;
-  color: var(--muted);
-  margin: 1.25rem 0;
-}
-
-/* Hairline divider */
-.prolegomenon .sigil{
-  border: 0;
-  border-top: 1px solid var(--hair);
-  margin: 2rem 0;
-}
-
-/* Triad paragraph */
-.prolegomenon .triad{
-  color: var(--accent);
-  margin-top: 1.25rem;
-}
-
-/* Mantra block */
-.prolegomenon .mantra{
-  margin-top: 2rem;
-  padding-left: 1rem;
-  border-left: 2px solid var(--hair);
-  color: var(--accent);
-}
-
-/* Closing */
-.prolegomenon .close{
-  margin-top: 1.5rem;
-  color: var(--muted);
-}
-
-/* Links (if any appear inside) */
-.prolegomenon a{
-  color: var(--fg);
-  text-decoration: none;
-  border-bottom: 1px solid var(--hair);
-}
-.prolegomenon a:hover{
-  border-bottom-color: var(--fg);
 }
