@@ -22,7 +22,6 @@
     "express-validator": "^7.3.1",
     "fs-extra": "^11.3.2",
     "jsonwebtoken": "^9.0.2",
-    "keybase-bot": "^3.6.1",
     "node-fetch": "^3.3.2",
     "node-rsa": "^1.1.1",
     "node-telegram-bot-api": "^0.66.0",

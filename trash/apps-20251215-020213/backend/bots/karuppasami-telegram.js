@@ -7,7 +7,9 @@
 
 import TelegramBot from 'node-telegram-bot-api';
 import crypto from 'crypto';
+import fs from 'fs';
 import { fisherYatesShuffle } from '../utils/fisherYates_shuffle.js';
+import PDFGenerator from '../utils/pdf-generator.js';
 
 // Proust Questionnaire questions
 const questions = [
@@ -53,6 +55,7 @@ class KaruppasāmiBot {
     this.bot = new TelegramBot(token, { polling: true });
     this.db = dbClient;
     this.userStates = new Map();
+    this.pdfGenerator = new PDFGenerator();
 
     this.setupHandlers();
     console.log('👹 கருப்பசாமி awakens...');
@@ -217,10 +220,11 @@ class KaruppasāmiBot {
     await this.bot.sendMessage(chatId,
       `*Commands:*\n\n` +
       `/start – Begin or continue\n` +
-      `/next – Next question\n` +
+      `/next – Next question (or skip)\n` +
       `/status – View progress\n` +
-      `/pause – Pause\n` +
-      `/help – Help\n\n` +
+      `/export – Download your responses as PDF\n` +
+      `/pause – Pause session\n` +
+      `/help – Show this help\n\n` +
       `*About the project:*\n\n` +
       `This is the Proust Questionnaire: 35 personal questions ` +
       `intended for reflection.\n\n` +
@@ -243,17 +247,117 @@ class KaruppasāmiBot {
 
   async handleExport(msg) {
     const chatId = msg.chat.id;
+    const username = msg.from.username || msg.from.first_name || 'Seeker';
 
-    await this.bot.sendMessage(chatId,
-      `📄 *Export Options*\n\n` +
-      `Your responses can be:\n\n` +
-      `1️⃣ Viewed online at:\n` +
-      `https://aformulationoftruth.com/responsivousplay\n\n` +
-      `2️⃣ Emailed as PDF (reply: EMAIL)\n` +
-      `3️⃣ Mailed as physical document (reply: MAIL)\n\n` +
-      `How would you like to receive your responses?`,
-      { parse_mode: 'Markdown' }
-    );
+    try {
+      // Get session and check if any responses exist
+      const session = await this.getSession(chatId);
+      if (!session) {
+        await this.bot.sendMessage(chatId,
+          `No questionnaire session found.\n\nUse /start to begin your journey.`
+        );
+        return;
+      }
+
+      // Fetch all responses for this session
+      const responses = await this.getUserResponses(chatId);
+
+      if (responses.length === 0) {
+        await this.bot.sendMessage(chatId,
+          `No responses found yet.\n\nUse /next to answer questions first.`
+        );
+        return;
+      }
+
+      // Send "generating" message
+      const statusMsg = await this.bot.sendMessage(chatId,
+        `📄 *Generating your PDF...*\n\n` +
+        `Please wait while I compile your ${responses.length} responses.`,
+        { parse_mode: 'Markdown' }
+      );
+
+      // Generate PDF
+      const pdfResult = await this.pdfGenerator.generateQuestionnairePDF(
+        responses,
+        `@${username} (Telegram)`
+      );
+
+      if (!pdfResult.success) {
+        await this.bot.editMessageText(
+          `❌ *PDF Generation Failed*\n\n` +
+          `Error: ${pdfResult.error}\n\n` +
+          `Your responses are still safe. You can view them at:\n` +
+          `https://aformulationoftruth.com/responsivousplay`,
+          { chat_id: chatId, message_id: statusMsg.message_id, parse_mode: 'Markdown' }
+        );
+        return;
+      }
+
+      // Delete the "generating" message
+      await this.bot.deleteMessage(chatId, statusMsg.message_id);
+
+      // Send the PDF document
+      await this.bot.sendDocument(chatId, pdfResult.filepath, {
+        caption: `📜 *Your Proust Questionnaire*\n\n` +
+          `${responses.length} responses compiled.\n` +
+          `Generated: ${new Date().toLocaleDateString('en-US', {
+            year: 'numeric', month: 'long', day: 'numeric'
+          })}\n\n` +
+          `_a formulation of truth_`,
+        parse_mode: 'Markdown'
+      });
+
+      // Clean up the PDF file after sending (delay to ensure upload completes)
+      setTimeout(() => {
+        try {
+          fs.unlinkSync(pdfResult.filepath);
+          console.log(`✅ Cleaned up PDF: ${pdfResult.filename}`);
+        } catch (err) {
+          console.error('Error cleaning up PDF:', err);
+        }
+      }, 5000);
+
+      console.log(`📄 PDF delivered to @${username} (chat ${chatId})`);
+
+    } catch (error) {
+      console.error('Error in /export:', error);
+      await this.bot.sendMessage(chatId,
+        `❌ An error occurred while generating your PDF.\n\n` +
+        `Your responses are still safe. You can view them at:\n` +
+        `https://aformulationoftruth.com/responsivousplay`
+      );
+    }
+  }
+
+  /**
+   * Fetch all user responses for PDF generation
+   */
+  async getUserResponses(chatId) {
+    try {
+      const result = await this.db.query(
+        `SELECT
+          qo.question_text as question,
+          ua.answer_text as answer,
+          qo.question_position
+         FROM questionnaire_sessions s
+         JOIN questionnaire_question_order qo ON qo.session_id = s.id
+         LEFT JOIN user_answers ua ON ua.session_id = s.id
+           AND ua.question_id = qo.question_id
+         WHERE s.platform_user_id = $1
+           AND s.platform = 'telegram'
+           AND qo.answered = TRUE
+         ORDER BY qo.question_position ASC`,
+        [chatId.toString()]
+      );
+
+      return result.rows.map(row => ({
+        question: row.question,
+        answer: row.answer || null
+      }));
+    } catch (error) {
+      console.error('Error fetching user responses:', error);
+      return [];
+    }
   }
 
   async handleMessage(msg) {
@@ -306,6 +410,9 @@ class KaruppasāmiBot {
         `Type /next to begin.`,
         { parse_mode: 'Markdown' }
       );
+    } else if (data === 'export_pdf') {
+      // Trigger PDF export via the handleExport method
+      await this.handleExport({ ...query.message, from: query.from });
     }
   }
 
@@ -438,12 +545,19 @@ class KaruppasāmiBot {
 
       await this.bot.sendMessage(chatId,
         `🌟 *COMPLETION* 🌟\n\n` +
-        `The questionnaire is complete.\n\n` +
+        `முடிந்தது! (Muṭintatu!) — The questionnaire is complete.\n\n` +
         `You have answered all 35 questions.\n\n` +
         `Your answers can be viewed at:\n` +
-        `https://aformulationoftruth.com/responsivousplay\n\n` +
-        `Type /export for more options.`,
-        { parse_mode: 'Markdown' }
+        `https://aformulationoftruth.com/responsivousplay`,
+        {
+          parse_mode: 'Markdown',
+          reply_markup: {
+            inline_keyboard: [[
+              { text: '📄 Download PDF', callback_data: 'export_pdf' },
+              { text: '🌐 View Online', url: 'https://aformulationoftruth.com/responsivousplay' }
+            ]]
+          }
+        }
       );
 
       this.userStates.delete(chatId);

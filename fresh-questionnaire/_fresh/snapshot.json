@@ -1,0 +1,25 @@
+{
+  "build_id": "1296a76529b59e3aa1e0789061afce7b91c02082",
+  "files": {
+    "main.js": [
+      "chunk-RQATRPXP.js",
+      "chunk-H4FMBZ3H.js"
+    ],
+    "deserializer.js": [],
+    "signals.js": [
+      "chunk-RQATRPXP.js",
+      "chunk-P7U3EQSE.js",
+      "chunk-H4FMBZ3H.js"
+    ],
+    "chunk-RQATRPXP.js": [],
+    "island-questionnaireform.js": [
+      "chunk-P7U3EQSE.js",
+      "chunk-H4FMBZ3H.js"
+    ],
+    "chunk-P7U3EQSE.js": [
+      "chunk-H4FMBZ3H.js"
+    ],
+    "chunk-H4FMBZ3H.js": [],
+    "metafile.json": []
+  }
+}

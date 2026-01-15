@@ -224,12 +224,6 @@ export const config = {
     },
   },
 
-  // Keybase Bot
-  keybase: {
-    username: process.env.KEYBASE_USERNAME,
-    paperKey: process.env.KEYBASE_PAPER_KEY,
-  },
-
   // Logging
   logging: {
     level: optionalEnv('LOG_LEVEL', 'info'),
