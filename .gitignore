@@ -21,6 +21,11 @@ dist/
 build
 build/
 .vite
+_fresh/
+
+# Trash (moved files pending deletion)
+trashy/
+trash/
 
 # IDE & Editor
 .vscode/
@@ -101,8 +106,10 @@ server/public
 vite.config.ts.*
 
 # Config files managed elsewhere
-Caddyfile
 vps-server.js
+
+# Docker secrets
+docker/pyaz/
 
 # Documentation (track selected files only)
 *.md
