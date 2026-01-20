@@ -27,6 +27,55 @@
     box-sizing: border-box;
 }
 
+/* Global focus indicators for keyboard accessibility */
+a:focus-visible {
+    outline: 2px solid var(--neon-pink);
+    outline-offset: 3px;
+}
+
+button:focus-visible,
+[role="button"]:focus-visible {
+    outline: 2px solid var(--neon-orange);
+    outline-offset: 3px;
+}
+
+input:focus-visible {
+    outline: 2px solid var(--neon-emerald);
+    outline-offset: 3px;
+}
+
+textarea:focus-visible {
+    outline: 2px solid #0af;
+    outline-offset: 3px;
+}
+
+select:focus-visible,
+[tabindex]:focus-visible:not([tabindex="-1"]) {
+    outline: 2px solid var(--neon-pink);
+    outline-offset: 3px;
+}
+
+/* Skip link for keyboard navigation */
+.skip-link {
+    position: absolute;
+    top: -100px;
+    left: 16px;
+    background: var(--neon-emerald);
+    color: var(--void);
+    padding: 12px 24px;
+    font-weight: bold;
+    text-decoration: none;
+    z-index: 10000;
+    border-radius: 4px;
+    transition: top 0.2s ease;
+}
+
+.skip-link:focus {
+    top: 16px;
+    outline: 2px solid var(--neon-orange);
+    outline-offset: 3px;
+}
+
 html {
     font-size: 16px;
     scroll-behavior: smooth;
@@ -125,6 +174,80 @@ nav {
 
 .nav-links a:hover::after {
     width: 100%;
+}
+
+/* Indic Numeral Column - vertical countdown 5→2 */
+.indic-column {
+    position: absolute;
+    left: 5%;
+    top: 15%;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    z-index: 10;
+    pointer-events: none;
+}
+
+.indic-num {
+    font-size: clamp(4rem, 10vw, 7rem);
+    font-weight: 400;
+    line-height: 1;
+}
+
+/* Staggered opacity pulse - same rate, offset timing, unequal peaks */
+@keyframes indicPulse5 {
+    0%, 100% { opacity: 0.08; }
+    50% { opacity: 0.32; }
+}
+
+@keyframes indicPulse4 {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.25; }
+}
+
+@keyframes indicPulse3 {
+    0%, 100% { opacity: 0.06; }
+    50% { opacity: 0.22; }
+}
+
+@keyframes indicPulse2 {
+    0%, 100% { opacity: 0.10; }
+    50% { opacity: 0.38; }
+}
+
+/* Kannada 5 - cyan/teal */
+.kannada-5 {
+    font-family: 'Noto Sans Kannada', sans-serif;
+    color: #00d4aa;
+    text-shadow: 0 0 30px rgba(0, 212, 170, 0.4);
+    animation: indicPulse5 8s ease-in-out infinite;
+}
+
+/* Devanagari 4 - neon green */
+.devanagari-4 {
+    font-family: 'Noto Sans Devanagari', sans-serif;
+    color: var(--neon-emerald);
+    text-shadow: 0 0 30px var(--emerald-glow);
+    animation: indicPulse4 8s ease-in-out infinite;
+    animation-delay: -2s;
+}
+
+/* Sharada 3 - teal/cyan */
+.sharada-3 {
+    font-family: 'Noto Sans Sharada', sans-serif;
+    color: #00c4b4;
+    text-shadow: 0 0 30px rgba(0, 196, 180, 0.4);
+    animation: indicPulse3 8s ease-in-out infinite;
+    animation-delay: -4s;
+}
+
+/* irendu (Tamil 2) image */
+.irendu-2 {
+    width: clamp(60px, 12vw, 100px);
+    height: auto;
+    filter: drop-shadow(0 0 20px var(--orange-glow));
+    animation: indicPulse2 8s ease-in-out infinite;
+    animation-delay: -6s;
 }
 
 /* Hero Section */
@@ -387,12 +510,25 @@ nav {
     animation: fadeSlideUp 1s ease 0.6s forwards;
 }
 
-/* Television Container - Retro CRT Style */
+/* Television Container - Retro CRT Style with Image Frame */
 .tv-container {
     margin: 2rem auto 2.5rem;
-    max-width: 320px;
+    max-width: 500px;
     opacity: 0;
     animation: fadeSlideUp 1s ease 0.7s forwards;
+}
+
+/* Image-based TV frame */
+.tv-frame-img {
+    position: relative;
+    width: 100%;
+}
+
+.tv-frame-bg {
+    display: block;
+    width: 100%;
+    height: auto;
+    filter: drop-shadow(0 12px 40px rgba(0, 0, 0, 0.7)) drop-shadow(0 0 60px rgba(255, 180, 100, 0.15));
 }
 
 /* TV Frame - vintage boxy CRT with wood-grain aesthetic */
@@ -431,21 +567,25 @@ nav {
     opacity: 0.5;
 }
 
-/* TV Screen - square with heavy rounded corners like vintage CRT */
+/* TV Screen - positioned within the ātmanoptican frame */
 .tv-screen {
-    position: relative;
-    background: radial-gradient(ellipse at center, #0a0f0a 0%, #050805 60%, #020302 100%);
-    border-radius: 20px;
-    padding: 2rem;
-    aspect-ratio: 1 / 0.85;
-    min-height: 180px;
+    position: absolute;
+    top: 17%;
+    left: 21%;
+    width: 56%;
+    aspect-ratio: 1 / 1;
+    background: radial-gradient(
+        ellipse at center,
+        #0a0f0a 0%,
+        #050805 60%,
+        #020302 100%
+    );
+    border-radius: 4px;
+    padding: 0;
     overflow: hidden;
     box-shadow:
         inset 0 0 40px rgba(0, 0, 0, 0.9),
-        inset 0 0 80px rgba(0, 20, 10, 0.4),
-        0 0 2px rgba(100, 200, 140, 0.15),
-        0 0 0 4px #0d0b08,
-        0 0 0 6px #1a1612;
+        inset 0 0 80px rgba(0, 20, 10, 0.4);
     animation: tvGlow 8s ease-in-out infinite;
 }
 
@@ -485,63 +625,53 @@ nav {
     pointer-events: none;
     z-index: 2;
     opacity: 0.6;
-    border-radius: 20px;
+    border-radius: 4px;
 }
 
 /* Screen flicker - slow, infrastructural */
 @keyframes tvGlow {
-    0%, 100% {
+    0% {
         box-shadow:
             inset 0 0 40px rgba(0, 0, 0, 0.9),
-            inset 0 0 80px rgba(0, 20, 10, 0.4),
-            0 0 2px rgba(100, 200, 140, 0.15),
-            0 0 0 4px #0d0b08,
-            0 0 0 6px #1a1612;
-    }
-    25% {
-        box-shadow:
-            inset 0 0 40px rgba(0, 0, 0, 0.9),
-            inset 0 0 80px rgba(0, 20, 10, 0.45),
-            0 0 4px rgba(100, 200, 140, 0.2),
-            0 0 0 4px #0d0b08,
-            0 0 0 6px #1a1612;
+            inset 0 0 80px rgba(0, 20, 10, 0.35),
+            0 0 12px rgba(80, 255, 140, 0.15);
     }
     50% {
         box-shadow:
-            inset 0 0 40px rgba(0, 0, 0, 0.85),
-            inset 0 0 80px rgba(0, 20, 10, 0.5),
-            0 0 6px rgba(100, 200, 140, 0.25),
-            0 0 0 4px #0d0b08,
-            0 0 0 6px #1a1612;
+            inset 0 0 45px rgba(0, 0, 0, 0.95),
+            inset 0 0 90px rgba(0, 30, 15, 0.45),
+            0 0 18px rgba(80, 255, 140, 0.25);
     }
-    75% {
+    100% {
         box-shadow:
             inset 0 0 40px rgba(0, 0, 0, 0.9),
-            inset 0 0 80px rgba(0, 20, 10, 0.42),
-            0 0 3px rgba(100, 200, 140, 0.18),
-            0 0 0 4px #0d0b08,
-            0 0 0 6px #1a1612;
+            inset 0 0 80px rgba(0, 20, 10, 0.35),
+            0 0 12px rgba(80, 255, 140, 0.15);
     }
 }
 
-/* TV Content - background radiation feel */
+/* TV Content - fills the screen area */
 .tv-content {
-    position: relative;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
     z-index: 1;
-    height: 100%;
     overflow: hidden;
     animation: contentFlicker 12s ease-in-out infinite;
-    border-radius: 20px;
+    border-radius: 4px;
+    padding: 0.5rem;
 }
 
-/* Scrolling container */
+/* Scrolling container - slower pace for reading */
 .tv-scroll {
     position: relative;
     z-index: 1;
     display: flex;
     flex-direction: column;
-    gap: 0.4rem;
-    animation: scrollUp 42s linear infinite;
+    gap: 0.6rem;
+    animation: scrollUp 80s linear infinite;
     padding-top: 100%;
 }
 
@@ -559,13 +689,13 @@ nav {
     animation-play-state: paused;
 }
 
-/* Sanskrit text styling */
+/* Sanskrit text styling - larger for readability */
 .tv-content .sanskrit {
     font-family: 'Noto Sans Devanagari', 'Noto Serif Devanagari', sans-serif;
-    font-size: 0.75rem;
+    font-size: 0.9rem;
     font-weight: 500;
     color: #7fff9f;
-    line-height: 1.7;
+    line-height: 1.8;
     margin: 0;
     text-shadow:
         0 0 2px rgba(0, 0, 0, 0.9),
@@ -577,14 +707,14 @@ nav {
     text-align: center;
 }
 
-/* Translation text styling */
+/* Translation text styling - larger for readability */
 .tv-content .translation {
     font-family: 'Space Mono', monospace;
-    font-size: 0.62rem;
+    font-size: 0.85rem;
     font-weight: 500;
     color: #90ffb0;
-    line-height: 1.8;
-    margin: 1rem 0 0 0;
+    line-height: 1.5;
+    margin: 1.5rem 0 0 0;
     text-shadow:
         0 0 2px rgba(0, 0, 0, 0.95),
         0 0 6px rgba(0, 0, 0, 0.8),
@@ -595,13 +725,13 @@ nav {
     font-style: italic;
 }
 
-/* Attribution styling */
+/* Attribution styling - larger */
 .tv-content .attribution {
     font-family: 'Space Mono', monospace;
-    font-size: 0.55rem;
+    font-size: 0.75rem;
     font-weight: 500;
     color: #70dd90;
-    margin: 0.8rem 0 0 0;
+    margin: 1rem 0 0 0;
     text-align: center;
     letter-spacing: 0.1em;
     text-transform: uppercase;
@@ -611,20 +741,24 @@ nav {
         0 0 12px rgba(100, 200, 140, 0.4);
 }
 
-/* Video inside TV - glitches into view */
+/* Video inside TV - fills screen, centered */
 .tv-video {
     position: absolute;
-    top: 0;
-    left: 0;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
     width: 100%;
     height: 100%;
     object-fit: cover;
-    border-radius: 20px;
-    opacity: 0;
-    filter: contrast(1.2) brightness(0.9) saturate(0.8);
+    image-rendering: auto;
+    border-radius: 4px;
+    opacity: 0.85;
+    filter:
+        contrast(1.05)
+        saturate(1.1)
+        brightness(0.95);
     mix-blend-mode: screen;
     z-index: 0;
-    animation: videoGlitchIn 12s ease-in-out infinite;
 }
 
 @keyframes videoGlitchIn {
@@ -1238,7 +1372,8 @@ nav {
 
 .form-group textarea:focus,
 .form-group input:focus {
-    outline: none;
+    outline: 2px solid var(--neon-orange);
+    outline-offset: 3px;
     border-color: var(--neon-pink);
     box-shadow: 0 0 20px var(--pink-glow), 0 0 40px var(--orange-glow);
 }
@@ -1599,51 +1734,19 @@ footer {
     }
 
     .tv-container {
-        max-width: 280px;
-    }
-
-    .tv-frame {
-        padding: 18px 18px 14px;
-        border-radius: 20px;
-    }
-
-    .tv-screen {
-        padding: 1.5rem;
-        border-radius: 16px;
-        min-height: 140px;
-    }
-
-    .tv-chassis {
-        padding: 12px 16px;
-        border-radius: 0 0 18px 18px;
-    }
-
-    .tv-chassis::before {
-        width: 16px;
-        height: 16px;
-    }
-
-    .tv-chassis::after {
-        left: 44px;
-        width: 12px;
-        height: 12px;
-    }
-
-    .tv-power-btn {
-        font-size: 0.5rem;
-        padding: 0.5rem 0.8rem;
+        max-width: 340px;
     }
 
     .tv-content .sanskrit {
-        font-size: 0.6rem;
+        font-size: 0.85rem;
     }
 
     .tv-content .translation {
-        font-size: 0.5rem;
+        font-size: 0.7rem;
     }
 
     .tv-content .attribution {
-        font-size: 0.45rem;
+        font-size: 0.6rem;
     }
 }
 
