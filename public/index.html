@@ -28,6 +28,7 @@
     <link rel="stylesheet" href="/css/index_style.css">
 </head>
 <body>
+    <a href="#begin" class="skip-link">Skip to questionnaire</a>
     <nav>
        <!-- <a href="/" class="logo">A4T</a> -->
         <div class="nav-links">
@@ -38,6 +39,14 @@
 
     <main>
         <section class="hero">
+            <!-- Indic numeral column - descending from 5 to 2 -->
+            <div class="indic-column" aria-hidden="true">
+                <span class="indic-num kannada-5">೫</span>
+                <span class="indic-num devanagari-4">४</span>
+                <span class="indic-num sharada-3">𑇓</span>
+                <img src="/images/irendu2.png" alt="" class="indic-num irendu-2">
+            </div>
+
             <!-- Multicoloured neon watermark -->
             <div class="neon-watermark" aria-hidden="true">
                 <span class="wm-left">a</span>
@@ -57,7 +66,8 @@
 
                 <!-- Apparatus: the television -->
                 <div class="tv-container">
-                    <div class="tv-frame">
+                    <div class="tv-frame-img">
+                        <img src="/images/oldies-tv.png" alt="" class="tv-frame-bg" aria-hidden="true">
                         <div class="tv-screen">
                             <div class="tv-scanlines"></div>
                             <div class="tv-content">
@@ -75,9 +85,11 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
-                    <div class="tv-chassis">
-                        <a href="/about.html" class="tv-power-btn">Learn More</a>
+                        <!-- Audio recitation - plays on first mouse movement -->
+                        <audio id="poem-audio" preload="auto">
+                            <source src="/videos/neon.m4a" type="audio/mp4">
+                            <source src="/videos/neon.m4a" type="audio/m4a">
+                        </audio>
                     </div>
                 </div>
 
@@ -327,6 +339,51 @@
             el.style.transition = 'opacity 0.8s ease, transform 0.8s ease';
             observer.observe(el);
         });
+
+        // Play poem audio on first mouse movement (bypasses autoplay restrictions)
+        // Plays once, pauses 10s, plays once more, then stops
+        const poemAudio = document.getElementById('poem-audio');
+        let audioStarted = false;
+        let playCount = 0;
+
+        function startAudioOnInteraction() {
+            if (audioStarted || !poemAudio) return;
+            audioStarted = true;
+
+            // When audio ends, handle the pause-and-replay logic
+            poemAudio.addEventListener('ended', function handleEnded() {
+                playCount++;
+                if (playCount === 1) {
+                    // First play finished - wait 10 seconds, then play again
+                    setTimeout(() => {
+                        poemAudio.currentTime = 0;
+                        poemAudio.play().catch(err => {
+                            console.log('Second play failed:', err);
+                        });
+                    }, 10000);
+                } else {
+                    // Second play finished - done, remove listener
+                    poemAudio.removeEventListener('ended', handleEnded);
+                    console.log('Poem recitation complete');
+                }
+            });
+
+            poemAudio.play().then(() => {
+                console.log('Poem recitation started');
+            }).catch(err => {
+                console.log('Audio play failed:', err);
+                audioStarted = false; // Allow retry on next interaction
+            });
+
+            // Remove listeners after successful start
+            if (audioStarted) {
+                document.removeEventListener('mousemove', startAudioOnInteraction);
+                document.removeEventListener('touchstart', startAudioOnInteraction);
+            }
+        }
+
+        document.addEventListener('mousemove', startAudioOnInteraction, { once: false });
+        document.addEventListener('touchstart', startAudioOnInteraction, { once: false });
     </script>
 </body>
 </html>
