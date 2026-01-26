@@ -3,205 +3,389 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Questionnaire - a formulation of truth</title>
+    <title>Questionnaire - A Formulation of Truth</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;800&family=Noto+Sans+Tamil:wght@400;700&display=swap" rel="stylesheet">
+        body {
+            background: #000;
+            color: #00ffff;
+            font-family: 'Courier New', monospace;
+            min-height: 100vh;
+            padding: 2rem;
+        }
 
-    <!-- Stylesheets -->
-    <link rel="stylesheet" href="/css/themes.css">
-    <link rel="stylesheet" href="/css/questionnaire.css">
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+            border: 1px solid #00ffff;
+            border-radius: 10px;
+            background: rgba(0, 255, 255, 0.05);
+        }
 
-    <meta name="description" content="Begin your journey of self-discovery through the Proust Questionnaire">
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 2rem;
+            color: #ff00ff;
+            text-align: center;
+        }
+
+        .auth-info {
+            background: rgba(0, 255, 255, 0.1);
+            padding: 1rem;
+            border-radius: 5px;
+            margin-bottom: 2rem;
+            display: none;
+        }
+
+        .question-container {
+            margin: 2rem 0;
+        }
+
+        .question-text {
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+            color: #fff;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 1rem;
+            border-radius: 5px;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 100px;
+            padding: 1rem;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid #00ffff;
+            color: #fff;
+            font-family: inherit;
+            border-radius: 5px;
+            resize: vertical;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #ff00ff;
+        }
+
+        button {
+            background: transparent;
+            border: 2px solid #00ffff;
+            color: #00ffff;
+            padding: 1rem 2rem;
+            font-family: 'Futura', 'Futura PT', 'Century Gothic', sans-serif;
+            font-weight: 600;
+            font-variant: small-caps;
+            letter-spacing: 0.1em;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            background: #00ffff;
+            color: #000;
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .button-row {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .button-row button {
+            flex: 1;
+            margin-top: 0;
+        }
+
+        .loading, .completed {
+            text-align: center;
+            padding: 3rem;
+        }
+
+        .status {
+            margin-top: 1rem;
+            font-size: 0.9rem;
+        }
+
+        .success { color: #00ff00; }
+        .error { color: #ff0000; }
+
+        .hidden { display: none; }
+
+        .email-form {
+            text-align: center;
+        }
+
+        .email-form h3 {
+            color: #ff00ff;
+            margin-bottom: 1rem;
+        }
+
+        .email-form p {
+            margin-bottom: 1.5rem;
+            color: #fff;
+        }
+    </style>
 </head>
 <body>
-    <!-- Theme Toggle -->
-    <div class="theme-toggle">
-        <button class="theme-btn" data-theme="system" aria-label="System theme">system</button>
-        <button class="theme-btn active" data-theme="tamas" aria-label="Tamas theme">tamas</button>
-        <button class="theme-btn" data-theme="nila" aria-label="Nīla theme">nīla</button>
-        <button class="theme-btn" data-theme="uruvam" aria-label="Uruvam theme">uruvam</button>
-    </div>
+    <div class="container">
+        <h1>Questionnaire</h1>
 
-    <div class="questionnaire-container">
-        <!-- Header -->
-        <div class="header">
-            <h1><a href="/" style="text-decoration: none; color: inherit;">a formulation of truth</a></h1>
-            <p>a slow experiment  c̄  memory as method, truth as practice.</p>
+        <div id="emailForm" class="email-form hidden">
+            <h3>Authenticating...</h3>
+            <p>Validating your authentication token...</p>
         </div>
 
-        <!-- Progress Bar -->
-        <div class="progress-bar">
-            <div class="progress-fill" id="progress-fill"></div>
+        <div id="authInfo" class="auth-info hidden">
+            <h3>Welcome!</h3>
+            <p id="userEmail"></p>
+            <p>Answer each question thoughtfully. Your responses will be saved automatically.</p>
         </div>
 
-        <!-- Authentication Section -->
-        <div id="auth-section" class="section">
-            <h2>to begin</h2>
-            <p style="margin: 1.5rem 0;">enter your email to begin responding to the questionnaire. Your responses will be saved securely.</p>
-
-            <form id="auth-form" class="auth-form">
-                <input
-                    type="email"
-                    id="email"
-                    placeholder="your.email@example.com"
-                    required
-                    class="form-input"
-                >
-                <button type="submit" class="btn btn-primary" style="width: 100%;">empezar</button>
-            </form>
-
-            <div id="auth-message" class="message" style="display: none;"></div>
+        <div id="loading" class="loading hidden">
+            Loading questionnaire...
         </div>
 
-        <!-- Question Section (Hidden by default) -->
-        <div id="question-section" class="section" style="display: none;">
-            <div class="question-card">
-                <span class="question-number" id="questio n-number">Question 1</span>
-                <h2 class="question-text" id="question-text">What is your most treasured possession?</h2>
-
-                <form id="answer-form">
-                    <textarea
-                        id="answer-textarea"
-                        placeholder="Your answer..."
-                        class="form-textarea"
-                    ></textarea>
-
-                    <div class="form-actions">
-                        <button type="button" id="prev-btn" class="btn btn-secondary">Previous</button>
-                        <button type="submit" class="btn btn-primary">Next</button>
-                    </div>
-                </form>
+        <div id="questionContainer" class="question-container hidden">
+            <div id="questionText" class="question-text"></div>
+            <textarea id="answerText" placeholder="Enter your response here..."></textarea>
+            <div class="button-row">
+                <button id="prevBtn" onclick="previousQuestion()">Prior</button>
+                <button id="nextBtn" onclick="submitAnswer()">Next</button>
             </div>
+            <div id="status" class="status"></div>
         </div>
 
-        <!-- Completion Section (Hidden by default) -->
-        <div id="completion-section" class="section" style="display: none;">
-            <h2 style="text-align: center;">Thank You</h2>
-            <p style="text-align: center; margin: 1.5rem 0;">
-                You completed the Proust questionnaire @ aformulationoftruth.com</br> Your encrypted responses are saved securely. Do you wish to share these responses that uniquely reflect a formulation of truth....?
-            </p>
-
-            <div class="completion-actions">
-                <button id="download-pdf" class="btn btn-primary">Download Responses</button>
-                <button id="start-over" class="btn btn-secondary">Start Over</button> 
-            </div>
+        <div id="completed" class="completed hidden">
+            <h2>Thank you!</h2>
+            <p>Your responses have been saved.</p>
         </div>
     </div>
 
-    <!-- Scripts -->
-    <script src="/js/theme-toggle.js"></script>
     <script>
-        // Fisher-Yates Shuffle - Keep questions 0-2 fixed, randomize 3-34
-        // Handles partial completion across sessions
-        (function() {
-            // Fisher-Yates shuffle algorithm
-            function fisherYatesShuffle(array) {
-                const shuffled = [...array];
-                for (let i = shuffled.length - 1; i > 0; i--) {
-                    const j = Math.floor(Math.random() * (i + 1));
-                    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-                }
-                return shuffled;
-            }
+        let currentQuestion = null;
+        let userEmail = '';
+        let authToken = '';
+        let questionHistory = [];
+        let isInTamilNadu = false;
 
-            // Get answered questions from localStorage
-            function getAnsweredQuestions() {
-                const session = localStorage.getItem('a4ot-session');
-                if (session) {
-                    const data = JSON.parse(session);
-                    const answers = data.answers || {};
-                    // Return array of question indices that have been answered
-                    return Object.keys(answers).map(Number).filter(idx => answers[idx] && answers[idx].trim() !== '');
-                }
-                return [];
-            }
+        // Initialize
+        async function init() {
+            // Detect location for button text
+            detectLocation();
 
-            // Initialize or update question order
-            function initializeQuestionOrder() {
-                const fixedQuestions = [0, 1, 2]; // First 3 questions always stay in order
-                const answeredQuestions = getAnsweredQuestions();
+            // Check for JWT token in localStorage (matches React Login.tsx flow)
+            const token = localStorage.getItem('token');
 
-                // Get existing order from sessionStorage if available
-                let existingOrder = sessionStorage.getItem('questionOrder');
-                if (existingOrder) {
-                    existingOrder = JSON.parse(existingOrder);
-                }
+            if (token) {
+                // Validate token by calling /api/user/me
+                try {
+                    const response = await fetch('/api/user/me', {
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
 
-                // Separate answered and unanswered questions from the shuffleable range (3-34)
-                const answeredShuffleable = [];
-                const unansweredShuffleable = [];
+                    if (response.ok) {
+                        const userData = await response.json();
+                        authToken = token;
+                        userEmail = userData.email;
 
-                for (let i = 3; i < 35; i++) {
-                    if (answeredQuestions.includes(i)) {
-                        answeredShuffleable.push(i);
+                        // Store userEmail if not already stored
+                        if (userData.email) {
+                            localStorage.setItem('userEmail', userData.email);
+                        }
+
+                        // Hide email form and show authenticated state
+                        document.getElementById('emailForm').classList.add('hidden');
+                        document.getElementById('userEmail').textContent = `Authenticated as: ${userData.email}`;
+                        document.getElementById('authInfo').classList.remove('hidden');
+                        await fetchNextQuestion();
                     } else {
-                        unansweredShuffleable.push(i);
+                        // Invalid token, clear it and redirect to login
+                        localStorage.removeItem('token');
+                        localStorage.removeItem('userEmail');
+                        window.location.href = '/login?redirect=/questionnaire.html';
                     }
+                } catch (error) {
+                    console.error('Token validation error:', error);
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('userEmail');
+                    window.location.href = '/login?redirect=/questionnaire.html';
+                }
+            } else {
+                // No token, redirect to login
+                window.location.href = '/login?redirect=/questionnaire.html';
+            }
+        }
+
+        // Detect if user is in Tamil Nadu
+        async function detectLocation() {
+            try {
+                // Try IP geolocation API
+                const response = await fetch('https://ipapi.co/json/');
+                const data = await response.json();
+
+                // Check if region is Tamil Nadu
+                if (data.region && data.region.toLowerCase().includes('tamil nadu')) {
+                    isInTamilNadu = true;
                 }
 
-                // If we have an existing order in this session, preserve answered questions' positions
-                if (existingOrder && existingOrder.length === 35) {
-                    // Keep the existing order but re-shuffle only unanswered questions
-                    const preservedOrder = existingOrder.filter(idx =>
-                        idx < 3 || answeredQuestions.includes(idx)
-                    );
+                updateButtonLabels();
+            } catch (error) {
+                // Default to "Prior" if geolocation fails
+                isInTamilNadu = false;
+                updateButtonLabels();
+            }
+        }
 
-                    // Shuffle the unanswered questions
-                    const newlyShuffled = fisherYatesShuffle(unansweredShuffleable);
+        function updateButtonLabels() {
+            const prevBtn = document.getElementById('prevBtn');
+            if (prevBtn) {
+                prevBtn.textContent = isInTamilNadu ? 'Previous' : 'Prior';
+            }
+        }
 
-                    // Reconstruct the order
-                    const questionOrder = [...fixedQuestions];
-                    let shuffledIdx = 0;
+        // Handle 401 unauthorized responses
+        function handleUnauthorized() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('userEmail');
+            window.location.href = '/login?redirect=/questionnaire.html';
+        }
 
-                    for (let i = 3; i < 35; i++) {
-                        const posInExisting = existingOrder.indexOf(i);
-                        if (answeredQuestions.includes(i) && posInExisting >= 3) {
-                            // Keep answered questions in their original position
-                            questionOrder[posInExisting] = i;
-                        }
-                    }
+        async function fetchNextQuestion() {
+            try {
+                const headers = {};
+                if (authToken) {
+                    headers['Authorization'] = `Bearer ${authToken}`;
+                }
 
-                    // Fill remaining slots with newly shuffled unanswered questions
-                    for (let i = 3; i < questionOrder.length; i++) {
-                        if (questionOrder[i] === undefined) {
-                            questionOrder[i] = newlyShuffled[shuffledIdx++];
-                        }
-                    }
+                const response = await fetch('/api/questions/next', { headers });
 
-                    sessionStorage.setItem('questionOrder', JSON.stringify(questionOrder));
+                // Handle 401 unauthorized
+                if (response.status === 401) {
+                    handleUnauthorized();
+                    return;
+                }
+
+                const data = await response.json();
+
+                document.getElementById('loading').style.display = 'none';
+
+                if (data.completed) {
+                    document.getElementById('completed').classList.remove('hidden');
                 } else {
-                    // First time or new session: create fresh order
-                    // Keep answered questions if any, shuffle unanswered
-                    const shuffledUnanswered = fisherYatesShuffle(unansweredShuffleable);
+                    currentQuestion = data;
+                    questionHistory.push(data);
+                    document.getElementById('questionText').textContent = data.text;
+                    document.getElementById('questionContainer').classList.remove('hidden');
+                    document.getElementById('answerText').focus();
 
-                    // For first time: just shuffle all questions 3-34
-                    if (answeredQuestions.length === 0) {
-                        const allShuffleable = [];
-                        for (let i = 3; i < 35; i++) {
-                            allShuffleable.push(i);
-                        }
-                        const shuffled = fisherYatesShuffle(allShuffleable);
-                        const questionOrder = [...fixedQuestions, ...shuffled];
-                        sessionStorage.setItem('questionOrder', JSON.stringify(questionOrder));
-                    } else {
-                        // Mix answered and shuffled unanswered
-                        const combined = fisherYatesShuffle([...answeredShuffleable, ...shuffledUnanswered]);
-                        const questionOrder = [...fixedQuestions, ...combined];
-                        sessionStorage.setItem('questionOrder', JSON.stringify(questionOrder));
-                    }
+                    // Enable/disable previous button
+                    const prevBtn = document.getElementById('prevBtn');
+                    prevBtn.disabled = questionHistory.length <= 1;
                 }
+            } catch (error) {
+                showStatus('Error loading question: ' + error.message, 'error');
+                document.getElementById('loading').style.display = 'none';
+            }
+        }
+
+        function previousQuestion() {
+            if (questionHistory.length > 1) {
+                // Remove current question
+                questionHistory.pop();
+
+                // Get previous question
+                const prevQuestion = questionHistory[questionHistory.length - 1];
+                currentQuestion = prevQuestion;
+
+                document.getElementById('questionText').textContent = prevQuestion.text;
+                document.getElementById('answerText').value = '';
+
+                // Update button states
+                const prevBtn = document.getElementById('prevBtn');
+                prevBtn.disabled = questionHistory.length <= 1;
+            }
+        }
+
+        async function submitAnswer() {
+            const answerText = document.getElementById('answerText').value.trim();
+
+            if (!answerText) {
+                showStatus('Please enter an answer', 'error');
+                return;
             }
 
-            // Initialize on page load
-            initializeQuestionOrder();
+            const nextBtn = document.getElementById('nextBtn');
+            const prevBtn = document.getElementById('prevBtn');
+            nextBtn.disabled = true;
+            prevBtn.disabled = true;
+            nextBtn.textContent = 'Submitting...';
 
-            // Re-initialize when storage changes (e.g., answer submitted)
-            window.addEventListener('storage', initializeQuestionOrder);
-        })();
+            try {
+                const headers = { 'Content-Type': 'application/json' };
+                if (authToken) {
+                    headers['Authorization'] = `Bearer ${authToken}`;
+                }
+
+                const response = await fetch('/api/answers', {
+                    method: 'POST',
+                    headers,
+                    body: JSON.stringify({
+                        email: userEmail,
+                        questionId: currentQuestion.id,
+                        answer: answerText
+                    })
+                });
+
+                // Handle 401 unauthorized
+                if (response.status === 401) {
+                    handleUnauthorized();
+                    return;
+                }
+
+                if (response.ok) {
+                    showStatus('Answer saved!', 'success');
+                    document.getElementById('answerText').value = '';
+                    document.getElementById('questionContainer').classList.add('hidden');
+                    document.getElementById('loading').style.display = 'block';
+                    setTimeout(fetchNextQuestion, 1000);
+                } else {
+                    showStatus('Error saving answer', 'error');
+                }
+            } catch (error) {
+                showStatus('Network error: ' + error.message, 'error');
+            } finally {
+                nextBtn.disabled = false;
+                prevBtn.disabled = questionHistory.length <= 1;
+                nextBtn.textContent = 'Next';
+            }
+        }
+
+        function showStatus(message, type) {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = 'status ' + type;
+            if (type === 'success') {
+                setTimeout(() => status.textContent = '', 3000);
+            }
+        }
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', init);
     </script>
-    <script src="/questionnaire-shuffled.js"></script>
 </body>
 </html>

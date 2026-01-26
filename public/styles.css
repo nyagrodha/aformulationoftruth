@@ -1,39 +1,189 @@
-body {
+* {
   margin: 0;
   padding: 0;
+  box-sizing: border-box;
+}
+
+body {
   background-color: #000;
-  font-family: 'Orbitron', sans-serif;
-  color: #00ffff;
-  overflow: hidden;
+  color: #f5f5f5;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+  line-height: 1.8;
+  font-size: 18px;
+  overflow-x: hidden;
 }
 
 #scroll-container {
   height: 100vh;
-  overflow-y: scroll;
+  overflow-y: auto;
   scroll-behavior: smooth;
 }
 
 #scroll-content {
-  height: 10000px;
-  padding: 4rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 4rem 2rem;
+  min-height: 100vh;
 }
 
-.neon-text {
-  font-size: 3rem;
-  color: #ff00ff;
-  text-shadow: 0 0 8px #ff00ff, 0 0 16px #ff00ff, 0 0 24px #ff00ff;
-  margin-top: 50vh;
+/* Hero Grid Layout */
+.hero-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4rem;
+  margin-bottom: 4rem;
+  align-items: center;
+  min-height: 60vh;
+}
+
+/* Death Quote - Neon Pink with Orange Glow */
+.death-quote {
+  font-family: 'Orbitron', monospace;
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1.4;
+  color: #ff8c94;
+  text-shadow:
+    0 0 5px #ff69b4,
+    0 0 10px #ff8866,
+    0 0 20px #ff9966;
+  animation: neon-flicker 1.5s infinite alternate;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+@keyframes neon-flicker {
+  0%, 18%, 22%, 25%, 53%, 57%, 100% {
+    text-shadow:
+      0 0 5px #ff69b4,
+      0 0 10px #ff8866,
+      0 0 20px #ff9966;
+  }
+  20%, 24%, 55% {
+    text-shadow:
+      0 0 3px #ff69b4,
+      0 0 8px #ff8866;
+  }
+}
+
+.quote-author {
+  display: block;
+  font-size: 1.2rem;
+  margin-top: 2rem;
+  font-weight: 400;
+  color: #ffb3d9;
+  text-shadow:
+    0 0 5px #ff85c1,
+    0 0 8px #ff9966;
+}
+
+/* Hero Image on Right */
+.hero-image {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem;
+}
+
+.hero-image img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  box-shadow:
+    0 0 20px rgba(255, 0, 0, 0.3),
+    0 0 40px rgba(255, 0, 0, 0.2);
+}
+
+/* Main Title */
+h1, .neon-text {
+  font-size: 2.5rem;
+  font-weight: 300;
+  letter-spacing: -0.02em;
+  color: #fff;
+  margin-bottom: 3rem;
+  text-align: center;
+}
+
+h2 {
+  font-size: 1.5rem;
+  font-weight: 300;
+  letter-spacing: 0.05em;
+  color: #fff;
+  margin: 2rem 0 1rem 0;
+  text-align: center;
 }
 
 .neon-paragraph {
-  font-size: 1.5rem;
-  margin-top: 20rem;
-  text-shadow: 0 0 5px #00ffff, 0 0 10px #00ffff;
+  margin-bottom: 0.5rem;
+  max-width: 800px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.neon-paragraph.tamil {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.neon-paragraph.tamil p {
+  font-size: 1.3rem;
+  color: #d0d0d0;
+}
+
+.neon-paragraph p {
+  margin-bottom: 0.5rem;
+  color: #f5f5f5;
+  font-size: 1.1rem;
+  line-height: 1.8;
+}
+
+.neon-paragraph em {
+  font-style: italic;
+  color: #d0d0d0;
+  font-size: 0.95rem;
+}
+
+.neon-paragraph a {
+  color: #fff;
+  text-decoration: none;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+  transition: border-bottom-color 0.2s ease;
+  font-size: 1.2rem;
+  display: inline-block;
+  margin-top: 1rem;
+}
+
+.neon-paragraph a:hover {
+  border-bottom-color: #fff;
 }
 
 .spacer {
-  height: 6000px;
+  height: 4rem;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .hero-grid {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+
+  .death-quote {
+    font-size: 1.5rem;
+    text-align: center;
+  }
+
+  #scroll-content {
+    padding: 3rem 1.5rem;
+  }
+
+  h1, .neon-text {
+    font-size: 2rem;
+  }
+
+  .neon-paragraph p {
+    font-size: 1rem;
+  }
 }

@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Proust Questionnaire — All Questions</title>
+    <meta name="description" content="The complete Proust Questionnaire: 35 questions for self-reflection and inquiry.">
+
+    <style>
+        @import url('https://fonts.bunny.net/css?family=cormorant-garamond:300,400,500,600,700|eb-garamond:400,500,600');
+
+        :root {
+            --pondicherry-cream: #F5EFE6;
+            --pondicherry-ochre: #D4A574;
+            --pondicherry-terracotta: #C77D58;
+            --pondicherry-teal: #4A7C7E;
+            --pondicherry-deepblue: #2C4A52;
+            --pondicherry-gold: #B8860B;
+            --tamil-red: #8B3A3A;
+            --palm-green: #5F7161;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'EB Garamond', Georgia, serif;
+            background: linear-gradient(135deg,
+                var(--pondicherry-cream) 0%,
+                #FAF6F0 50%,
+                var(--pondicherry-cream) 100%);
+            color: var(--pondicherry-deepblue);
+            line-height: 1.8;
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Decorative background pattern */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0.03;
+            background-image:
+                repeating-linear-gradient(45deg, transparent, transparent 35px, var(--pondicherry-ochre) 35px, var(--pondicherry-ochre) 70px);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 4rem 2rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Header */
+        header {
+            text-align: center;
+            margin-bottom: 4rem;
+            padding-bottom: 2rem;
+            border-bottom: 2px solid var(--pondicherry-ochre);
+            position: relative;
+        }
+
+        .french-ornament {
+            font-size: 2.5rem;
+            color: var(--pondicherry-terracotta);
+            margin-bottom: 1rem;
+            opacity: 0.6;
+        }
+
+        h1 {
+            font-family: 'Cormorant Garamond', Georgia, serif;
+            font-size: clamp(2.5rem, 8vw, 4.5rem);
+            font-weight: 300;
+            color: var(--tamil-red);
+            margin-bottom: 1rem;
+            letter-spacing: 0.02em;
+            line-height: 1.2;
+        }
+
+        .subtitle {
+            font-size: 1.3rem;
+            font-style: italic;
+            color: var(--pondicherry-teal);
+            margin-bottom: 1.5rem;
+            font-weight: 400;
+        }
+
+        .intro {
+            max-width: 700px;
+            margin: 2rem auto 0;
+            font-size: 1.1rem;
+            color: var(--pondicherry-deepblue);
+            text-align: center;
+            line-height: 1.9;
+        }
+
+        .faint-note {
+            opacity: 0.15;
+            font-size: 0.85rem;
+            font-style: italic;
+            display: block;
+            margin-top: 0.5rem;
+        }
+
+        /* Questions grid */
+        .questions-wrapper {
+            margin-top: 3rem;
+        }
+
+        .question-card {
+            background: rgba(255, 255, 255, 0.7);
+            border-left: 4px solid var(--pondicherry-ochre);
+            padding: 2rem 2.5rem;
+            margin-bottom: 2rem;
+            border-radius: 0 8px 8px 0;
+            box-shadow:
+                0 2px 8px rgba(0, 0, 0, 0.05),
+                0 8px 24px rgba(212, 165, 116, 0.1);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .question-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg,
+                transparent,
+                rgba(212, 165, 116, 0.1),
+                transparent);
+            transition: left 0.6s ease;
+        }
+
+        .question-card:hover {
+            transform: translateX(8px);
+            box-shadow:
+                0 4px 16px rgba(0, 0, 0, 0.08),
+                0 12px 32px rgba(212, 165, 116, 0.15);
+            border-left-color: var(--pondicherry-terracotta);
+        }
+
+        .question-card:hover::before {
+            left: 100%;
+        }
+
+        .question-number {
+            display: none;
+        }
+
+        .question-text {
+            font-size: 1.35rem;
+            font-weight: 500;
+            color: var(--pondicherry-deepblue);
+            line-height: 1.6;
+        }
+
+        /* Decorative dividers */
+        .section-divider {
+            text-align: center;
+            margin: 4rem 0;
+            position: relative;
+        }
+
+        .section-divider::before,
+        .section-divider::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            width: 40%;
+            height: 1px;
+            background: linear-gradient(to right,
+                transparent,
+                var(--pondicherry-ochre),
+                transparent);
+        }
+
+        .section-divider::before {
+            left: 0;
+        }
+
+        .section-divider::after {
+            right: 0;
+        }
+
+        .divider-ornament {
+            display: inline-block;
+            font-size: 1.5rem;
+            color: var(--pondicherry-terracotta);
+            padding: 0 2rem;
+            background: var(--pondicherry-cream);
+        }
+
+        /* Footer */
+        footer {
+            margin-top: 5rem;
+            padding-top: 2rem;
+            border-top: 2px solid var(--pondicherry-ochre);
+            text-align: center;
+            color: var(--pondicherry-teal);
+        }
+
+        .tamil-verse {
+            font-size: 1.2rem;
+            margin-bottom: 0.5rem;
+            color: var(--tamil-red);
+            line-height: 1.8;
+        }
+
+        .attribution {
+            font-size: 0.95rem;
+            font-style: italic;
+            margin-top: 1rem;
+            opacity: 0.8;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 2rem 1.5rem;
+            }
+
+            h1 {
+                font-size: 2.5rem;
+            }
+
+            .subtitle {
+                font-size: 1.1rem;
+            }
+
+            .intro {
+                font-size: 1rem;
+            }
+
+            .question-card {
+                padding: 1.5rem 1.75rem;
+            }
+
+            .question-text {
+                font-size: 1.2rem;
+            }
+
+            .section-divider::before,
+            .section-divider::after {
+                width: 30%;
+            }
+        }
+
+        /* Scroll reveal animation */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .question-card {
+            animation: fadeInUp 0.6s ease-out backwards;
+        }
+
+        .question-card:nth-child(1) { animation-delay: 0.05s; }
+        .question-card:nth-child(2) { animation-delay: 0.1s; }
+        .question-card:nth-child(3) { animation-delay: 0.15s; }
+        .question-card:nth-child(4) { animation-delay: 0.2s; }
+        .question-card:nth-child(5) { animation-delay: 0.25s; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="french-ornament">❦</div>
+            <h1>The Proust Questionnaire</h1>
+            <p class="subtitle">35 Introspective Questions</p>
+            <p class="intro">
+                Originating in 17th or 18th c. Victorian social circles, Marcel Proust popularized
+                this parlor game of yore in the 20th c. These questions orient one's gaze inward toward
+                the self. Respondents thereby share a morsel or two of what lies to be discovered beneath
+                the surface of social graces & decorum.
+                <span class="faint-note">Come to think of it, it's a shame there isn't a question about penis size.</span>
+            </p>
+        </header>
+
+        <main class="questions-wrapper">
+            <div class="question-card">
+                <div class="question-number">Question 1</div>
+                <div class="question-text">What is your idea of perfect happiness?</div>
+            </div>
+
+            <div class="question-card">
+                <div class="question-number">Question 2</div>
+                <div class="question-text">What is your greatest fear?</div>
+            </div>
+
+            <div class="question-card">
+                <div class="question-number">Question 3</div>
+                <div class="question-text">What is the trait you most deplore in yourself?</div>
+            </div>
+
+            <div class="question-card">
+                <div class="question-number">Question 4</div>
+                <div class="question-text">What is the trait you most deplore in others?</div>
+            </div>
+
+            <div class="question-card">
+                <div class="question-number">Question 5</div>
+                <div class="question-text">Which living person do you most admire?</div>
+            </div>
+
+            <div class="section-divider">
+                <span class="divider-ornament">✦</span>
+            </div>
+
+            <div class="question-card">
+                <div class="question-number">Question 6</div>
+                <div class="question-text">What is your greatest extravagance?</div>
+            </div>
+
+            <div class="question-card">
+                <div class="question-number">Question 7</div>
+                <div class="question-text">What is your current state of mind?</div>
+            </div>
+
+            <div class="question-card">
+                <div class="question-number">Question 8</div>
+                <div class="question-text">What do you consider the most overrated virtue?</div>
+            </div>
+
+            <div class="question-card">
+                <div class="question-number">Question 9</div>
+                <div class="question-text">On what occasion do you lie?</div>
+            </div>
+
+            <div class="question-card">
+                <div class="question-number">Question 10</div>
+                <div class="question-text">What do you most dislike about your appearance?</div>
+            </div>
+
+            <div class="section-divider">
+                <span class="divider-ornament">✦</span>
+            </div>
+
+            <div class="question-card">
+                <div class="question-number">Question 11</div>
+                <div class="question-text">Which living person do you most despise?</div>
+            </div>
+
+            <div class="question-card">
+                <div class="question-number">Question 12</div>
+                <div class="question-text">What is the quality you most like in a man?</div>
+            </div>
+
+            <div class="question-card">
+                <div class="question-number">Question 13</div>
+                <div class="question-text">What is the quality you most like in a woman?</div>
+            </div>
+
+            <div class="question-card">
+                <div class="question-number">Question 14</div>
+                <div class="question-text">Which words or phrases do you most overuse?</div>
+            </div>
+
+            <div class="question-card">
+                <div class="question-number">Question 15</div>
+                <div class="question-text">What or who is the greatest love of your life?</div>
+            </div>
+
+            <div class="section-divider">
+                <span class="divider-ornament">✦</span>
+            </div>
+
+            <div class="question-card">
+                <div class="question-number">Question 16</div>
+                <div class="question-text">When and where were you happiest?</div>
+            </div>
+
+            <div class="question-card">
+                <div class="question-number">Question 17</div>
+                <div class="question-text">Which talent would you most like to have?</div>
+            </div>
+
+            <div class="question-card">
+                <div class="question-number">Question 18</div>
+                <div class="question-text">If you could change one thing about yourself, what would it be?</div>
+            </div>
+
+            <div class="question-card">
+                <div class="question-number">Question 19</div>
+                <div class="question-text">What do you consider your greatest achievement?</div>
+            </div>
+
+            <div class="question-card">
+                <div class="question-number">Question 20</div>
+                <div class="question-text">If you were to die and come back as a person or a thing, what would it be?</div>
+            </div>
+
+            <div class="section-divider">
+                <span class="divider-ornament">✦</span>
+            </div>
+
+            <div class="question-card">
+                <div class="question-number">Question 21</div>
+                <div class="question-text">Where would you most like to live?</div>
+            </div>
+
+            <div class="question-card">
+                <div class="question-number">Question 22</div>
+                <div class="question-text">What is your most treasured possession?</div>
+            </div>
+
+            <div class="question-card">
+                <div class="question-number">Question 23</div>
+                <div class="question-text">What do you regard as the lowest depth of misery?</div>
+            </div>
+
+            <div class="question-card">
+                <div class="question-number">Question 24</div>
+                <div class="question-text">What is your favorite occupation?</div>
+            </div>
+
+            <div class="question-card">
+                <div class="question-number">Question 25</div>
+                <div class="question-text">What is your most marked characteristic?</div>
+            </div>
+
+            <div class="section-divider">
+                <span class="divider-ornament">✦</span>
+            </div>
+
+            <div class="question-card">
+                <div class="question-number">Question 26</div>
+                <div class="question-text">What do you most value in your friends?</div>
+            </div>
+
+            <div class="question-card">
+                <div class="question-number">Question 27</div>
+                <div class="question-text">Who are your favorite writers?</div>
+            </div>
+
+            <div class="question-card">
+                <div class="question-number">Question 28</div>
+                <div class="question-text">Who is your hero of fiction?</div>
+            </div>
+
+            <div class="question-card">
+                <div class="question-number">Question 29</div>
+                <div class="question-text">Which historical figure do you most identify with?</div>
+            </div>
+
+            <div class="question-card">
+                <div class="question-number">Question 30</div>
+                <div class="question-text">Who are your heroes in real life?</div>
+            </div>
+
+            <div class="section-divider">
+                <span class="divider-ornament">✦</span>
+            </div>
+
+            <div class="question-card">
+                <div class="question-number">Question 31</div>
+                <div class="question-text">What are your favorite names?</div>
+            </div>
+
+            <div class="question-card">
+                <div class="question-number">Question 32</div>
+                <div class="question-text">What is it that you most dislike?</div>
+            </div>
+
+            <div class="question-card">
+                <div class="question-number">Question 33</div>
+                <div class="question-text">What is your greatest regret?</div>
+            </div>
+
+            <div class="question-card">
+                <div class="question-number">Question 34</div>
+                <div class="question-text">How would you like to die?</div>
+            </div>
+
+            <div class="question-card">
+                <div class="question-number">Question 35</div>
+                <div class="question-text">What is your motto?</div>
+            </div>
+        </main>
+
+        <footer>
+            <p class="tamil-verse">
+                பொய்க்குப் புகழ் வாங்குவதைக் காட்டிலும்,<br>
+                உண்மைக்காக வெறுப்பைப் பெறுவதே நான் விரும்புவது.
+            </p>
+            <p class="attribution">
+                "I would rather be hated for telling the truth<br>
+                than loved for flattering lies."<br>
+                — Periyar E.V. Ramasamy
+            </p>
+            <p class="attribution" style="margin-top: 2rem;">
+                <a href="/" style="color: var(--pondicherry-teal); text-decoration: none;">← Return to Experience</a>
+            </p>
+        </footer>
+    </div>
+</body>
+</html>

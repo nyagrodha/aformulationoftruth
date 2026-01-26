@@ -1,0 +1,175 @@
+/* ============================================ */
+/* JUNGIAN ARCHETYPE ICON SYSTEM */
+/* ============================================ */
+
+/* Base archetype icon styling (already defined in proust-dark-theme.css) */
+/* This file adds specific archetype variations */
+
+.archetype-button[data-archetype="lover"] .archetype-icon {
+    font-size: 2.5rem;
+}
+
+/* Specific archetype variations */
+.archetype-button[data-archetype="sage"] .archetype-icon::before {
+    content: "◉"; /* Eye of wisdom */
+}
+
+.archetype-button[data-archetype="explorer"] .archetype-icon::before {
+    content: "⟁"; /* Compass/path */
+}
+
+.archetype-button[data-archetype="shadow"] .archetype-icon::before {
+    content: "☾"; /* Moon/shadow */
+}
+
+.archetype-button[data-archetype="anima"] .archetype-icon::before {
+    content: "∞"; /* Infinity/duality */
+}
+
+.archetype-button[data-archetype="self"] .archetype-icon::before {
+    content: "◯"; /* Circle/mandala */
+}
+
+.archetype-button[data-archetype="trickster"] .archetype-icon::before {
+    content: "⚡"; /* Lightning/chaos */
+}
+
+/* ============================================ */
+/* SVG ARCHETYPE SYMBOLS */
+/* Embedded as data URIs for performance */
+/* ============================================ */
+
+/* Lover Archetype - Venus symbol with heart */
+.archetype-button[data-archetype="lover"] {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M50 85 L30 60 Q25 50 30 40 Q35 30 45 30 Q50 30 50 35 Q50 30 55 30 Q65 30 70 40 Q75 50 70 60 Z' fill='rgba(255,0,128,0.2)' stroke='%23ff0080' stroke-width='2'/%3E%3C/svg%3E");
+    background-size: 60%;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+/* Sage Archetype - Eye of wisdom */
+.archetype-button[data-archetype="sage"] {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cellipse cx='50' cy='50' rx='35' ry='20' fill='none' stroke='%23ff6b35' stroke-width='2'/%3E%3Ccircle cx='50' cy='50' r='8' fill='%23ff6b35'/%3E%3Ccircle cx='50' cy='50' r='4' fill='%23ff0080'/%3E%3C/svg%3E");
+    background-size: 60%;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+/* Explorer Archetype - Compass rose */
+.archetype-button[data-archetype="explorer"] {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cline x1='50' y1='20' x2='50' y2='80' stroke='%23ff6b35' stroke-width='2'/%3E%3Cline x1='20' y1='50' x2='80' y2='50' stroke='%23ff6b35' stroke-width='2'/%3E%3Cline x1='32' y1='32' x2='68' y2='68' stroke='%23ff0080' stroke-width='1.5'/%3E%3Cline x1='68' y1='32' x2='32' y2='68' stroke='%23ff0080' stroke-width='1.5'/%3E%3Ccircle cx='50' cy='50' r='5' fill='%23b24bf3'/%3E%3C/svg%3E");
+    background-size: 65%;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+/* Shadow Archetype - Crescent moon */
+.archetype-button[data-archetype="shadow"] {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M40 20 Q60 50 40 80 Q20 70 20 50 Q20 30 40 20 Z' fill='none' stroke='%23ff0080' stroke-width='2.5'/%3E%3Cpath d='M40 25 Q55 50 40 75 Q25 65 25 50 Q25 35 40 25 Z' fill='rgba(255,0,128,0.1)'/%3E%3C/svg%3E");
+    background-size: 55%;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+/* Anima/Animus - Yin-Yang infinity */
+.archetype-button[data-archetype="anima"] {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M20 50 Q30 30 50 30 Q70 30 80 50 Q70 70 50 70 Q30 70 20 50 Z' fill='none' stroke='%23ff6b35' stroke-width='2'/%3E%3Ccircle cx='38' cy='50' r='3' fill='%23ff0080'/%3E%3Ccircle cx='62' cy='50' r='3' fill='%23b24bf3'/%3E%3C/svg%3E");
+    background-size: 65%;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+/* Self Archetype - Mandala/wholeness */
+.archetype-button[data-archetype="self"] {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='30' fill='none' stroke='%23ff6b35' stroke-width='2'/%3E%3Ccircle cx='50' cy='50' r='20' fill='none' stroke='%23ff0080' stroke-width='1.5'/%3E%3Ccircle cx='50' cy='50' r='10' fill='none' stroke='%23b24bf3' stroke-width='1'/%3E%3Ccircle cx='50' cy='50' r='3' fill='%23ff6b35'/%3E%3C/svg%3E");
+    background-size: 70%;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+/* Trickster Archetype - Lightning bolt */
+.archetype-button[data-archetype="trickster"] {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M60 20 L40 50 L50 50 L30 80 L55 55 L45 55 Z' fill='%23ff0080' stroke='%23ff6b35' stroke-width='2'/%3E%3C/svg%3E");
+    background-size: 50%;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+/* ============================================ */
+/* ARCHETYPE COLOR VARIATIONS */
+/* ============================================ */
+
+.archetype-button[data-archetype="sage"] {
+    border-color: var(--neon-orange);
+}
+
+.archetype-button[data-archetype="sage"]:hover {
+    border-color: var(--neon-orange);
+    box-shadow:
+        0 0 30px var(--neon-orange-glow),
+        inset 0 0 20px rgba(255, 107, 53, 0.3);
+}
+
+.archetype-button[data-archetype="shadow"] {
+    border-color: var(--neon-purple);
+    background: linear-gradient(
+        135deg,
+        rgba(10, 5, 21, 0.95) 0%,
+        rgba(26, 10, 46, 0.9) 100%
+    );
+}
+
+.archetype-button[data-archetype="shadow"]:hover {
+    border-color: var(--neon-purple);
+    box-shadow:
+        0 0 30px rgba(178, 75, 243, 0.6),
+        inset 0 0 20px rgba(178, 75, 243, 0.3);
+}
+
+.archetype-button[data-archetype="self"] {
+    background: radial-gradient(
+        circle,
+        var(--brothel-purple) 0%,
+        var(--brothel-indigo) 100%
+    );
+}
+
+/* ============================================ */
+/* TOOLTIP LABELS FOR ARCHETYPES */
+/* ============================================ */
+
+.archetype-button::after {
+    content: attr(aria-label);
+    position: absolute;
+    bottom: -40px;
+    left: 50%;
+    transform: translateX(-50%) scale(0);
+    padding: 0.5rem 1rem;
+    background: rgba(26, 10, 46, 0.95);
+    color: var(--neon-pink);
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-radius: 8px;
+    border: 1px solid var(--neon-pink);
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    transition: var(--transition-fast);
+    z-index: 100;
+}
+
+.archetype-button:hover::after {
+    transform: translateX(-50%) scale(1);
+    opacity: 1;
+}
+
+/* Mobile: show tooltip above button */
+@media (max-width: 768px) {
+    .archetype-button::after {
+        bottom: auto;
+        top: -40px;
+    }
+}

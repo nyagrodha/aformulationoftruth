@@ -1,0 +1,535 @@
+:root {
+  --blue-deep: #0b1020;
+  --blue-soft: #1b2a4a;
+  --pink: #ff6fae;
+  --green: #4cffb0;
+  --text-main: #e6ebff;
+  --text-muted: #9aa3c7;
+  --text-pale: #d0d8f0;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: radial-gradient(circle at top, var(--blue-soft), var(--blue-deep));
+  color: var(--text-main);
+  font-family: 'Space Grotesk', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow-x: hidden;
+}
+
+.container {
+  max-width: 680px;
+  padding: 3rem 2rem;
+  text-align: center;
+}
+
+/* Handwritten sigil - vectorized but imperfect */
+.sigil {
+  font-size: 6rem;
+  font-weight: 300;
+  opacity: 1;
+  margin-bottom: 3rem;
+  font-family: 'Space Grotesk', sans-serif;
+  letter-spacing: -0.05em;
+  transform: rotate(-3deg);
+  filter: blur(0.3px);
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* Tamil numeral image styling */
+.tamil-numeral {
+  max-width: 130px;
+  height: auto;
+  transform: rotate(-3deg);
+  animation: breathe 3s ease-in-out infinite;
+}
+
+@keyframes breathe {
+  0%, 100% {
+    transform: rotate(-3deg) scale(1);
+  }
+  50% {
+    transform: rotate(-3deg) scale(1.08);
+  }
+}
+
+/* Main statement */
+.statement {
+  margin-bottom: 2.5rem;
+  line-height: 1.6;
+}
+
+.you {
+  font-size: 1.2rem;
+  color: var(--text-muted);
+  font-weight: 300;
+  letter-spacing: 0.1em;
+  text-transform: lowercase;
+}
+
+/* Color oscillation animation for "this moment" */
+.moment {
+  font-size: 2.5rem;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  display: inline-block;
+  animation: colorOscillate 8s ease-in-out infinite;
+}
+
+@keyframes colorOscillate {
+  0% {
+    color: var(--blue-soft);
+    filter: blur(0.5px);
+  }
+  33% {
+    color: var(--pink);
+    filter: blur(0.8px);
+  }
+  66% {
+    color: var(--green);
+    filter: blur(0.6px);
+  }
+  100% {
+    color: var(--blue-soft);
+    filter: blur(0.5px);
+  }
+}
+
+/* Tamil scrolling band */
+.tamil-band {
+  margin: 2.5rem 0;
+  padding: 0.75rem 0;
+  border-top: 1px solid rgba(79, 207, 176, 0.2);
+  border-bottom: 1px solid rgba(255, 111, 174, 0.2);
+  overflow: hidden;
+  position: relative;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    rgba(27, 42, 74, 0.3) 20%,
+    rgba(27, 42, 74, 0.3) 80%,
+    transparent 100%
+  );
+}
+
+.tamil-scroll {
+  display: flex;
+  animation: scroll 20s linear infinite;
+  white-space: nowrap;
+  font-family: 'Noto Sans Tamil', sans-serif;
+  font-size: 1rem;
+  font-weight: 400;
+}
+
+.tamil-scroll span {
+  padding: 0 2rem;
+  background: linear-gradient(90deg, var(--pink), var(--blue-soft), var(--green));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+@keyframes scroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+/* Identity line */
+.identity {
+  margin: 2rem 0 1.5rem;
+  font-size: 4.5rem;
+  color: var(--text-pale);
+  letter-spacing: 0.15em;
+  font-weight: 300;
+  opacity: 0.8;
+  white-space: nowrap;
+  text-align: left;
+}
+
+/* Explanation */
+.explanation {
+  margin: 2rem auto 3rem;
+  font-size: 1rem;
+  line-height: 1.7;
+  color: var(--text-muted);
+  max-width: 560px;
+  text-align: justify;
+}
+
+.explanation p {
+  margin-bottom: 1.5rem;
+}
+
+/* Entry boxes */
+.entry-boxes {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  margin-top: 3rem;
+}
+
+.entry-box {
+  background: transparent;
+  border: 2px solid var(--blue-soft);
+  border-radius: 12px;
+  padding: 2rem 3rem;
+  color: var(--text-main);
+  font-size: 1.1rem;
+  font-family: 'Space Grotesk', sans-serif;
+  cursor: pointer;
+  transition: all 0.6s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.entry-box::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(45deg, transparent, var(--pink), transparent);
+  opacity: 0;
+  transition: opacity 0.6s ease;
+}
+
+.entry-box:hover {
+  border-color: var(--pink);
+  transform: translateY(-2px);
+}
+
+.entry-box:hover::before {
+  opacity: 0.1;
+  animation: shimmer 1.5s ease-in-out;
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.box-label {
+  position: relative;
+  z-index: 1;
+  font-weight: 400;
+  letter-spacing: 0.1em;
+}
+
+/* Question box */
+.question-box {
+  border: 2px solid var(--blue-soft);
+  border-radius: 14px;
+  padding: 2rem;
+  margin-top: 3rem;
+  transition: border-color 0.6s ease;
+  background: rgba(11, 16, 32, 0.4);
+}
+
+.question-box:hover {
+  border-color: var(--pink);
+}
+
+.question-text {
+  font-size: 1.2rem;
+  margin-bottom: 1.5rem;
+  line-height: 1.5;
+  color: var(--text-main);
+}
+
+.response {
+  width: 100%;
+  min-height: 120px;
+  background: rgba(27, 42, 74, 0.3);
+  border: 1px solid var(--blue-soft);
+  border-radius: 8px;
+  color: var(--text-main);
+  padding: 1rem;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1rem;
+  line-height: 1.5;
+  resize: vertical;
+  transition: border-color 0.3s ease;
+}
+
+.response:focus {
+  outline: none;
+  border-color: var(--green);
+}
+
+.response::placeholder {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+button {
+  background: transparent;
+  border: 1px solid var(--blue-soft);
+  color: var(--text-main);
+  padding: 0.75rem 1.5rem;
+  border-radius: 24px;
+  cursor: pointer;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.95rem;
+  transition: all 0.4s ease;
+  letter-spacing: 0.05em;
+}
+
+button:hover {
+  border-color: var(--green);
+  background: rgba(76, 255, 176, 0.05);
+}
+
+.skip {
+  color: var(--text-muted);
+  border-color: rgba(27, 42, 74, 0.5);
+}
+
+.skip:hover {
+  border-color: var(--pink);
+  color: var(--text-main);
+}
+
+/* Transition */
+.transition {
+  margin-top: 3rem;
+  border-top: 1px solid var(--green);
+  padding-top: 2rem;
+  animation: fadeIn 0.8s ease-in;
+}
+
+.transition p {
+  margin-bottom: 1.5rem;
+  font-size: 1.1rem;
+  color: var(--text-muted);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Hidden state */
+.hidden {
+  display: none;
+}
+
+/* Thermodynamics educational content */
+.thermo-content {
+  margin-top: 3rem;
+  border: 2px solid var(--blue-soft);
+  border-radius: 14px;
+  padding: 2.5rem;
+  background: rgba(11, 16, 32, 0.4);
+  max-width: 640px;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: left;
+}
+
+.thermo-content h2 {
+  color: var(--green);
+  font-size: 1.8rem;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.thermo-content h3 {
+  color: var(--pink);
+  font-size: 1.3rem;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+}
+
+.thermo-explanation p {
+  line-height: 1.7;
+  margin-bottom: 1rem;
+  color: var(--text-main);
+}
+
+.math-formula {
+  font-size: 1.4rem;
+  font-family: 'Georgia', serif;
+  font-style: italic;
+  text-align: center;
+  padding: 1rem;
+  margin: 1.5rem 0;
+  background: rgba(27, 42, 74, 0.5);
+  border-radius: 8px;
+  color: var(--green);
+}
+
+.thermo-content button {
+  display: block;
+  margin: 2rem auto 0;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .container {
+    padding: 2rem 1.5rem;
+  }
+
+  .sigil {
+    font-size: 4rem;
+    margin-bottom: 2rem;
+  }
+
+  .moment {
+    font-size: 2rem;
+  }
+
+  .you {
+    font-size: 1rem;
+  }
+
+  .tamil-scroll {
+    font-size: 0.9rem;
+  }
+
+  .entry-boxes {
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .entry-box {
+    padding: 1.5rem 2rem;
+  }
+
+  .explanation {
+    font-size: 0.95rem;
+  }
+}
+
+/* Low signal warning */
+.low-signal-warning {
+  margin-top: 1.5rem;
+  padding: 1.5rem;
+  border: 2px solid var(--pink);
+  border-radius: 12px;
+  background: rgba(255, 111, 174, 0.05);
+  animation: fadeIn 0.5s ease-in;
+}
+
+.warning-hindi, .warning-urdu {
+  font-size: 1.2rem;
+  color: var(--pink);
+  margin-bottom: 0.5rem;
+  text-align: center;
+}
+
+.warning-urdu {
+  font-family: serif;
+  direction: rtl;
+}
+
+.warning-message {
+  font-size: 1rem;
+  color: var(--text-main);
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.warning-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin-top: 1rem;
+}
+
+.warning-btn-reconsider {
+  border-color: var(--green);
+  color: var(--green);
+}
+
+.warning-btn-reconsider:hover {
+  background: rgba(76, 255, 176, 0.1);
+}
+
+.warning-btn-keep {
+  border-color: var(--pink);
+  color: var(--pink);
+}
+
+.warning-btn-keep:hover {
+  background: rgba(255, 111, 174, 0.1);
+}
+
+/* Preview questions offer */
+.telegram-offer {
+  margin-top: 1.5rem;
+  padding: 1.5rem;
+  border: 2px solid var(--blue-soft);
+  border-radius: 12px;
+  background: rgba(27, 42, 74, 0.2);
+  animation: fadeIn 0.5s ease-in;
+}
+
+.telegram-message {
+  font-size: 1.1rem;
+  color: var(--text-main);
+  margin-bottom: 0.5rem;
+  text-align: center;
+}
+
+.telegram-hint {
+  font-size: 1rem;
+  color: var(--text-muted);
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.telegram-hint a {
+  transition: opacity 0.3s ease;
+}
+
+.telegram-hint a:hover {
+  opacity: 0.8;
+}
+
+.telegram-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin-top: 1rem;
+}
+
+.telegram-btn-stay {
+  border-color: var(--green);
+  color: var(--green);
+}
+
+.telegram-btn-stay:hover {
+  border-color: var(--green);
+  color: var(--text-main);
+  background: rgba(76, 255, 176, 0.1);
+}
