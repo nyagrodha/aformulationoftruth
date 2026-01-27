@@ -4,13 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>a formulation of truth</title>
-    <meta name="description" content="here, a device: the ātmanoptican as a formulation of truth. Self-inquiry through the Proust Questionnaire.">
+    <meta name="description" content="a formulation of truth. Self-inquiry and a Proust Questionnaire.">
 
     <!-- Open Graph / Twitter -->
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://aformulationoftruth.com/">
     <meta property="og:title" content="a formulation of truth">
-    <meta property="og:description" content="here, a device: the ātmanoptican as a formulation of truth. Self-inquiry through the Proust Questionnaire.">
+    <meta property="og:description" content="here, a device: the ātmanoptican as a formulation of truth. Self-inquiry and a Proust Questionnaire.">
     <meta property="og:image" content="https://aformulationoftruth.com/images/dreamMore...always.JPG">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:url" content="https://aformulationoftruth.com/">
@@ -55,12 +55,11 @@
             </div>
 
             <div class="hero-content">
-                <p class="tagline">here, a device: the ātmanoptican as</p>
                 <h1 class="title">
                     <span class="bg-four">4</span>
                     <span class="title-wrapper">
                         <span class="title-text">a formulation of truth</span>
-                        <span class="title-flicker" aria-hidden="ஊஉrue">a fo<span class="flicker-pink">rmulat</span>ion of truth</span>
+                        <span class="title-flicker" aria-hidden="ஊஉrue">a fo<span class="flicker-pink">rmulat</span>ulation of truth</span>
                     </span>
                 </h1>
 
@@ -82,21 +81,21 @@
                                     <p class="sanskrit">आचम्य सम्यगमृतं कुरु विश्वमेतत् ॥</p>
                                     <p class="translation">Destroy afflictions and cause to blossom the lotus in the heart; may awareness, your innate radiance with body fit for purpose, feast upon consciousness cool as moonbeams.* And may your recognition transform this world into a place of eternal remembrance and awakening.</p>
                                     <p class="attribution">— Utpaladeva (c. 900–950 CE)</p>
-                                    <p class="footnote">* The original Sanskrit refers to the <a href="https://en.wikipedia.org/wiki/Chakora_(mythology)" target="_blank" rel="noopener">cakora</a> (चकोर), a mythical bird in Sanskrit poetry said to fly only at night and subsist entirely on moonbeams. I have omitted the cakora here as the metaphor has lost broader cultural resonance, but wish the reader to know this is an intentional departure from the original. The cakora's longing gaze toward the moon became a beloved trope for yearning after and devotion to the divine. In the 10th century CE, poets like Utpaladeva very likely conceptualized the divine in ways far healthier than we who find ourselves imbricated within the cultural and political contexts of modernity—its corrupt power struggles, its flattened metaphysics, its instrumentalized faith that have defined our age.</p>
                                 </div>
                             </div>
                         </div>
-                        <!-- Audio recitation - plays on first mouse movement -->
-                        <audio id="poem-audio" preload="auto">
-                            <source src="/videos/neon.m4a" type="audio/mp4">
-                            <source src="/videos/neon.m4a" type="audio/m4a">
-                        </audio>
+                        <!-- Footnote hover on Kalabhairava's trident -->
+                        <div class="trident-hover">
+                            <span class="trident-trigger" title="About the cakora">✦</span>
+                            <div class="trident-popup">
+                                * The original Sanskrit refers to the <a href="https://en.wikipedia.org/wiki/Chakora_(mythology)" target="_blank" rel="noopener">cakora</a> (चकोर), a mythical bird in Sanskrit poetry said to fly only at night and subsist entirely on moonbeams. I have omitted the cakora here as the metaphor has lost broader cultural resonance, but wish the reader to know this is an intentional departure from the original. The cakora's longing gaze toward the moon became a beloved trope for yearning after and devotion to the divine. In the 10th century CE, poets like Utpaladeva very likely conceptualized the divine in ways far healthier than we who find ourselves imbricated within the cultural and political contexts of modernity—its corrupt power struggles, its flattened metaphysics, its instrumentalized faith that have defined our age.
+                            </div>
+                        </div>
                     </div>
                 </div>
-
-                <div class="cta-group">
+               <!-- <div class="cta-group">
                     <a href="#begin" class="cta cta-primary">தொடங்கு<br><span style="font-variant: small-caps; font-size: 0.7em; letter-spacing: 0.1em;">begin</span></a>
-                </div>
+                </div>-->
             </div>
             <div class="scroll-indicator">
                 <span></span>
@@ -114,19 +113,63 @@
         <section id="begin" class="section gate-section">
             <div class="gate-content">
                 <img src="/images/irendu2.png" alt="irendu — Tamil for 'two'" class="gate-icon" title="irendu — Tamil for 'two'">
-                <h2 class="gate-title">வாயில்</h2>
-                <p class="gate-description tamil-text">
+                <!-- Gate Title: Tamil + English -->
+                <h2 class="gate-title gate-title--tamil">வாயில்</h2>
+                <h2 class="gate-title gate-title--english">The Gate</h2>
+
+                <!-- Welcome Text: Tamil -->
+                <p class="gate-description gate-welcome--tamil tamil-text">
                     Proust கேள்வித்தாள்—கருப்பசாமி கேள்வித்தாள் என்ற பெயரில்—உங்களை வரவேற்கிறது
                 </p>
-                <p class="gate-description" style="font-size: 0.7rem; color: var(--mist); font-style: italic; margin-top: -1rem;">
+                <!-- Welcome Text: Transliteration -->
+                <p class="gate-description gate-welcome--translit" style="font-size: 0.7rem; color: var(--mist); font-style: italic; margin-top: -1rem;">
                     Proust kēḷvittāḷ—Karuppacāmi kēḷvittāḷ eṉṟa peyaril—uṅkaḷai varavēṟkiṟatu
                 </p>
+                <!-- Welcome Text: English -->
+                <p class="gate-description gate-welcome--english">
+                    The Proust Questionnaire—under the name Karuppasami Questionnaire—welcomes you
+                </p>
+
+                <!-- Language Display Selector -->
+                <div class="a4m-lang-selector" role="group" aria-label="Question display language">
+                    <span class="a4m-lang-selector__label">மொழி</span>
+                    <div class="a4m-lang-selector__options">
+                        <button type="button" class="a4m-lang-selector__btn" data-lang="all" aria-pressed="true" title="Tamil + Transliteration + English">
+                            <span class="a4m-lang-selector__icon">த</span>
+                            <span class="a4m-lang-selector__text">All</span>
+                        </button>
+                        <button type="button" class="a4m-lang-selector__btn" data-lang="tamil-only" aria-pressed="false" title="Tamil only">
+                            <span class="a4m-lang-selector__icon">த</span>
+                        </button>
+                        <button type="button" class="a4m-lang-selector__btn" data-lang="tamil-translit" aria-pressed="false" title="Tamil + Transliteration">
+                            <span class="a4m-lang-selector__icon">த</span>
+                            <span class="a4m-lang-selector__text">+Aa</span>
+                        </button>
+                        <button type="button" class="a4m-lang-selector__btn" data-lang="english-only" aria-pressed="false" title="English only">
+                            <span class="a4m-lang-selector__icon">En</span>
+                        </button>
+                    </div>
+                </div>
 
                 <form class="gate-form" id="gate-form">
+                    <!-- Gate Question 1: Perfect Happiness -->
                     <div class="form-group">
-                        <label for="answer1">
+                        <label for="answer1" class="trilingual-label">
                             <span class="question-number">௧</span>
-                            What is your idea of perfect happiness?
+                            <span class="question-layers">
+                                <!-- Primary: Tamil script -->
+                                <span class="question-tamil" lang="ta">
+                                    முழுமையான மகிழ்ச்சி என்றால் உனக்கு என்ன?
+                                </span>
+                                <!-- Secondary: Transliteration -->
+                                <span class="question-transliteration" lang="ta-Latn">
+                                    Muḻumaiyāṉa makiḻcci eṉṟāl uṉakku eṉṉa?
+                                </span>
+                                <!-- Tertiary: English -->
+                                <span class="question-english">
+                                    What is your idea of perfect happiness?
+                                </span>
+                            </span>
                         </label>
                         <textarea
                             id="answer1"
@@ -136,10 +179,24 @@
                         ></textarea>
                     </div>
 
+                    <!-- Gate Question 2: Greatest Fear -->
                     <div class="form-group">
-                        <label for="answer2">
+                        <label for="answer2" class="trilingual-label">
                             <span class="question-number">௨</span>
-                            What is your greatest fear?
+                            <span class="question-layers">
+                                <!-- Primary: Tamil script -->
+                                <span class="question-tamil" lang="ta">
+                                    உன்னுடைய மிகப்பெரிய அச்சம் யாது?
+                                </span>
+                                <!-- Secondary: Transliteration -->
+                                <span class="question-transliteration" lang="ta-Latn">
+                                    Uṉṉuṭaiya mikapperiya accam yātu?
+                                </span>
+                                <!-- Tertiary: English -->
+                                <span class="question-english">
+                                    What is your greatest fear?
+                                </span>
+                            </span>
                         </label>
                         <textarea
                             id="answer2"
@@ -206,6 +263,41 @@
                 }
             });
         });
+
+        // ═══════════════════════════════════════════════════════════
+        // A4M Language Selector — மொழி (Moḻi)
+        // Persists preference to localStorage
+        // ═══════════════════════════════════════════════════════════
+        (function initLangSelector() {
+            const STORAGE_KEY = 'a4m-lang-mode';
+            const gateContent = document.querySelector('.gate-content');
+            const buttons = document.querySelectorAll('.a4m-lang-selector__btn');
+
+            if (!gateContent || !buttons.length) return;
+
+            // Restore saved preference
+            const savedMode = localStorage.getItem(STORAGE_KEY) || 'all';
+            setLangMode(savedMode);
+
+            // Handle button clicks
+            buttons.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const mode = this.dataset.lang;
+                    setLangMode(mode);
+                    localStorage.setItem(STORAGE_KEY, mode);
+                });
+            });
+
+            function setLangMode(mode) {
+                // Update data attribute on gate-content (CSS uses this for visibility)
+                gateContent.dataset.langMode = mode;
+
+                // Update aria-pressed states
+                buttons.forEach(btn => {
+                    btn.setAttribute('aria-pressed', btn.dataset.lang === mode);
+                });
+            }
+        })();
 
         // Form handling
         const form = document.getElementById('gate-form');
