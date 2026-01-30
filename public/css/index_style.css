@@ -470,26 +470,17 @@ nav {
 /*
  * SCREEN DISPLAY - The actual viewable area
  * Positioned within the ātmanoptican frame image window
- * Frame is 1024x1024, screen window is centered
+ * Taller portrait rectangle per newDimensions.png reference
  */
 .tv-screen {
     position: absolute;
     top: 33%;
-    left: 27.5%;
-    width: 45%;
-    aspect-ratio: 1 / 1;
+    left: 32.5%;
+    width: 35%;
+    aspect-ratio: 1 / 1.1;
 
-    /* Gradient background (purple → pink → orange → yellow) */
-    background: linear-gradient(
-        180deg,
-        rgba(138, 43, 226, 0.85) 0%,
-        rgba(147, 51, 234, 0.78) 20%,
-        rgba(168, 85, 247, 0.72) 35%,
-        rgba(219, 39, 119, 0.65) 50%,
-        rgba(249, 115, 22, 0.58) 70%,
-        rgba(251, 191, 36, 0.50) 85%,
-        rgba(252, 211, 77, 0.45) 100%
-    );
+    /* No gradient overlay - let the video show through */
+    background: transparent;
 
     border-radius: 2px;
     padding: 0;
@@ -587,24 +578,23 @@ nav {
 }
 
 /*
- * VIDEO - Buddha glitch, small and centered
+ * VIDEO - Buddha glitch, fills entire screen
  */
 .tv-video {
     position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 45%;
-    height: 45%;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
     object-fit: cover;
     image-rendering: auto;
     border-radius: 2px;
-    opacity: 0.9;
+    opacity: 1;
     filter:
         contrast(1.1)
         saturate(1.15)
-        brightness(0.95);
-    mix-blend-mode: screen;
+        brightness(1);
+    /* No blend mode - show video directly */
     z-index: 0;
 }
 
@@ -614,9 +604,12 @@ nav {
     z-index: 1;
     display: flex;
     flex-direction: column;
-    gap: 0.3rem;
+    align-items: center;
+    gap: 0.2rem;
     animation: scrollUp 80s linear infinite;
     padding-top: 100%;
+    padding-left: 0.3rem;
+    padding-right: 0.3rem;
 }
 
 @keyframes scrollUp {
@@ -630,55 +623,45 @@ nav {
 }
 
 /*
- * SANSKRIT VERSE - Golden glow styling
+ * SANSKRIT VERSE - Golden glow styling with readable background
  */
 .tv-content .sanskrit {
     font-family: 'Noto Sans Devanagari', 'Noto Serif Devanagari', sans-serif;
-    font-size: 0.5rem;
-    font-weight: 500;
+    font-size: 0.55rem;
+    font-weight: 600;
     color: var(--gold);
     line-height: 1.6;
     margin: 0;
+    padding: 0.15rem 0.4rem;
+    background: rgba(0, 0, 0, 0.75);
+    border-radius: 2px;
     text-shadow:
-        0 0 8px rgba(255, 215, 0, 0.6),
-        0 0 12px rgba(255, 215, 0, 0.4),
-        0 2px 4px rgba(0, 0, 0, 0.3);
+        0 0 8px rgba(255, 215, 0, 0.8),
+        0 0 12px rgba(255, 215, 0, 0.5),
+        0 1px 2px rgba(0, 0, 0, 0.9);
     letter-spacing: 0.03em;
     text-align: center;
 }
 
 /*
- * TRANSLATION - Pink shimmer effect
+ * TRANSLATION - Legible with solid background
  */
 .tv-content .translation {
     font-family: 'Space Mono', monospace;
-    font-size: 0.45rem;
-    font-weight: 500;
-    line-height: 1.4;
-    margin: 0.8rem 0 0 0;
+    font-size: 0.5rem;
+    font-weight: 600;
+    line-height: 1.5;
+    margin: 0.6rem 0 0 0;
     padding: 0.5rem 0.6rem;
-    background: rgba(0, 0, 0, 0.5);
-    border-radius: 4px;
+    background: rgba(0, 0, 0, 0.85);
+    border-radius: 3px;
     letter-spacing: 0.02em;
     text-align: center;
     font-style: italic;
-
-    /* Pink shimmer gradient */
-    background-image: linear-gradient(
-        90deg,
-        rgba(244, 143, 177, 0.5) 0%,
-        rgba(255, 182, 193, 0.85) 15%,
-        rgba(255, 105, 180, 1) 30%,
-        rgba(255, 182, 193, 1) 50%,
-        rgba(255, 105, 180, 1) 70%,
-        rgba(255, 182, 193, 0.85) 85%,
-        rgba(244, 143, 177, 0.5) 100%
-    );
-    background-size: 200% 100%;
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-    animation: shimmerPink 5s ease-in-out infinite;
+    color: var(--light-pink);
+    text-shadow:
+        0 0 6px rgba(255, 105, 180, 0.6),
+        0 1px 2px rgba(0, 0, 0, 0.9);
 }
 
 /* Pink shimmer animation */
@@ -691,16 +674,19 @@ nav {
 /* Attribution styling */
 .tv-content .attribution {
     font-family: 'Space Mono', monospace;
-    font-size: 0.4rem;
-    font-weight: 500;
+    font-size: 0.45rem;
+    font-weight: 600;
     color: var(--gold);
-    margin: 0.5rem 0 0 0;
+    margin: 0.4rem 0 0 0;
+    padding: 0.2rem 0.5rem;
+    background: rgba(0, 0, 0, 0.8);
+    border-radius: 2px;
     text-align: center;
     letter-spacing: 0.1em;
     text-transform: uppercase;
     text-shadow:
-        0 0 8px rgba(255, 215, 0, 0.6),
-        0 0 12px rgba(255, 215, 0, 0.4);
+        0 0 8px rgba(255, 215, 0, 0.8),
+        0 1px 2px rgba(0, 0, 0, 0.9);
 }
 
 /* Subtle content flicker */
@@ -1053,6 +1039,16 @@ nav {
     margin-bottom: 1.5rem;
 }
 
+/* Link inside English gate title — same golden hue, no underline, no visited change */
+.gate-title--english a,
+.gate-title--english a:visited,
+.gate-title--english a:hover,
+.gate-title--english a:active {
+    color: inherit;
+    text-decoration: none;
+    text-shadow: inherit;
+}
+
 .gate-description {
     font-size: 0.95rem;
     color: var(--pearl);
@@ -1060,9 +1056,10 @@ nav {
     line-height: 1.8;
 }
 
-/* Keep Tamil welcome text on single line */
+/* Tamil welcome text - allow wrapping on narrow viewports */
 .gate-description.tamil-text {
-    white-space: nowrap;
+    white-space: normal;
+    overflow-wrap: anywhere;
     font-size: clamp(0.7rem, 2.5vw, 0.95rem);
 }
 
@@ -1256,30 +1253,44 @@ nav {
 
 /* Language visibility states — applied to gate-content parent */
 
-/* Default: English-only variants hidden */
+/* Default: English-only and Spanish-only variants hidden */
 .gate-title--english,
-.gate-welcome--english {
+.gate-welcome--english,
+.gate-welcome--spanish,
+.question-spanish {
+    display: none;
+}
+
+/* All mode (tamil + Transliteration + English) — hide Spanish */
+[data-lang-mode="all"] .question-spanish,
+[data-lang-mode="all"] .gate-welcome--spanish {
     display: none;
 }
 
 /* Tamil-only mode */
 [data-lang-mode="tamil-only"] .question-transliteration,
 [data-lang-mode="tamil-only"] .question-english,
-[data-lang-mode="tamil-only"] .gate-welcome--translit {
+[data-lang-mode="tamil-only"] .question-spanish,
+[data-lang-mode="tamil-only"] .gate-welcome--translit,
+[data-lang-mode="tamil-only"] .gate-welcome--spanish {
     display: none;
 }
 
 /* Tamil + Transliteration mode */
-[data-lang-mode="tamil-translit"] .question-english {
+[data-lang-mode="tamil-translit"] .question-english,
+[data-lang-mode="tamil-translit"] .question-spanish,
+[data-lang-mode="tamil-translit"] .gate-welcome--spanish {
     display: none;
 }
 
 /* English-only mode */
 [data-lang-mode="english-only"] .question-tamil,
 [data-lang-mode="english-only"] .question-transliteration,
+[data-lang-mode="english-only"] .question-spanish,
 [data-lang-mode="english-only"] .gate-title--tamil,
 [data-lang-mode="english-only"] .gate-welcome--tamil,
-[data-lang-mode="english-only"] .gate-welcome--translit {
+[data-lang-mode="english-only"] .gate-welcome--translit,
+[data-lang-mode="english-only"] .gate-welcome--spanish {
     display: none;
 }
 
@@ -1290,6 +1301,29 @@ nav {
 
 /* When English-only, remove the top border since Tamil is hidden */
 [data-lang-mode="english-only"] .question-english {
+    border-top: none;
+    padding-top: 0;
+    margin-top: 0;
+}
+
+/* Spanish-only mode */
+[data-lang-mode="spanish-only"] .question-tamil,
+[data-lang-mode="spanish-only"] .question-transliteration,
+[data-lang-mode="spanish-only"] .question-english,
+[data-lang-mode="spanish-only"] .gate-title--tamil,
+[data-lang-mode="spanish-only"] .gate-welcome--tamil,
+[data-lang-mode="spanish-only"] .gate-welcome--translit,
+[data-lang-mode="spanish-only"] .gate-welcome--english {
+    display: none;
+}
+
+[data-lang-mode="spanish-only"] .gate-welcome--spanish,
+[data-lang-mode="spanish-only"] .question-spanish {
+    display: block;
+}
+
+/* When Spanish-only, remove the top border since Tamil is hidden */
+[data-lang-mode="spanish-only"] .question-spanish {
     border-top: none;
     padding-top: 0;
     margin-top: 0;

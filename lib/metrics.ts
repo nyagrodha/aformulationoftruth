@@ -43,9 +43,15 @@ interface MetricBucket {
 const BUCKET_DURATION_MS = 60 * 1000; // 1 minute buckets
 
 // Current active bucket
+// NOTE: Single-process only — these in-memory counters do NOT aggregate across
+// multiple server instances. For horizontal scaling, export metrics to a shared
+// store (Redis, Prometheus/TSDB, or a central aggregation API).
 let currentBucket: MetricBucket | null = null;
 
 // Published aggregates (hour-level, for external consumption)
+// NOTE: Single-process only — see above. Each instance maintains its own hourly
+// aggregates. For multi-instance deployments, consider pushing to an external
+// time-series database or using a metrics aggregation service.
 const hourlyAggregates: Map<number, Map<string, number>> = new Map();
 
 /**
@@ -195,14 +201,22 @@ export function trackLatency(startTime: number): void {
  * Track funnel progression for a specific question.
  * Privacy-safe: only records that SOME user reached this step.
  *
- * @param questionIndex - 0-indexed question number
+ * @param questionIndex - 0-indexed question number (0-34)
+ *
+ * Index-to-metric mapping:
+ *   questionIndex 0 → funnel.gate.q1_answered
+ *   questionIndex 1 → funnel.gate.q2_answered
+ *   questionIndex 2-34 → funnel.questionnaire.q{N+1} (e.g., index 2 → q3)
  */
 export function trackFunnelQuestion(questionIndex: number): void {
+  // questionIndex is 0-based; metric suffixes are 1-based (q1, q2, q3, ...)
   if (questionIndex === 0) {
     increment('funnel.gate.q1_answered');
   } else if (questionIndex === 1) {
     increment('funnel.gate.q2_answered');
   } else if (questionIndex >= 2 && questionIndex <= 34) {
+    // questionIndex 2 → q3, questionIndex 3 → q4, etc.
+    // (0-based index + 1 = 1-based metric suffix)
     increment(`funnel.questionnaire.q${questionIndex + 1}`);
   }
 }

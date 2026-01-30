@@ -11,16 +11,25 @@
 import { Handlers, PageProps } from '$fresh/server.ts';
 import { randomToken } from '../lib/crypto.ts';
 import { increment, trackFunnelQuestion, trackTemporalPattern } from '../lib/metrics.ts';
+import { getGateQuestions, type Question } from '../lib/questions_dakshinaparvanuvadam.ts';
 
-// Gate questions (questions 0-1 from Proust Questionnaire)
-const GATE_QUESTIONS = [
-  'What is your idea of perfect happiness?',
-  'What is your greatest fear?',
-];
+// Gate questions from shared dataset (questions 0-1 from Proust Questionnaire)
+const GATE_QUESTIONS: Question[] = getGateQuestions();
+
+/**
+ * Build cookie suffix with Secure flag when appropriate.
+ * Adds "; Secure" for HTTPS requests or production environment.
+ */
+function getCookieSecureFlag(req: Request): string {
+  const isHttps = new URL(req.url).protocol === 'https:';
+  const isProd = Deno.env.get('DENO_ENV') === 'production' ||
+                 Deno.env.get('NODE_ENV') === 'production';
+  return (isHttps || isProd) ? '; Secure' : '';
+}
 
 interface GateData {
   questionIndex: number;
-  questionText: string;
+  question: Question;
   gateToken: string;
   error?: string;
 }
@@ -59,20 +68,21 @@ export const handler: Handlers<GateData> = {
       gateToken = `gate_${randomToken(16)}`;
     }
 
-    // Set cookies
+    // Set cookies with Secure flag for HTTPS/production
+    const secureFlag = getCookieSecureFlag(req);
     const headers = new Headers();
     headers.append(
       'Set-Cookie',
-      `gate_token=${gateToken}; HttpOnly; SameSite=Strict; Path=/; Max-Age=3600`
+      `gate_token=${gateToken}; HttpOnly; SameSite=Strict; Path=/; Max-Age=3600${secureFlag}`
     );
     headers.append(
       'Set-Cookie',
-      `gate_q=${questionIndex}; HttpOnly; SameSite=Strict; Path=/; Max-Age=3600`
+      `gate_q=${questionIndex}; HttpOnly; SameSite=Strict; Path=/; Max-Age=3600${secureFlag}`
     );
 
     return ctx.render({
       questionIndex,
-      questionText: GATE_QUESTIONS[questionIndex],
+      question: GATE_QUESTIONS[questionIndex],
       gateToken,
     }, { headers });
   },
@@ -96,12 +106,14 @@ export const handler: Handlers<GateData> = {
     const answer = formData.get('answer')?.toString() || '';
     const action = formData.get('action')?.toString() || 'continue';
 
-    // Store the answer (will be handled by API)
+    // Determine if answer was skipped (explicit skip or blank answer)
     const skipped = action === 'skip' || answer.trim() === '';
 
-    // Track funnel progression and feature usage
+    // Track funnel progression
     trackFunnelQuestion(questionIndex);
-    if (skipped) {
+
+    // Only count explicit skip button usage, not blank answers
+    if (action === 'skip') {
       increment('feature.skip_used');
     }
 
@@ -127,6 +139,7 @@ export const handler: Handlers<GateData> = {
 
     // Advance to next question
     const nextIndex = questionIndex + 1;
+    const secureFlag = getCookieSecureFlag(req);
 
     if (nextIndex >= GATE_QUESTIONS.length) {
       // All gate questions done, redirect to login with gate token
@@ -134,7 +147,7 @@ export const handler: Handlers<GateData> = {
       headers.set('Location', '/login');
       headers.append(
         'Set-Cookie',
-        `gate_q=${nextIndex}; HttpOnly; SameSite=Strict; Path=/; Max-Age=3600`
+        `gate_q=${nextIndex}; HttpOnly; SameSite=Strict; Path=/; Max-Age=3600${secureFlag}`
       );
       return new Response(null, { status: 302, headers });
     }
@@ -144,14 +157,14 @@ export const handler: Handlers<GateData> = {
     headers.set('Location', '/gate');
     headers.append(
       'Set-Cookie',
-      `gate_q=${nextIndex}; HttpOnly; SameSite=Strict; Path=/; Max-Age=3600`
+      `gate_q=${nextIndex}; HttpOnly; SameSite=Strict; Path=/; Max-Age=3600${secureFlag}`
     );
     return new Response(null, { status: 302, headers });
   },
 };
 
 export default function GatePage({ data }: PageProps<GateData>) {
-  const { questionIndex, questionText, gateToken, error } = data;
+  const { questionIndex, question, gateToken, error } = data;
 
   return (
     <html lang="en">
@@ -180,7 +193,12 @@ export default function GatePage({ data }: PageProps<GateData>) {
                 question {questionIndex + 1} of {GATE_QUESTIONS.length}
               </p>
 
-              <h2 class="gate-title">{questionText}</h2>
+              {/* Trilingual question display: Tamil, transliteration, English */}
+              <h2 class="gate-title">
+                <span class="tamil-text">{question.tamil}</span>
+              </h2>
+              <p class="gate-transliteration">{question.transliteration}</p>
+              <p class="gate-english">{question.english}</p>
 
               <p class="gate-description">
                 These are not polite questions. They are holes in the ice.
@@ -194,7 +212,7 @@ export default function GatePage({ data }: PageProps<GateData>) {
                 <input type="hidden" name="question_index" value={questionIndex} />
 
                 <div class="form-group">
-                  <label for="answer">Your reflection</label>
+                  <label htmlFor="answer">Your reflection</label>
                   <div class="textarea-wrapper">
                     <div class="watermark">truth</div>
                     <textarea

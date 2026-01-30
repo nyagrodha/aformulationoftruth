@@ -32,17 +32,24 @@ const ALLOWED_CLIENT_METRICS = new Set([
   'engagement.return_visit',
 ]);
 
+// Shared headers for all responses — beacon endpoints should never be cached
+const RESPONSE_HEADERS = {
+  'Content-Type': 'application/json',
+  'Cache-Control': 'no-store',
+};
+
 export const handler: Handlers = {
   async POST(req, _ctx) {
     try {
       const body = await req.json();
       const metric = body?.metric;
 
-      // Validate metric name
+      // Validate metric name — return same 200 response as disallowed metrics
+      // to avoid leaking allowlist information via status codes
       if (!metric || typeof metric !== 'string') {
-        return new Response(JSON.stringify({ error: 'Invalid metric' }), {
-          status: 400,
-          headers: { 'Content-Type': 'application/json' },
+        return new Response(JSON.stringify({ ok: true }), {
+          status: 200,
+          headers: RESPONSE_HEADERS,
         });
       }
 
@@ -51,7 +58,7 @@ export const handler: Handlers = {
         // Silently ignore disallowed metrics (don't reveal allowlist)
         return new Response(JSON.stringify({ ok: true }), {
           status: 200,
-          headers: { 'Content-Type': 'application/json' },
+          headers: RESPONSE_HEADERS,
         });
       }
 
@@ -60,16 +67,13 @@ export const handler: Handlers = {
 
       return new Response(JSON.stringify({ ok: true }), {
         status: 200,
-        headers: {
-          'Content-Type': 'application/json',
-          'Cache-Control': 'no-store',
-        },
+        headers: RESPONSE_HEADERS,
       });
     } catch {
       // Don't leak error details
       return new Response(JSON.stringify({ ok: true }), {
         status: 200,
-        headers: { 'Content-Type': 'application/json' },
+        headers: RESPONSE_HEADERS,
       });
     }
   },

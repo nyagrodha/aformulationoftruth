@@ -42,6 +42,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # Configuration from environment
+# NOTE: DATABASE_URL is required — no default to avoid hardcoded credentials
 CONFIG = {
     'telegram_token': os.environ.get('TELEGRAM_BOT_TOKEN', ''),
     'telegram_chat_id': os.environ.get('TELEGRAM_CHAT_ID', ''),
@@ -49,8 +50,15 @@ CONFIG = {
     'report_email': os.environ.get('REPORT_EMAIL', os.environ.get('ALERT_EMAIL', 'nyagrodha@icloud.com')),
     'from_email': os.environ.get('SENDGRID_FROM_EMAIL', 'formitselfisemptiness@aformulationoftruth.com'),
     'caddy_log_path': os.environ.get('CADDY_LOG_PATH', '/var/log/caddy/access.log'),
-    'database_url': os.environ.get('DATABASE_URL', 'postgresql://a4m_be:oI7QHWG1cPUy3qpYvdh09FZk@10.67.0.1:5432/a4mula4canti'),
+    'database_url': os.environ.get('DATABASE_URL', ''),
 }
+
+# Validate required configuration at import time
+if not CONFIG['database_url']:
+    raise EnvironmentError(
+        "DATABASE_URL environment variable is required but not set. "
+        "Please set DATABASE_URL to a valid PostgreSQL connection string."
+    )
 
 # Static resources to exclude from visitor counts
 STATIC_EXTENSIONS = {'.js', '.css', '.png', '.jpg', '.jpeg', '.gif', '.svg', '.ico', '.woff', '.woff2', '.ttf', '.eot', '.map'}
@@ -117,8 +125,14 @@ def send_email_report(subject: str, body: str) -> bool:
 
 
 def is_static_resource(path: str) -> bool:
-    """Check if path is a static resource."""
-    path_lower = path.lower()
+    """Check if path is a static resource.
+
+    Strips query strings and fragments before checking extension,
+    so cache-busted URLs like /main.js?v=123 are correctly classified.
+    """
+    # Strip query string and fragment before checking extension
+    clean_path = path.split('?')[0].split('#')[0]
+    path_lower = clean_path.lower()
     return any(path_lower.endswith(ext) for ext in STATIC_EXTENSIONS)
 
 
@@ -127,12 +141,15 @@ def get_newsletter_stats(target_date: datetime) -> Dict[str, Any]:
     Get newsletter subscription stats from database.
 
     Returns aggregate counts only - no email addresses or PII.
+    Queries the unified table (primary) plus legacy tables for historical data.
     """
     stats = {
         'total_subscribers': 0,
         'confirmed_subscribers': 0,
+        'pending_subscribers': 0,
         'new_signups_today': 0,
         'new_confirmed_today': 0,
+        'legacy_count': 0,  # From old tables
         'error': None,
     }
 
@@ -152,35 +169,48 @@ def get_newsletter_stats(target_date: datetime) -> Dict[str, Any]:
 
         user, password, host, port, database = match.groups()
 
-        # Query for stats (aggregate counts only, no PII)
+        # Query for stats from unified table (aggregate counts only, no PII)
         queries = {
-            'total': "SELECT COUNT(*) FROM fresh_newsletter",
-            'confirmed': "SELECT COUNT(*) FROM fresh_newsletter WHERE confirmed_at IS NOT NULL",
-            'new_today': f"SELECT COUNT(*) FROM fresh_newsletter WHERE created_at::date = '{date_str}'",
-            'confirmed_today': f"SELECT COUNT(*) FROM fresh_newsletter WHERE confirmed_at::date = '{date_str}'",
+            'total': "SELECT COUNT(*) FROM newsletter_unified",
+            'confirmed': "SELECT COUNT(*) FROM newsletter_unified WHERE status = 'confirmed'",
+            'pending': "SELECT COUNT(*) FROM newsletter_unified WHERE status = 'pending'",
+            'new_today': f"SELECT COUNT(*) FROM newsletter_unified WHERE created_at::date = '{date_str}'",
+            'confirmed_today': f"SELECT COUNT(*) FROM newsletter_unified WHERE confirmed_at::date = '{date_str}'",
+            # Legacy tables (for historical reference)
+            'legacy': """SELECT
+                (SELECT COUNT(*) FROM newsletter_emails WHERE subscribed = true) +
+                (SELECT COUNT(*) FROM newsletter_subscribers WHERE unsubscribed_at IS NULL)
+            """,
         }
 
         env = os.environ.copy()
         env['PGPASSWORD'] = password
 
         for key, query in queries.items():
-            result = subprocess.run(
-                ['psql', '-h', host, '-p', port, '-U', user, '-d', database, '-t', '-c', query],
-                capture_output=True,
-                text=True,
-                env=env,
-                timeout=10
-            )
-            if result.returncode == 0:
-                count = int(result.stdout.strip() or 0)
-                if key == 'total':
-                    stats['total_subscribers'] = count
-                elif key == 'confirmed':
-                    stats['confirmed_subscribers'] = count
-                elif key == 'new_today':
-                    stats['new_signups_today'] = count
-                elif key == 'confirmed_today':
-                    stats['new_confirmed_today'] = count
+            try:
+                result = subprocess.run(
+                    ['psql', '-h', host, '-p', port, '-U', user, '-d', database, '-t', '-c', query],
+                    capture_output=True,
+                    text=True,
+                    env=env,
+                    timeout=10
+                )
+                if result.returncode == 0:
+                    count = int(result.stdout.strip() or 0)
+                    if key == 'total':
+                        stats['total_subscribers'] = count
+                    elif key == 'confirmed':
+                        stats['confirmed_subscribers'] = count
+                    elif key == 'pending':
+                        stats['pending_subscribers'] = count
+                    elif key == 'new_today':
+                        stats['new_signups_today'] = count
+                    elif key == 'confirmed_today':
+                        stats['new_confirmed_today'] = count
+                    elif key == 'legacy':
+                        stats['legacy_count'] = count
+            except Exception:
+                pass  # Individual query failures shouldn't stop the report
 
     except subprocess.TimeoutExpired:
         stats['error'] = 'Database query timeout'
@@ -269,7 +299,8 @@ def parse_caddy_logs(target_date: datetime) -> Dict[str, Any]:
                     # Categorize requests
                     if uri.startswith('/api/'):
                         stats['api_requests'] += 1
-                        if '/gate-submit' in uri and method == 'POST':
+                        # Count gate submissions from both old (/gate-submit) and new (/api/gate) endpoints
+                        if method == 'POST' and ('/gate-submit' in uri or '/api/gate' in uri):
                             stats['gate_submissions'] += 1
                         if '/questions/next' in uri:
                             stats['questionnaire_starts'] += 1
@@ -422,12 +453,14 @@ def generate_report(target_date: Optional[datetime] = None) -> str:
         f"  Page Views:         {caddy_stats.get('page_views', 'N/A'):>8}",
         f"  API Requests:       {caddy_stats.get('api_requests', 'N/A'):>8}",
         "",
-        "NEWSLETTER SUBSCRIBERS",
+        "NEWSLETTER SUBSCRIBERS (Unified)",
         "-" * 30,
-        f"  Total Signups:      {newsletter_stats.get('total_subscribers', 'N/A'):>8}",
+        f"  Total:              {newsletter_stats.get('total_subscribers', 'N/A'):>8}",
         f"  Confirmed:          {newsletter_stats.get('confirmed_subscribers', 'N/A'):>8}",
+        f"  Pending:            {newsletter_stats.get('pending_subscribers', 'N/A'):>8}",
         f"  New Today:          {newsletter_stats.get('new_signups_today', 'N/A'):>8}",
         f"  Confirmed Today:    {newsletter_stats.get('new_confirmed_today', 'N/A'):>8}",
+        f"  Legacy (archived):  {newsletter_stats.get('legacy_count', 'N/A'):>8}",
         "",
         "QUESTIONNAIRE ACTIVITY (API Metrics)",
         "-" * 30,

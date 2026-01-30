@@ -39,6 +39,11 @@ export interface Question {
 const TAMIL_NUMERALS = ['௦', '௧', '௨', '௩', '௪', '௫', '௬', '௭', '௮', '௯'];
 
 function toTamilNumeral(n: number): string {
+  if (!Number.isInteger(n) || n < 0) {
+    throw new RangeError(
+      `toTamilNumeral requires a non-negative integer, got: ${n}`
+    );
+  }
   if (n === 0) return TAMIL_NUMERALS[0];
   let result = '';
   let num = n;
