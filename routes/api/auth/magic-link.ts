@@ -27,7 +27,7 @@ import { z } from 'zod';
 import { validateEmail } from '../../../lib/emailValidator.ts';
 import { createMagicLink } from '../../../lib/auth.ts';
 import { hashEmail } from '../../../lib/crypto.ts';
-import { createQuestionnaireSession, findActiveSession } from '../../../lib/questionnaire-session.ts';
+import { createQuestionnaireSession, findActiveSession, deleteSession } from '../../../lib/questionnaire-session.ts';
 import { createQuestionnaireJWT } from '../../../lib/jwt.ts';
 import { increment } from '../../../lib/metrics.ts';
 import { sendMagicLinkEmail } from '../../../lib/email.ts';
@@ -80,7 +80,7 @@ export const handler: Handlers = {
       const { gateToken } = parsed.data;
 
       // Step 1: Create magic link (for email delivery verification)
-      const { expiresAt } = await createMagicLink(email);
+      const { expiresAt, cleanup: cleanupMagicLink } = await createMagicLink(email);
 
       // Step 2: Hash email immediately
       const emailHash = await hashEmail(email);
@@ -115,6 +115,11 @@ export const handler: Handlers = {
       if (!emailResult.success) {
         console.error('[auth] Failed to send magic link email:', emailResult.error);
         increment('errors.email');
+
+        // Clean up orphaned records on email failure
+        await cleanupMagicLink();
+        await deleteSession(sessionId);
+
         return new Response(
           JSON.stringify({ error: 'Failed to send email. Please try again.' }),
           { status: 500, headers: { 'Content-Type': 'application/json' } }

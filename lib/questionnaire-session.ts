@@ -38,6 +38,25 @@ export interface SessionCreationResult {
   questionOrder: string;          // For initial state
 }
 
+// Database row types for queryObject
+interface SessionRow {
+  session_id: string;
+  email_hash: string;
+  question_order: string;
+  answered_questions: number[] | null;
+  current_index: number | null;
+  created_at: string;
+  updated_at: string;
+  completed_at: string | null;
+}
+
+interface StatsRow {
+  total: string | bigint;
+  active: string | bigint;
+  completed: string | bigint;
+  avg_progress: number | null;
+}
+
 /**
  * Create a new questionnaire session.
  * Generates opaque token and stores only its HMAC hash.
@@ -130,7 +149,7 @@ export async function getSessionById(
   sessionId: string
 ): Promise<QuestionnaireSession | null> {
   return await withConnection(async (client) => {
-    const { rows } = await client.queryObject<any>(
+    const { rows } = await client.queryObject<SessionRow>(
       `SELECT session_id, email_hash, question_order, answered_questions,
               current_index, created_at, updated_at, completed_at
        FROM fresh_questionnaire_sessions
@@ -165,7 +184,7 @@ export async function findActiveSession(
   emailHash: string
 ): Promise<QuestionnaireSession | null> {
   return await withConnection(async (client) => {
-    const { rows } = await client.queryObject<any>(
+    const { rows } = await client.queryObject<SessionRow>(
       `SELECT session_id, email_hash, question_order, answered_questions,
               current_index, created_at, updated_at, completed_at
        FROM fresh_questionnaire_sessions
@@ -252,6 +271,37 @@ export async function completeSession(sessionId: string): Promise<void> {
       [sessionId]
     );
   });
+}
+
+/**
+ * Delete a session (for cleanup on failed operations).
+ * Also unlinks any gate responses that were linked to this session.
+ *
+ * @param sessionId - Session identifier to delete
+ */
+export async function deleteSession(sessionId: string): Promise<void> {
+  try {
+    await withTransaction(async (client) => {
+      // First, unlink any gate responses
+      await client.queryObject(
+        `UPDATE fresh_gate_responses
+         SET linked_session_id = NULL
+         WHERE linked_session_id = $1`,
+        [sessionId]
+      );
+
+      // Then delete the session
+      await client.queryObject(
+        `DELETE FROM fresh_questionnaire_sessions
+         WHERE session_id = $1`,
+        [sessionId]
+      );
+    });
+    console.log('[session] Deleted session:', sessionId.slice(0, 8) + '...');
+  } catch (error) {
+    // Log but don't throw - cleanup failure shouldn't mask the original error
+    console.error('[session] Failed to delete session:', error);
+  }
 }
 
 /**
@@ -356,7 +406,7 @@ export async function getSessionStats(): Promise<{
   averageProgress: number;
 }> {
   return await withConnection(async (client) => {
-    const { rows } = await client.queryObject<any>(
+    const { rows } = await client.queryObject<StatsRow>(
       `SELECT
          COUNT(*) as total,
          COUNT(*) FILTER (WHERE completed_at IS NULL) as active,
