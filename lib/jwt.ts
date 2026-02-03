@@ -135,10 +135,17 @@ export async function verifyQuestionnaireJWT(
     const signatureInput = `${headerB64}.${payloadB64}`;
     const signatureBuffer = base64urlDecode(signatureB64);
 
+    // Extract ArrayBuffer slice for crypto.subtle.verify
+    // (Uint8Array.buffer is ArrayBufferLike, but we need ArrayBuffer)
+    const signatureArrayBuffer = (signatureBuffer.buffer as ArrayBuffer).slice(
+      signatureBuffer.byteOffset,
+      signatureBuffer.byteOffset + signatureBuffer.byteLength
+    );
+
     const isValid = await crypto.subtle.verify(
       'HMAC',
       key,
-      signatureBuffer,
+      signatureArrayBuffer,
       encoder.encode(signatureInput)
     );
 

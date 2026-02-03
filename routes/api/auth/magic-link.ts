@@ -24,14 +24,16 @@
 
 import { Handlers } from '$fresh/server.ts';
 import { z } from 'zod';
+import { validateEmail } from '../../../lib/emailValidator.ts';
 import { createMagicLink } from '../../../lib/auth.ts';
 import { hashEmail } from '../../../lib/crypto.ts';
 import { createQuestionnaireSession, findActiveSession } from '../../../lib/questionnaire-session.ts';
 import { createQuestionnaireJWT } from '../../../lib/jwt.ts';
 import { increment } from '../../../lib/metrics.ts';
+import { sendMagicLinkEmail } from '../../../lib/email.ts';
 
 const RequestSchema = z.object({
-  email: z.string().email(),
+  email: z.string().min(1),
   gateToken: z.string().optional(), // Optional gate token to link gate responses
 });
 
@@ -54,16 +56,31 @@ export const handler: Handlers = {
     if (!parsed.success) {
       increment('errors.4xx');
       return new Response(
-        JSON.stringify({ error: 'Valid email required' }),
+        JSON.stringify({ error: 'Email required' }),
+        { status: 400, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Validate and normalize email
+    const emailValidation = validateEmail(parsed.data.email);
+    if (!emailValidation.valid) {
+      increment('errors.4xx');
+      if (emailValidation.reason === 'suspicious_pattern') {
+        increment('errors.suspicious_email');
+        console.log('[auth] Blocked suspicious email pattern');
+      }
+      return new Response(
+        JSON.stringify({ error: 'Please use a valid email address' }),
         { status: 400, headers: { 'Content-Type': 'application/json' } }
       );
     }
 
     try {
-      const { email, gateToken } = parsed.data;
+      const email = emailValidation.normalized;
+      const { gateToken } = parsed.data;
 
       // Step 1: Create magic link (for email delivery verification)
-      const { token: magicToken, expiresAt } = await createMagicLink(email);
+      const { expiresAt } = await createMagicLink(email);
 
       // Step 2: Hash email immediately
       const emailHash = await hashEmail(email);
@@ -93,9 +110,16 @@ export const handler: Handlers = {
       const baseUrl = Deno.env.get('BASE_URL') || 'http://localhost:8000';
       const magicLinkUrl = `${baseUrl}/auth/verify?token=${jwt}&resume=${opaqueToken}`;
 
-      // In production, send email here
-      // TODO: Integrate with SendGrid/nodemailer
-      // await sendMagicLinkEmail(email, magicLinkUrl);
+      // Send the magic link email via SendGrid
+      const emailResult = await sendMagicLinkEmail(email, magicLinkUrl);
+      if (!emailResult.success) {
+        console.error('[auth] Failed to send magic link email:', emailResult.error);
+        increment('errors.email');
+        return new Response(
+          JSON.stringify({ error: 'Failed to send email. Please try again.' }),
+          { status: 500, headers: { 'Content-Type': 'application/json' } }
+        );
+      }
 
       increment('auth.magiclink.sent');
 
