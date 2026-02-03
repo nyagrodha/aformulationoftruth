@@ -30,6 +30,9 @@ function isReasonablyValidEmail(local: string, domain: string): boolean {
   if (!local || !domain) return false;
   if (local.includes(" ") || domain.includes(" ")) return false;
 
+  // Reject HTML-like characters (defense in depth against XSS)
+  if (local.includes("<") || local.includes(">")) return false;
+
   // domain must contain at least one dot, not at ends, no empty labels
   const firstDot = domain.indexOf(".");
   if (firstDot <= 0 || firstDot === domain.length - 1) return false;
