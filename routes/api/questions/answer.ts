@@ -30,11 +30,9 @@ import { z } from 'zod';
 import { verifyQuestionnaireJWT } from '../../../lib/jwt.ts';
 import {
   getSessionByToken,
-  getSessionById,
   updateSessionProgress,
   updateSessionIndex,
   completeSession,
-  storeSessionAnswers,
 } from '../../../lib/questionnaire-session.ts';
 import { parseQuestionOrder } from '../../../lib/questionnaire.ts';
 import { increment } from '../../../lib/metrics.ts';
@@ -246,7 +244,7 @@ export const handler: Handlers = {
       );
     }
 
-    const { questionIndex, answer, skipped } = parsed.data;
+    const { questionIndex, skipped } = parsed.data;
 
     try {
       // Calculate next index

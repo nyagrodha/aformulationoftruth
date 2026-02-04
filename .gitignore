@@ -99,6 +99,7 @@ shared/
 static/
 server/public
 vite.config.ts.*
+/trashy/
 
 # Config files managed elsewhere
 Caddyfile

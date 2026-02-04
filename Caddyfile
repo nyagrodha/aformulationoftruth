@@ -28,14 +28,14 @@ https://aformulationoftruth.com, https://www.aformulationoftruth.com, https://ap
 	bind 37.228.129.173 2a06:1700:1:45::435c:c15f
 	import common
 
-	# API proxy to backend server
+	# API proxy to Fresh backend server (Deno)
 	handle /api/* {
-		reverse_proxy http://localhost:3000
+		reverse_proxy http://localhost:8393
 	}
 
-	# Auth endpoints proxy to backend
+	# Auth endpoints proxy to Fresh backend
 	handle /auth/* {
-		reverse_proxy http://localhost:3000
+		reverse_proxy http://localhost:8393
 	}
 
 	# Uploads

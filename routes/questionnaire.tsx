@@ -14,7 +14,7 @@ import { Handlers, PageProps } from '$fresh/server.ts';
 import { verifyQuestionnaireJWT } from '../lib/jwt.ts';
 import { getSessionById, updateSessionProgress, updateSessionIndex } from '../lib/questionnaire-session.ts';
 import { parseQuestionOrder } from '../lib/questionnaire.ts';
-import { increment } from '../lib/metrics.ts';
+import { increment, trackFunnelQuestion, trackTemporalPattern } from '../lib/metrics.ts';
 
 // The 35 Proust questionnaire questions
 const QUESTIONS = [
@@ -65,6 +65,7 @@ interface QuestionnaireData {
   currentQuestion: string;
   questionNumber: number;
   totalQuestions: number;
+  isFirstQuestion: boolean;
 }
 
 function getCookie(cookieHeader: string | null, name: string): string | null {
@@ -129,6 +130,7 @@ export const handler: Handlers<QuestionnaireData> = {
     const overallNum = currentIndex + 3; // +2 for gate questions, +1 for 1-indexing
 
     increment('questionnaire.viewed');
+    trackTemporalPattern();
 
     return ctx.render({
       authenticated: true,
@@ -138,6 +140,7 @@ export const handler: Handlers<QuestionnaireData> = {
       currentQuestion,
       questionNumber: overallNum,
       totalQuestions: 35, // Total including gate questions
+      isFirstQuestion: currentIndex === 0,
     });
   },
 
@@ -180,10 +183,31 @@ export const handler: Handlers<QuestionnaireData> = {
     const questionOrder = parseQuestionOrder(session.questionOrder);
     const remainingQuestions = questionOrder.slice(2);
     const currentIndex = session.currentIndex;
+
+    // Handle "previous" action - go back to prior question
+    if (action === 'previous') {
+      if (currentIndex > 0) {
+        const prevIndex = currentIndex - 1;
+        await updateSessionIndex(session.sessionId, prevIndex);
+        increment('feature.previous_used');
+      }
+      // Redirect back to questionnaire (will show previous question)
+      return new Response(null, {
+        status: 302,
+        headers: { Location: '/questionnaire' },
+      });
+    }
+
     const questionNum = remainingQuestions[currentIndex];
 
     // Store the answer
     const skipped = action === 'skip' || answer.trim() === '';
+
+    // Track funnel progression and feature usage
+    trackFunnelQuestion(questionNum);
+    if (skipped) {
+      increment('feature.skip_used');
+    }
 
     try {
       // Store answer via API
@@ -235,7 +259,7 @@ export const handler: Handlers<QuestionnaireData> = {
 };
 
 export default function QuestionnairePage({ data }: PageProps<QuestionnaireData>) {
-  const { currentQuestion, questionNumber, totalQuestions } = data;
+  const { currentQuestion, questionNumber, totalQuestions, isFirstQuestion } = data;
 
   return (
     <html lang="en">
@@ -375,6 +399,17 @@ export default function QuestionnairePage({ data }: PageProps<QuestionnaireData>
             border-color: #555;
             color: #999;
           }
+          .btn-prior {
+            background: transparent;
+            border: 1px solid #444;
+            color: #888;
+          }
+          .btn-prior:hover:not(:disabled) {
+            border-color: #c0c0c0;
+            color: #e8e8e8;
+            text-shadow: 0 0 8px rgba(192, 192, 192, 0.6);
+            box-shadow: 0 0 12px rgba(192, 192, 192, 0.3), inset 0 0 8px rgba(192, 192, 192, 0.1);
+          }
           .voice-hint {
             font-size: 0.75rem;
             color: #444;
@@ -449,6 +484,16 @@ export default function QuestionnairePage({ data }: PageProps<QuestionnaireData>
               ></textarea>
 
               <div class="button-group">
+                <button
+                  type="submit"
+                  name="action"
+                  value="previous"
+                  class="btn-prior"
+                  disabled={isFirstQuestion}
+                  style={isFirstQuestion ? { opacity: '0.4', cursor: 'not-allowed' } : {}}
+                >
+                  Prior
+                </button>
                 <button type="submit" name="action" value="continue" class="btn-primary">
                   Continue
                 </button>
