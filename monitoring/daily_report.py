@@ -25,6 +25,7 @@ import json
 import gzip
 import re
 import logging
+import subprocess
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
 from typing import Dict, Any, List, Optional, Set
@@ -84,8 +85,8 @@ def send_telegram_message(message: str) -> bool:
         with urlopen(req, timeout=10) as response:
             result = json.loads(response.read().decode('utf-8'))
             return result.get('ok', False)
-    except Exception as e:
-        logger.error(f"Failed to send Telegram message: {e}")
+    except Exception:
+        logger.exception("Failed to send Telegram message")
         return False
 
 
@@ -119,8 +120,8 @@ def send_email_report(subject: str, body: str) -> bool:
 
         with urlopen(req, timeout=15) as response:
             return response.status in [200, 202]
-    except Exception as e:
-        logger.error(f"Failed to send email report: {e}")
+    except Exception:
+        logger.exception("Failed to send email report")
         return False
 
 
@@ -154,14 +155,11 @@ def get_newsletter_stats(target_date: datetime) -> Dict[str, Any]:
     }
 
     try:
-        import subprocess
-
         date_str = target_date.strftime('%Y-%m-%d')
 
         # Parse database URL
         db_url = CONFIG['database_url']
         # Extract components: postgresql://user:pass@host:port/db
-        import re
         match = re.match(r'postgresql://([^:]+):([^@]+)@([^:]+):(\d+)/(.+)', db_url)
         if not match:
             stats['error'] = 'Invalid database URL'
@@ -209,14 +207,16 @@ def get_newsletter_stats(target_date: datetime) -> Dict[str, Any]:
                         stats['new_confirmed_today'] = count
                     elif key == 'legacy':
                         stats['legacy_count'] = count
+            except subprocess.TimeoutExpired:
+                raise  # Re-raise to be caught by outer handler
             except Exception:
-                pass  # Individual query failures shouldn't stop the report
+                pass  # Other individual query failures shouldn't stop the report
 
     except subprocess.TimeoutExpired:
         stats['error'] = 'Database query timeout'
     except Exception as e:
         stats['error'] = str(e)
-        logger.error(f"Error fetching newsletter stats: {e}")
+        logger.exception("Error fetching newsletter stats")
 
     return stats
 
@@ -332,7 +332,7 @@ def parse_caddy_logs(target_date: datetime) -> Dict[str, Any]:
         )[:10])
 
     except Exception as e:
-        logger.error(f"Error parsing Caddy logs: {e}")
+        logger.exception("Error parsing Caddy logs")
         stats['error'] = str(e)
 
     return stats
@@ -422,7 +422,7 @@ def get_metrics_stats() -> Dict[str, Any]:
             stats['temporal_hourly'] = hourly
 
     except Exception as e:
-        logger.error(f"Error fetching metrics: {e}")
+        logger.exception("Error fetching metrics")
         stats['error'] = str(e)
 
     return stats

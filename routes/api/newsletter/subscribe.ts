@@ -40,7 +40,7 @@ export const handler: Handlers = {
     } catch {
       increment('errors.4xx');
       return new Response(
-        JSON.stringify({ error: 'Invalid JSON body' }),
+        JSON.stringify({ success: false, error: 'Invalid JSON body' }),
         { status: 400, headers: corsHeaders }
       );
     }
@@ -49,7 +49,7 @@ export const handler: Handlers = {
     if (!parsed.success) {
       increment('errors.4xx');
       return new Response(
-        JSON.stringify({ error: 'Email required' }),
+        JSON.stringify({ success: false, error: 'Email required' }),
         { status: 400, headers: corsHeaders }
       );
     }
@@ -62,7 +62,7 @@ export const handler: Handlers = {
         increment('errors.suspicious_email');
       }
       return new Response(
-        JSON.stringify({ error: 'Please use a valid email address' }),
+        JSON.stringify({ success: false, error: 'Please use a valid email address' }),
         { status: 400, headers: corsHeaders }
       );
     }
@@ -75,6 +75,7 @@ export const handler: Handlers = {
       if (result.status === 'already_confirmed') {
         return new Response(
           JSON.stringify({
+            success: true,
             message: 'You are already subscribed to the newsletter.',
             status: 'already_confirmed',
           }),
@@ -94,7 +95,7 @@ export const handler: Handlers = {
           console.error('[newsletter] Failed to send confirmation email:', emailResult.error);
           increment('errors.email');
           return new Response(
-            JSON.stringify({ error: 'Failed to send confirmation email. Please try again.' }),
+            JSON.stringify({ success: false, error: 'Failed to send confirmation email. Please try again.' }),
             { status: 500, headers: corsHeaders }
           );
         }
@@ -105,6 +106,7 @@ export const handler: Handlers = {
 
       return new Response(
         JSON.stringify({
+          success: true,
           message: 'Please check your email to confirm your subscription.',
           status: result.status,
         }),
@@ -115,7 +117,7 @@ export const handler: Handlers = {
       increment('errors.5xx');
 
       return new Response(
-        JSON.stringify({ error: 'Failed to process subscription' }),
+        JSON.stringify({ success: false, error: 'Failed to process subscription' }),
         { status: 500, headers: corsHeaders }
       );
     }

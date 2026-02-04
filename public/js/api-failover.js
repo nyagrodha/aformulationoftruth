@@ -93,12 +93,9 @@
       }
     }
 
-    // All endpoints failed
+    // All endpoints failed - log details but don't expose to users
     console.error('[API Failover] All endpoints failed:', errors);
-    throw new Error(
-      'All API endpoints failed. Errors: ' +
-      errors.map(e => e.endpoint + ': ' + e.error).join(', ')
-    );
+    throw new Error('Unable to connect to server. Please try again later.');
   }
 
   /**

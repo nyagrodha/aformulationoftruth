@@ -760,7 +760,8 @@ transition: all 0.3s ease;
 }
 
 .newsletter-input:focus {
-outline: none;
+outline: 2px solid var(--rust);
+outline-offset: 3px;
 border-color: var(--rust);
 box-shadow: 0 0 10px rgba(183, 65, 14, 0.3);
 }

@@ -1,0 +1,180 @@
+/* About page specific styles */
+.about-hero {
+    min-height: 50vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 10rem 2rem 4rem;
+    position: relative;
+    z-index: 1;
+    text-align: center;
+}
+
+.about-hero h1 {
+    font-family: 'Orbitron', sans-serif;
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--neon-pink) 0%, var(--neon-orange) 50%, var(--neon-emerald) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    filter: drop-shadow(0 0 20px var(--pink-glow)) drop-shadow(0 0 40px var(--orange-glow));
+    margin-bottom: 1rem;
+}
+
+.about-hero .hero-tagline {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.8rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--mist);
+}
+
+.about-content {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 4rem 2rem 6rem;
+}
+
+.about-section {
+    margin-bottom: 4rem;
+    padding: 2.5rem;
+    border: 1px solid var(--ghost);
+    background: linear-gradient(135deg, var(--pink-dim) 0%, transparent 100%);
+    position: relative;
+}
+
+.about-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 3px;
+    height: 100%;
+    background: linear-gradient(to bottom, var(--neon-pink), var(--neon-orange), var(--neon-emerald));
+    box-shadow: 0 0 15px var(--pink-glow);
+}
+
+.about-section h2 {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 500;
+    color: var(--neon-pink);
+    text-shadow: 0 0 15px var(--pink-glow);
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--ghost);
+}
+
+.about-section p {
+    font-size: 1rem;
+    color: var(--pearl);
+    line-height: 1.9;
+    margin-bottom: 1.25rem;
+}
+
+.about-section p:last-child {
+    margin-bottom: 0;
+}
+
+.about-section em {
+    color: var(--neon-emerald);
+    font-style: italic;
+    text-shadow: 0 0 8px var(--emerald-glow);
+}
+
+.about-section strong {
+    color: var(--neon-orange);
+    text-shadow: 0 0 8px var(--orange-glow);
+}
+
+.about-quote {
+    border-left: 2px solid var(--neon-orange);
+    padding: 1.5rem 2rem;
+    margin: 2rem 0;
+    background: var(--orange-dim);
+    font-style: italic;
+}
+
+.about-quote p {
+    color: var(--bone);
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.05rem;
+}
+
+.about-quote cite {
+    display: block;
+    margin-top: 1rem;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--mist);
+    letter-spacing: 0.1em;
+    font-style: normal;
+}
+
+.about-nav {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    flex-wrap: wrap;
+    margin-top: 4rem;
+    padding-top: 3rem;
+    border-top: 1px solid var(--ghost);
+}
+
+.about-nav a {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.8rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 1rem 2rem;
+    border: 1px solid var(--ghost);
+    background: transparent;
+    color: var(--pearl);
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.about-nav a:hover {
+    border-color: var(--neon-pink);
+    color: var(--light);
+    box-shadow: 0 0 20px var(--pink-glow);
+}
+
+.about-nav a.primary {
+    background: linear-gradient(135deg, var(--neon-pink), var(--neon-orange));
+    color: var(--void);
+    border: none;
+    font-weight: 700;
+}
+
+.about-nav a.primary:hover {
+    background: linear-gradient(135deg, var(--neon-orange), var(--neon-emerald));
+    box-shadow: 0 0 30px var(--orange-glow), 0 0 60px var(--emerald-glow);
+}
+
+@media (max-width: 768px) {
+    .about-hero {
+        padding: 8rem 1.5rem 3rem;
+    }
+
+    .about-content {
+        padding: 3rem 1.5rem 4rem;
+    }
+
+    .about-section {
+        padding: 1.5rem;
+    }
+
+    .about-nav {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .about-nav a {
+        width: 100%;
+        max-width: 280px;
+        text-align: center;
+    }
+}
