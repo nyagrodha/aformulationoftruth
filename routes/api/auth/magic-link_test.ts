@@ -21,6 +21,9 @@ import {
 // Mock environment for tests
 const originalEnv = Deno.env.toObject();
 
+// Keys that setupTestEnv adds (may not exist in originalEnv)
+const TEST_ENV_KEYS = ['RESUME_TOKEN_SECRET', 'JWT_SECRET', 'BASE_URL', 'DENO_ENV'] as const;
+
 function setupTestEnv() {
   Deno.env.set('RESUME_TOKEN_SECRET', 'test-secret-key-for-hmac-operations');
   Deno.env.set('JWT_SECRET', 'test-jwt-secret-key');
@@ -29,8 +32,16 @@ function setupTestEnv() {
 }
 
 function restoreEnv() {
+  // First restore original values
   for (const [key, value] of Object.entries(originalEnv)) {
     Deno.env.set(key, value);
+  }
+
+  // Delete any keys added by setupTestEnv that weren't in the original environment
+  for (const key of TEST_ENV_KEYS) {
+    if (!(key in originalEnv)) {
+      Deno.env.delete(key);
+    }
   }
 }
 
@@ -121,11 +132,13 @@ Deno.test({
 });
 
 // Test group: Response Structure (mocked DB scenario)
+// NOTE: These are documentation-only tests that validate static examples,
+// not runtime behavior. They demonstrate expected formats but don't exercise real code.
 Deno.test({
-  name: 'magic-link: response structure validation (schema check)',
+  name: 'doc: magic-link response structure validation (schema check)',
   fn() {
-    // Validate expected response schema without hitting the database
-    // This is a structural test showing what the endpoint should return
+    // Documentation test - validates expected response schema format
+    // Does NOT exercise runtime code; see integration tests for actual behavior
 
     const expectedDevResponse = {
       message: 'Magic link sent',
@@ -154,9 +167,10 @@ Deno.test({
 
 // Test group: Gate Token Handling
 Deno.test({
-  name: 'magic-link: accepts optional gateToken parameter',
+  name: 'doc: magic-link accepts optional gateToken parameter',
   fn() {
-    // Schema validation test - gateToken is optional
+    // Documentation test - demonstrates valid request structures
+    // Does NOT exercise runtime code
     const validRequests = [
       { email: 'test@example.com' },
       { email: 'test@example.com', gateToken: 'abc123' },
@@ -173,9 +187,10 @@ Deno.test({
 
 // Test group: Privacy Compliance (gupta-vidya)
 Deno.test({
-  name: 'magic-link: URL structure contains no email (gupta-vidya compliance)',
+  name: 'doc: magic-link URL structure contains no email (gupta-vidya compliance)',
   fn() {
-    // Verify the magic link URL format doesn't expose email
+    // Documentation test - demonstrates expected URL format
+    // Verifies the static example doesn't expose email (not runtime verification)
     const exampleUrl = 'http://localhost:8000/auth/verify?token=eyJhbGciOi...&resume=abc123def456';
 
     // Should NOT contain email patterns
@@ -191,10 +206,10 @@ Deno.test({
 });
 
 Deno.test({
-  name: 'magic-link: JWT payload structure (session-based, not email-based)',
-  async fn() {
-    // Demonstrate expected JWT payload structure
-    // The JWT should contain session_id and email_hash, never plaintext email
+  name: 'doc: magic-link JWT payload structure (session-based, not email-based)',
+  fn() {
+    // Documentation test - demonstrates expected JWT payload structure
+    // Does NOT decode actual JWTs; see integration tests for runtime verification
 
     const expectedPayload = {
       email_hash: 'sha256_hash_of_email',  // NEVER the actual email
@@ -218,9 +233,10 @@ Deno.test({
 
 // Test group: Token Expiration
 Deno.test({
-  name: 'magic-link: expiration is ~15 minutes from creation',
+  name: 'doc: magic-link expiration is ~15 minutes from creation',
   fn() {
-    // Magic link tokens should expire within 15 minutes
+    // Documentation test - demonstrates expected expiration calculation
+    // Does NOT verify runtime behavior of createMagicLink
     const now = new Date();
     const expectedExpiry = new Date(now.getTime() + 15 * 60 * 1000);
 
@@ -235,10 +251,10 @@ Deno.test({
 
 // Test group: Session Creation Flow
 Deno.test({
-  name: 'magic-link: new session includes shuffled question order',
+  name: 'doc: magic-link new session includes shuffled question order',
   fn() {
-    // Verify session creation includes question order
-    // Questions 0 and 1 (gate questions) should always be first
+    // Documentation test - demonstrates expected question order format
+    // Does NOT verify actual session creation; see integration tests
 
     const mockQuestionOrder = '0,1,15,3,22,7,12,34,5,19,28,11,24,6,2,17,30,9,21,4,26,13,33,8,20,29,14,27,16,31,10,25,32,23,18';
 
@@ -264,9 +280,10 @@ Deno.test({
 
 // Test group: Error Handling
 Deno.test({
-  name: 'magic-link: returns 500 on internal errors',
+  name: 'doc: magic-link returns 500 on internal errors',
   fn() {
-    // When database or crypto operations fail, return 500
+    // Documentation test - demonstrates expected error response format
+    // Does NOT exercise runtime error handling
     const errorResponse = {
       error: 'Failed to send magic link',
     };
@@ -304,10 +321,10 @@ Deno.test({
 
 // Test documentation: Gate Questions Flow
 Deno.test({
-  name: 'magic-link: documents gate questions precede authentication',
+  name: 'doc: magic-link gate questions precede authentication',
   fn() {
     /**
-     * GATE QUESTIONS FLOW:
+     * DOCUMENTATION TEST - Gate Questions Flow:
      *
      * The magic-link endpoint is called AFTER the user answers gate questions:
      *
@@ -322,6 +339,8 @@ Deno.test({
      *
      * The gate questions (0, 1) are answered on the landing page BEFORE
      * authentication, creating an emotional investment before email submission.
+     *
+     * NOTE: This test documents expected behavior but does NOT exercise runtime code.
      */
 
     const gateQuestions = [

@@ -34,7 +34,7 @@ function parseDbUrl(databaseUrl: string): DbConfig | null {
       tls: isLocalhost
         ? { enabled: false, enforce: false }
         : url.searchParams.get('sslmode') === 'require'
-          ? { enabled: true, enforce: false }
+          ? { enabled: true, enforce: true }  // enforce: true to reject non-TLS connections
           : undefined,
     };
   } catch {
@@ -43,22 +43,39 @@ function parseDbUrl(databaseUrl: string): DbConfig | null {
 }
 
 async function testConnection(config: DbConfig, timeoutMs = 5000): Promise<boolean> {
-  try {
-    const testPool = new Pool({ ...config, connection: { attempts: 1 } }, 1);
+  const testPool = new Pool({ ...config, connection: { attempts: 1 } }, 1);
+  let client: Awaited<ReturnType<Pool['connect']>> | undefined;
+  let timerId: number | undefined;
 
+  try {
     // Race between connection and timeout
     const connectPromise = testPool.connect();
-    const timeoutPromise = new Promise<never>((_, reject) =>
-      setTimeout(() => reject(new Error('Connection timeout')), timeoutMs)
-    );
+    const timeoutPromise = new Promise<never>((_, reject) => {
+      timerId = setTimeout(() => reject(new Error('Connection timeout')), timeoutMs);
+    });
 
-    const client = await Promise.race([connectPromise, timeoutPromise]);
+    client = await Promise.race([connectPromise, timeoutPromise]);
     await client.queryObject('SELECT 1');
-    client.release();
-    await testPool.end();
     return true;
   } catch {
     return false;
+  } finally {
+    // Always clean up resources
+    if (timerId !== undefined) {
+      clearTimeout(timerId);
+    }
+    if (client) {
+      try {
+        client.release();
+      } catch {
+        // Ignore release errors to avoid masking original error
+      }
+    }
+    try {
+      await testPool.end();
+    } catch (endError) {
+      console.error('[db] Error closing test pool:', endError);
+    }
   }
 }
 
@@ -103,7 +120,7 @@ async function resolveConfigWithFailover(): Promise<DbConfig | null> {
       database,
       user,
       password,
-      tls: sslmode === 'require' ? { enabled: true, enforce: false } : undefined,
+      tls: sslmode === 'require' ? { enabled: true, enforce: true } : undefined,
     };
   }
 
@@ -136,7 +153,7 @@ function resolveConfig(): DbConfig | null {
       database,
       user,
       password,
-      tls: sslmode === 'require' ? { enabled: true, enforce: false } : undefined,
+      tls: sslmode === 'require' ? { enabled: true, enforce: true } : undefined,
     };
   }
 
@@ -189,8 +206,31 @@ export async function closePool(): Promise<void> {
   }
 }
 
+/**
+ * Check if database configuration is available.
+ * Returns true if either resolveConfig() or resolveConfigWithFailover()
+ * would return a valid configuration, reflecting the actual behavior of initPool().
+ */
 export function isDatabaseConfigured(): boolean {
-  return resolveConfig() !== null;
+  // Check standard DATABASE_URL first
+  if (resolveConfig() !== null) {
+    return true;
+  }
+
+  // Also check failover URLs (DATABASE_URL_PRIMARY, DATABASE_URL_LOCAL)
+  // These are checked by resolveConfigWithFailover() which initPool() uses
+  const primaryUrl = Deno.env.get('DATABASE_URL_PRIMARY');
+  const localUrl = Deno.env.get('DATABASE_URL_LOCAL');
+
+  if (primaryUrl && parseDbUrl(primaryUrl) !== null) {
+    return true;
+  }
+
+  if (localUrl && parseDbUrl(localUrl) !== null) {
+    return true;
+  }
+
+  return false;
 }
 
 export function getActiveDbHost(): string | null {

@@ -19,10 +19,8 @@
     <meta name="twitter:image" content="https://aformulationoftruth.com/images/dreamMore...always.JPG">
 
     <!-- Favicons -->
-    <link rel="icon" type="image/x-icon" href="/favicon.ico">
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicons/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="/favicons/favicon-16x16.png">
-    <link rel="apple-touch-icon" sizes="180x180" href="/favicons/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicons/favicon-simple-32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicons/favicon-simple-16.png">
 
     <!-- Styles -->
     <link rel="stylesheet" href="/css/index_style.css">
@@ -56,40 +54,38 @@
 
             <div class="hero-content">
                 <h1 class="title">
-                    <span class="bg-four">4</span>
+                    <!-- Background watermark: 4 மூல सत् transitioning green→pink -->
+                    <span class="bg-watermark" aria-hidden="true">
+                        <span class="bg-four">4</span>
+                        <span class="bg-mula">மூல</span>
+                        <span class="bg-sat">सत्</span>
+                    </span>
                     <span class="title-wrapper">
                         <span class="title-text">a formulation of truth</span>
-                        <span class="title-flicker" aria-hidden="true">a fo<span class="flicker-pink">rmulat</span>ulation of truth</span>
+                        <span class="title-flicker" aria-hidden="true">a formulation of truth</span>
                     </span>
                 </h1>
 
-                <!-- Apparatus: the television -->
-                <div class="tv-container">
-                    <div class="tv-frame-img">
-                        <img src="/images/atmanoptican.png" alt="" class="tv-frame-bg" aria-hidden="true">
-                        <div class="tv-screen">
-                            <div class="tv-scanlines"></div>
-                            <div class="tv-content">
-                                <video class="tv-video" autoplay muted loop playsinline>
-                                    <source src="/videos/buddha_glitch.MOV" type="video/quicktime">
-                                    <source src="/videos/buddha_glitch.MOV" type="video/mp4">
-                                </video>
-                                <div class="tv-scroll">
-                                    <p class="sanskrit">क्लेशान् विनाशय विकासय हृत्सरोजम्</p>
-                                    <p class="sanskrit">ओजो विजृम्भय निजं निजनार्थयाङ्गम् ।</p>
-                                    <p class="sanskrit">चेतश्चकोरचित्तचन्द्रमरीचिचक्रम्</p>
-                                    <p class="sanskrit">आचम्य सम्यगमृतं कुरु विश्वमेतत् ॥</p>
-                                    <p class="translation">Destroy afflictions and cause to blossom the lotus in the heart; may awareness, your innate radiance with body fit for purpose, feast upon consciousness cool as moonbeams.* And may your recognition transform this world into a place of eternal remembrance and awakening.</p>
-                                    <p class="attribution">— Utpaladeva (c. 900–950 CE)</p>
-                                </div>
-                            </div>
-                        </div>
-                        <!-- Footnote hover on Kalabhairava's trident -->
-                        <div class="trident-hover">
-                            <span class="trident-trigger" title="About the cakora">✦</span>
-                            <div class="trident-popup">
-                                * The original Sanskrit refers to the <a href="https://en.wikipedia.org/wiki/Chakora_(mythology)" target="_blank" rel="noopener">cakora</a> (चकोर), a mythical bird in Sanskrit poetry said to fly only at night and subsist entirely on moonbeams. I have omitted the cakora here as the metaphor has lost broader cultural resonance, but wish the reader to know this is an intentional departure from the original. The cakora's longing gaze toward the moon became a beloved trope for yearning after and devotion to the divine. In the 10th century CE, poets like Utpaladeva very likely conceptualized the divine in ways far healthier than we who find ourselves imbricated within the cultural and political contexts of modernity—its corrupt power struggles, its flattened metaphysics, its instrumentalized faith that have defined our age.
-                            </div>
+                <!-- Full-width Buddha glitch video -->
+                <div class="fullwidth-video-container">
+                    <video class="fullwidth-video" autoplay muted loop playsinline>
+                        <source src="/videos/buddha_glitch.MOV" type="video/quicktime">
+                        <source src="/videos/buddha_glitch.MOV" type="video/mp4">
+                    </video>
+                    <div class="video-scanlines"></div>
+                    <div class="fullwidth-scroll">
+                        <p class="sanskrit">क्लेशान् विनाशय विकासय हृत्सरोजम्</p>
+                        <p class="sanskrit">ओजो विजृम्भय निजं निजनार्थयाङ्गम् ।</p>
+                        <p class="sanskrit">चेतश्चकोरचित्तचन्द्रमरीचिचक्रम्</p>
+                        <p class="sanskrit">आचम्य सम्यगमृतं कुरु विश्वमेतत् ॥</p>
+                        <p class="translation">Destroy afflictions and cause to blossom the lotus in the heart; may awareness, your innate radiance with body fit for purpose, feast upon consciousness cool as moonbeams.* And may your recognition transform this world into a place of eternal remembrance and awakening.</p>
+                        <p class="attribution">— Utpaladeva (c. 900–950 CE)</p>
+                    </div>
+                    <!-- Footnote hover on cakora reference -->
+                    <div class="trident-hover" style="position: absolute; bottom: 10%; left: 3%;">
+                        <span class="trident-trigger" title="About the cakora">✦</span>
+                        <div class="trident-popup">
+                            * The original Sanskrit refers to the <a href="https://en.wikipedia.org/wiki/Chakora_(mythology)" target="_blank" rel="noopener">cakora</a> (चकोर), a mythical bird in Sanskrit poetry said to fly only at night and subsist entirely on moonbeams. I have omitted the cakora here as the metaphor has lost broader cultural resonance, but wish the reader to know this is an intentional departure from the original. The cakora's longing gaze toward the moon became a beloved trope for yearning after and devotion to the divine. In the 10th century CE, poets like Utpaladeva very likely conceptualized the divine in ways far healthier than we who find ourselves imbricated within the cultural and political contexts of modernity—its corrupt power struggles, its flattened metaphysics, its instrumentalized faith that have defined our age.
                         </div>
                     </div>
                 </div>

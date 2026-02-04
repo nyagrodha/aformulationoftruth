@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>support: a formulation of truth</title>
 
+    <!-- Favicons -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicons/favicon-simple-32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicons/favicon-simple-16.png">
+
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -207,8 +211,17 @@
             <h2>donation methods</h2>
 
             <p>
-                In the spirit of privacy and decentralization, I accept donations via cryptocurrency. This ensures your support remains private and aligns with the principles of this site.
+                I accept donations via PayPal for convenience, as well as cryptocurrency for those who value privacy and decentralization.
             </p>
+
+            <!-- PayPal -->
+            <div class="donation-option">
+                <h3>💳 PayPal</h3>
+                <p>The quickest way to contribute—supports one-time or recurring donations.</p>
+                <a href="https://paypal.me/jamananananam" target="_blank" rel="noopener" style="display: inline-block; background: #0070ba; color: white; padding: 1rem 2.5rem; border-radius: 8px; text-decoration: none; font-family: 'Orbitron', sans-serif; font-size: 1rem; margin-top: 1rem; transition: all 0.3s ease;">
+                    Donate via PayPal
+                </a>
+            </div>
 
             <!-- Bitcoin -->
             <div class="donation-option">
@@ -217,6 +230,10 @@
                 <p style="font-style: italic; color: var(--text-secondary); margin: 1.5rem 0;">
                     If you have the means, I'm humbled to receive your generosity beyond the time you surely already invested. Thanks.
                 </p>
+                <div class="crypto-address" id="btc-address">
+                    bc1qv9zmskhj0awtfnq4d5rcm39d0w7344m350rx4a
+                </div>
+                <button class="copy-button" onclick="copyAddress('btc-address')">📋 Copy Address</button>
                 <img src="/images/qr-code.png" alt="Bitcoin QR Code" class="qr-code" style="background: white; padding: 1rem;">
             </div>
 
@@ -250,6 +267,21 @@
                 <!-- <img src="/images/qr-eth.png" alt="Ethereum QR Code" class="qr-code"> -->
                 <div class="qr-placeholder">
                     Ethereum QR Code<br>
+                    <small>(200x200px)</small>
+                </div>
+            </div>
+
+            <!-- Zcash -->
+            <div class="donation-option">
+                <h3>Ⓩ Zcash (ZEC)</h3>
+                <p>Privacy-preserving cryptocurrency with shielded transactions for enhanced anonymity.</p>
+                <div class="crypto-address" id="zec-address" style="line-height: 1.6;">u17h46njzzm0gal5tplz8qtq009tqyxtvqu7c25uvun46nmrku<br>x7u9064jgdk8lm8schulpz5t3rjpj7hd3rwcdsp4f86l9lxrsd<br>xggqjffp46ry52z0hqg4g5mjvag8k4z6fkvakmtq5222qdsx20<br>lu70l03xyn322tvz5qzeqygljjc7</div>
+                <button class="copy-button" onclick="copyAddress('zec-address')">📋 Copy Address</button>
+
+                <!-- QR Code - Uncomment and add your ZEC QR code image -->
+                <!-- <img src="/images/qr-zec.png" alt="Zcash QR Code" class="qr-code"> -->
+                <div class="qr-placeholder">
+                    Zcash QR Code<br>
                     <small>(200x200px)</small>
                 </div>
             </div>

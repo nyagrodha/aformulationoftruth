@@ -19,7 +19,7 @@ import { validateEmail } from '../../lib/emailValidator.ts';
 import { withConnection } from '../../lib/db.ts';
 import { createMagicLink } from '../../lib/auth.ts';
 import { hashEmail } from '../../lib/crypto.ts';
-import { createQuestionnaireSession, findActiveSession } from '../../lib/questionnaire-session.ts';
+import { createQuestionnaireSession, findActiveSession, deleteSession } from '../../lib/questionnaire-session.ts';
 import { createQuestionnaireJWT } from '../../lib/jwt.ts';
 import { increment } from '../../lib/metrics.ts';
 import { sendMagicLinkEmail } from '../../lib/email.ts';
@@ -90,7 +90,7 @@ export const handler: Handlers = {
       console.log('[gate-submit] Gate answers stored, token:', gateToken.slice(0, 8) + '...');
 
       // Step 3: Create magic link
-      const { expiresAt } = await createMagicLink(email);
+      const { expiresAt, cleanup: cleanupMagicLink } = await createMagicLink(email);
 
       // Step 4: Hash email immediately
       const emailHash = await hashEmail(email);
@@ -121,6 +121,27 @@ export const handler: Handlers = {
       if (!emailResult.success) {
         console.error('[gate-submit] Email failed:', emailResult.error);
         increment('errors.email');
+
+        // Clean up orphaned records on email failure
+        // 1. Clean up magic link
+        await cleanupMagicLink();
+
+        // 2. Delete the questionnaire session (this also unlinks gate responses)
+        await deleteSession(sessionId);
+
+        // 3. Delete the gate responses that were just inserted
+        try {
+          await withConnection(async (client) => {
+            await client.queryObject(
+              `DELETE FROM fresh_gate_responses WHERE gate_token = $1`,
+              [gateToken]
+            );
+          });
+          console.log('[gate-submit] Cleaned up gate responses after email failure');
+        } catch (cleanupError) {
+          console.error('[gate-submit] Failed to clean up gate responses:', cleanupError);
+        }
+
         return new Response(
           JSON.stringify({ error: 'Failed to send magic link email. Please try again.' }),
           { status: 500, headers: { 'Content-Type': 'application/json' } }
