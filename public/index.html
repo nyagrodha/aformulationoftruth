@@ -4,986 +4,31 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>a formulation of truth</title>
-    <meta name="description" content="here, a device: the ātmanoptican as a formulation of truth. Self-inquiry through the Proust Questionnaire.">
+    <meta name="description" content="a formulation of truth. Self-inquiry and a Proust Questionnaire.">
 
     <!-- Open Graph / Twitter -->
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://aformulationoftruth.com/">
     <meta property="og:title" content="a formulation of truth">
-    <meta property="og:description" content="here, a device: the ātmanoptican as a formulation of truth. Self-inquiry through the Proust Questionnaire.">
+    <meta property="og:description" content="here, a device: the ātmanoptican as a formulation of truth. Self-inquiry and a Proust Questionnaire.">
     <meta property="og:image" content="https://aformulationoftruth.com/images/dreamMore...always.JPG">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:url" content="https://aformulationoftruth.com/">
-    <meta name="twitter:title" content="a formulation of truth">
+    <meta name="twitter:title" content="a formulation of truth: a slow experiment">
     <meta name="twitter:description" content="here, a device: the ātmanoptican as a formulation of truth.">
     <meta name="twitter:image" content="https://aformulationoftruth.com/images/dreamMore...always.JPG">
 
     <!-- Favicons -->
-    <link rel="icon" type="image/x-icon" href="/favicon.ico">
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicons/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="/favicons/favicon-16x16.png">
-    <link rel="apple-touch-icon" sizes="180x180" href="/favicons/apple-touch-icon.png">
-
-
-    <style>
-        :root {
-            --void: #000000;
-            --obsidian: #0a0a0a;
-            --slate: #1a1a1a;
-            --ghost: #2a2a2a;
-            --mist: #888888;
-            --pearl: #cccccc;
-            --bone: #e8e8e8;
-            --light: #ffffff;
-
-            --neon-pink: #ff69b4;
-            --neon-orange: #ff8c42;
-            --neon-emerald: #00ff88;
-            --pink-glow: rgba(255, 105, 180, 0.4);
-            --orange-glow: rgba(255, 140, 66, 0.4);
-            --emerald-glow: rgba(0, 255, 136, 0.4);
-            --pink-dim: rgba(255, 105, 180, 0.15);
-            --orange-dim: rgba(255, 140, 66, 0.1);
-            --emerald-dim: rgba(0, 255, 136, 0.15);
-            --neon-purple: #9f5fff;
-            --purple-glow: rgba(159, 95, 255, 0.4);
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        html {
-            font-size: 16px;
-            scroll-behavior: smooth;
-        }
-
-        body {
-            background: var(--void);
-            color: var(--pearl);
-            font-family: 'Space Mono', monospace;
-            line-height: 1.7;
-            min-height: 100vh;
-            overflow-x: hidden;
-        }
-
-        /* Tamil text rendering */
-        .tamil-text {
-            font-family: 'Noto Serif Tamil', 'Noto Sans Tamil', 'Lohit Tamil', serif;
-        }
-
-        /* Subtle grid background */
-        body::before {
-            content: '';
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-image:
-                linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
-            background-size: 60px 60px;
-            pointer-events: none;
-            z-index: 0;
-        }
-
-        /* Navigation */
-        nav {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            padding: 1.5rem 3rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            z-index: 100;
-            background: linear-gradient(to bottom, var(--void) 0%, transparent 100%);
-        }
-
-        .logo {
-            font-family: 'Orbitron', sans-serif;
-            font-weight: 600;
-            font-size: 0.75rem;
-            letter-spacing: 0.3em;
-            text-transform: uppercase;
-            color: var(--mist);
-            text-decoration: none;
-            transition: color 0.3s ease;
-        }
-
-        .logo:hover {
-            color: var(--light);
-        }
-
-        .nav-links {
-            display: flex;
-            gap: 3rem;
-        }
-
-        .nav-links a {
-            font-family: 'Space Mono', monospace;
-            font-size: 0.75rem;
-            letter-spacing: 0.15em;
-            text-transform: uppercase;
-            color: var(--mist);
-            text-decoration: none;
-            position: relative;
-            transition: color 0.3s ease;
-        }
-
-        .nav-links a::after {
-            content: '';
-            position: absolute;
-            bottom: -4px;
-            left: 0;
-            width: 0;
-            height: 1px;
-            background: var(--neon-pink);
-            box-shadow: 0 0 8px var(--pink-glow);
-            transition: width 0.3s ease;
-        }
-
-        .nav-links a:hover {
-            color: var(--light);
-        }
-
-        .nav-links a:hover::after {
-            width: 100%;
-        }
-
-        /* Hero Section */
-        .hero {
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            padding: 8rem 2rem 4rem;
-            position: relative;
-            z-index: 1;
-        }
-
-        .hero-content {
-            text-align: center;
-            max-width: 900px;
-        }
-
-        .tagline {
-            font-family: 'Space Mono', monospace;
-            font-size: 0.7rem;
-            letter-spacing: 0.5em;
-            text-transform: uppercase;
-            color: var(--mist);
-            margin-bottom: 2rem;
-            opacity: 0;
-            animation: fadeSlideUp 1s ease 0.2s forwards;
-        }
-
-        .title {
-            font-family: 'Orbitron', sans-serif;
-            font-size: clamp(2rem, 6vw, 4rem);
-            font-weight: 400;
-            letter-spacing: -0.02em;
-            color: var(--light);
-            margin-bottom: 2rem;
-            opacity: 0;
-            animation: fadeSlideUp 1s ease 0.4s forwards;
-            position: relative;
-            white-space: nowrap;
-        }
-
-        .title-wrapper {
-            position: relative;
-            display: inline-block;
-        }
-
-        /* The gradient title text */
-        .title-text {
-            font-weight: 700;
-            background: linear-gradient(135deg, var(--neon-pink) 0%, var(--neon-orange) 50%, var(--neon-emerald) 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            filter: drop-shadow(0 0 20px var(--pink-glow)) drop-shadow(0 0 40px var(--orange-glow));
-            opacity: 0.85;
-        }
-
-        /* Flickering pink portion: "rmulat" - 15% more opaque */
-        .title-flicker {
-            position: absolute;
-            top: 0;
-            left: 0;
-            font-weight: 700;
-            color: transparent;
-            -webkit-text-fill-color: transparent;
-            pointer-events: none;
-        }
-
-        .title-flicker .flicker-pink {
-            color: var(--neon-pink);
-            -webkit-text-fill-color: var(--neon-pink);
-            text-shadow: 0 0 20px var(--pink-glow), 0 0 40px var(--pink-glow), 0 0 60px var(--pink-glow);
-            animation: pinkSputter 6s ease-in-out infinite;
-            opacity: 1;
-        }
-
-        /* The background "4" glyph - moved to the left, as faint as possible */
-        .bg-four {
-            position: absolute;
-            font-family: 'Orbitron', sans-serif;
-            font-size: 2.1em;
-            font-weight: 900;
-            color: #7fff9f;
-            -webkit-text-stroke: 1px #1b4e2d;
-            text-shadow:
-                0 0 25px rgba(100, 200, 140, 0.3),
-                0 0 50px rgba(100, 200, 140, 0.15);
-            z-index: -1;
-            top: 50%;
-            left: -0.5em;
-            transform: translateY(-50%);
-            opacity: 0.08;
-            animation: fourFlicker 6s ease-in-out infinite;
-            pointer-events: none;
-        }
-
-        /* Multicoloured neon watermark with dynamic colors */
-        .neon-watermark {
-            position: absolute;
-            top: 45%;
-            right: 5%;
-            transform: translateY(-150%);
-            font-family: 'Orbitron', sans-serif;
-            font-size: clamp(2.5rem, 7vw, 5rem);
-            font-weight: 900;
-            z-index: 0;
-            pointer-events: none;
-            opacity: 0.12;
-            background: linear-gradient(
-                90deg,
-                var(--neon-pink) 0%,
-                var(--neon-orange) 20%,
-                var(--neon-emerald) 40%,
-                var(--neon-purple) 60%,
-                #00d4ff 80%,
-                var(--neon-pink) 100%
-            );
-            background-size: 200% 100%;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            animation: neonWatermarkFlow 8s linear infinite, neonWatermarkPulse 4s ease-in-out infinite;
-            filter: blur(0.5px);
-            text-shadow:
-                0 0 40px rgba(255, 105, 180, 0.3),
-                0 0 80px rgba(255, 140, 66, 0.2),
-                0 0 120px rgba(0, 255, 136, 0.15);
-        }
-
-        @keyframes neonWatermarkFlow {
-            0% {
-                background-position: 0% 50%;
-            }
-            100% {
-                background-position: 200% 50%;
-            }
-        }
-
-        @keyframes neonWatermarkPulse {
-            0%, 100% {
-                opacity: 0.12;
-                filter: blur(0.5px);
-            }
-            50% {
-                opacity: 0.18;
-                filter: blur(1px);
-            }
-        }
-
-        /* Synchronized flickering animations */
-        @keyframes pinkSputter {
-            0%, 100% {
-                opacity: 1;
-                text-shadow: 0 0 15px var(--pink-glow), 0 0 30px var(--pink-glow);
-            }
-            /* Pink sputters out */
-            25% {
-                opacity: 0.7;
-                text-shadow: 0 0 8px var(--pink-glow);
-            }
-            35% {
-                opacity: 0.15;
-                text-shadow: 0 0 2px var(--pink-glow);
-            }
-            40% {
-                opacity: 0.05;
-                text-shadow: none;
-            }
-            /* Pink stays dim while 4 is visible */
-            50% {
-                opacity: 0.02;
-            }
-            /* Pink comes back */
-            60% {
-                opacity: 0.1;
-            }
-            70% {
-                opacity: 0.5;
-                text-shadow: 0 0 5px var(--pink-glow);
-            }
-            75% {
-                opacity: 0.9;
-            }
-            85% {
-                opacity: 1;
-                text-shadow: 0 0 15px var(--pink-glow), 0 0 30px var(--pink-glow);
-            }
-        }
-
-        @keyframes fourFlicker {
-            0%, 100% {
-                opacity: 0.04;
-                text-shadow: 0 0 10px rgba(100, 200, 140, 0.08);
-            }
-            /* 4 starts becoming visible as pink dims */
-            30% {
-                opacity: 0.08;
-            }
-            /* 4 is most legible when pink is out */
-            40% {
-                opacity: 0.15;
-                text-shadow:
-                    0 0 20px rgba(100, 200, 140, 0.2),
-                    0 0 40px rgba(100, 200, 140, 0.1);
-            }
-            50% {
-                opacity: 0.18;
-                text-shadow:
-                    0 0 25px rgba(100, 200, 140, 0.25),
-                    0 0 50px rgba(0, 255, 136, 0.15);
-            }
-            /* 4 sputters out */
-            60% {
-                opacity: 0.12;
-            }
-            70% {
-                opacity: 0.06;
-            }
-            75% {
-                opacity: 0.04;
-                text-shadow: 0 0 10px rgba(100, 200, 140, 0.08);
-            }
-        }
-
-        .subtitle {
-            font-size: 1.1rem;
-            color: var(--pearl);
-            max-width: 600px;
-            margin: 0 auto 3rem;
-            line-height: 1.9;
-            opacity: 0;
-            animation: fadeSlideUp 1s ease 0.6s forwards;
-        }
-
-        .subtitle .weather-link {
-            color: var(--pearl);
-            text-decoration: none;
-            transition: color 0.3s ease, text-shadow 0.3s ease;
-        }
-
-        .subtitle .weather-link:hover {
-            color: var(--neon-emerald);
-            text-shadow: 0 0 15px var(--emerald-glow);
-        }
-
-        .cta-group {
-            display: flex;
-            gap: 1.5rem;
-            justify-content: center;
-            flex-wrap: wrap;
-            opacity: 0;
-            animation: fadeSlideUp 1s ease 0.8s forwards;
-        }
-
-        .cta {
-            font-family: 'Space Mono', monospace;
-            font-size: 0.8rem;
-            letter-spacing: 0.1em;
-            text-transform: uppercase;
-            padding: 1rem 2.5rem;
-            border: 1px solid var(--ghost);
-            background: transparent;
-            color: var(--pearl);
-            text-decoration: none;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .cta::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: var(--pink-dim);
-            transition: left 0.3s ease;
-            z-index: -1;
-        }
-
-        .cta:hover {
-            border-color: var(--neon-pink);
-            color: var(--light);
-            box-shadow: 0 0 20px var(--pink-glow);
-        }
-
-        .cta:hover::before {
-            left: 0;
-        }
-
-        .cta-primary {
-            background: linear-gradient(135deg, var(--neon-pink), var(--neon-orange));
-            color: var(--void);
-            border: none;
-            font-weight: 700;
-        }
-
-        .cta-primary:hover {
-            background: linear-gradient(135deg, var(--neon-orange), var(--neon-emerald));
-            box-shadow: 0 0 30px var(--orange-glow), 0 0 60px var(--emerald-glow);
-            color: var(--void);
-        }
-
-        .cta-primary::before {
-            display: none;
-        }
-
-        /* Scroll indicator */
-        .scroll-indicator {
-            position: absolute;
-            bottom: 3rem;
-            left: 50%;
-            transform: translateX(-50%);
-            opacity: 0;
-            animation: fadeIn 1s ease 1.2s forwards, float 2s ease-in-out infinite 1.2s;
-        }
-
-        .scroll-indicator span {
-            display: block;
-            width: 2px;
-            height: 50px;
-            background: linear-gradient(to bottom, var(--neon-emerald), var(--neon-pink), transparent);
-            box-shadow: 0 0 10px var(--emerald-glow);
-        }
-
-        /* Philosophy Section */
-        .section {
-            padding: 8rem 2rem;
-            position: relative;
-            z-index: 1;
-        }
-
-        .section-inner {
-            max-width: 800px;
-            margin: 0 auto;
-        }
-
-        .section-label {
-            font-family: 'Space Mono', monospace;
-            font-size: 0.65rem;
-            letter-spacing: 0.4em;
-            text-transform: uppercase;
-            color: var(--neon-emerald);
-            text-shadow: 0 0 10px var(--emerald-glow);
-            margin-bottom: 2rem;
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        .section-label::before {
-            content: '';
-            width: 30px;
-            height: 1px;
-            background: var(--neon-emerald);
-            box-shadow: 0 0 8px var(--emerald-glow);
-        }
-
-        .section-title {
-            font-family: 'Orbitron', sans-serif;
-            font-size: clamp(1.8rem, 4vw, 2.5rem);
-            font-weight: 500;
-            color: var(--light);
-            margin-bottom: 2rem;
-            line-height: 1.3;
-        }
-
-        .section-text {
-            font-size: 1rem;
-            color: var(--pearl);
-            margin-bottom: 1.5rem;
-            line-height: 1.9;
-        }
-
-        .section-text em {
-            color: var(--bone);
-            font-style: italic;
-        }
-
-        /* Quote block */
-        .quote-block {
-            border-left: 2px solid var(--neon-orange);
-            padding: 2rem;
-            margin: 3rem 0;
-            background: linear-gradient(135deg, var(--pink-dim) 0%, var(--orange-dim) 100%);
-            box-shadow: 0 0 30px rgba(255, 140, 66, 0.1);
-        }
-
-        .quote-block p {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 1.1rem;
-            font-weight: 400;
-            color: var(--bone);
-            line-height: 1.7;
-            margin-bottom: 1rem;
-        }
-
-        .quote-block cite {
-            font-family: 'Space Mono', monospace;
-            font-size: 0.75rem;
-            color: var(--mist);
-            letter-spacing: 0.1em;
-        }
-
-        /* Gate Section */
-        .gate-section {
-            background: var(--obsidian);
-            border-top: 1px solid var(--ghost);
-            border-bottom: 1px solid var(--ghost);
-        }
-
-        .gate-content {
-            max-width: 700px;
-            margin: 0 auto;
-            text-align: center;
-        }
-
-        .gate-icon {
-            display: block;
-            width: 120px;
-            height: auto;
-            margin: 0 auto 2rem;
-            transform: rotate(-3deg);
-            filter: drop-shadow(0 0 25px var(--pink-glow)) drop-shadow(0 0 37px var(--orange-glow));
-            animation: neon-pulse-img 2s ease-in-out infinite;
-        }
-
-        @keyframes neon-pulse-img {
-            0%, 100% {
-                filter: drop-shadow(0 0 25px var(--pink-glow)) drop-shadow(0 0 37px var(--orange-glow));
-                opacity: 1;
-            }
-            50% {
-                filter: drop-shadow(0 0 35px var(--pink-glow)) drop-shadow(0 0 57px var(--orange-glow)) drop-shadow(0 0 80px var(--emerald-glow));
-                opacity: 0.85;
-            }
-        }
-
-        @keyframes neon-pulse {
-            0%, 100% {
-                text-shadow: 0 0 20px var(--pink-glow), 0 0 40px var(--orange-glow);
-                opacity: 1;
-            }
-            50% {
-                text-shadow: 0 0 30px var(--pink-glow), 0 0 60px var(--orange-glow), 0 0 80px var(--emerald-glow);
-                opacity: 0.85;
-            }
-        }
-
-        .gate-title {
-            font-family: 'Noto Serif Tamil', 'Noto Sans Tamil', 'Lohit Tamil', serif;
-            font-size: 2.5rem;
-            font-weight: 500;
-            color: var(--neon-orange);
-            text-shadow: 0 0 15px var(--orange-glow);
-            margin-bottom: 1.5rem;
-        }
-
-        .gate-description {
-            font-size: 0.95rem;
-            color: var(--pearl);
-            margin-bottom: 3rem;
-            line-height: 1.8;
-        }
-
-        .gate-form {
-            max-width: 600px;
-            margin: 0 auto;
-        }
-
-        .form-group {
-            margin-bottom: 2rem;
-            text-align: left;
-        }
-
-        .form-group label {
-            display: block;
-            font-size: 0.8rem;
-            letter-spacing: 0.1em;
-            color: var(--bone);
-            margin-bottom: 0.75rem;
-            font-weight: 500;
-        }
-
-        .question-number {
-            display: inline-block;
-            font-family: 'Noto Sans Tamil', sans-serif;
-            color: var(--neon-pink);
-            margin-right: 0.5rem;
-            transform: rotate(-3deg);
-            text-shadow: 0 0 8px var(--pink-glow);
-        }
-
-        .form-group textarea,
-        .form-group input {
-            width: 100%;
-            padding: 1rem;
-            font-family: 'Space Mono', monospace;
-            font-size: 0.95rem;
-            background: var(--void);
-            border: 1px solid var(--ghost);
-            color: var(--light);
-            transition: border-color 0.3s ease, box-shadow 0.3s ease;
-        }
-
-        .form-group textarea {
-            min-height: 120px;
-            resize: vertical;
-        }
-
-        .form-group input[type="email"] {
-            min-height: auto;
-        }
-
-        .form-group textarea:focus,
-        .form-group input:focus {
-            outline: none;
-            border-color: var(--neon-pink);
-            box-shadow: 0 0 20px var(--pink-glow), 0 0 40px var(--orange-glow);
-        }
-
-        .form-group textarea::placeholder,
-        .form-group input::placeholder {
-            color: var(--mist);
-        }
-
-        /* Email section styling */
-        .email-section {
-            margin-top: 3rem;
-            padding-top: 2rem;
-            border-top: 1px solid var(--ghost);
-        }
-
-        .email-section label {
-            color: var(--neon-emerald);
-            text-shadow: 0 0 8px var(--emerald-glow);
-        }
-
-        .form-actions {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-            margin-top: 2rem;
-        }
-
-        .submit-btn {
-            width: 100%;
-            padding: 1.25rem 2rem;
-            font-family: 'Space Mono', monospace;
-            font-size: 0.9rem;
-            font-weight: 700;
-            letter-spacing: 0.1em;
-            text-transform: uppercase;
-            background: linear-gradient(135deg, var(--neon-pink), var(--neon-orange));
-            color: var(--void);
-            border: none;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .submit-btn:hover:not(:disabled) {
-            background: linear-gradient(135deg, var(--neon-orange), var(--neon-emerald));
-            box-shadow: 0 0 30px var(--orange-glow), 0 0 60px var(--emerald-glow);
-        }
-
-        .submit-btn:disabled {
-            opacity: 0.7;
-            cursor: not-allowed;
-        }
-
-        .submit-btn.loading {
-            background: var(--ghost);
-            color: var(--pearl);
-        }
-
-        .submit-btn.success {
-            background: var(--neon-emerald);
-            color: var(--void);
-        }
-
-        /* Status message */
-        .status-message {
-            padding: 1rem;
-            margin-top: 1rem;
-            font-size: 0.85rem;
-            text-align: center;
-            border-radius: 2px;
-            display: none;
-        }
-
-        .status-message.visible {
-            display: block;
-        }
-
-        .status-message.success {
-            background: var(--emerald-dim);
-            border: 1px solid var(--neon-emerald);
-            color: var(--neon-emerald);
-        }
-
-        .status-message.error {
-            background: var(--pink-dim);
-            border: 1px solid var(--neon-pink);
-            color: var(--neon-pink);
-        }
-
-        .status-message.info {
-            background: var(--orange-dim);
-            border: 1px solid var(--neon-orange);
-            color: var(--neon-orange);
-        }
-
-        .accessibility-note {
-            font-size: 0.7rem;
-            color: var(--mist);
-            margin-top: 1.5rem;
-            text-align: center;
-        }
-
-        .accessibility-note a {
-            color: var(--neon-emerald);
-            text-decoration: none;
-            text-shadow: 0 0 8px var(--emerald-glow);
-        }
-
-        .accessibility-note a:hover {
-            text-decoration: underline;
-            color: var(--neon-pink);
-            text-shadow: 0 0 8px var(--pink-glow);
-        }
-
-        .encryption-note {
-            font-size: 0.65rem;
-            color: var(--mist);
-            margin-top: 2rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
-        }
-
-        .encryption-note::before {
-            content: '🔐';
-        }
-
-        /* Hosting blurb - subtle, small */
-        .hosting-blurb {
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 2rem 2rem 1rem;
-            text-align: center;
-        }
-
-        .hosting-blurb p {
-            font-size: 0.6rem;
-            color: var(--mist);
-            line-height: 1.6;
-            margin-bottom: 0.75rem;
-        }
-
-        .hosting-blurb a {
-            color: var(--mist);
-            text-decoration: none;
-        }
-
-        .hosting-blurb a:hover {
-            color: var(--pearl);
-        }
-
-        .floki-link {
-            display: inline-block;
-            margin-top: 0.5rem;
-            opacity: 0.5;
-            transition: opacity 0.3s ease;
-        }
-
-        .floki-link:hover {
-            opacity: 0.8;
-        }
-
-        .floki-logo {
-            max-width: 80px;
-            height: auto;
-        }
-
-        /* Footer */
-        footer {
-            padding: 4rem 2rem;
-            border-top: 1px solid var(--ghost);
-            position: relative;
-            z-index: 1;
-        }
-
-        .footer-inner {
-            max-width: 1200px;
-            margin: 0 auto;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 2rem;
-        }
-
-        .footer-links {
-            display: flex;
-            gap: 2rem;
-        }
-
-        .footer-links a {
-            font-size: 0.75rem;
-            letter-spacing: 0.1em;
-            text-transform: uppercase;
-            color: var(--mist);
-            text-decoration: none;
-            transition: color 0.3s ease;
-        }
-
-        .footer-links a:hover {
-            color: var(--light);
-        }
-
-        .footer-copy {
-            font-size: 0.7rem;
-            color: var(--mist);
-            letter-spacing: 0.05em;
-        }
-
-        /* Animations */
-        @keyframes fadeSlideUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        @keyframes fadeIn {
-            to {
-                opacity: 0.5;
-            }
-        }
-
-        @keyframes float {
-            0%, 100% {
-                transform: translateX(-50%) translateY(0);
-            }
-            50% {
-                transform: translateX(-50%) translateY(10px);
-            }
-        }
-
-        /* Mobile responsive */
-        @media (max-width: 768px) {
-            nav {
-                padding: 1rem 1.5rem;
-            }
-
-            .nav-links {
-                gap: 1.5rem;
-            }
-
-            .nav-links a {
-                font-size: 0.65rem;
-            }
-
-            .hero {
-                padding: 6rem 1.5rem 3rem;
-            }
-
-            .section {
-                padding: 5rem 1.5rem;
-            }
-
-            .cta-group {
-                flex-direction: column;
-                align-items: center;
-            }
-
-            .cta {
-                width: 100%;
-                max-width: 280px;
-                text-align: center;
-            }
-
-            .footer-inner {
-                flex-direction: column;
-                text-align: center;
-            }
-
-            .gate-icon {
-                font-size: 4rem;
-            }
-
-            .form-group textarea {
-                min-height: 100px;
-            }
-
-            .neon-watermark {
-                font-size: clamp(2rem, 6vw, 3.5rem);
-                right: 2%;
-                opacity: 0.10;
-            }
-
-            .bg-four {
-                left: -1em;
-                opacity: 0.06;
-            }
-        }
-
-        /* Reduced motion */
-        @media (prefers-reduced-motion: reduce) {
-            *,
-            *::before,
-            *::after {
-                animation-duration: 0.01ms !important;
-                animation-iteration-count: 1 !important;
-                transition-duration: 0.01ms !important;
-            }
-        }
-    </style>
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicons/favicon-simple-32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicons/favicon-simple-16.png">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="/css/index_style.css">
 </head>
 <body>
+    <a href="#begin" class="skip-link">Skip to questionnaire</a>
     <nav>
-        <a href="/" class="logo">A4T</a>
+       <!-- <a href="/" class="logo">A4T</a> -->
         <div class="nav-links">
             <a href="/about.html">About</a>
             <a href="/contact.html">Contact</a>
@@ -992,77 +37,146 @@
 
     <main>
         <section class="hero">
+            <!-- Indic numeral column - descending from 5 to 2 -->
+            <div class="indic-column" aria-hidden="true">
+                <span class="indic-num kannada-5">೫</span>
+                <span class="indic-num devanagari-4">४</span>
+                <span class="indic-num sharada-3">𑇓</span>
+                <img src="/images/irendu2.png" alt="" class="indic-num irendu-2">
+            </div>
+
             <!-- Multicoloured neon watermark -->
-            <div class="neon-watermark" aria-hidden="true">a4unəsatyasya</div>
+            <div class="neon-watermark" aria-hidden="true">
+                <span class="wm-left">a</span>
+                <span class="wm-four">4</span>
+                <span class="wm-right">முலsatyasya</span>
+            </div>
 
             <div class="hero-content">
-                <p class="tagline">here, a device: the ātmanoptican as</p>
                 <h1 class="title">
-                    <span class="bg-four">4</span>
+                    <!-- Background watermark: 4 மூல सत् transitioning green→pink -->
+                    <span class="bg-watermark" aria-hidden="true">
+                        <span class="bg-four">4</span>
+                        <span class="bg-mula">மூல</span>
+                        <span class="bg-sat">सत्</span>
+                    </span>
                     <span class="title-wrapper">
                         <span class="title-text">a formulation of truth</span>
-                        <span class="title-flicker" aria-hidden="true">a fo<span class="flicker-pink">rmulat</span>ion of truth</span>
+                        <span class="title-flicker" aria-hidden="true">a formulation of truth</span>
                     </span>
                 </h1>
-                <p class="subtitle">
-                    You are not one self. This is not a tragedy.<br>
-                    It's more like &nbsp; &nbsp; the &nbsp; <a href="https://www.youtube.com/watch?v=tCjVGvrs-dk" target="_blank" rel="noopener" class="weather-link">weather</a>.
-                </p>
-                <div class="cta-group">
-                    <a href="#begin" class="cta cta-primary">தொடங்கு</a>
-                    <a href="/about.html" class="cta">Learn More</a>
+
+                <!-- Full-width Buddha glitch video -->
+                <div class="fullwidth-video-container">
+                    <video class="fullwidth-video" autoplay muted loop playsinline>
+                        <source src="/videos/buddha_glitch.MOV" type="video/quicktime">
+                        <source src="/videos/buddha_glitch.MOV" type="video/mp4">
+                    </video>
+                    <div class="video-scanlines"></div>
+                    <div class="fullwidth-scroll">
+                        <p class="sanskrit">क्लेशान् विनाशय विकासय हृत्सरोजम्</p>
+                        <p class="sanskrit">ओजो विजृम्भय निजं निजनार्थयाङ्गम् ।</p>
+                        <p class="sanskrit">चेतश्चकोरचित्तचन्द्रमरीचिचक्रम्</p>
+                        <p class="sanskrit">आचम्य सम्यगमृतं कुरु विश्वमेतत् ॥</p>
+                        <p class="translation">Destroy afflictions and cause to blossom the lotus in the heart; may awareness, your innate radiance with body fit for purpose, feast upon consciousness cool as moonbeams.* And may your recognition transform this world into a place of eternal remembrance and awakening.</p>
+                        <p class="attribution">— Utpaladeva (c. 900–950 CE)</p>
+                    </div>
+                    <!-- Footnote hover on cakora reference -->
+                    <div class="trident-hover" style="position: absolute; bottom: 10%; left: 3%;">
+                        <span class="trident-trigger" title="About the cakora">✦</span>
+                        <div class="trident-popup">
+                            * The original Sanskrit refers to the <a href="https://en.wikipedia.org/wiki/Chakora_(mythology)" target="_blank" rel="noopener">cakora</a> (चकोर), a mythical bird in Sanskrit poetry said to fly only at night and subsist entirely on moonbeams. I have omitted the cakora here as the metaphor has lost broader cultural resonance, but wish the reader to know this is an intentional departure from the original. The cakora's longing gaze toward the moon became a beloved trope for yearning after and devotion to the divine. In the 10th century CE, poets like Utpaladeva very likely conceptualized the divine in ways far healthier than we who find ourselves imbricated within the cultural and political contexts of modernity—its corrupt power struggles, its flattened metaphysics, its instrumentalized faith that have defined our age.
+                        </div>
+                    </div>
                 </div>
+               <!-- <div class="cta-group">
+                    <a href="#begin" class="cta cta-primary">தொடங்கு<br><span style="font-variant: small-caps; font-size: 0.7em; letter-spacing: 0.1em;">begin</span></a>
+                </div>-->
             </div>
             <div class="scroll-indicator">
                 <span></span>
             </div>
         </section>
 
-        <section class="section">
-            <div class="section-inner">
-                <span class="section-label">a long experiment; a practice in self-inquiry; a formulation of truth</span>
-                <h2 class="section-title">the questionnaire as mechanic—an <em>ātmanopticon</em>, a lens to that which is known and may it hereby become yet more commonly recognized</h2>
-                <p class="section-text">
-                    These questions aren't polite. They are holes in the ice. When we answer honestly, something cold touches the feet.
-                </p>
-                <p class="section-text">
-                    All are invited to <a href="https://github.com/nyagrodha/aformulationoftruth" target="_blank" rel="noopener">take a look at the codebase</a>—it may appear as if woven by a spider on LSD. But we got here, eventually. Transparency and a privacy-first design ethic shaped a formulation of truth from the get go.
-                </p>
-                <p class="section-text">
-                    Anything you write is encrypted here. The goal is zk encryption but I'm not quite there yet. No one is going to see what you've composed—no one but whom you may choose to share it with. You can delete your responses.
-                </p>
-                <p class="section-text">
-                    <a href="https://billing.flokinet.is/aff.php?aff=543" target="_blank" rel="noopener">FlokiNET</a> hosts a formulation of truth. Here in Iceland we've developed a black hole in the internet. As inspiration remember Periyar, a Dravidian revolutionary fighting to advance women's rights and science who said: <span class="tamil-text">"கடவுள் இல்லை, கடவுள் இல்லை, கடவுள் இல்லவே இல்லை"</span>—"There is no god, there is no god, there is no god at all." There is no god here to judge, no one but oneself. Therein the why behind this site: <em>Who am I?</em>
-                </p>
-                <div class="dual-images" style="display: flex; justify-content: center; align-items: center; gap: 3rem; margin: 2rem auto; flex-wrap: wrap;">
-                    <img src="/images/thereIsNoGod.png" alt="Periyar - There is no god" style="max-width: 280px; filter: drop-shadow(0 0 15px var(--pink-glow));">
-                    <img src="/images/naanyaaru.png" alt="Naan Yaaru - Who am I?" style="max-width: 280px; filter: drop-shadow(0 0 15px var(--emerald-glow));">
-                </div>
-                <p class="section-text">
-                    The self in all its variegated form emerges clearest in thoughts we rush to suppress—the slip of the tongue, the unbidden images... that first well up within before the inner editor intervenes. May we happen upon those moments in our remembrance and muster the courage to compose it here, where our reflective mind is both archaeologist and subject. A queer point we seek to illuminate how porous we are. We are each porous to one another and we are not one self in this fast-paced, sickened culture of capital at any cost. There is no god and we are not one self and here at a formulation of truth we host a slow experiment that may just show a way—an <em>upāya</em>—to recognize something we've all already known.
-                </p>
-                <p class="section-text" style="font-style: italic;">
-                    It has been said that beauty brings a promise of happiness, but it could be otherwise that the possibility of joy is the beginning of beauty.
-                </p>
-                <p class="section-text">
-                    Loosen any reflex to moderate or censor—type it, speak it—and then wait. The site enforces waiting. You may take your time, but you can't complete two questionnaires in a row.
-                </p>
+        <!-- Encryption info hover tooltip -->
+        <div class="encryption-hover">
+            <span class="encryption-trigger">🔐</span>
+            <div class="encryption-popup">
+                This application uses AES-256-GCM to encrypt at rest—both prior to and in storage—each word you type. Over many iterations the code rendering the pages of this website is developed <em>not to collect</em> personally identifiable information (PII). Here assured any data you do submit will not be sold. Do reach out via email with any comments, the discovery of a bug, questions, or simply to say hi. Thanks for visiting and have fun.
             </div>
-        </section>
+        </div>
 
         <section id="begin" class="section gate-section">
             <div class="gate-content">
                 <img src="/images/irendu2.png" alt="irendu — Tamil for 'two'" class="gate-icon" title="irendu — Tamil for 'two'">
-                <h2 class="gate-title">வாயில்</h2>
-                <p class="gate-description tamil-text">
+                <!-- Gate Title: Tamil + English -->
+                <h2 class="gate-title gate-title--tamil">வாயில்</h2>
+                <h2 class="gate-title gate-title--english">here, we meet <a href="#begin">(a)gate</a></h2>
+
+                <!-- Welcome Text: Tamil -->
+                <p class="gate-description gate-welcome--tamil tamil-text">
                     Proust கேள்வித்தாள்—கருப்பசாமி கேள்வித்தாள் என்ற பெயரில்—உங்களை வரவேற்கிறது
                 </p>
+                <!-- Welcome Text: Transliteration -->
+                <p class="gate-description gate-welcome--translit" style="font-size: 0.7rem; color: var(--mist); font-style: italic; margin-top: -1rem;">
+                    Proust kēḷvittāḷ—Karuppacāmi kēḷvittāḷ eṉṟa peyaril—uṅkaḷai varavēṟkiṟatu
+                </p>
+                <!-- Welcome Text: English -->
+                <p class="gate-description gate-welcome--english">
+                    The Proust Questionnaire—under the name Karuppasami Questionnaire—welcomes you
+                </p>
+                <!-- Welcome Text: Spanish -->
+                <p class="gate-description gate-welcome--spanish">
+                    El Cuestionario de Proust—bajo el nombre Cuestionario Karuppasami—te da la bienvenida
+                </p>
+
+                <!-- Language Display Selector -->
+                <div class="a4m-lang-selector" role="group" aria-label="Question display language">
+                    <span class="a4m-lang-selector__label">மொழி</span>
+                    <div class="a4m-lang-selector__options">
+                        <button type="button" class="a4m-lang-selector__btn" data-lang="all" aria-pressed="true" title="tamil + Transliteration + English">
+                            <span class="a4m-lang-selector__icon">த</span>
+                            <span class="a4m-lang-selector__text">+Tr</span>
+                        </button>
+                        <button type="button" class="a4m-lang-selector__btn" data-lang="tamil-only" aria-pressed="false" title="tamil only">
+                            <span class="a4m-lang-selector__icon">த</span>
+                        </button>
+                        <button type="button" class="a4m-lang-selector__btn" data-lang="tamil-translit" aria-pressed="false" title="tamil + Transliteration">
+                            <span class="a4m-lang-selector__icon">த</span>
+                            <span class="a4m-lang-selector__text">+Aa</span>
+                        </button>
+                        <button type="button" class="a4m-lang-selector__btn" data-lang="english-only" aria-pressed="false" title="English only">
+                            <span class="a4m-lang-selector__icon">En</span>
+                        </button>
+                        <button type="button" class="a4m-lang-selector__btn" data-lang="spanish-only" aria-pressed="false" title="Spanish only">
+                            <span class="a4m-lang-selector__icon">Es</span>
+                        </button>
+                    </div>
+                </div>
 
                 <form class="gate-form" id="gate-form">
+                    <!-- Gate Question 1: Perfect Happiness -->
                     <div class="form-group">
-                        <label for="answer1">
+                        <label for="answer1" class="trilingual-label">
                             <span class="question-number">௧</span>
-                            What is your idea of perfect happiness?
+                            <span class="question-layers">
+                                <!-- Primary: Tamil script -->
+                                <span class="question-tamil" lang="ta">
+                                    முழுமையான மகிழ்ச்சி என்றால் உனக்கு என்ன?
+                                </span>
+                                <!-- Secondary: Transliteration -->
+                                <span class="question-transliteration" lang="ta-Latn">
+                                    Muḻumaiyāṉa makiḻcci eṉṟāl uṉakku eṉṉa?
+                                </span>
+                                <!-- Tertiary: English -->
+                                <span class="question-english">
+                                    What is your idea of perfect happiness?
+                                </span>
+                                <!-- Quaternary: Spanish -->
+                                <span class="question-spanish" lang="es">
+                                    ¿Cuál es tu idea de la felicidad perfecta?
+                                </span>
+                            </span>
                         </label>
                         <textarea
                             id="answer1"
@@ -1072,10 +186,28 @@
                         ></textarea>
                     </div>
 
+                    <!-- Gate Question 2: Greatest Fear -->
                     <div class="form-group">
-                        <label for="answer2">
+                        <label for="answer2" class="trilingual-label">
                             <span class="question-number">௨</span>
-                            What is your greatest fear?
+                            <span class="question-layers">
+                                <!-- Primary: Tamil script -->
+                                <span class="question-tamil" lang="ta">
+                                    உன்னுடைய மிகப்பெரிய அச்சம் யாது?
+                                </span>
+                                <!-- Secondary: Transliteration -->
+                                <span class="question-transliteration" lang="ta-Latn">
+                                    Uṉṉuṭaiya mikapperiya accam yātu?
+                                </span>
+                                <!-- Tertiary: English -->
+                                <span class="question-english">
+                                    What is your greatest fear?
+                                </span>
+                                <!-- Quaternary: Spanish -->
+                                <span class="question-spanish" lang="es">
+                                    ¿Cuál es tu mayor temor?
+                                </span>
+                            </span>
                         </label>
                         <textarea
                             id="answer2"
@@ -1119,17 +251,6 @@
     </main>
 
     <footer>
-        <div class="hosting-blurb">
-            <p>
-                Why Iceland? As an American anti-fascist, I refuse to host user data under the jurisdiction of the Five Eyes surveillance alliance. Iceland offers the strongest privacy protections in the world—no data retention laws, robust press freedom, and a legal framework that prioritizes individual rights over state surveillance. <a href="https://flokinet.is" target="_blank" rel="noopener">FlokiNET</a> operates with a strict no-logs policy and has a proven track record of protecting journalists, activists, and whistleblowers.
-            </p>
-            <p>
-                You are subtly powerful and your words enjoy sanctuary here @ aformulationoftruth.com. A sanctuary that no one can offer in the land of the (un)free and the home of the racist administration. May the ignominious names of sycophants and scoundrels be forever damned, held in contempt by due process, and may those who support them be consumed by the contempt they insist upon Black people, and all immigrants. Black lives matter. Black trans and gay lives matter. Far more than the Barrons. We resist.
-            </p>
-            <a href="https://billing.flokinet.is/aff.php?aff=543" target="_blank" rel="noopener" class="floki-link">
-                <img src="/images/floki_logo.svg" alt="FlokiNET - Privacy-focused hosting" class="floki-logo">
-            </a>
-        </div>
         <div class="footer-inner">
             <div class="footer-links">
                 <a href="/about.html">About</a>
@@ -1139,14 +260,6 @@
             <p class="footer-copy">
                 Hosted with zero logs in Iceland
             </p>
-        </div>
-        <div class="vivirme-container" style="display: flex; justify-content: center; padding: 3rem 2rem; background: var(--void);">
-            <div style="position: relative; max-width: 500px;">
-                <img src="/images/parteDeTusRetroceseMentalesParaquevolveraVivirmeunPocoMas-1200.webp"
-                     alt="parte de tus retrocesos mentales para que volvera vivirme un poco más"
-                     style="width: 100%; mix-blend-mode: multiply; filter: invert(1);">
-                <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #00d4ff 0%, #00ff88 40%, #ffff00 100%); mix-blend-mode: screen; pointer-events: none;"></div>
-            </div>
         </div>
     </footer>
 
@@ -1161,6 +274,41 @@
                 }
             });
         });
+
+        // ═══════════════════════════════════════════════════════════
+        // A4M Language Selector — மொழி (Moḻi)
+        // Persists preference to localStorage
+        // ═══════════════════════════════════════════════════════════
+        (function initLangSelector() {
+            const STORAGE_KEY = 'a4m-lang-mode';
+            const gateContent = document.querySelector('.gate-content');
+            const buttons = document.querySelectorAll('.a4m-lang-selector__btn');
+
+            if (!gateContent || !buttons.length) return;
+
+            // Restore saved preference
+            const savedMode = localStorage.getItem(STORAGE_KEY) || 'all';
+            setLangMode(savedMode);
+
+            // Handle button clicks
+            buttons.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const mode = this.dataset.lang;
+                    setLangMode(mode);
+                    localStorage.setItem(STORAGE_KEY, mode);
+                });
+            });
+
+            function setLangMode(mode) {
+                // Update data attribute on gate-content (CSS uses this for visibility)
+                gateContent.dataset.langMode = mode;
+
+                // Update aria-pressed states
+                buttons.forEach(btn => {
+                    btn.setAttribute('aria-pressed', btn.dataset.lang === mode);
+                });
+            }
+        })();
 
         // Form handling
         const form = document.getElementById('gate-form');
@@ -1230,7 +378,7 @@
             showStatus('Requesting magic link...', 'info');
 
             try {
-                const response = await fetch('/auth/request', {
+                const response = await fetch('/api/auth/magic-link', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -1238,7 +386,16 @@
                     body: JSON.stringify({ email })
                 });
 
-                const data = await response.json();
+                // Safely parse JSON - handle empty responses
+                let data = {};
+                const text = await response.text();
+                if (text) {
+                    try {
+                        data = JSON.parse(text);
+                    } catch (parseError) {
+                        console.error('Failed to parse response:', text);
+                    }
+                }
 
                 if (response.ok) {
                     setButtonState('success', 'Magic link sent!');
@@ -1286,6 +443,53 @@
             el.style.transition = 'opacity 0.8s ease, transform 0.8s ease';
             observer.observe(el);
         });
+
+        // DISABLED: Play poem audio on first mouse movement (bypasses autoplay restrictions)
+        // Plays once, pauses 10s, plays once more, then stops
+        /*
+        const poemAudio = document.getElementById('poem-audio');
+        let audioStarted = false;
+        let playCount = 0;
+
+        function startAudioOnInteraction() {
+            if (audioStarted || !poemAudio) return;
+            audioStarted = true;
+
+            // When audio ends, handle the pause-and-replay logic
+            poemAudio.addEventListener('ended', function handleEnded() {
+                playCount++;
+                if (playCount === 1) {
+                    // First play finished - wait 10 seconds, then play again
+                    setTimeout(() => {
+                        poemAudio.currentTime = 0;
+                        poemAudio.play().catch(err => {
+                            console.log('Second play failed:', err);
+                        });
+                    }, 10000);
+                } else {
+                    // Second play finished - done, remove listener
+                    poemAudio.removeEventListener('ended', handleEnded);
+                    console.log('Poem recitation complete');
+                }
+            });
+
+            poemAudio.play().then(() => {
+                console.log('Poem recitation started');
+            }).catch(err => {
+                console.log('Audio play failed:', err);
+                audioStarted = false; // Allow retry on next interaction
+            });
+
+            // Remove listeners after successful start
+            if (audioStarted) {
+                document.removeEventListener('mousemove', startAudioOnInteraction);
+                document.removeEventListener('touchstart', startAudioOnInteraction);
+            }
+        }
+
+        document.addEventListener('mousemove', startAudioOnInteraction, { once: false });
+        document.addEventListener('touchstart', startAudioOnInteraction, { once: false });
+        */
     </script>
 </body>
 </html>

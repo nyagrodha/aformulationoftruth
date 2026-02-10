@@ -40,7 +40,7 @@ export const handler: Handlers = {
           headers: { 'Content-Type': 'application/json' },
         }
       );
-    } catch (error) {
+    } catch (_error) {
       // Log error without sensitive details
       console.error('[health] Database check failed');
       increment('errors.5xx');

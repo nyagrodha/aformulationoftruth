@@ -16,9 +16,13 @@
 const encoder = new TextEncoder();
 const decoder = new TextDecoder();
 
-const JWT_SECRET = Deno.env.get('JWT_SECRET');
-if (!JWT_SECRET) {
-  console.warn('[jwt] JWT_SECRET not configured - JWT functions will fail');
+// Lazy-load JWT_SECRET to allow env file loading before first use
+function getJwtSecret(): string {
+  const secret = Deno.env.get('JWT_SECRET');
+  if (!secret) {
+    throw new Error('JWT_SECRET not configured');
+  }
+  return secret;
 }
 
 const JWT_VALIDITY_HOURS = 24;
@@ -55,14 +59,12 @@ export async function createQuestionnaireJWT(
   emailHash: string,
   sessionId: string
 ): Promise<string> {
-  if (!JWT_SECRET) {
-    throw new Error('JWT_SECRET not configured');
-  }
+  const secret = getJwtSecret();
 
   // Import secret key for HMAC signing
   const key = await crypto.subtle.importKey(
     'raw',
-    encoder.encode(JWT_SECRET),
+    encoder.encode(secret),
     { name: 'HMAC', hash: 'SHA-256' },
     false,
     ['sign']
@@ -108,9 +110,7 @@ export async function createQuestionnaireJWT(
 export async function verifyQuestionnaireJWT(
   token: string
 ): Promise<JWTPayload | null> {
-  if (!JWT_SECRET) {
-    throw new Error('JWT_SECRET not configured');
-  }
+  const secret = getJwtSecret();
 
   try {
     // Split JWT into parts
@@ -125,7 +125,7 @@ export async function verifyQuestionnaireJWT(
     // Import secret key for HMAC verification
     const key = await crypto.subtle.importKey(
       'raw',
-      encoder.encode(JWT_SECRET),
+      encoder.encode(secret),
       { name: 'HMAC', hash: 'SHA-256' },
       false,
       ['verify']
@@ -135,10 +135,17 @@ export async function verifyQuestionnaireJWT(
     const signatureInput = `${headerB64}.${payloadB64}`;
     const signatureBuffer = base64urlDecode(signatureB64);
 
+    // Extract ArrayBuffer slice for crypto.subtle.verify
+    // (Uint8Array.buffer is ArrayBufferLike, but we need ArrayBuffer)
+    const signatureArrayBuffer = (signatureBuffer.buffer as ArrayBuffer).slice(
+      signatureBuffer.byteOffset,
+      signatureBuffer.byteOffset + signatureBuffer.byteLength
+    );
+
     const isValid = await crypto.subtle.verify(
       'HMAC',
       key,
-      signatureBuffer,
+      signatureArrayBuffer,
       encoder.encode(signatureInput)
     );
 

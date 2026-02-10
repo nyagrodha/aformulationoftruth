@@ -187,7 +187,136 @@ https://aformulationoftruth.com
 </html>
 `;
 
-  return sendEmail({
+  return await sendEmail({
+    to: email,
+    subject,
+    text: text.trim(),
+    html,
+  });
+}
+
+/**
+ * Send newsletter confirmation email (double opt-in)
+ */
+export async function sendNewsletterConfirmationEmail(
+  email: string,
+  confirmUrl: string,
+  unsubscribeUrl: string
+): Promise<SendGridResponse> {
+  const subject = 'Confirm your subscription to a formulation of truth';
+
+  const text = `
+Please confirm your subscription to the a formulation of truth newsletter.
+
+Click here to confirm:
+${confirmUrl}
+
+This link expires in 24 hours.
+
+If you didn't subscribe, you can safely ignore this email or unsubscribe here:
+${unsubscribeUrl}
+
+---
+a formulation of truth
+https://aformulationoftruth.com
+`;
+
+  const html = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: 'Georgia', serif;
+      background: #000;
+      color: #ccc;
+      margin: 0;
+      padding: 40px 20px;
+    }
+    .container {
+      max-width: 520px;
+      margin: 0 auto;
+      background: #0a0a0a;
+      border: 1px solid #222;
+      padding: 40px;
+    }
+    h1 {
+      font-size: 18px;
+      font-weight: normal;
+      color: #fff;
+      margin: 0 0 30px 0;
+      letter-spacing: 0.05em;
+    }
+    p {
+      line-height: 1.7;
+      margin: 0 0 20px 0;
+      color: #999;
+    }
+    .button {
+      display: inline-block;
+      background: linear-gradient(135deg, #00ff88 0%, #0af 100%);
+      color: #000 !important;
+      text-decoration: none;
+      padding: 14px 32px;
+      font-size: 14px;
+      font-weight: bold;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin: 20px 0;
+      border-radius: 4px;
+    }
+    .link {
+      word-break: break-all;
+      color: #666;
+      font-size: 12px;
+      font-family: monospace;
+    }
+    .footer {
+      margin-top: 40px;
+      padding-top: 20px;
+      border-top: 1px solid #222;
+      font-size: 12px;
+      color: #555;
+    }
+    .footer a {
+      color: #888;
+    }
+    .tamil {
+      font-family: 'Noto Serif Tamil', serif;
+      color: #00ff88;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>a formulation of truth</h1>
+
+    <p>Please confirm your subscription to our newsletter.</p>
+
+    <p>
+      <a href="${confirmUrl}" class="button">Confirm Subscription</a>
+    </p>
+
+    <p>Or copy this link:</p>
+    <p class="link">${confirmUrl}</p>
+
+    <p style="color: #666; font-size: 13px;">
+      This link expires in 24 hours.
+    </p>
+
+    <div class="footer">
+      <p>If you didn't subscribe, you can safely ignore this email.</p>
+      <p>Or <a href="${unsubscribeUrl}">unsubscribe here</a>.</p>
+      <p><span class="tamil">உண்மை</span> &mdash; truth</p>
+    </div>
+  </div>
+</body>
+</html>
+`;
+
+  return await sendEmail({
     to: email,
     subject,
     text: text.trim(),

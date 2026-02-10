@@ -84,7 +84,7 @@ export const handler: Handlers = {
         JSON.stringify({ ok: true }),
         { status: 200, headers: { 'Content-Type': 'application/json' } }
       );
-    } catch (error) {
+    } catch (_error) {
       console.error('[gate] Failed to store response');
       increment('errors.5xx');
 

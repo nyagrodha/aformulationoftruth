@@ -1,4 +1,42 @@
+/*
+ * ĀTMANOPTICAN DISPLAY SYSTEM
+ *
+ * Frame dimensions: 1250px × 1250px (full ornate frame with decorations)
+ * Screen dimensions: 573px × 573px (actual display area in center)
+ *
+ * The frame includes:
+ * - Ornate brass/bronze decorative border
+ * - Shiva murti (left side)
+ * - Telescope/optical device (left upper)
+ * - Hourglass and alchemical apparatus (right side)
+ * - Rainbow crystal at top
+ * - Lotus flower at bottom
+ * - "भाग्मनौṭīḱốv" inscription
+ */
+
+/*
+ * ═══════════════════════════════════════════════════════════════
+ * FONT FACES — Self-hosted, no external API calls
+ * ═══════════════════════════════════════════════════════════════
+ */
+@font-face {
+    font-family: 'SaiIndira';
+    src: url('/fonts/SaiIndira.woff2') format('woff2');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
 :root {
+    /* Ātmanoptican palette */
+    --gold: #FFD700;
+    --lotus-pink: #F48FB1;
+    --hot-pink: #FF69B4;
+    --light-pink: #FFB6C1;
+    --saffron: #FF6F00;
+    --deep-purple: #6B2C91;
+
+    /* Original palette */
     --void: #000000;
     --obsidian: #0a0a0a;
     --slate: #1a1a1a;
@@ -21,10 +59,54 @@
     --purple-glow: rgba(159, 95, 255, 0.4);
 }
 
+/* Reset */
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+}
+
+/* Global focus indicators for keyboard accessibility */
+a:focus-visible {
+    outline: 2px solid var(--neon-pink);
+    outline-offset: 3px;
+}
+
+button:focus-visible,
+[role="button"]:focus-visible {
+    outline: 2px solid var(--neon-orange);
+    outline-offset: 3px;
+}
+
+input:focus-visible {
+    outline: 2px solid var(--neon-emerald);
+    outline-offset: 3px;
+}
+
+textarea:focus-visible {
+    outline: 2px solid #0af;
+    outline-offset: 3px;
+}
+
+/* Skip link for keyboard navigation */
+.skip-link {
+    position: absolute;
+    top: -100px;
+    left: 16px;
+    background: var(--neon-emerald);
+    color: var(--void);
+    padding: 12px 24px;
+    font-weight: bold;
+    text-decoration: none;
+    z-index: 10000;
+    border-radius: 4px;
+    transition: top 0.2s ease;
+}
+
+.skip-link:focus {
+    top: 16px;
+    outline: 2px solid var(--neon-orange);
+    outline-offset: 3px;
 }
 
 html {
@@ -43,7 +125,7 @@ body {
 
 /* Tamil text rendering */
 .tamil-text {
-    font-family: 'Noto Serif Tamil', 'Noto Sans Tamil', 'Lohit Tamil', serif;
+    font-family: 'SaiIndira', 'Noto Serif Tamil', 'Tamil Sangam MN', serif;
 }
 
 /* Subtle grid background */
@@ -127,6 +209,89 @@ nav {
     width: 100%;
 }
 
+/* Indic Numeral Scatter - positioned around the main "4" */
+.indic-column {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 5;
+    pointer-events: none;
+}
+
+.indic-num {
+    position: absolute;
+    font-weight: 400;
+    line-height: 1;
+}
+
+/* Unique opacity pulse for each numeral - different durations */
+@keyframes indicPulse5 {
+    0%, 100% { opacity: 0.15; }
+    50% { opacity: 0.5; }
+}
+
+@keyframes indicPulse4 {
+    0%, 100% { opacity: 0.18; }
+    50% { opacity: 0.55; }
+}
+
+@keyframes indicPulse3 {
+    0%, 100% { opacity: 0.12; }
+    50% { opacity: 0.4; }
+}
+
+@keyframes indicPulse2 {
+    0%, 100% { opacity: 0.6; }
+    50% { opacity: 1; }
+}
+
+/* Kannada 5 - above and to the left of the 4 | 7s cycle */
+.kannada-5 {
+    font-family: 'Noto Sans Kannada', sans-serif;
+    font-size: clamp(3rem, 8vw, 5rem);
+    color: #00d4aa;
+    text-shadow: 0 0 30px rgba(0, 212, 170, 0.4);
+    animation: indicPulse5 7s ease-in-out infinite;
+    top: 12%;
+    left: 8%;
+}
+
+/* Devanagari 4 - same line as the main 4 (to its left) | 11s cycle */
+.devanagari-4 {
+    font-family: 'Noto Sans Devanagari', sans-serif;
+    font-size: clamp(4rem, 10vw, 7rem);
+    color: var(--neon-emerald);
+    text-shadow: 0 0 30px var(--emerald-glow);
+    animation: indicPulse4 11s ease-in-out infinite;
+    top: 28%;
+    left: 5%;
+}
+
+/* Sharada 3 - beneath the 4 arrangement | 9s cycle */
+.sharada-3 {
+    font-family: 'Noto Sans Sharada', sans-serif;
+    font-size: clamp(3.5rem, 9vw, 6rem);
+    color: #00c4b4;
+    text-shadow: 0 0 30px rgba(0, 196, 180, 0.4);
+    animation: indicPulse3 9s ease-in-out infinite;
+    top: 52%;
+    left: 6%;
+}
+
+/* irendu (Tamil 2) image - larger and more golden | 5s cycle */
+.irendu-2 {
+    width: clamp(100px, 18vw, 160px);
+    height: auto;
+    filter: drop-shadow(0 0 30px rgba(255, 215, 0, 0.6))
+            drop-shadow(0 0 50px rgba(255, 180, 50, 0.4))
+            brightness(1.1) saturate(1.3);
+    animation: indicPulse2 5s ease-in-out infinite;
+    top: 72%;
+    left: 4%;
+}
+
 /* Hero Section */
 .hero {
     min-height: 100vh;
@@ -184,7 +349,7 @@ nav {
     opacity: 0.85;
 }
 
-/* Flickering pink portion: "rmulat" - 15% more opaque */
+/* Flickering overlay layer */
 .title-flicker {
     position: absolute;
     top: 0;
@@ -195,35 +360,135 @@ nav {
     pointer-events: none;
 }
 
-.title-flicker .flicker-pink {
-    color: var(--neon-pink);
-    -webkit-text-fill-color: var(--neon-pink);
-    text-shadow: 0 0 20px var(--pink-glow), 0 0 40px var(--pink-glow), 0 0 60px var(--pink-glow);
-    animation: pinkSputter 6s ease-in-out infinite;
-    opacity: 1;
-}
-
-/* The background "4" glyph - moved to the left, as faint as possible */
-.bg-four {
-    position: absolute;
-    font-family: 'Orbitron', sans-serif;
-    font-size: 2.1em;
-    font-weight: 900;
-    color: #7fff9f;
-    -webkit-text-stroke: 1px #1b4e2d;
+/* Dynamic "form" in the flicker layer - intense shimmer effect */
+.title-flicker .form-dynamic {
     text-shadow:
-        0 0 25px rgba(100, 200, 140, 0.3),
-        0 0 50px rgba(100, 200, 140, 0.15);
-    z-index: -1;
-    top: 50%;
-    left: -0.5em;
-    transform: translateY(-50%);
-    opacity: 0.08;
-    animation: fourFlicker 10s ease-in-out infinite;
-    pointer-events: none;
+        0 0 15px var(--orange-glow),
+        0 0 30px var(--pink-glow),
+        0 0 45px rgba(192, 192, 192, 0.4);
+    animation: formShimmer 4s ease-in-out infinite, formGlowPulse 2s ease-in-out infinite;
 }
 
-/* Multicoloured neon watermark with dynamic colors */
+@keyframes formGlowPulse {
+    0%, 100% {
+        text-shadow:
+            0 0 15px var(--orange-glow),
+            0 0 30px var(--pink-glow);
+    }
+    33% {
+        text-shadow:
+            0 0 20px var(--pink-glow),
+            0 0 40px rgba(192, 192, 192, 0.6),
+            0 0 60px var(--pink-glow);
+    }
+    66% {
+        text-shadow:
+            0 0 25px rgba(192, 192, 192, 0.8),
+            0 0 50px var(--orange-glow),
+            0 0 70px rgba(255, 255, 255, 0.3);
+    }
+}
+
+/* Background watermark container - 4 மூல सत् behind title */
+.bg-watermark {
+    position: absolute;
+    top: 50%;
+    left: -1.5em;
+    right: 0;
+    transform: translateY(-50%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.1em;
+    z-index: 0;
+    pointer-events: none;
+    font-family: 'Orbitron', 'Noto Sans Devanagari', sans-serif;
+    font-size: 1.2em;
+    font-weight: 900;
+    overflow: visible;
+}
+
+/* Slow pink spiral wave moving horizontally through watermark */
+.bg-watermark::before {
+    content: '';
+    position: absolute;
+    top: -20%;
+    left: -60%;
+    width: 40%;
+    height: 140%;
+    background: radial-gradient(
+        ellipse at center,
+        rgba(255, 105, 180, 0.35) 0%,
+        rgba(255, 105, 180, 0.15) 40%,
+        transparent 70%
+    );
+    filter: blur(25px);
+    animation: pinkSpiral 12s ease-in-out infinite;
+    pointer-events: none;
+    z-index: 1;
+}
+
+@keyframes pinkSpiral {
+    0% {
+        left: -60%;
+        opacity: 0;
+    }
+    15% {
+        opacity: 0.8;
+    }
+    85% {
+        opacity: 0.8;
+    }
+    100% {
+        left: 120%;
+        opacity: 0;
+    }
+}
+
+/* Green "4" - leftmost */
+.bg-four {
+    color: var(--neon-emerald);
+    opacity: 0.18;
+    text-shadow: 0 0 30px rgba(0, 255, 136, 0.3);
+    animation: bgFourPulse 10s ease-in-out infinite;
+    position: relative;
+    z-index: 2;
+}
+
+@keyframes bgFourPulse {
+    0%, 100% { opacity: 0.12; }
+    50% { opacity: 0.25; }
+}
+
+/* Transitional "மூல" (mula) - middle, blue-purple */
+.bg-mula {
+    font-family: 'SaiIndira', 'Noto Serif Tamil', sans-serif;
+    color: #9f7fff;
+    opacity: 0.15;
+    text-shadow: 0 0 25px rgba(159, 127, 255, 0.3);
+    animation: bgMulaPulse 12s ease-in-out infinite;
+}
+
+@keyframes bgMulaPulse {
+    0%, 100% { opacity: 0.10; }
+    50% { opacity: 0.22; }
+}
+
+/* Pink "सत्" (sat) - rightmost */
+.bg-sat {
+    font-family: 'Noto Sans Devanagari', sans-serif;
+    color: var(--neon-pink);
+    opacity: 0.18;
+    text-shadow: 0 0 30px rgba(255, 105, 180, 0.3);
+    animation: bgSatPulse 8s ease-in-out infinite;
+}
+
+@keyframes bgSatPulse {
+    0%, 100% { opacity: 0.12; }
+    50% { opacity: 0.25; }
+}
+
+/* Multicoloured neon watermark */
 .neon-watermark {
     position: absolute;
     top: 45%;
@@ -250,180 +515,329 @@ nav {
     background-clip: text;
     animation: neonWatermarkFlow 8s linear infinite, neonWatermarkPulse 4s ease-in-out infinite;
     filter: blur(0.5px);
-    text-shadow:
-        0 0 40px rgba(255, 105, 180, 0.3),
-        0 0 80px rgba(255, 140, 66, 0.2),
-        0 0 120px rgba(0, 255, 136, 0.15);
 }
 
 @keyframes neonWatermarkFlow {
-    0% {
-        background-position: 0% 50%;
-    }
-    100% {
-        background-position: 200% 50%;
-    }
+    0% { background-position: 0% 50%; }
+    100% { background-position: 200% 50%; }
 }
 
 @keyframes neonWatermarkPulse {
-    0%, 100% {
-        opacity: 0.12;
-        filter: blur(0.5px);
-    }
-    50% {
-        opacity: 0.18;
-        filter: blur(1px);
-    }
+    0%, 100% { opacity: 0.12; filter: blur(0.5px); }
+    50% { opacity: 0.18; filter: blur(1px); }
 }
 
 /* Synchronized flickering animations */
 @keyframes pinkSputter {
-    0%, 100% {
-        opacity: 1;
-        text-shadow: 0 0 15px var(--pink-glow), 0 0 30px var(--pink-glow);
+    0%, 100% { opacity: 1; text-shadow: 0 0 15px var(--pink-glow), 0 0 30px var(--pink-glow); }
+    25% { opacity: 0.7; text-shadow: 0 0 8px var(--pink-glow); }
+    35% { opacity: 0.15; text-shadow: 0 0 2px var(--pink-glow); }
+    40% { opacity: 0.05; text-shadow: none; }
+    50% { opacity: 0.02; }
+    60% { opacity: 0.1; }
+    70% { opacity: 0.5; text-shadow: 0 0 5px var(--pink-glow); }
+    75% { opacity: 0.9; }
+    85% { opacity: 1; text-shadow: 0 0 15px var(--pink-glow), 0 0 30px var(--pink-glow); }
+}
+
+/* Green "4" - fades in/out but never disappears */
+@keyframes fourColorMorph {
+    0% {
+        color: var(--neon-emerald);
+        text-shadow: 0 0 30px rgba(0, 255, 136, 0.5), 0 0 60px rgba(0, 255, 136, 0.3);
+        opacity: 0.15;
     }
-    /* Pink sputters out */
     25% {
-        opacity: 0.7;
-        text-shadow: 0 0 8px var(--pink-glow);
-    }
-    35% {
-        opacity: 0.15;
-        text-shadow: 0 0 2px var(--pink-glow);
-    }
-    40% {
-        opacity: 0.05;
-        text-shadow: none;
-    }
-    /* Pink stays dim while 4 is visible */
-    50% {
-        opacity: 0.02;
-    }
-    /* Pink comes back */
-    60% {
-        opacity: 0.1;
-    }
-    70% {
+        color: #50ff90;
+        text-shadow: 0 0 45px rgba(80, 255, 144, 0.7), 0 0 90px rgba(80, 255, 144, 0.4);
         opacity: 0.5;
-        text-shadow: 0 0 5px var(--pink-glow);
-    }
-    75% {
-        opacity: 0.9;
-    }
-    85% {
-        opacity: 1;
-        text-shadow: 0 0 15px var(--pink-glow), 0 0 30px var(--pink-glow);
-    }
-}
-
-@keyframes fourFlicker {
-    0%, 100% {
-        opacity: 0.04;
-        text-shadow: 0 0 10px rgba(100, 200, 140, 0.08);
-    }
-    /* 4 starts becoming visible as pink dims */
-    30% {
-        opacity: 0.08;
-    }
-    /* 4 is most legible when pink is out */
-    40% {
-        opacity: 0.15;
-        text-shadow:
-            0 0 20px rgba(100, 200, 140, 0.2),
-            0 0 40px rgba(100, 200, 140, 0.1);
     }
     50% {
-        opacity: 0.18;
-        text-shadow:
-            0 0 25px rgba(100, 200, 140, 0.25),
-            0 0 50px rgba(0, 255, 136, 0.15);
-    }
-    /* 4 sputters out */
-    60% {
-        opacity: 0.12;
-    }
-    70% {
-        opacity: 0.06;
+        color: var(--neon-emerald);
+        text-shadow: 0 0 50px rgba(0, 255, 136, 0.8), 0 0 100px rgba(0, 255, 136, 0.5);
+        opacity: 0.65;
     }
     75% {
-        opacity: 0.04;
-        text-shadow: 0 0 10px rgba(100, 200, 140, 0.08);
+        color: #80ffa0;
+        text-shadow: 0 0 40px rgba(128, 255, 160, 0.6), 0 0 80px rgba(128, 255, 160, 0.3);
+        opacity: 0.35;
+    }
+    100% {
+        color: var(--neon-emerald);
+        text-shadow: 0 0 30px rgba(0, 255, 136, 0.5), 0 0 60px rgba(0, 255, 136, 0.3);
+        opacity: 0.15;
     }
 }
 
-.subtitle {
-    font-size: 1.1rem;
-    color: var(--pearl);
-    max-width: 600px;
-    margin: 0 auto 3rem;
-    line-height: 1.9;
-    opacity: 0;
-    animation: fadeSlideUp 1s ease 0.6s forwards;
-}
-
-.subtitle .weather-link {
-    color: var(--pearl);
-    text-decoration: none;
-    transition: color 0.3s ease, text-shadow 0.3s ease;
-}
-
-.subtitle .weather-link:hover {
-    color: var(--neon-emerald);
-    text-shadow: 0 0 15px var(--emerald-glow);
-}
-
-/* Broadcast Statement - declarative, weather-report style */
-.broadcast-statement {
-    font-family: 'Orbitron', sans-serif;
-    font-size: 1.25rem; /* ~115% of body text */
-    font-weight: 600;
-    letter-spacing: -0.02em;
-    color: var(--bone);
-    margin: 2.5rem auto 2rem;
-    max-width: 800px;
-    line-height: 1.4;
-    white-space: nowrap;
-    opacity: 0;
-    animation: fadeSlideUp 1s ease 0.6s forwards;
-}
-
-/* Television Container */
+/*
+ * ═══════════════════════════════════════════════════════════════
+ * ĀTMANOPTICAN CONTAINER - Full frame system
+ * ═══════════════════════════════════════════════════════════════
+ */
 .tv-container {
     margin: 2rem auto 2.5rem;
-    max-width: 480px;
+    width: 100%;
+    max-width: 750px;  /* 25% larger than original 600px */
     opacity: 0;
     animation: fadeSlideUp 1s ease 0.7s forwards;
 }
 
-/* TV Frame - old school with curvature */
-.tv-frame {
-    background: linear-gradient(145deg, #1a1a1a 0%, #0d0d0d 50%, #1a1a1a 100%);
-    border-radius: 12px;
-    padding: 20px 24px 16px;
-    box-shadow:
-        inset 0 2px 4px rgba(255, 255, 255, 0.05),
-        inset 0 -2px 4px rgba(0, 0, 0, 0.8),
-        0 8px 32px rgba(0, 0, 0, 0.6),
-        0 0 60px rgba(100, 200, 140, 0.03);
-    border: 1px solid var(--ghost);
+/*
+ * ═══════════════════════════════════════════════════════════════
+ * FULL-WIDTH VIDEO CONTAINER - Edge-to-edge buddha_glitch
+ * ═══════════════════════════════════════════════════════════════
+ */
+.fullwidth-video-container {
+    position: relative;
+    width: 500px;
+    height: 500px;
+    max-width: 90vw;
+    max-height: 90vw;
+    margin: 0 auto 2rem auto;
+    overflow: hidden;
+    border-radius: 8px;
+    opacity: 0;
+    animation: fadeSlideUp 1s ease 0.7s forwards;
 }
 
-/* TV Screen - curved glass effect */
-.tv-screen {
+.fullwidth-video {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center top;
+    filter: contrast(1.1) saturate(1.15) brightness(1);
+    z-index: 0;
+}
+
+/* Subtle vignette overlay */
+.fullwidth-video-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.4) 100%);
+    pointer-events: none;
+    z-index: 1;
+}
+
+/* CRT scanlines for full-width video */
+.fullwidth-video-container .video-scanlines {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: repeating-linear-gradient(
+        0deg,
+        rgba(0, 0, 0, 0.06) 0px,
+        transparent 1px,
+        transparent 3px,
+        rgba(0, 0, 0, 0.06) 4px
+    );
+    pointer-events: none;
+    z-index: 2;
+    opacity: 0.4;
+}
+
+/* Full-width scrolling text container */
+.fullwidth-scroll {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 3;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+    animation: scrollUp 80s linear infinite;
+    padding-top: 100%;
+}
+
+/* Pause scroll on hover */
+.fullwidth-video-container:hover .fullwidth-scroll {
+    animation-play-state: paused;
+}
+
+/*
+ * LARGE SANSKRIT VERSE - Full-width maximized font
+ * Two padas, danda, two padas, double danda format
+ */
+.fullwidth-scroll .sanskrit {
+    font-family: 'Noto Sans Devanagari', 'Noto Serif Devanagari', sans-serif;
+    font-size: clamp(1.5rem, 4vw, 2.5rem);
+    font-weight: 600;
+    color: var(--gold);
+    line-height: 1.5;
+    margin: 0;
+    padding: 0.3rem 1rem;
+    background: transparent;
+    text-shadow:
+        0 0 20px rgba(255, 215, 0, 0.9),
+        0 0 40px rgba(255, 215, 0, 0.6),
+        0 2px 4px rgba(0, 0, 0, 0.9);
+    letter-spacing: 0.05em;
+    text-align: center;
+}
+
+/*
+ * TRANSLATION - No background, floating over video
+ */
+.fullwidth-scroll .translation {
+    font-family: 'Space Mono', monospace;
+    font-size: clamp(0.75rem, 1.5vw, 1rem);
+    font-weight: 600;
+    line-height: 1.6;
+    margin: 1.5rem 0 0 0;
+    padding: 0.75rem 2rem;
+    max-width: 80%;
+    background: transparent;
+    letter-spacing: 0.02em;
+    text-align: center;
+    font-style: italic;
+    color: var(--light-pink);
+    text-shadow:
+        0 0 15px rgba(255, 105, 180, 0.8),
+        0 0 30px rgba(255, 105, 180, 0.5),
+        0 2px 4px rgba(0, 0, 0, 0.9);
+}
+
+/* Attribution for full-width */
+.fullwidth-scroll .attribution {
+    font-family: 'Space Mono', monospace;
+    font-size: clamp(0.6rem, 1vw, 0.8rem);
+    font-weight: 600;
+    color: var(--gold);
+    margin: 1rem 0 0 0;
+    padding: 0.3rem 1rem;
+    background: transparent;
+    text-align: center;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    text-shadow:
+        0 0 15px rgba(255, 215, 0, 0.9),
+        0 2px 4px rgba(0, 0, 0, 0.9);
+}
+
+/* Footnote hover inside full-width container */
+.fullwidth-video-container .trident-hover {
+    z-index: 10;
+}
+
+.fullwidth-video-container .trident-popup {
+    bottom: auto;
+    top: 0;
+    left: 100%;
+    transform: translateX(10px);
+    width: 320px;
+}
+
+.fullwidth-video-container .trident-hover:hover .trident-popup {
+    transform: translateX(15px);
+}
+
+/* Mobile responsive for video */
+@media (max-width: 768px) {
+    .fullwidth-video-container {
+        width: 90vw;
+        height: 90vw;
+        max-width: 400px;
+        max-height: 400px;
+    }
+
+    .fullwidth-scroll .sanskrit {
+        font-size: clamp(1rem, 5vw, 1.5rem);
+        padding: 0.2rem 0.5rem;
+    }
+
+    .fullwidth-scroll .translation {
+        font-size: clamp(0.6rem, 2.5vw, 0.85rem);
+        max-width: 95%;
+        padding: 0.5rem 1rem;
+    }
+
+    .fullwidth-scroll .attribution {
+        font-size: clamp(0.5rem, 2vw, 0.7rem);
+    }
+
+    .fullwidth-video-container .trident-popup {
+        width: 250px;
+        left: 0;
+        top: auto;
+        bottom: 100%;
+        transform: translateY(-10px);
+    }
+
+    .fullwidth-video-container .trident-hover:hover .trident-popup {
+        transform: translateY(-15px);
+    }
+}
+
+/* Image-based TV frame */
+.tv-frame-img {
     position: relative;
-    background: radial-gradient(ellipse at center, #0a0f0a 0%, #050805 70%, #020302 100%);
-    border-radius: 8px / 6px;
-    padding: 1.5rem 1.25rem;
-    min-height: 100px;
+    width: 100%;
+}
+
+.tv-frame-bg {
+    display: block;
+    width: 100%;
+    height: auto;
+    filter: drop-shadow(0 12px 40px rgba(0, 0, 0, 0.7)) drop-shadow(0 0 60px rgba(255, 180, 100, 0.15));
+    mix-blend-mode: lighten;  /* Eliminates black background */
+}
+
+/*
+ * SCREEN DISPLAY - The actual viewable area
+ * Positioned within the ātmanoptican frame image window
+ * Taller portrait rectangle per newDimensions.png reference
+ */
+.tv-screen {
+    position: absolute;
+    top: 31%;
+    left: 32.5%;
+    width: 35%;
+    aspect-ratio: 1 / 1;  /* Perfect square - trims bottom of video */
+
+    /* No gradient overlay - let the video show through */
+    background: transparent;
+
+    border-radius: 2px;
+    padding: 0;
     overflow: hidden;
     box-shadow:
-        inset 0 0 30px rgba(0, 0, 0, 0.8),
-        inset 0 0 60px rgba(0, 20, 10, 0.3),
-        0 0 1px rgba(100, 200, 140, 0.2);
+        inset 0 0 40px rgba(0, 0, 0, 0.9),
+        inset 0 0 80px rgba(0, 20, 10, 0.4);
     animation: tvGlow 8s ease-in-out infinite;
 }
 
-/* Scanlines overlay */
+/* Curved glass reflection effect */
+.tv-screen::before {
+    content: '';
+    position: absolute;
+    top: 8%;
+    left: 10%;
+    width: 35%;
+    height: 20%;
+    background: linear-gradient(
+        135deg,
+        rgba(255, 255, 255, 0.06) 0%,
+        rgba(255, 255, 255, 0.02) 50%,
+        transparent 100%
+    );
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 3;
+}
+
+/* CRT Scanlines overlay */
 .tv-scanlines {
     position: absolute;
     top: 0;
@@ -432,68 +846,175 @@ nav {
     bottom: 0;
     background: repeating-linear-gradient(
         0deg,
-        transparent 0px,
+        rgba(0, 0, 0, 0.08) 0px,
+        transparent 1px,
         transparent 2px,
-        rgba(0, 0, 0, 0.15) 2px,
-        rgba(0, 0, 0, 0.15) 4px
+        rgba(0, 0, 0, 0.08) 3px
     );
     pointer-events: none;
     z-index: 2;
-    opacity: 0.7;
+    opacity: 0.5;
+    border-radius: 2px;
+    animation: scanlines 10s linear infinite;
 }
 
-/* Screen flicker - slow, infrastructural */
+@keyframes scanlines {
+    0% { transform: translateY(0); }
+    100% { transform: translateY(4px); }
+}
+
+/* Screen flicker */
 @keyframes tvGlow {
-    0%, 100% {
+    0% {
         box-shadow:
-            inset 0 0 30px rgba(0, 0, 0, 0.8),
-            inset 0 0 60px rgba(0, 20, 10, 0.3),
-            0 0 1px rgba(100, 200, 140, 0.2);
-    }
-    25% {
-        box-shadow:
-            inset 0 0 30px rgba(0, 0, 0, 0.8),
-            inset 0 0 60px rgba(0, 20, 10, 0.35),
-            0 0 2px rgba(100, 200, 140, 0.25);
+            inset 0 0 40px rgba(0, 0, 0, 0.9),
+            inset 0 0 80px rgba(0, 20, 10, 0.35),
+            0 0 12px rgba(80, 255, 140, 0.15);
     }
     50% {
         box-shadow:
-            inset 0 0 30px rgba(0, 0, 0, 0.75),
-            inset 0 0 60px rgba(0, 20, 10, 0.4),
-            0 0 3px rgba(100, 200, 140, 0.3);
+            inset 0 0 45px rgba(0, 0, 0, 0.95),
+            inset 0 0 90px rgba(0, 30, 15, 0.45),
+            0 0 18px rgba(80, 255, 140, 0.25);
     }
-    75% {
+    100% {
         box-shadow:
-            inset 0 0 30px rgba(0, 0, 0, 0.8),
-            inset 0 0 60px rgba(0, 20, 10, 0.32),
-            0 0 2px rgba(100, 200, 140, 0.22);
+            inset 0 0 40px rgba(0, 0, 0, 0.9),
+            inset 0 0 80px rgba(0, 20, 10, 0.35),
+            0 0 12px rgba(80, 255, 140, 0.15);
     }
 }
 
-/* TV Content - background radiation feel */
+/* TV Content - fills the screen area */
 .tv-content {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1;
+    overflow: hidden;
+    animation: contentFlicker 12s ease-in-out infinite;
+    border-radius: 2px;
+    padding: 0.25rem;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+/*
+ * VIDEO - Buddha glitch, fills entire screen
+ */
+.tv-video {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center top;  /* Trim from bottom, keep top */
+    image-rendering: auto;
+    border-radius: 2px;
+    opacity: 1;
+    filter:
+        contrast(1.1)
+        saturate(1.15)
+        brightness(1);
+    /* No blend mode - show video directly */
+    z-index: 0;
+}
+
+/* Scrolling text container */
+.tv-scroll {
     position: relative;
     z-index: 1;
-    animation: contentFlicker 12s ease-in-out infinite;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.2rem;
+    animation: scrollUp 80s linear infinite;
+    padding-top: 100%;
+    padding-left: 0.3rem;
+    padding-right: 0.3rem;
 }
 
-.tv-content p {
-    font-family: 'Space Mono', monospace;
-    font-size: 0.72rem;
-    color: rgba(100, 200, 140, 0.7);
-    line-height: 1.7;
+@keyframes scrollUp {
+    0% { transform: translateY(0); }
+    100% { transform: translateY(-100%); }
+}
+
+/* Pause scroll on hover */
+.tv-content:hover .tv-scroll {
+    animation-play-state: paused;
+}
+
+/*
+ * SANSKRIT VERSE - Golden glow styling with readable background
+ */
+.tv-content .sanskrit {
+    font-family: 'Noto Sans Devanagari', 'Noto Serif Devanagari', sans-serif;
+    font-size: 0.55rem;
+    font-weight: 600;
+    color: var(--gold);
+    line-height: 1.6;
     margin: 0;
-    text-shadow: 0 0 8px rgba(100, 200, 140, 0.3);
+    padding: 0.15rem 0.4rem;
+    background: rgba(0, 0, 0, 0.75);
+    border-radius: 2px;
+    text-shadow:
+        0 0 8px rgba(255, 215, 0, 0.8),
+        0 0 12px rgba(255, 215, 0, 0.5),
+        0 1px 2px rgba(0, 0, 0, 0.9);
+    letter-spacing: 0.03em;
+    text-align: center;
+}
+
+/*
+ * TRANSLATION - Legible with solid background
+ */
+.tv-content .translation {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.5rem;
+    font-weight: 600;
+    line-height: 1.5;
+    margin: 0.6rem 0 0 0;
+    padding: 0.5rem 0.6rem;
+    background: rgba(0, 0, 0, 0.85);
+    border-radius: 3px;
     letter-spacing: 0.02em;
+    text-align: center;
+    font-style: italic;
+    color: var(--light-pink);
+    text-shadow:
+        0 0 6px rgba(255, 105, 180, 0.6),
+        0 1px 2px rgba(0, 0, 0, 0.9);
 }
 
-.tv-content p:first-child {
-    margin-bottom: 0.5rem;
+/* Pink shimmer animation */
+@keyframes shimmerPink {
+    0% { background-position: -200% 0; }
+    50% { background-position: 0% 0; }
+    100% { background-position: 200% 0; }
 }
 
-.tv-content p:last-child {
-    color: rgba(100, 200, 140, 0.55);
-    font-size: 0.68rem;
+/* Attribution styling */
+.tv-content .attribution {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.45rem;
+    font-weight: 600;
+    color: var(--gold);
+    margin: 0.4rem 0 0 0;
+    padding: 0.2rem 0.5rem;
+    background: rgba(0, 0, 0, 0.8);
+    border-radius: 2px;
+    text-align: center;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    text-shadow:
+        0 0 8px rgba(255, 215, 0, 0.8),
+        0 1px 2px rgba(0, 0, 0, 0.9);
 }
 
 /* Subtle content flicker */
@@ -507,47 +1028,152 @@ nav {
     74% { opacity: 1; }
 }
 
-/* TV Chassis - houses the power button */
-.tv-chassis {
-    background: linear-gradient(180deg, #151515 0%, #0a0a0a 100%);
-    padding: 12px 20px;
-    border-radius: 0 0 10px 10px;
-    display: flex;
-    justify-content: center;
-    border-top: 1px solid #0a0a0a;
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+/* TV Glitch Effects */
+.tv-screen {
+    animation: tvGlow 8s ease-in-out infinite, tvGlitch 8s steps(1) infinite;
 }
 
-/* Power Button - Learn More */
-.tv-power-btn {
-    font-family: 'Space Mono', monospace;
-    font-size: 0.65rem;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    color: var(--mist);
-    text-decoration: none;
-    padding: 0.5rem 1.5rem;
-    background: linear-gradient(180deg, #1a1a1a 0%, #0f0f0f 100%);
-    border: 1px solid var(--ghost);
-    border-radius: 3px;
+@keyframes tvGlitch {
+    0%, 100% { transform: translate(0); filter: none; }
+    7% { transform: translate(0); }
+    7.5% { transform: translate(-2px, 1px); filter: hue-rotate(90deg); }
+    8% { transform: translate(2px, -1px); }
+    8.5% { transform: translate(0); filter: none; }
+    32% { transform: translate(0); }
+    32.2% { transform: translate(3px, 0); filter: saturate(2); }
+    32.5% { transform: translate(-2px, 1px); }
+    32.8% { transform: translate(0); filter: none; }
+    58% { transform: translate(0); }
+    58.2% { transform: translate(-3px, 2px); filter: hue-rotate(-60deg) brightness(1.2); }
+    58.5% { transform: translate(4px, -1px); filter: saturate(0.5); }
+    58.8% { transform: translate(-1px, 2px); }
+    59.2% { transform: translate(2px, 0); filter: hue-rotate(30deg); }
+    59.5% { transform: translate(0); filter: none; }
+    78% { transform: translate(0); }
+    78.1% { transform: translate(1px, 0); }
+    78.2% { transform: translate(0); }
+}
+
+/* Horizontal tear line */
+.tv-screen::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(
+        90deg,
+        transparent 0%,
+        rgba(255, 215, 0, 0.3) 20%,
+        rgba(255, 215, 0, 0.5) 50%,
+        rgba(255, 215, 0, 0.3) 80%,
+        transparent 100%
+    );
+    opacity: 0;
+    z-index: 10;
+    pointer-events: none;
+    animation: tearLine 6s linear infinite;
+}
+
+@keyframes tearLine {
+    0%, 100% { top: -10%; opacity: 0; }
+    10% { opacity: 0; }
+    12% { top: 15%; opacity: 0.8; }
+    14% { top: 20%; opacity: 0; }
+    45% { opacity: 0; }
+    47% { top: 60%; opacity: 0.6; }
+    49% { top: 65%; opacity: 0; }
+    70% { opacity: 0; }
+    71% { top: 85%; opacity: 0.5; }
+    73% { top: 90%; opacity: 0; }
+}
+
+/* RGB split on glitch */
+.tv-content {
+    animation: contentFlicker 12s ease-in-out infinite, rgbSplit 8s steps(1) infinite;
+}
+
+@keyframes rgbSplit {
+    0%, 100% { text-shadow: 0 0 8px rgba(255, 215, 0, 0.3); }
+    7.5% {
+        text-shadow:
+            -2px 0 rgba(255, 0, 0, 0.4),
+            2px 0 rgba(0, 255, 255, 0.4),
+            0 0 8px rgba(255, 215, 0, 0.5);
+    }
+    8% { text-shadow: 0 0 8px rgba(255, 215, 0, 0.3); }
+    58.3% {
+        text-shadow:
+            -3px 0 rgba(255, 0, 0, 0.5),
+            3px 0 rgba(0, 255, 255, 0.5),
+            0 2px rgba(255, 0, 255, 0.3),
+            0 0 12px rgba(255, 215, 0, 0.7);
+    }
+    59.5% { text-shadow: 0 0 8px rgba(255, 215, 0, 0.3); }
+}
+
+/* Trident/Kalabhairava footnote hover popup */
+.trident-hover {
+    position: absolute;
+    top: 45%;
+    left: 2%;
+    z-index: 15;
+}
+
+.trident-trigger {
+    font-size: 0.9rem;
     cursor: pointer;
-    transition: all 0.8s ease;
-    box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.05),
-        0 2px 4px rgba(0, 0, 0, 0.4);
+    opacity: 0.15;
+    transition: opacity 0.3s ease, transform 0.3s ease, text-shadow 0.3s ease;
+    color: var(--gold);
+    text-shadow: 0 0 3px rgba(255, 215, 0, 0.3);
 }
 
-/* CRT warming up effect on hover */
-.tv-power-btn:hover {
-    color: var(--pearl);
-    background: linear-gradient(180deg, #222 0%, #151515 100%);
-    border-color: rgba(100, 200, 140, 0.3);
-    box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.08),
-        0 2px 4px rgba(0, 0, 0, 0.4),
-        0 0 12px rgba(100, 200, 140, 0.1);
+.trident-trigger:hover {
+    opacity: 0.9;
+    transform: scale(1.2);
+    text-shadow: 0 0 8px rgba(255, 215, 0, 0.8), 0 0 15px rgba(255, 200, 100, 0.5);
 }
 
+.trident-popup {
+    position: absolute;
+    top: 50%;
+    left: 100%;
+    transform: translateY(-50%) translateX(10px);
+    width: 280px;
+    max-width: 90vw;
+    background: rgba(10, 8, 6, 0.97);
+    border: 1px solid rgba(255, 215, 0, 0.3);
+    border-radius: 8px;
+    padding: 1rem;
+    font-size: 0.65rem;
+    line-height: 1.6;
+    color: var(--mist);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8), 0 0 20px rgba(255, 215, 0, 0.1);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease, transform 0.3s ease;
+    pointer-events: none;
+}
+
+.trident-popup a {
+    color: var(--gold);
+    text-decoration: none;
+    border-bottom: 1px dotted var(--gold);
+}
+
+.trident-popup a:hover {
+    color: #fff7cc;
+}
+
+.trident-hover:hover .trident-popup {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(-50%) translateX(15px);
+    pointer-events: auto;
+}
+
+/* CTA Group */
 .cta-group {
     display: flex;
     gap: 1.5rem;
@@ -626,11 +1252,68 @@ nav {
     display: block;
     width: 2px;
     height: 50px;
-    background: linear-gradient(to bottom, var(--neon-emerald), var(--neon-pink), transparent);
-    box-shadow: 0 0 10px var(--emerald-glow);
+    background: linear-gradient(to bottom, var(--gold), var(--neon-pink), transparent);
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
 }
 
-/* Philosophy Section */
+/* Encryption hover popup */
+.encryption-hover {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    padding: 1rem 0;
+    z-index: 10;
+}
+
+.encryption-trigger {
+    font-size: 1.2rem;
+    cursor: pointer;
+    opacity: 0.5;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    filter: grayscale(0.5);
+}
+
+.encryption-trigger:hover {
+    opacity: 1;
+    transform: scale(1.1);
+    filter: grayscale(0);
+}
+
+.encryption-popup {
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%) translateY(10px);
+    width: 90%;
+    max-width: 500px;
+    padding: 1.25rem 1.5rem;
+    background: var(--obsidian);
+    border: 1px solid var(--ghost);
+    border-radius: 4px;
+    font-size: 0.7rem;
+    color: var(--pearl);
+    line-height: 1.7;
+    text-align: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s ease;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+    pointer-events: none;
+}
+
+.encryption-popup em {
+    color: var(--gold);
+    font-style: normal;
+}
+
+.encryption-hover:hover .encryption-popup {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(-50%) translateY(0);
+    pointer-events: auto;
+}
+
+/* Gate Section */
 .section {
     padding: 8rem 2rem;
     position: relative;
@@ -642,74 +1325,6 @@ nav {
     margin: 0 auto;
 }
 
-.section-label {
-    font-family: 'Space Mono', monospace;
-    font-size: 0.65rem;
-    letter-spacing: 0.4em;
-    text-transform: uppercase;
-    color: var(--neon-emerald);
-    text-shadow: 0 0 10px var(--emerald-glow);
-    margin-bottom: 2rem;
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-}
-
-.section-label::before {
-    content: '';
-    width: 30px;
-    height: 1px;
-    background: var(--neon-emerald);
-    box-shadow: 0 0 8px var(--emerald-glow);
-}
-
-.section-title {
-    font-family: 'Orbitron', sans-serif;
-    font-size: clamp(1.8rem, 4vw, 2.5rem);
-    font-weight: 500;
-    color: var(--light);
-    margin-bottom: 2rem;
-    line-height: 1.3;
-}
-
-.section-text {
-    font-size: 1rem;
-    color: var(--pearl);
-    margin-bottom: 1.5rem;
-    line-height: 1.9;
-}
-
-.section-text em {
-    color: var(--bone);
-    font-style: italic;
-}
-
-/* Quote block */
-.quote-block {
-    border-left: 2px solid var(--neon-orange);
-    padding: 2rem;
-    margin: 3rem 0;
-    background: linear-gradient(135deg, var(--pink-dim) 0%, var(--orange-dim) 100%);
-    box-shadow: 0 0 30px rgba(255, 140, 66, 0.1);
-}
-
-.quote-block p {
-    font-family: 'Orbitron', sans-serif;
-    font-size: 1.1rem;
-    font-weight: 400;
-    color: var(--bone);
-    line-height: 1.7;
-    margin-bottom: 1rem;
-}
-
-.quote-block cite {
-    font-family: 'Space Mono', monospace;
-    font-size: 0.75rem;
-    color: var(--mist);
-    letter-spacing: 0.1em;
-}
-
-/* Gate Section */
 .gate-section {
     background: var(--obsidian);
     border-top: 1px solid var(--ghost);
@@ -743,24 +1358,23 @@ nav {
     }
 }
 
-@keyframes neon-pulse {
-    0%, 100% {
-        text-shadow: 0 0 20px var(--pink-glow), 0 0 40px var(--orange-glow);
-        opacity: 1;
-    }
-    50% {
-        text-shadow: 0 0 30px var(--pink-glow), 0 0 60px var(--orange-glow), 0 0 80px var(--emerald-glow);
-        opacity: 0.85;
-    }
-}
-
 .gate-title {
-    font-family: 'Noto Serif Tamil', 'Noto Sans Tamil', 'Lohit Tamil', serif;
+    font-family: 'SaiIndira', 'Noto Serif Tamil', 'Tamil Sangam MN', serif;
     font-size: 2.5rem;
     font-weight: 500;
-    color: var(--neon-orange);
-    text-shadow: 0 0 15px var(--orange-glow);
+    color: var(--gold);
+    text-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
     margin-bottom: 1.5rem;
+}
+
+/* Link inside English gate title — same golden hue, no underline, no visited change */
+.gate-title--english a,
+.gate-title--english a:visited,
+.gate-title--english a:hover,
+.gate-title--english a:active {
+    color: inherit;
+    text-decoration: none;
+    text-shadow: inherit;
 }
 
 .gate-description {
@@ -768,6 +1382,13 @@ nav {
     color: var(--pearl);
     margin-bottom: 3rem;
     line-height: 1.8;
+}
+
+/* Tamil welcome text - allow wrapping on narrow viewports */
+.gate-description.tamil-text {
+    white-space: normal;
+    overflow-wrap: anywhere;
+    font-size: clamp(0.7rem, 2.5vw, 0.95rem);
 }
 
 .gate-form {
@@ -791,11 +1412,262 @@ nav {
 
 .question-number {
     display: inline-block;
-    font-family: 'Noto Sans Tamil', sans-serif;
-    color: var(--neon-pink);
+    font-family: 'SaiIndira', 'Noto Sans Tamil', sans-serif;
+    color: var(--gold);
     margin-right: 0.5rem;
     transform: rotate(-3deg);
-    text-shadow: 0 0 8px var(--pink-glow);
+    text-shadow: 0 0 8px rgba(255, 215, 0, 0.5);
+}
+
+/*
+ * ═══════════════════════════════════════════════════════════════
+ * TRILINGUAL QUESTION DISPLAY — Dakṣiṇa Parva Anuvādam
+ * Tamil → Transliteration → English layered presentation
+ * ═══════════════════════════════════════════════════════════════
+ */
+.trilingual-label {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+}
+
+.trilingual-label .question-number {
+    flex-shrink: 0;
+    font-size: 1.5rem;
+    margin-top: 0.25rem;
+}
+
+.question-layers {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+/* Primary: Tamil script — prominent, golden glow */
+.question-tamil {
+    font-family: 'SaiIndira', 'Noto Serif Tamil', 'Tamil Sangam MN', 'Latha', serif;
+    font-size: 1.25rem;
+    font-weight: 500;
+    color: var(--gold);
+    line-height: 1.6;
+    text-shadow: 0 0 12px rgba(255, 215, 0, 0.4);
+    letter-spacing: 0.02em;
+}
+
+/* Secondary: Transliteration — muted, italic, guides pronunciation */
+/* Uses system fonts with good Unicode/diacritical support (ISO 15919: ḻ ṟ ṉ ā ī ū) */
+.question-transliteration {
+    font-family: 'Helvetica Neue', 'Segoe UI', 'Arial Unicode MS', system-ui, sans-serif;
+    font-size: 0.75rem;
+    font-style: italic;
+    color: var(--mist);
+    letter-spacing: 0.03em;
+    opacity: 0.7;
+    line-height: 1.4;
+}
+
+/* Tertiary: English translation — clear, accessible */
+.question-english {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.85rem;
+    color: var(--bone);
+    line-height: 1.5;
+    margin-top: 0.25rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid var(--ghost);
+}
+
+/* Hover effect: subtle glow on Tamil text */
+.trilingual-label:hover .question-tamil {
+    text-shadow: 0 0 18px rgba(255, 215, 0, 0.6), 0 0 30px rgba(255, 215, 0, 0.3);
+}
+
+.trilingual-label:hover .question-transliteration {
+    opacity: 0.9;
+}
+
+/* Mobile adjustments for trilingual display */
+@media (max-width: 768px) {
+    .trilingual-label .question-number {
+        font-size: 1.25rem;
+    }
+
+    .question-tamil {
+        font-size: 1.1rem;
+    }
+
+    .question-transliteration {
+        font-size: 0.7rem;
+    }
+
+    .question-english {
+        font-size: 0.8rem;
+    }
+}
+
+/*
+ * ═══════════════════════════════════════════════════════════════
+ * A4M LANGUAGE SELECTOR — மொழி (Moḻi)
+ * Toggle display of Tamil / Transliteration / English layers
+ * BEM naming: a4m-lang-selector__element
+ * ═══════════════════════════════════════════════════════════════
+ */
+.a4m-lang-selector {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    margin: 0 auto 2.5rem;
+    padding: 0.5rem 1.25rem;
+    background: rgba(255, 215, 0, 0.03);
+    border: 1px solid rgba(255, 105, 180, 0.4);
+    border-radius: 4px;
+    box-shadow:
+        0 0 8px rgba(255, 105, 180, 0.5),
+        0 0 16px rgba(255, 105, 180, 0.3),
+        0 0 24px rgba(220, 20, 60, 0.25),
+        0 0 32px rgba(139, 0, 0, 0.2);
+}
+
+.a4m-lang-selector__label {
+    font-family: 'SaiIndira', 'Noto Sans Tamil', sans-serif;
+    font-size: 0.85rem;
+    color: var(--gold);
+    text-shadow: 0 0 8px rgba(255, 215, 0, 0.3);
+    letter-spacing: 0.05em;
+}
+
+.a4m-lang-selector__options {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.a4m-lang-selector__btn {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.4rem 0.75rem;
+    font-family: 'SaiIndira', sans-serif;
+    font-size: 0.8rem;
+    background: transparent;
+    border: 1px solid var(--ghost);
+    color: var(--mist);
+    cursor: pointer;
+    border-radius: 3px;
+    transition: all 0.2s ease;
+}
+
+.a4m-lang-selector__btn:hover {
+    border-color: var(--gold);
+    color: var(--gold);
+}
+
+.a4m-lang-selector__btn[aria-pressed="true"] {
+    background: rgba(255, 215, 0, 0.15);
+    border-color: var(--gold);
+    color: var(--gold);
+    box-shadow: 0 0 12px rgba(255, 215, 0, 0.2);
+}
+
+.a4m-lang-selector__icon {
+    font-weight: 600;
+}
+
+.a4m-lang-selector__text {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.05em;
+}
+
+/* Language visibility states — applied to gate-content parent */
+
+/* Default: English-only and Spanish-only variants hidden */
+.gate-title--english,
+.gate-welcome--english,
+.gate-welcome--spanish,
+.question-spanish {
+    display: none;
+}
+
+/* All mode (tamil + Transliteration + English) — hide Spanish */
+[data-lang-mode="all"] .question-spanish,
+[data-lang-mode="all"] .gate-welcome--spanish {
+    display: none;
+}
+
+/* Tamil-only mode */
+[data-lang-mode="tamil-only"] .question-transliteration,
+[data-lang-mode="tamil-only"] .question-english,
+[data-lang-mode="tamil-only"] .question-spanish,
+[data-lang-mode="tamil-only"] .gate-welcome--translit,
+[data-lang-mode="tamil-only"] .gate-welcome--spanish {
+    display: none;
+}
+
+/* Tamil + Transliteration mode */
+[data-lang-mode="tamil-translit"] .question-english,
+[data-lang-mode="tamil-translit"] .question-spanish,
+[data-lang-mode="tamil-translit"] .gate-welcome--spanish {
+    display: none;
+}
+
+/* English-only mode */
+[data-lang-mode="english-only"] .question-tamil,
+[data-lang-mode="english-only"] .question-transliteration,
+[data-lang-mode="english-only"] .question-spanish,
+[data-lang-mode="english-only"] .gate-title--tamil,
+[data-lang-mode="english-only"] .gate-welcome--tamil,
+[data-lang-mode="english-only"] .gate-welcome--translit,
+[data-lang-mode="english-only"] .gate-welcome--spanish {
+    display: none;
+}
+
+[data-lang-mode="english-only"] .gate-title--english,
+[data-lang-mode="english-only"] .gate-welcome--english {
+    display: block;
+}
+
+/* When English-only, remove the top border since Tamil is hidden */
+[data-lang-mode="english-only"] .question-english {
+    border-top: none;
+    padding-top: 0;
+    margin-top: 0;
+}
+
+/* Spanish-only mode */
+[data-lang-mode="spanish-only"] .question-tamil,
+[data-lang-mode="spanish-only"] .question-transliteration,
+[data-lang-mode="spanish-only"] .question-english,
+[data-lang-mode="spanish-only"] .gate-title--tamil,
+[data-lang-mode="spanish-only"] .gate-welcome--tamil,
+[data-lang-mode="spanish-only"] .gate-welcome--translit,
+[data-lang-mode="spanish-only"] .gate-welcome--english {
+    display: none;
+}
+
+[data-lang-mode="spanish-only"] .gate-welcome--spanish,
+[data-lang-mode="spanish-only"] .question-spanish {
+    display: block;
+}
+
+/* When Spanish-only, remove the top border since Tamil is hidden */
+[data-lang-mode="spanish-only"] .question-spanish {
+    border-top: none;
+    padding-top: 0;
+    margin-top: 0;
+}
+
+/* Mobile adjustments */
+@media (max-width: 768px) {
+    .a4m-lang-selector {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .a4m-lang-selector__btn {
+        padding: 0.35rem 0.6rem;
+        font-size: 0.75rem;
+    }
 }
 
 .form-group textarea,
@@ -821,9 +1693,10 @@ nav {
 
 .form-group textarea:focus,
 .form-group input:focus {
-    outline: none;
+    outline: 2px solid var(--gold);
+    outline-offset: 3px;
     border-color: var(--neon-pink);
-    box-shadow: 0 0 20px var(--pink-glow), 0 0 40px var(--orange-glow);
+    box-shadow: 0 0 20px var(--pink-glow), 0 0 40px rgba(255, 215, 0, 0.3);
 }
 
 .form-group textarea::placeholder,
@@ -839,8 +1712,8 @@ nav {
 }
 
 .email-section label {
-    color: var(--neon-emerald);
-    text-shadow: 0 0 8px var(--emerald-glow);
+    color: var(--gold);
+    text-shadow: 0 0 8px rgba(255, 215, 0, 0.4);
 }
 
 .form-actions {
@@ -866,8 +1739,8 @@ nav {
 }
 
 .submit-btn:hover:not(:disabled) {
-    background: linear-gradient(135deg, var(--neon-orange), var(--neon-emerald));
-    box-shadow: 0 0 30px var(--orange-glow), 0 0 60px var(--emerald-glow);
+    background: linear-gradient(135deg, var(--neon-orange), var(--gold));
+    box-shadow: 0 0 30px var(--orange-glow), 0 0 60px rgba(255, 215, 0, 0.4);
 }
 
 .submit-btn:disabled {
@@ -881,7 +1754,7 @@ nav {
 }
 
 .submit-btn.success {
-    background: var(--neon-emerald);
+    background: var(--gold);
     color: var(--void);
 }
 
@@ -912,9 +1785,9 @@ nav {
 }
 
 .status-message.info {
-    background: var(--orange-dim);
-    border: 1px solid var(--neon-orange);
-    color: var(--neon-orange);
+    background: rgba(255, 215, 0, 0.1);
+    border: 1px solid var(--gold);
+    color: var(--gold);
 }
 
 .accessibility-note {
@@ -925,9 +1798,9 @@ nav {
 }
 
 .accessibility-note a {
-    color: var(--neon-emerald);
+    color: var(--gold);
     text-decoration: none;
-    text-shadow: 0 0 8px var(--emerald-glow);
+    text-shadow: 0 0 8px rgba(255, 215, 0, 0.4);
 }
 
 .accessibility-note a:hover {
@@ -948,46 +1821,6 @@ nav {
 
 .encryption-note::before {
     content: '🔐';
-}
-
-/* Hosting blurb - subtle, small */
-.hosting-blurb {
-    max-width: 600px;
-    margin: 0 auto;
-    padding: 2rem 2rem 1rem;
-    text-align: center;
-}
-
-.hosting-blurb p {
-    font-size: 0.6rem;
-    color: var(--mist);
-    line-height: 1.6;
-    margin-bottom: 0.75rem;
-}
-
-.hosting-blurb a {
-    color: var(--mist);
-    text-decoration: none;
-}
-
-.hosting-blurb a:hover {
-    color: var(--pearl);
-}
-
-.floki-link {
-    display: inline-block;
-    margin-top: 0.5rem;
-    opacity: 0.5;
-    transition: opacity 0.3s ease;
-}
-
-.floki-link:hover {
-    opacity: 0.8;
-}
-
-.floki-logo {
-    max-width: 80px;
-    height: auto;
 }
 
 /* Footer */
@@ -1112,36 +1945,58 @@ footer {
     }
 
     .bg-four {
-        left: -1em;
-        opacity: 0.06;
+        left: 0.3em;  /* Aligned behind "form" on smaller screens */
+        font-size: 2.5em;
     }
 
-    /* TV responsive */
-    .broadcast-statement {
-        font-size: 1rem;
-        white-space: normal;
-        line-height: 1.5;
-        padding: 0 1rem;
+    /* Indic numerals - column layout on mobile */
+    .indic-column {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        left: 2%;
+        top: 10%;
+        width: auto;
+        height: auto;
     }
 
+    .indic-num {
+        position: relative;
+        top: auto;
+        left: auto;
+    }
+
+    .kannada-5 {
+        font-size: clamp(2.5rem, 8vw, 3.5rem);
+    }
+
+    .devanagari-4 {
+        font-size: clamp(3rem, 9vw, 4.5rem);
+    }
+
+    .sharada-3 {
+        font-size: clamp(2.5rem, 8vw, 4rem);
+    }
+
+    .irendu-2 {
+        width: clamp(70px, 16vw, 110px);
+    }
+
+    /* TV responsive - 25% larger than original */
     .tv-container {
-        max-width: 95%;
+        max-width: 425px;
     }
 
-    .tv-frame {
-        padding: 14px 16px 12px;
+    .tv-content .sanskrit {
+        font-size: 0.45rem;
     }
 
-    .tv-screen {
-        padding: 1rem;
+    .tv-content .translation {
+        font-size: 0.4rem;
     }
 
-    .tv-content p {
-        font-size: 0.65rem;
-    }
-
-    .tv-content p:last-child {
-        font-size: 0.6rem;
+    .tv-content .attribution {
+        font-size: 0.35rem;
     }
 }
 

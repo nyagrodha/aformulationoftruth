@@ -12,6 +12,17 @@ const encoder = new TextEncoder();
 const decoder = new TextDecoder();
 
 /**
+ * Ensure Uint8Array has proper ArrayBuffer (not SharedArrayBuffer) for Web Crypto API compatibility.
+ * This addresses TypeScript strict typing with Deno's newer lib.dom.d.ts definitions.
+ */
+function asBufferSource(data: Uint8Array): Uint8Array<ArrayBuffer> {
+  const copy = new ArrayBuffer(data.byteLength);
+  const view = new Uint8Array(copy);
+  view.set(data);
+  return view;
+}
+
+/**
  * Generate cryptographically secure random bytes
  */
 export function randomBytes(length: number): Uint8Array {
@@ -34,7 +45,7 @@ export function randomToken(byteLength = 32): string {
  */
 export async function sha256(data: string | Uint8Array): Promise<string> {
   const input = typeof data === 'string' ? encoder.encode(data) : data;
-  const hashBuffer = await crypto.subtle.digest('SHA-256', input);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', asBufferSource(input));
   return Array.from(new Uint8Array(hashBuffer))
     .map((b) => b.toString(16).padStart(2, '0'))
     .join('');
@@ -50,16 +61,22 @@ export async function sha256(data: string | Uint8Array): Promise<string> {
 export async function hashEmail(email: string): Promise<string> {
   // Normalize: lowercase, trim
   const normalized = email.toLowerCase().trim();
-  return sha256(normalized);
+  return await sha256(normalized);
 }
 
 /**
  * Derive encryption key from password using PBKDF2.
+ *
+ * Security notes:
+ * - Salt must be at least 16 bytes (128 bits) of cryptographically random data
+ * - Salt must be unique per user/credential and stored alongside derived key
+ * - OWASP 2023 recommends 600,000+ iterations for PBKDF2-SHA256
+ * - Consider Argon2id if environment supports it for password hashing
  */
 export async function deriveKey(
   password: string,
   salt: Uint8Array,
-  iterations = 100000
+  iterations = 600000
 ): Promise<CryptoKey> {
   const keyMaterial = await crypto.subtle.importKey(
     'raw',
@@ -72,7 +89,7 @@ export async function deriveKey(
   return crypto.subtle.deriveKey(
     {
       name: 'PBKDF2',
-      salt,
+      salt: asBufferSource(salt),
       iterations,
       hash: 'SHA-256',
     },
@@ -86,14 +103,21 @@ export async function deriveKey(
 /**
  * Encrypt data using AES-256-GCM.
  * Returns base64-encoded ciphertext with IV prepended.
+ *
+ * Security guarantees:
+ * - IV is 96 bits (12 bytes) generated via crypto.getRandomValues()
+ * - Each encryption generates a fresh random IV (never reused)
+ * - With random IVs, collision probability is ~2^-48 after 2^48 encryptions
+ * - For same-key safety, rotate keys before 2^32 encryptions (NIST recommendation)
  */
 export async function encrypt(
   plaintext: string,
   key: CryptoKey
 ): Promise<string> {
-  const iv = randomBytes(12); // 96-bit IV for GCM
+  // Generate fresh random IV for each encryption - NEVER reuse with same key
+  const iv = randomBytes(12); // 96-bit IV via crypto.getRandomValues()
   const ciphertext = await crypto.subtle.encrypt(
-    { name: 'AES-GCM', iv },
+    { name: 'AES-GCM', iv: asBufferSource(iv) },
     key,
     encoder.encode(plaintext)
   );
@@ -118,9 +142,9 @@ export async function decrypt(
   const ciphertext = combined.slice(12);
 
   const plaintext = await crypto.subtle.decrypt(
-    { name: 'AES-GCM', iv },
+    { name: 'AES-GCM', iv: asBufferSource(iv) },
     key,
-    ciphertext
+    asBufferSource(ciphertext)
   );
 
   return decoder.decode(plaintext);
@@ -136,7 +160,7 @@ export async function hmacSign(
 ): Promise<string> {
   const key = await crypto.subtle.importKey(
     'raw',
-    secretKey,
+    asBufferSource(secretKey),
     { name: 'HMAC', hash: 'SHA-256' },
     false,
     ['sign']

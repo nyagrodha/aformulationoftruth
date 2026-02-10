@@ -4,681 +4,318 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>contact: a formulation of truth</title>
-
-
-    <!-- Stylesheets -->
-    <link rel="stylesheet" href="/css/fonts.css">
-
-    <link rel="stylesheet" href="/css/themes.css">
-
-    <meta name="description" content="contact your creator @ a formulation of truth">
-
-    <style>
-        .contact-container {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 3rem 1rem;
-            min-height: 100vh;
-        }
-
-        .contact-header {
-            text-align: center;
-            margin-bottom: 3rem;
-        }
-
-        .contact-header h1 {
-            margin-bottom: 1rem;
-        }
-
-        .contact-content {
-            background: var(--bg-card);
-            backdrop-filter: blur(12px);
-            border: 2px solid var(--border-color);
-            border-radius: 20px;
-            padding: 3rem 2.5rem;
-            box-shadow: 0 8px 24px var(--shadow-color);
-            margin-bottom: 2rem;
-        }
-
-        .contact-content h2 {
-            color: var(--accent-1);
-            margin: 2rem 0 1rem;
-            font-size: 1.8rem;
-        }
-
-        .contact-content h2:first-child {
-            margin-top: 0;
-        }
-
-        .contact-content p {
-            margin-bottom: 1.5rem;
-            line-height: 1.8;
-        }
-
-        .contact-content ul {
-            margin: 1rem 0 1.5rem 2rem;
-            line-height: 1.8;
-        }
-
-        .contact-content li {
-            margin-bottom: 0.5rem;
-        }
-
-        .contact-content em {
-            color: var(--accent-2);
-        }
-
-        .back-link {
-            display: inline-block;
-            margin-top: 2rem;
-        }
-
-        @media (max-width: 768px) {
-            .contact-content {
-                padding: 2rem 1.5rem;
-            }
-        }
-
-        /* Enhanced typography respecting theme system */
-        .contact-content {
-            max-width: 65ch;
-            font-family: "Georgia", "Times New Roman", Times, serif;
-            color: var(--text-primary);
-            line-height: 1.7;
-        }
-
-        .contact-content h2 {
-            font-family: 'League Spartan', sans-serif;
-
-            font-family: 'Orbitron', 'Palatino Linotype', serif;
-
-            font-size: 1.4rem;
-            margin: 2rem 0 0.8rem 0;
-            letter-spacing: -0.01em;
-            color: var(--accent-1);
-            text-transform: none;
-            text-shadow: 0 0 8px var(--glow-1);
-        }
-
-        .contact-content h2:first-child {
-            margin-top: 0;
-        }
-
-        .contact-content p {
-            margin: 0 0 1.4rem 0;
-            font-size: 1.05rem;
-            text-align: left;
-            color: var(--text-primary);
-        }
-
-        /* Ornament block inserted between paragraphs */
-        .ornament {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin: 1rem 0 1.2rem 0;
-            opacity: 0.7;
-        }
-
-        /* SVG styling — inherits theme accent color */
-        .ornament svg {
-            width: 120px;
-            height: 14px;
-            display: block;
-            stroke: var(--accent-2);
-            fill: var(--accent-3);
-            stroke-width: 1.5;
-            filter: drop-shadow(0 0 4px var(--glow-2));
-        }
-
-        /* Subtle smallcaps for the heading after ornament */
-        .contact-content .subtle {
-            font-variant: small-caps;
-            font-size: 0.95rem;
-            color: var(--accent-3);
-            letter-spacing: .08em;
-            margin-bottom: 0.5rem;
-            text-shadow: 0 0 6px var(--glow-3);
-        }
-
-        /* Slightly larger first paragraph for emphasis */
-        .contact-content p.lead {
-            font-size: 1.12rem;
-            margin-top: 0.25rem;
-            color: var(--text-primary);
-        }
-
-        /* Links within content */
-        .contact-content a {
-            color: var(--accent-2);
-            text-decoration: underline;
-            text-decoration-color: var(--accent-3);
-            transition: all 0.3s ease;
-        }
-
-        .contact-content a:hover {
-            color: var(--accent-1);
-            text-shadow: 0 0 10px var(--glow-1);
-        }
-
-        /* Emphasis text */
-        .contact-content em {
-            color: var(--accent-3);
-            font-style: italic;
-            text-shadow: 0 0 4px var(--glow-3);
-        }
-
-        /* Contact methods styling */
-        .contact-method {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            padding: 1rem;
-            background: var(--bg-secondary);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            margin: 1rem 0;
-            transition: all 0.3s ease;
-        }
-
-        .contact-method:hover {
-            border-color: var(--accent-1);
-            box-shadow: 0 0 16px var(--glow-1);
-            transform: translateX(4px);
-        }
-
-        .contact-icon {
-            font-size: 1.5rem;
-            color: var(--accent-1);
-            min-width: 32px;
-            text-align: center;
-        }
-
-        .contact-info {
-            flex: 1;
-        }
-
-        .contact-label {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 0.85rem;
-            color: var(--accent-2);
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            margin-bottom: 0.25rem;
-        }
-
-        .contact-value {
-            font-size: 1.1rem;
-            color: var(--text-primary);
-        }
-
-        /* Responsive tweaks */
-        @media (max-width: 720px) {
-            .contact-content {
-                padding: 1.5rem;
-                max-width: 100%;
-            }
-            .ornament svg {
-                width: 90px;
-                height: 12px;
-            }
-        }
-
-        /* Sanskrit verse styling */
-        .sanskrit-verse {
-            color: #d4af37;
-            text-shadow: 0 0 10px rgba(212, 175, 55, 0.5), 0 0 20px rgba(212, 175, 55, 0.3);
-        }
-
-        .sparkle-word {
-            position: relative;
-            display: inline-block;
-        }
-
-        .sparkle {
-            position: absolute;
-            top: -8px;
-            right: -8px;
-            width: 12px;
-            height: 12px;
-            opacity: 0;
-            pointer-events: none;
-        }
-
-        .sparkle::before,
-        .sparkle::after {
-            content: '✨';
-            position: absolute;
-            font-size: 12px;
-            color: #ffd700;
-            text-shadow: 0 0 8px rgba(255, 215, 0, 0.8);
-        }
-
-        @keyframes sparkle-animation {
-            0% { opacity: 0; transform: scale(0) rotate(0deg); }
-            50% { opacity: 1; transform: scale(1.2) rotate(180deg); }
-            100% { opacity: 0; transform: scale(0) rotate(360deg); }
-        }
-
-        .sparkle.active {
-            animation: sparkle-animation 1.5s ease-in-out;
-        }
-
-
-        /* Newsletter signup section */
-        .newsletter-section {
-            margin: 2rem 0;
-            padding: 2rem;
-            background: var(--bg-secondary);
-            border: 2px solid var(--accent-2);
-            border-radius: 12px;
-            box-shadow: 0 0 20px var(--glow-2);
-        }
-
-        .newsletter-title {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 1.3rem;
-            color: var(--accent-1);
-            margin-bottom: 1rem;
-            text-shadow: 0 0 10px var(--glow-1);
-        }
-
-        .newsletter-description {
-            font-size: 1rem;
-            margin-bottom: 1.5rem;
-            color: var(--text-secondary);
-        }
-
-        .email-form {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-        }
-
-        .email-input {
-            padding: 0.75rem;
-            font-size: 1rem;
-            border: 2px solid var(--border-color);
-            border-radius: 8px;
-            background: var(--bg-primary);
-            color: var(--text-primary);
-            font-family: 'Georgia', serif;
-            transition: all 0.3s ease;
-        }
-
-        .email-input:focus {
-            outline: none;
-            border-color: var(--accent-1);
-            box-shadow: 0 0 15px var(--glow-1);
-        }
-
-        .email-input::placeholder {
-            color: var(--text-secondary);
-            opacity: 0.6;
-        }
-
-        .subscribe-button {
-            padding: 0.75rem 2rem;
-            font-size: 1rem;
-            font-family: 'Orbitron', sans-serif;
-            border: none;
-            border-radius: 8px;
-            background: linear-gradient(90deg, var(--accent-1), var(--accent-2));
-            color: var(--bg-primary);
-            font-weight: bold;
-            cursor: pointer;
-            box-shadow: 0 0 15px var(--glow-1);
-            transition: transform 0.2s ease;
-        }
-
-        .subscribe-button:hover {
-            transform: scale(1.05);
-        }
-
-        .subscribe-button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .message {
-            margin-top: 1rem;
-            padding: 0.75rem;
-            border-radius: 8px;
-            font-size: 0.9rem;
-        }
-
-        .message.success {
-            background: rgba(0, 255, 0, 0.1);
-            border: 1px solid rgba(0, 255, 0, 0.4);
-            color: #00ff00;
-        }
-
-        .message.error {
-            background: rgba(255, 0, 0, 0.1);
-            border: 1px solid rgba(255, 0, 0, 0.4);
-            color: #ff6b6b;
-        }
-
-        .message.info {
-            background: rgba(0, 255, 255, 0.1);
-            border: 1px solid rgba(0, 255, 255, 0.4);
-            color: var(--accent-2);
-        }
-
-        .encryption-note {
-            font-size: 0.85rem;
-            color: var(--text-secondary);
-            margin-top: 0.5rem;
-            font-style: italic;
-            text-align: center;
-        }
-
-        /* Privacy section styling */
-        .privacy-practices {
-            margin: 2rem 0;
-        }
-
-        .privacy-practices h3 {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 1.1rem;
-            color: var(--accent-2);
-            margin: 1.5rem 0 0.75rem;
-            text-shadow: 0 0 8px var(--glow-2);
-        }
-
-        .privacy-practices ul {
-            margin: 0.5rem 0 1rem 1.5rem;
-            line-height: 1.8;
-        }
-
-        .privacy-practices li {
-            margin-bottom: 0.5rem;
-            color: var(--text-primary);
-        }
-
-        .highlight-box {
-            padding: 1.5rem;
-            background: rgba(0, 255, 255, 0.05);
-            border-left: 4px solid var(--accent-1);
-            margin: 1.5rem 0;
-            border-radius: 4px;
-        }
-
-        .code-ref {
-            font-family: 'Courier New', monospace;
-            font-size: 0.9rem;
-            background: var(--bg-secondary);
-            padding: 0.2rem 0.5rem;
-            border-radius: 4px;
-            color: var(--accent-3);
-        }
-
-        @media (max-width: 768px) {
-            .newsletter-section {
-                padding: 1.5rem;
-            }
-        }
-    </style>
+    <meta name="description" content="Contact, privacy policy, and data protection practices for a formulation of truth.">
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://aformulationoftruth.com/contact.html">
+    <meta property="og:title" content="contact: a formulation of truth">
+    <meta property="og:description" content="Correspondence, privacy policy, and transparency about data protection.">
+
+    <!-- Favicons -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicons/favicon-simple-32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicons/favicon-simple-16.png">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="/css/contact_style.css">
 </head>
 <body>
-        <div class="contact-container">
-        <!-- Header -->
-        <div class="contact-header">
-            <h1>reach out</h1>
-            <p style="color: var(--text-secondary);">संवादः (saṁvādaḥ) • correspondence</p>
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+
+    <nav>
+        <a href="/" class="logo">A4T</a>
+        <div class="nav-links">
+            <a href="/about.html">About</a>
+            <a href="/contact.html" class="active">Contact</a>
         </div>
+    </nav>
 
-        <!-- Content -->
-        <div class="contact-content">
-            <h2>saṁbhaṣaṇa: conversation</h2>
-
-            <p class="lead">
-                I welcome correspondence. Should you wish to share your perspectives on the site, the questionnaire, or matters related to indology, my contact information is below. Please feel welcome to reach out!
-            </p>
-
-            <div class="ornament" aria-hidden="true">
-                <svg viewBox="0 0 120 14" xmlns="http://www.w3.org/2000/svg" role="img" aria-hidden="true">
-                    <path d="M6 7 C24 1, 36 13, 54 7 C72 1, 84 13, 102 7" stroke-linecap="round" stroke-linejoin="round"/>
-                    <circle cx="20" cy="7" r="1.2" />
-                    <circle cx="100" cy="7" r="1.2" />
-                </svg>
-            </div>
-
-            <h2 class="subtle">saṁparkānāṁ vidhayaḥ: methods of contact</h2>
-
-            <div class="contact-method">
-                <div class="contact-icon">@</div>
-                <div class="contact-info">
-                    <div class="contact-label">Electronic Mail</div>
-                    <div class="contact-value">
-                        <a href="mailto:formitselfisemptiness@aformulationoftruth.com">contact</a>
-                    </div>
-                </div>
-            </div>
-
-            <div class="contact-method">
-                <div class="contact-icon">🔐</div>
-                <div class="contact-info">
-                    <div class="contact-label">PGP Public Key</div>
-                    <div class="contact-value">
-                        <a href="/pgp-key.asc" target="_blank">view key</a>
-                        <span style="margin: 0 0.5rem; opacity: 0.5;">|</span>
-                        <a href="/pgp-key.asc" download>download</a>
-                    </div>
-                </div>
-            </div>
-
-            <div class="ornament" aria-hidden="true">
-                <svg viewBox="0 0 120 14" xmlns="http://www.w3.org/2000/svg" role="img" aria-hidden="true">
-                    <path d="M6 7 C24 1, 36 13, 54 7 C72 1, 84 13, 102 7" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-            </div>
-
-            <h2>yat prati likheyaṁ: what to write about</h2>
-
-            <p>
-                <em>Feedback & Suggestions:</em> If you have thoughts about the questionnaire, the site's functionality, or ideas for improvement, I would be grateful to hear them. Every perspective enriches the endeavor.
-            </p>
-
-            <p>
-                <em>Technical Issues:</em> Should you encounter difficulties with the site, authentication, or questionnaire responses, please describe the issue in detail so I might address it.
-            </p>
-
-            <p>
-                <em>Collaboration:</em> If you work on digital projects in humanities, indology (esp. Dravidian or Sanskrit literature), encryption, or if you'd like to collaborate or employ my services, I am available to chat. Kindly send me an email. :)
-            </p>
-
-            <p>
-                <em>Support & Donations:</em> This site operates independently without advertising or data harvesting. If you wish to support its ongoing development and hosting costs, inquiries about donations are welcome. You may also consider patronizing <a href="https://billing.flokinet.is/aff.php?aff=543" target="_blank" rel="noopener">Flokinet</a>, the privacy-focused hosting provider that makes this site possible.
-            </p>
-
-            <div class="ornament" aria-hidden="true">
-                <svg viewBox="0 0 120 14" xmlns="http://www.w3.org/2000/svg" role="img" aria-hidden="true">
-                    <path d="M6 7 C24 1, 36 13, 54 7 C72 1, 84 13, 102 7" stroke-linecap="round" stroke-linejoin="round"/>
-                    <circle cx="60" cy="7" r="1.0" />
-                </svg>
-            </div>
-
-            <h2>samācāra-paṭṭikā: newsletter</h2>
-
-            <p>
-                Receive occasional updates about new content, philosophical explorations, and site developments. Your email will be encrypted and stored securely—no tracking, no spam, no third parties.
-            </p>
-
-            <!-- Newsletter Signup Form -->
-            <div class="newsletter-section">
-                <div class="newsletter-title">◈ Subscribe to Updates ◈</div>
-                <p class="newsletter-description">
-                    Join the mailing list to receive thoughtful updates on new essays, questionnaire features, and contemplative content.
+    <main id="main-content">
+        <div class="contact-container">
+            <!-- Header -->
+            <header class="contact-header">
+                <h1>reach out</h1>
+                <p class="subtitle">
+                    <span class="sanskrit-text">संवादः</span> (saṁvādaḥ) · correspondence
                 </p>
-                <form id="newsletter-form" class="email-form">
-                    <input
-                        type="email"
-                        id="email-input"
-                        class="email-input"
-                        placeholder="your.email@example.com"
-                        required
-                        autocomplete="email"
-                    />
-                    <button type="submit" class="subscribe-button" id="submit-button">
-                        Subscribe
-                    </button>
-                    <div id="message" class="message" style="display: none;"></div>
-                    <p class="encryption-note">
-                        🔐 Your email is encrypted with AES-256-GCM before storage
+            </header>
+
+            <!-- Conversation Section -->
+            <section class="content-section">
+                <h2 class="section-title">
+                    <span class="sanskrit-label">सम्भाषणम्</span>
+                    conversation
+                </h2>
+
+                <p class="lead">
+                    I welcome correspondence. Should you wish to share your perspectives on the site, the questionnaire, or matters related to indology, my contact information is below. If you work on digital projects in humanities, indology (esp. Dravidian or Sanskrit literature), or encryption—or if you'd like to collaborate—I am available to chat.
+                </p>
+
+                <div class="contact-method">
+                    <div class="contact-icon">@</div>
+                    <div class="contact-info">
+                        <div class="contact-label">Electronic Mail</div>
+                        <div class="contact-value">
+                            <a href="#" onclick="this.href='mailto:'+atob('Zm9ybWl0c2VsZmlzZW1wdGluZXNzQGFmb3JtdWxhdGlvbm9mdHJ1dGguY29t')" style="font-size: 0.85em;">email</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="contact-method">
+                    <div class="contact-icon">🔐</div>
+                    <div class="contact-info">
+                        <div class="contact-label">PGP Public Key</div>
+                        <div class="contact-value">
+                            <a href="/pgp-key.asc" target="_blank">view key</a>
+                            <span style="margin: 0 0.5rem; opacity: 0.5;">|</span>
+                            <a href="/pgp-key.asc" download>download</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="ornament" aria-hidden="true">
+                    <svg viewBox="0 0 120 14" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M6 7 C24 1, 36 13, 54 7 C72 1, 84 13, 102 7" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                    </svg>
+                </div>
+
+                <p>
+                    <em>Feedback & Suggestions:</em> If you have thoughts about the questionnaire, the site's functionality, or ideas for improvement, I would be grateful to hear them.
+                </p>
+
+                <p>
+                    <em>Technical Issues:</em> Should you encounter difficulties with the site, authentication, or questionnaire responses, please describe the issue in detail so I might address it.
+                </p>
+
+                <p>
+                    <em>Collaboration:</em> If you work on digital projects in humanities, indology (esp. Dravidian or Sanskrit literature), encryption, or if you'd like to collaborate, I am available to chat.
+                </p>
+
+                <p>
+                    <em>Support:</em> This site operates independently without advertising or data harvesting. If you wish to support its ongoing development, you may consider patronizing <a href="https://billing.flokinet.is/aff.php?aff=543" target="_blank" rel="noopener">Flokinet</a>, the privacy-focused hosting provider.
+                </p>
+            </section>
+
+            <!-- Privacy & Transparency Section -->
+            <section class="content-section privacy-section">
+                <h2 class="section-title">
+                    <span class="sanskrit-label">गोप्यता</span>
+                    privacy & transparency
+                </h2>
+
+                <p class="lead">
+                    This site is built on principles of respect, privacy, and openness. Below is a complete and honest accounting of our privacy practices, data handling, hosting infrastructure, and the legal frameworks that govern your data.
+                </p>
+
+                <!-- Disclosure Box -->
+                <div class="disclosure-box">
+                    <div class="disclosure-title">⚠ Transparency Disclosure</div>
+                    <p>
+                        <strong>This site is hosted in Finland, not Iceland.</strong> While our hosting provider <a href="https://flokinet.is" target="_blank" rel="noopener">Flokinet</a> is an Icelandic company with servers in Iceland, Romania, and the Netherlands, this particular site runs on infrastructure located in <strong>Finland</strong>. We believe in complete honesty about where your data physically resides.
                     </p>
-                </form>
-            </div>
+                    <p>
+                        Finland offers strong—though different—privacy protections than Iceland. Below we provide a detailed comparison so you can make an informed decision about using this service.
+                    </p>
+                </div>
 
-            <div class="ornament" aria-hidden="true">
-                <svg viewBox="0 0 120 14" xmlns="http://www.w3.org/2000/svg" role="img" aria-hidden="true">
-                    <path d="M6 7 C24 1, 36 13, 54 7 C72 1, 84 13, 102 7" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-            </div>
+                <h3 class="subsection-title"><span class="icon">🌍</span> Jurisdiction Comparison: Finland vs Iceland</h3>
 
-            <h2>gopyatā ca prakāśanam: privacy & transparency</h2>
+                <p>
+                    Both Finland and Iceland are often cited as privacy-friendly jurisdictions, but they differ in meaningful ways. This comparison aims to give you the nuanced picture, not marketing copy.
+                </p>
 
-            <p class="lead">
-                This site is built on principles of respect, privacy, and openness. Below is a complete accounting of our privacy practices, data handling, and the open-source nature of this project.
-            </p>
+                <div class="jurisdiction-comparison">
+                    <table class="jurisdiction-table">
+                        <thead>
+                            <tr>
+                                <th class="aspect">Aspect</th>
+                                <th class="finland">Finland 🇫🇮</th>
+                                <th class="iceland">Iceland 🇮🇸</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="aspect">EU Membership</td>
+                                <td><span class="neutral">EU Member State</span> — subject to EU directives and regulations</td>
+                                <td><span class="good">Non-EU (EEA Member)</span> — implements GDPR but outside direct EU institutional control</td>
+                            </tr>
+                            <tr>
+                                <td class="aspect">Data Protection Law</td>
+                                <td><span class="good">GDPR + Finnish Data Protection Act (1050/2018)</span> — comprehensive, well-enforced by the Data Protection Ombudsman</td>
+                                <td><span class="good">GDPR-equivalent via EEA + Act on Data Protection and the Processing of Personal Data (90/2018)</span></td>
+                            </tr>
+                            <tr>
+                                <td class="aspect">Intelligence Sharing</td>
+                                <td><span class="concern">Nine Eyes adjacent</span> — Finland cooperates with Western intelligence but is not a formal Five/Nine/Fourteen Eyes member. Finnish Security Intelligence Service (Supo) has information-sharing agreements.</td>
+                                <td><span class="good">Not a member</span> of any intelligence-sharing alliance. Iceland has historically resisted pressure to join surveillance frameworks.</td>
+                            </tr>
+                            <tr>
+                                <td class="aspect">Data Retention Laws</td>
+                                <td><span class="concern">Mandatory retention exists</span> — Finnish law requires ISPs to retain certain metadata (though not content) for law enforcement purposes. The <em>Act on Electronic Communications Services</em> mandates 12-month retention of connection data.</td>
+                                <td><span class="good">No blanket retention</span> — Iceland struck down data retention laws following EU Court of Justice rulings. Providers are not obligated to retain traffic data.</td>
+                            </tr>
+                            <tr>
+                                <td class="aspect">Government Access</td>
+                                <td><span class="neutral">Judicial oversight required</span> — Finnish authorities need court orders for data access. The process is transparent but functional for law enforcement.</td>
+                                <td><span class="good">Strong judicial barriers</span> — Icelandic courts have historically been protective of privacy rights. The small judiciary and strong constitutional protections create friction for state access.</td>
+                            </tr>
+                            <tr>
+                                <td class="aspect">Press Freedom</td>
+                                <td><span class="good">#5 globally</span> (RSF 2024) — excellent source protection, strong constitutional guarantees</td>
+                                <td><span class="good">#3 globally</span> (RSF 2024) — pioneering journalist protection laws, "safe haven" reputation</td>
+                            </tr>
+                            <tr>
+                                <td class="aspect">Cross-Border Requests</td>
+                                <td><span class="concern">MLAT compliant</span> — Finland honors Mutual Legal Assistance Treaty requests from many countries including the United States. EU law enforcement cooperation is robust.</td>
+                                <td><span class="neutral">MLAT exists but slower</span> — Iceland responds to valid requests but is known for deliberate, careful processing. Non-EU status adds procedural friction.</td>
+                            </tr>
+                            <tr>
+                                <td class="aspect">Constitutional Protection</td>
+                                <td><span class="good">Section 10</span> of the Finnish Constitution guarantees privacy of correspondence and communications.</td>
+                                <td><span class="good">Article 71</span> of the Icelandic Constitution guarantees privacy of correspondence, with proposed amendments to strengthen digital privacy.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
 
-            <div class="privacy-practices">
-                <h3>🔓 Open Source & Transparency</h3>
+                <h3 class="subsection-title"><span class="icon">⚖️</span> What This Means For You</h3>
+
+                <p>
+                    <strong>Practically speaking:</strong> Finnish hosting means your data could theoretically be subject to Finnish law enforcement requests with proper judicial process. Finland is a well-functioning democracy with strong rule of law—authorities cannot simply demand data without court oversight. However, Finland's intelligence cooperation and EU membership mean there are more pathways for international law enforcement access than in Iceland.
+                </p>
+
+                <p>
+                    <strong>Our mitigation:</strong> We minimize what we collect and encrypt what we must store. If served with a valid Finnish court order, we could only provide encrypted data and metadata we don't retain (we've disabled access logging). We cannot provide what we don't have.
+                </p>
+
+                <div class="highlight-box">
+                    <p>
+                        <strong>Why Finland then?</strong> Cost, latency, and infrastructure quality. Flokinet's Finnish servers offer excellent connectivity to both European and Asian users at a price point that keeps this project sustainable. We believe transparency about jurisdiction trade-offs serves you better than marketing a privacy jurisdiction we don't actually use.
+                    </p>
+                </div>
+
+                <h3 class="subsection-title"><span class="icon">🔓</span> Open Source & Auditability</h3>
+
                 <div class="highlight-box">
                     <p>
                         <strong>This entire website is open source.</strong> Every line of code, every configuration file, and every database schema is available for public inspection. You are welcome—indeed, encouraged—to examine how your data is handled.
                     </p>
-                    <p style="margin-top: 1rem;">
+                    <p>
                         <strong>Repository:</strong> <a href="https://github.com/nyagrodha/aformulationoftruth" target="_blank" rel="noopener">github.com/nyagrodha/aformulationoftruth</a>
                     </p>
                 </div>
 
-                <h3>🔐 Data Collection & Encryption</h3>
+                <h3 class="subsection-title"><span class="icon">🔐</span> Data Collection & Encryption</h3>
+
                 <p><strong>What we collect:</strong></p>
                 <ul>
-                    <li><strong>Email addresses (Newsletter):</strong> Encrypted using <span class="code-ref">AES-256-GCM</span> with PBKDF2 key derivation (100,000 iterations). Stored encrypted in PostgreSQL. Source: <span class="code-ref">backend/utils/encryption.js</span></li>
-                    <li><strong>Questionnaire responses:</strong> Stored with minimal identifying information. You control visibility via profile settings.</li>
-                    <li><strong>Authentication:</strong> Managed through OpenID Connect (Keycloak). We do not store passwords—authentication is delegated to the identity provider.</li>
-                    <li><strong>IP addresses:</strong> Logged only for newsletter subscriptions (for anti-spam). Not linked to questionnaire responses.</li>
+                    <li><strong>Email addresses (Newsletter):</strong> Encrypted using <span class="code-ref">AES-256-GCM</span> with PBKDF2 key derivation (100,000 iterations) before storage.</li>
+                    <li><strong>Questionnaire responses:</strong> Encrypted with <span class="code-ref">age (X25519)</span> before storage. We cannot read your answers.</li>
+                    <li><strong>Authentication:</strong> Magic links via email. We do not store passwords.</li>
+                    <li><strong>IP addresses:</strong> Logged only for newsletter signup rate-limiting (anti-spam). Not linked to questionnaire responses. Not retained long-term.</li>
                 </ul>
 
-                <h3>🚫 What We DON'T Do</h3>
+                <h3 class="subsection-title"><span class="icon">🚫</span> What We Don't Do</h3>
                 <ul>
-                    <li>❌ No tracking cookies or analytics (no Google Analytics, no Facebook Pixel, nothing)</li>
-                    <li>❌ No advertising or third-party data sharing</li>
+                    <li>❌ No tracking cookies or analytics (no Google Analytics, no Facebook Pixel)</li>
+                    <li>❌ No advertising yet—but it's a 🍝bility. A girl's gotta eat! See <a href="/contact.html">contact</a> to inquire. Kindly use PGP as default.</li>
+                    <li>❌ No third-party data sharing</li>
                     <li>❌ No selling or monetizing user data</li>
                     <li>❌ No behavioral profiling or surveillance</li>
-                    <li>❌ No email harvesting or spam</li>
+                    <li>❌ No access logging (we've disabled web server access logs)</li>
                 </ul>
 
-                <h3>🌐 Hosting & Infrastructure</h3>
+                <h3 class="subsection-title"><span class="icon">🌐</span> Infrastructure Details</h3>
+
                 <p>
-                    This site is hosted by <a href="https://flokinet.is" target="_blank" rel="noopener"><strong>Flokinet</strong></a>, a privacy-focused hosting provider based in Iceland and Romania. Flokinet operates under strong Icelandic data protection laws with a <strong>zero-logs policy</strong> and does not cooperate with mass surveillance programs.
+                    Hosted by <a href="https://flokinet.is" target="_blank" rel="noopener"><strong>Flokinet</strong></a>, an Icelandic company committed to privacy. Our specific server is in Finland.
                 </p>
                 <ul>
-                    <li><strong>Primary server:</strong> Iceland (GDPR compliant, zero-logs jurisdiction)</li>
+                    <li><strong>Server location:</strong> Finland (Flokinet infrastructure)</li>
                     <li><strong>Database:</strong> Self-hosted PostgreSQL with encrypted backups</li>
-                    <li><strong>SSL/TLS:</strong> All traffic encrypted via Let's Encrypt certificates</li>
-                    <li><strong>No access logs:</strong> Server configured to disable access logging—we cannot track who visits this site</li>
+                    <li><strong>TLS:</strong> All traffic encrypted via Let's Encrypt certificates (TLS 1.3)</li>
+                    <li><strong>Access logs:</strong> Disabled at the web server level</li>
                 </ul>
 
-                <h3>📜 Data Retention & Your Rights</h3>
+                <h3 class="subsection-title"><span class="icon">📜</span> Your Rights</h3>
+
+                <p>Under GDPR (applicable in Finland) and general principle:</p>
                 <ul>
                     <li><strong>Right to access:</strong> Request a copy of your data at any time</li>
                     <li><strong>Right to deletion:</strong> Request complete removal of your account and all associated data</li>
-                    <li><strong>Right to portability:</strong> Export your questionnaire responses in JSON format</li>
-                    <li><strong>Newsletter unsubscribe:</strong> Instant removal via the unsubscribe endpoint (no questions asked)</li>
+                    <li><strong>Right to portability:</strong> Export your questionnaire responses</li>
+                    <li><strong>Newsletter unsubscribe:</strong> Instant removal via the unsubscribe link (no questions asked)</li>
                 </ul>
                 <p>
-                    To exercise these rights, email: <a href="mailto:formitselfisemptiness@aformulationoftruth.com">formitselfisemptiness@aformulationoftruth.com</a>
+                    To exercise these rights, <a href="#" onclick="this.href='mailto:'+atob('Zm9ybWl0c2VsZmlzZW1wdGluZXNzQGFmb3JtdWxhdGlvbm9mdHJ1dGguY29t')" style="font-size: 0.85em;">email us</a>.
                 </p>
 
-                <h3>🔍 Technical Details for the Curious</h3>
-                <p>For those interested in the implementation details:</p>
-                <ul>
-                    <li><strong>Encryption:</strong> Node.js crypto library (<span class="code-ref">crypto.createCipheriv</span>)</li>
-                    <li><strong>Database:</strong> PostgreSQL 15+ with parameterized queries (SQL injection prevention)</li>
-                    <li><strong>Authentication:</strong> OpenID Connect via Keycloak (industry-standard OAuth 2.0)</li>
-                    <li><strong>Session management:</strong> Secure HTTP-only cookies with SameSite protection</li>
-                    <li><strong>Rate limiting:</strong> Express rate-limit middleware to prevent abuse</li>
-                </ul>
+                <h3 class="subsection-title"><span class="icon">📧</span> Correspondence Privacy</h3>
 
-                <h3>📧 Email Communication Privacy</h3>
                 <p>
-                    Communications sent to this address are treated with the same respect for privacy that governs all interactions on this site. Your correspondence will not be shared, sold, or used for purposes other than responding to your inquiry. I maintain minimal logs and employ industry-standard encryption for all communications.
+                    Communications sent to this address are treated with the same respect for privacy that governs all interactions on this site. Your correspondence will not be shared, sold, or used for purposes other than responding to your inquiry.
                 </p>
 
-                <div class="highlight-box">
-                    <p>
-                        <strong>Zero-Logs Architecture:</strong> This site is hosted in Iceland with Flokinet's zero-logs infrastructure. We have intentionally disabled server access logs, meaning we cannot see who visits the site, when, or from where. The only logs maintained are:
-                    </p>
-                    <ul style="margin: 0.5rem 0 1rem 1.5rem;">
-                        <li>Application error logs (for debugging, automatically rotated)</li>
-                        <li>Newsletter subscription IPs (only for anti-spam, not linked to browsing)</li>
-                    </ul>
-                    <p style="margin: 1rem 0 0 0;">
-                        <strong>Questions about privacy?</strong> The source code doesn't lie. Review our encryption implementation, database schemas, and authentication flows in the public repository. If you find any privacy concerns, please report them—I take these matters seriously.
-                    </p>
-                </div>
+                <p>
+                    I endeavor to respond to all correspondence within a reasonable timeframe, though as this is a personal project maintained alongside other commitments, I ask for patience. Thoughtful messages receive thoughtful replies.
+                </p>
+            </section>
+
+            <!-- Back links -->
+            <div style="text-align: center; margin-top: 3rem;">
+                <a href="/" style="color: var(--contact-accent); text-decoration: none; font-size: 0.85rem; letter-spacing: 0.1em; text-transform: uppercase;">← Return Home</a>
             </div>
-
-
-            <h2>gopyatā: privacy</h2>
-
-            <p>
-                Communications sent to this address are treated with the same respect for privacy that governs all interactions on this site. Your correspondence will not be shared, sold, or used for purposes other than responding to your inquiry. I maintain minimal logs and employ industry-standard encryption for all communications.
-            </p>
-
-
-            <div class="ornament" aria-hidden="true">
-                <svg viewBox="0 0 120 14" xmlns="http://www.w3.org/2000/svg" role="img" aria-hidden="true">
-                    <path d="M6 7 C24 1, 36 13, 54 7 C72 1, 84 13, 102 7" stroke-linecap="round" stroke-linejoin="round"/>
-                    <circle cx="100" cy="7" r="1.2" />
-                </svg>
-            </div>
-
-            <p>
-                I endeavor to respond to all correspondence within a reasonable timeframe, though as this is a personal project maintained alongside other commitments, I ask for patience. Thoughtful messages receive thoughtful replies.
-            </p>
-
-         <p class="sanskrit-verse"
-   lang="sa-Deva"
-   style="margin-top: 2rem; font-style: italic; opacity: 0.9; text-align: center;">
-  <span>क्लेशान् <span class="sparkle-word">विनाशाय</span> विकासय हृत्सरोजम्,</span><br>
-  <span>ओजो विजृम्भय निजं <span class="sparkle-word">निजनार्तयङ्गम्</span> चेतस्चकोरचित्तचन्द्रमरीचिचक्रम् ।</span>
-</p>
-
-<p style="margin-top: 1rem; font-style: italic; font-size: 0.85rem; text-align: center; color: #f5f5f0; text-shadow: 0 0 8px rgba(255,255,255,0.4), 0 0 12px rgba(255,255,255,0.2); opacity: 0.85;">
-  May consciousness destroy afflictions and cause to blossom the lotus in the heart; may that consciousness rouse the limbs of Self with radiance, and as the cakora bird feasts upon moonbeams may your recognition transform this world into a place of eternal remembrance and awakening.
-</p>  
-                   </div>
-
-        <!-- Back Link -->
-        <div style="text-align: center;">
-            <a href="/" class="btn btn-primary back-link">Return Home</a>
-            <a href="/about.html" class="btn btn-secondary back-link" style="margin-left: 1rem;">About the Site</a>
         </div>
-    </div>
+    </main>
 
-    <!-- Scripts -->
-HEAD
-    <script src="/js/api-failover.js"></script>
+    <footer>
+        <div class="footer-inner">
+            <!-- Newsletter -->
+            <div class="footer-newsletter">
+                <h3>◈ Subscribe to Updates ◈</h3>
+                <p>Occasional updates on new essays, questionnaire features, and contemplative content. No spam. Encrypted storage.</p>
+                <form id="newsletter-form" class="newsletter-form">
+                    <input
+                        type="email"
+                        id="email-input"
+                        placeholder="your@email.com"
+                        required
+                        autocomplete="email"
+                    >
+                    <button type="submit" id="submit-button">Subscribe</button>
+                </form>
+                <div id="newsletter-message" class="newsletter-message"></div>
+                <p class="newsletter-note">🔐 Your email is encrypted with AES-256-GCM before storage</p>
+            </div>
+
+            <!-- Footer nav -->
+            <div class="footer-nav">
+                <div class="footer-links">
+                    <a href="/about.html">About</a>
+                    <a href="/contact.html">Contact</a>
+                    <a href="/privacy.html">Privacy</a>
+                </div>
+                <p class="footer-copy">
+                    Hosted with Flokinet in Finland
+                </p>
+            </div>
+        </div>
+    </footer>
+
     <script>
         // Newsletter subscription handler
         const form = document.getElementById('newsletter-form');
         const emailInput = document.getElementById('email-input');
         const submitButton = document.getElementById('submit-button');
-        const messageDiv = document.getElementById('message');
+        const messageDiv = document.getElementById('newsletter-message');
 
         function showMessage(text, type) {
             messageDiv.textContent = text;
-            messageDiv.className = `message ${type}`;
-            messageDiv.style.display = 'block';
+            messageDiv.className = `newsletter-message visible ${type}`;
 
             if (type === 'success') {
                 setTimeout(() => {
-                    messageDiv.style.display = 'none';
+                    messageDiv.className = 'newsletter-message';
                 }, 5000);
             }
         }
@@ -688,35 +325,27 @@ HEAD
                 submitButton.disabled = true;
                 submitButton.textContent = 'Subscribing...';
 
-                showMessage('Encrypting and storing your email securely...', 'info');
-
-                // Using apiPost with built-in timeout and failover
-                const response = await apiPost('/api/newsletter/subscribe', { email }, {
-                    timeout: 10000 // 10 second timeout
+                const response = await fetch('/api/newsletter/subscribe', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email })
                 });
 
                 const data = await response.json();
 
                 if (response.ok) {
-                    if (data.alreadySubscribed) {
-                        showMessage('✓ This email is already subscribed to updates', 'info');
+                    if (data.status === 'already_confirmed') {
+                        showMessage('✓ This email is already subscribed', 'success');
                     } else {
-                        showMessage('✓ Successfully subscribed! You\'ll receive updates in your inbox.', 'success');
+                        showMessage('✓ Check your email to confirm subscription', 'success');
                         emailInput.value = '';
                     }
                 } else {
-                    showMessage(`✗ Subscription failed: ${data.error || 'Unknown error'}`, 'error');
+                    showMessage(`✗ ${data.error || 'Subscription failed'}`, 'error');
                 }
             } catch (error) {
                 console.error('Subscription error:', error);
-
-                if (error.name === 'AbortError') {
-                    showMessage('✗ Connection timeout - Please try again', 'error');
-                } else if (error.name === 'TypeError') {
-                    showMessage('✗ Network error - Server unreachable', 'error');
-                } else {
-                    showMessage(`✗ Subscription error: ${error.message}`, 'error');
-                }
+                showMessage('✗ Unable to connect. Please try again.', 'error');
             } finally {
                 submitButton.disabled = false;
                 submitButton.textContent = 'Subscribe';
@@ -741,30 +370,6 @@ HEAD
 
             await submitEmail(email);
         });
-
-        // Sparkle effect for Sanskrit verse
-        function triggerSparkles() {
-            const sparkles = document.querySelectorAll('.sparkle');
-
-            // Remove active class from all sparkles
-            sparkles.forEach(sparkle => sparkle.classList.remove('active'));
-
-            // Randomly select sparkles to activate
-            const randomSparkles = Array.from(sparkles).sort(() => 0.5 - Math.random()).slice(0, 2);
-
-            randomSparkles.forEach(sparkle => {
-                setTimeout(() => {
-                    sparkle.classList.add('active');
-                    setTimeout(() => sparkle.classList.remove('active'), 1500);
-                }, Math.random() * 500);
-            });
-        }
-
-        // Trigger sparkles every 7 seconds
-        setInterval(triggerSparkles, 7000);
-
-        // Initial sparkle after 2 seconds
-        setTimeout(triggerSparkles, 2000);
     </script>
 </body>
 </html>

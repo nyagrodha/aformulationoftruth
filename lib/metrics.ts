@@ -10,6 +10,28 @@
  *
  * Design: In-memory counters that reset each time bucket.
  * No persistence of individual events, only aggregated counts.
+ *
+ * Enhanced Metrics Categories:
+ * ─────────────────────────────────────────────────────────────
+ * FUNNEL METRICS (conversion tracking without users)
+ * - funnel.gate.viewed, funnel.gate.q1_answered, funnel.gate.q2_answered
+ * - funnel.gate.email_entered, funnel.questionnaire.started
+ * - funnel.questionnaire.q{3-35}, funnel.completion.viewed
+ *
+ * RESPONSE LATENCY BUCKETS (privacy-safe time ranges)
+ * - latency.fast (<30s), latency.moderate (30s-2min)
+ * - latency.thoughtful (2-5min), latency.extended (>5min)
+ *
+ * FEATURE USAGE COUNTERS
+ * - feature.skip_used, feature.newsletter.cta_clicked
+ * - feature.donate.cta_clicked, feature.begin.cta_clicked
+ *
+ * ERROR CATEGORIES (granular without details)
+ * - errors.validation.*, errors.session.*, errors.crypto.*, errors.db.*
+ *
+ * TEMPORAL PATTERNS (day-of-week, hour-of-day, no dates)
+ * - temporal.dow.{0-6}, temporal.hour.{0-23}
+ * ─────────────────────────────────────────────────────────────
  */
 
 interface MetricBucket {
@@ -21,9 +43,15 @@ interface MetricBucket {
 const BUCKET_DURATION_MS = 60 * 1000; // 1 minute buckets
 
 // Current active bucket
+// NOTE: Single-process only — these in-memory counters do NOT aggregate across
+// multiple server instances. For horizontal scaling, export metrics to a shared
+// store (Redis, Prometheus/TSDB, or a central aggregation API).
 let currentBucket: MetricBucket | null = null;
 
 // Published aggregates (hour-level, for external consumption)
+// NOTE: Single-process only — see above. Each instance maintains its own hourly
+// aggregates. For multi-instance deployments, consider pushing to an external
+// time-series database or using a metrics aggregation service.
 const hourlyAggregates: Map<number, Map<string, number>> = new Map();
 
 /**
@@ -95,21 +123,116 @@ function finalizeBucket(bucket: MetricBucket): void {
 /**
  * Increment a counter.
  *
- * Valid metric names:
- * - requests.total
- * - requests.api
- * - auth.otp.sent
- * - auth.otp.verified
- * - auth.magiclink.sent
- * - auth.magiclink.verified
- * - questionnaire.started
- * - questionnaire.completed
- * - errors.4xx
- * - errors.5xx
+ * Valid metric names (organized by category):
+ *
+ * REQUESTS
+ * - requests.total, requests.api
+ *
+ * AUTH
+ * - auth.otp.sent, auth.otp.verified
+ * - auth.magiclink.sent, auth.magiclink.verified
+ * - auth.verify.invalid_jwt, auth.verify.token_mismatch
+ * - auth.verify.session_not_found, auth.verify.email_mismatch
+ *
+ * FUNNEL (conversion tracking)
+ * - funnel.gate.viewed, funnel.gate.q1_answered, funnel.gate.q2_answered
+ * - funnel.gate.email_entered, funnel.questionnaire.started
+ * - funnel.questionnaire.q{N} (where N is 3-35)
+ * - funnel.completion.viewed
+ *
+ * QUESTIONNAIRE
+ * - questionnaire.started, questionnaire.completed, questionnaire.answered
+ * - questionnaire.viewed, questions.fetched, questions.completed
+ *
+ * LATENCY BUCKETS (privacy-safe response times)
+ * - latency.fast, latency.moderate, latency.thoughtful, latency.extended
+ *
+ * FEATURE USAGE
+ * - feature.skip_used, feature.newsletter.cta_clicked
+ * - feature.donate.cta_clicked, feature.begin.cta_clicked
+ * - feature.afterword.scroll_deep
+ *
+ * NEWSLETTER
+ * - newsletter.subscribe, newsletter.confirmed, newsletter.unsubscribed
+ *
+ * ERRORS (hierarchical)
+ * - errors.4xx, errors.5xx, errors.email
+ * - errors.validation.email, errors.validation.answer
+ * - errors.session.expired, errors.session.not_found, errors.session.mismatch
+ * - errors.crypto.decryption, errors.db.connection, errors.db.query
+ *
+ * TEMPORAL PATTERNS (aggregate only, no dates)
+ * - temporal.dow.{0-6} (Sunday=0 through Saturday=6)
+ * - temporal.hour.{0-23}
  */
 export function increment(metric: string, count = 1): void {
   const bucket = getCurrentBucket();
   bucket.counters.set(metric, (bucket.counters.get(metric) || 0) + count);
+}
+
+/**
+ * Track response latency in privacy-safe buckets.
+ * Does NOT store actual times, only which bucket it falls into.
+ *
+ * Buckets:
+ * - fast: <30 seconds (quick/impulsive)
+ * - moderate: 30s-2min (typical engagement)
+ * - thoughtful: 2-5min (deep reflection)
+ * - extended: >5min (very contemplative)
+ *
+ * @param startTime - timestamp when question was shown
+ */
+export function trackLatency(startTime: number): void {
+  const elapsed = Date.now() - startTime;
+  const seconds = elapsed / 1000;
+
+  if (seconds < 30) {
+    increment('latency.fast');
+  } else if (seconds < 120) {
+    increment('latency.moderate');
+  } else if (seconds < 300) {
+    increment('latency.thoughtful');
+  } else {
+    increment('latency.extended');
+  }
+}
+
+/**
+ * Track funnel progression for a specific question.
+ * Privacy-safe: only records that SOME user reached this step.
+ *
+ * @param questionIndex - 0-indexed question number (0-34)
+ *
+ * Index-to-metric mapping:
+ *   questionIndex 0 → funnel.gate.q1_answered
+ *   questionIndex 1 → funnel.gate.q2_answered
+ *   questionIndex 2-34 → funnel.questionnaire.q{N+1} (e.g., index 2 → q3)
+ */
+export function trackFunnelQuestion(questionIndex: number): void {
+  // questionIndex is 0-based; metric suffixes are 1-based (q1, q2, q3, ...)
+  if (questionIndex === 0) {
+    increment('funnel.gate.q1_answered');
+  } else if (questionIndex === 1) {
+    increment('funnel.gate.q2_answered');
+  } else if (questionIndex >= 2 && questionIndex <= 34) {
+    // questionIndex 2 → q3, questionIndex 3 → q4, etc.
+    // (0-based index + 1 = 1-based metric suffix)
+    increment(`funnel.questionnaire.q${questionIndex + 1}`);
+  }
+}
+
+/**
+ * Record temporal pattern (hour and day-of-week).
+ * Privacy-safe: stores only aggregate counts per time slot,
+ * NOT actual timestamps or dates.
+ */
+export function trackTemporalPattern(): void {
+  const now = new Date();
+  const dayOfWeek = now.getUTCDay(); // 0=Sunday, 6=Saturday
+  const hourOfDay = now.getUTCHours(); // 0-23
+
+  increment(`temporal.dow.${dayOfWeek}`);
+  increment(`temporal.hour.${hourOfDay}`);
 }
 
 /**

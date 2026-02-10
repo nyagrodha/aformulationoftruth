@@ -617,7 +617,8 @@ nav {
 
 .form-group textarea:focus,
 .form-group input:focus {
-    outline: none;
+    outline: 2px solid var(--neon-orange);
+    outline-offset: 3px;
     border-color: var(--neon-pink);
     box-shadow: 0 0 20px var(--pink-glow), 0 0 40px var(--orange-glow);
 }

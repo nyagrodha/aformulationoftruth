@@ -104,6 +104,7 @@ shared/
 static/
 server/public
 vite.config.ts.*
+/trashy/
 
 # Config files managed elsewhere
 vps-server.js
