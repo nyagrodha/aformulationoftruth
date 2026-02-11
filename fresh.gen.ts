@@ -8,6 +8,7 @@ import * as $api_gate_submit from './routes/api/gate-submit.ts';
 import * as $api_gate from './routes/api/gate.ts';
 import * as $api_health from './routes/api/health.ts';
 import * as $api_metrics from './routes/api/metrics.ts';
+import * as $api_metrics_increment from './routes/api/metrics/increment.ts';
 import * as $api_newsletter_confirm from './routes/api/newsletter/confirm.ts';
 import * as $api_newsletter_subscribe from './routes/api/newsletter/subscribe.ts';
 import * as $api_newsletter_unsubscribe from './routes/api/newsletter/unsubscribe.ts';
@@ -30,6 +31,7 @@ const manifest = {
     './routes/api/gate.ts': $api_gate,
     './routes/api/health.ts': $api_health,
     './routes/api/metrics.ts': $api_metrics,
+    './routes/api/metrics/increment.ts': $api_metrics_increment,
     './routes/api/newsletter/confirm.ts': $api_newsletter_confirm,
     './routes/api/newsletter/subscribe.ts': $api_newsletter_subscribe,
     './routes/api/newsletter/unsubscribe.ts': $api_newsletter_unsubscribe,
