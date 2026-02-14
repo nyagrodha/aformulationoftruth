@@ -15,6 +15,7 @@ import { verifyQuestionnaireJWT } from '../lib/jwt.ts';
 import { getSessionById, updateSessionProgress, updateSessionIndex } from '../lib/questionnaire-session.ts';
 import { parseQuestionOrder } from '../lib/questionnaire.ts';
 import { increment, trackFunnelQuestion, trackTemporalPattern } from '../lib/metrics.ts';
+import { storeEncryptedAnswer } from '../lib/gate-client.ts';
 
 // The 35 Proust questionnaire questions
 const QUESTIONS = [
@@ -210,26 +211,16 @@ export const handler: Handlers<QuestionnaireData> = {
     }
 
     try {
-      // Store answer via API
-      const baseUrl = new URL(req.url).origin;
-      const storeRes = await fetch(`${baseUrl}/api/questions/answer`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Cookie': `jwt=${jwtToken}`,
-        },
-        body: JSON.stringify({
-          questionIndex: questionNum,
-          answer: skipped ? '' : answer,
-          skipped,
-        }),
+      // Store answer via Rust Gate (age-encrypted)
+      await storeEncryptedAnswer({
+        sessionId: session.sessionId,
+        questionText: QUESTIONS[questionNum],
+        questionIndex: questionNum,
+        answer: skipped ? '' : answer,
+        skipped,
       });
-
-      if (!storeRes.ok) {
-        console.error('[questionnaire] Failed to store response:', await storeRes.text());
-      }
     } catch (error) {
-      console.error('[questionnaire] Error storing response:', error);
+      console.error('[questionnaire] Error storing encrypted response:', error);
     }
 
     // Advance to next question
@@ -519,7 +510,7 @@ export default function QuestionnairePage({ data }: PageProps<QuestionnaireData>
             <a href="/accessibility.html">Accessibility</a>
           </div>
           <p class="footer-copy">
-            Hosted in Iceland by <a href="https://billing.flokinet.is/aff.php?aff=543" target="_blank" rel="noopener" style="color: #666; text-decoration: none;">FlokiNET</a>
+            Hosted in Finland by <a href="https://billing.flokinet.is/aff.php?aff=543" target="_blank" rel="noopener" style="color: #666; text-decoration: none;">FlokiNET</a> &middot; Encrypted database in Iceland
           </p>
         </footer>
       </body>

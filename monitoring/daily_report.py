@@ -401,7 +401,6 @@ def get_metrics_stats() -> Dict[str, Any]:
             stats['features'] = {
                 'skip_used': totals.get('feature.skip_used', 0),
                 'newsletter_cta': totals.get('feature.newsletter.cta_clicked', 0),
-                'donate_cta': totals.get('feature.donate.cta_clicked', 0),
             }
 
             # Temporal patterns (day of week)
@@ -508,7 +507,6 @@ def generate_report(target_date: Optional[datetime] = None) -> str:
             "-" * 30,
             f"  Skip Button Used:   {features.get('skip_used', 0):>8}",
             f"  Newsletter CTA:     {features.get('newsletter_cta', 0):>8}",
-            f"  Donate CTA:         {features.get('donate_cta', 0):>8}",
             "",
         ])
 

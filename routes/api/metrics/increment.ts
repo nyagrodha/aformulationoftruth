@@ -25,7 +25,6 @@ const ALLOWED_CLIENT_METRICS = new Set([
   'feature.afterword.scroll_deep',
   'feature.newsletter.cta_visible',
   'feature.newsletter.cta_clicked',
-  'feature.donate.cta_clicked',
   'feature.begin.cta_clicked',
 
   // Engagement

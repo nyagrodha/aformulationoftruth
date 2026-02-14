@@ -36,6 +36,46 @@ import {
 } from '../../../lib/questionnaire-session.ts';
 import { parseQuestionOrder } from '../../../lib/questionnaire.ts';
 import { increment } from '../../../lib/metrics.ts';
+import { storeEncryptedAnswer } from '../../../lib/gate-client.ts';
+
+// Proust questionnaire questions (canonical order, indices 0-34)
+const QUESTIONS = [
+  'What is your idea of perfect happiness?',
+  'What is your greatest fear?',
+  'What is the trait you most deplore in yourself?',
+  'What is the trait you most deplore in others?',
+  'Which living person do you most admire?',
+  'What is your greatest extravagance?',
+  'What is your current state of mind?',
+  'What do you consider the most overrated virtue?',
+  'On what occasion do you lie?',
+  'What do you most dislike about your appearance?',
+  'Which living person do you most despise?',
+  'What is the quality you most like in a man?',
+  'What is the quality you most like in a woman?',
+  'Which words or phrases do you most overuse?',
+  'What or who is the greatest love of your life?',
+  'When and where were you happiest?',
+  'Which talent would you most like to have?',
+  'If you could change one thing about yourself, what would it be?',
+  'What do you consider your greatest achievement?',
+  'If you were to die and come back as a person or a thing, what would it be?',
+  'Where would you most like to live?',
+  'What is your most treasured possession?',
+  'What do you regard as the lowest depth of misery?',
+  'What is your favorite occupation?',
+  'What is your most marked characteristic?',
+  'What do you most value in your friends?',
+  'Who are your favorite writers?',
+  'Who is your hero of fiction?',
+  'Which historical figure do you most identify with?',
+  'Who are your heroes in real life?',
+  'What are your favorite names?',
+  'What is it that you most dislike?',
+  'What is your greatest regret?',
+  'How would you like to die?',
+  'What is your motto?',
+];
 
 const AnswerSchema = z.object({
   questionIndex: z.number().int().min(0).max(34),
@@ -244,7 +284,20 @@ export const handler: Handlers = {
       );
     }
 
-    const { questionIndex, skipped } = parsed.data;
+    const { questionIndex, answer, skipped } = parsed.data;
+
+    // Store answer via Rust Gate (age-encrypted)
+    try {
+      await storeEncryptedAnswer({
+        sessionId: session.sessionId,
+        questionText: QUESTIONS[questionIndex] || `Question ${questionIndex}`,
+        questionIndex,
+        answer: skipped ? '' : answer,
+        skipped,
+      });
+    } catch (error) {
+      console.error(`[answer:${requestId}] Error storing encrypted response:`, error);
+    }
 
     try {
       // Calculate next index

@@ -24,7 +24,7 @@
  *
  * FEATURE USAGE COUNTERS
  * - feature.skip_used, feature.newsletter.cta_clicked
- * - feature.donate.cta_clicked, feature.begin.cta_clicked
+ * - feature.begin.cta_clicked
  *
  * ERROR CATEGORIES (granular without details)
  * - errors.validation.*, errors.session.*, errors.crypto.*, errors.db.*
@@ -149,7 +149,7 @@ function finalizeBucket(bucket: MetricBucket): void {
  *
  * FEATURE USAGE
  * - feature.skip_used, feature.newsletter.cta_clicked
- * - feature.donate.cta_clicked, feature.begin.cta_clicked
+ * - feature.begin.cta_clicked
  * - feature.afterword.scroll_deep
  *
  * NEWSLETTER

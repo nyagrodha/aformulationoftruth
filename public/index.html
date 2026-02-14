@@ -24,15 +24,276 @@
 
     <!-- Styles -->
     <link rel="stylesheet" href="/css/index_style.css">
+
+    <!-- Hierarchical Navigation -->
+    <style>
+        /* ═══════════════════════════════════════════
+           NAVIGATION HUB — word-level dropdowns
+           Lives inside gate section, after irendu
+           ═══════════════════════════════════════════ */
+        .site-hub-section {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            padding: 3rem 2rem;
+            border-top: 1px solid var(--ghost);
+            border-bottom: 1px solid var(--ghost);
+            background: var(--void);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.4s ease;
+        }
+        .site-hub-section.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .site-hub {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        .site-hub__row {
+            display: flex;
+            justify-content: center;
+            align-items: baseline;
+            gap: 2.5rem;
+            flex-wrap: wrap;
+        }
+        /* Each dropdown trigger */
+        .site-hub__item {
+            position: relative;
+        }
+        .site-hub__label {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            background: none;
+            border: none;
+            padding: 0.4rem 0;
+            cursor: pointer;
+            position: relative;
+            transition: color 0.25s ease, text-shadow 0.25s ease;
+        }
+        /* Accent colours per word */
+        .site-hub__item--questionnaire .site-hub__label { color: var(--gold); }
+        .site-hub__item--messenger .site-hub__label     { color: var(--neon-emerald); }
+        .site-hub__item--storefront .site-hub__label    { color: var(--neon-orange); }
+        .site-hub__item--library .site-hub__label       { color: var(--neon-purple); }
+        .site-hub__item--about .site-hub__label            { color: var(--light); }
+        .site-hub__item--contact .site-hub__label        { color: var(--neon-pink); }
+        /* Direct-link label (no dropdown) */
+        .site-hub__label--link {
+            text-decoration: none;
+            display: inline-block;
+        }
+        /* Underline that grows on hover */
+        .site-hub__label::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            width: 0;
+            height: 1px;
+            transform: translateX(-50%);
+            transition: width 0.25s ease, box-shadow 0.25s ease;
+        }
+        .site-hub__item--questionnaire .site-hub__label::after { background: var(--gold); }
+        .site-hub__item--messenger .site-hub__label::after     { background: var(--neon-emerald); }
+        .site-hub__item--storefront .site-hub__label::after    { background: var(--neon-orange); }
+        .site-hub__item--library .site-hub__label::after       { background: var(--neon-purple); }
+        .site-hub__item--about .site-hub__label::after          { background: var(--light); }
+        .site-hub__item--contact .site-hub__label::after        { background: var(--neon-pink); }
+        .site-hub__item:hover .site-hub__label::after,
+        .site-hub__item:focus-within .site-hub__label::after {
+            width: 100%;
+        }
+        .site-hub__item--questionnaire:hover .site-hub__label { text-shadow: 0 0 12px rgba(255,215,0,0.5); }
+        .site-hub__item--messenger:hover .site-hub__label     { text-shadow: 0 0 12px var(--emerald-glow); }
+        .site-hub__item--storefront:hover .site-hub__label    { text-shadow: 0 0 12px var(--orange-glow); }
+        .site-hub__item--library:hover .site-hub__label       { text-shadow: 0 0 12px var(--purple-glow); }
+        .site-hub__item--about:hover .site-hub__label          { text-shadow: 0 0 12px rgba(255,255,255,0.4); }
+        .site-hub__item--contact:hover .site-hub__label        { text-shadow: 0 0 12px var(--pink-glow); }
+        /* Dropdown panel */
+        .site-hub__dropdown {
+            position: absolute;
+            top: calc(100% + 0.6rem);
+            left: 50%;
+            transform: translateX(-50%) translateY(4px);
+            min-width: 160px;
+            padding: 0.75rem 1rem;
+            background: var(--obsidian);
+            border: 1px solid var(--ghost);
+            border-radius: 3px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s ease;
+            pointer-events: none;
+            list-style: none;
+            margin: 0;
+            text-align: left;
+        }
+        .site-hub__item:hover .site-hub__dropdown,
+        .site-hub__item:focus-within .site-hub__dropdown {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(-50%) translateY(0);
+            pointer-events: auto;
+        }
+        .site-hub__dropdown li {
+            margin-bottom: 0.4rem;
+        }
+        .site-hub__dropdown li:last-child {
+            margin-bottom: 0;
+        }
+        .site-hub__dropdown a {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.7rem;
+            color: var(--pearl);
+            text-decoration: none;
+            letter-spacing: 0.04em;
+            white-space: nowrap;
+            transition: color 0.15s ease;
+            display: block;
+            padding: 0.15rem 0;
+        }
+        .site-hub__dropdown a:hover {
+            color: var(--light);
+        }
+        .site-hub__dropdown .coming-soon {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.7rem;
+            color: var(--mist);
+            opacity: 0.45;
+            white-space: nowrap;
+            display: block;
+            padding: 0.15rem 0;
+        }
+        .site-hub__dropdown .coming-soon::after {
+            content: ' \b7 soon';
+            font-size: 0.55rem;
+            letter-spacing: 0.08em;
+        }
+        @media (max-width: 480px) {
+            .site-hub__row { gap: 1.5rem; }
+            .site-hub__label { font-size: 0.7rem; }
+        }
+
+        /* ═══════════════════════════════════════════
+           CSS-DRAWN GATE — scroll-reveal temple gate
+           5 bars, 3 with pointed spire finials
+           ═══════════════════════════════════════════ */
+        .gate-drawing {
+            --gate-gold: #c9a84c;
+            --gate-brown: #8b6914;
+            --gate-shimmer: linear-gradient(
+                135deg,
+                var(--gate-brown) 0%,
+                var(--gate-gold) 35%,
+                #e8d48b 50%,
+                var(--gate-gold) 65%,
+                var(--gate-brown) 100%
+            );
+            position: relative;
+            width: 220px;
+            height: 160px;
+            margin: 1.5rem auto 2rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            opacity: 0;
+            transition: opacity 0.8s ease;
+        }
+        .gate-drawing.visible {
+            opacity: 1;
+        }
+        /* Horizontal rails */
+        .gate-drawing__rail {
+            width: 100%;
+            height: 3px;
+            background: var(--gate-shimmer);
+            background-size: 200% 100%;
+            animation: gateShimmer 4s ease-in-out infinite;
+            border-radius: 1px;
+            transform: scaleX(0);
+            transition: transform 0.6s ease 0.3s;
+        }
+        .gate-drawing.visible .gate-drawing__rail {
+            transform: scaleX(1);
+        }
+        .gate-drawing__rail--top { transform-origin: left; }
+        .gate-drawing__rail--bottom { transform-origin: right; }
+        /* Bars container */
+        .gate-drawing__bars {
+            flex: 1;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            width: 100%;
+            padding: 0 6px;
+        }
+        /* Individual bars */
+        .gate-drawing__bar {
+            width: 4px;
+            height: 0;
+            background: var(--gate-shimmer);
+            background-size: 200% 100%;
+            animation: gateShimmer 4s ease-in-out infinite;
+            border-radius: 1px;
+            position: relative;
+            transition: height 0.8s ease;
+        }
+        .gate-drawing.visible .gate-drawing__bar {
+            height: 100%;
+        }
+        /* Staggered reveal */
+        .gate-drawing.visible .gate-drawing__bar:nth-child(1) { transition-delay: 0.5s; }
+        .gate-drawing.visible .gate-drawing__bar:nth-child(2) { transition-delay: 0.65s; }
+        .gate-drawing.visible .gate-drawing__bar:nth-child(3) { transition-delay: 0.8s; }
+        .gate-drawing.visible .gate-drawing__bar:nth-child(4) { transition-delay: 0.65s; }
+        .gate-drawing.visible .gate-drawing__bar:nth-child(5) { transition-delay: 0.5s; }
+        /* Pointed spire finial on inner bars */
+        .gate-drawing__bar--spired::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%) translateY(-100%) scaleY(0);
+            width: 0;
+            height: 0;
+            border-left: 7px solid transparent;
+            border-right: 7px solid transparent;
+            border-bottom: 18px solid var(--gate-gold);
+            filter: drop-shadow(0 0 4px rgba(201, 168, 76, 0.4));
+            transform-origin: bottom;
+            transition: transform 0.5s ease;
+        }
+        .gate-drawing.visible .gate-drawing__bar--spired::before {
+            transform: translateX(-50%) translateY(-100%) scaleY(1);
+            transition-delay: 1.2s;
+        }
+        /* Center spire taller */
+        .gate-drawing__bar--center::before {
+            border-left-width: 8px;
+            border-right-width: 8px;
+            border-bottom-width: 24px;
+        }
+        @keyframes gateShimmer {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 200% 50%; }
+        }
+        @media (max-width: 480px) {
+            .gate-drawing { width: 160px; height: 120px; }
+        }
+    </style>
 </head>
 <body>
     <a href="#begin" class="skip-link">Skip to questionnaire</a>
     <nav>
        <!-- <a href="/" class="logo">A4T</a> -->
-        <div class="nav-links">
-            <a href="/about.html">About</a>
-            <a href="/contact.html">Contact</a>
-        </div>
     </nav>
 
     <main>
@@ -74,10 +335,6 @@
                     </video>
                     <div class="video-scanlines"></div>
                     <div class="fullwidth-scroll">
-                        <p class="sanskrit">क्लेशान् विनाशय विकासय हृत्सरोजम्</p>
-                        <p class="sanskrit">ओजो विजृम्भय निजं निजनार्थयाङ्गम् ।</p>
-                        <p class="sanskrit">चेतश्चकोरचित्तचन्द्रमरीचिचक्रम्</p>
-                        <p class="sanskrit">आचम्य सम्यगमृतं कुरु विश्वमेतत् ॥</p>
                         <p class="translation">Destroy afflictions and cause to blossom the lotus in the heart; may awareness, your innate radiance with body fit for purpose, feast upon consciousness cool as moonbeams.* And may your recognition transform this world into a place of eternal remembrance and awakening.</p>
                         <p class="attribution">— Utpaladeva (c. 900–950 CE)</p>
                     </div>
@@ -98,20 +355,68 @@
             </div>
         </section>
 
-        <!-- Encryption info hover tooltip -->
-        <div class="encryption-hover">
-            <span class="encryption-trigger">🔐</span>
-            <div class="encryption-popup">
-                This application uses AES-256-GCM to encrypt at rest—both prior to and in storage—each word you type. Over many iterations the code rendering the pages of this website is developed <em>not to collect</em> personally identifiable information (PII). Here assured any data you do submit will not be sold. Do reach out via email with any comments, the discovery of a bug, questions, or simply to say hi. Thanks for visiting and have fun.
-            </div>
-        </div>
+        <!-- Navigation strip — its own home between hero and gate -->
+        <section class="site-hub-section">
+            <nav class="site-hub" aria-label="Site navigation">
+                <div class="site-hub__row">
+                    <div class="site-hub__item site-hub__item--questionnaire">
+                        <button class="site-hub__label" aria-expanded="false">Questionnaire</button>
+                        <ul class="site-hub__dropdown">
+                            <li><a href="/questions.html">All Questions</a></li>
+                            <li><a href="/proust/">Karuppacami Kelvittaal</a></li>
+                        </ul>
+                    </div>
+                    <div class="site-hub__item site-hub__item--messenger">
+                        <button class="site-hub__label" aria-expanded="false">Messenger</button>
+                        <ul class="site-hub__dropdown">
+                            <li><span class="coming-soon">Encrypted Messages</span></li>
+                        </ul>
+                    </div>
+                    <div class="site-hub__item site-hub__item--storefront">
+                        <button class="site-hub__label" aria-expanded="false">Storefront</button>
+                        <ul class="site-hub__dropdown">
+                            <li><span class="coming-soon">Tip Jar</span></li>
+                            <!-- <li><span class="coming-soon">Crypto Donations</span></li> -->
+                            <li><span class="coming-soon">Lottery</span></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="site-hub__row">
+                    <div class="site-hub__item site-hub__item--library">
+                        <button class="site-hub__label" aria-expanded="false">Library</button>
+                        <ul class="site-hub__dropdown">
+                            <li><span class="coming-soon">Books &amp; Inspirations</span></li>
+                        </ul>
+                    </div>
+                    <div class="site-hub__item site-hub__item--about">
+                        <a href="/about.html" class="site-hub__label site-hub__label--link">About</a>
+                    </div>
+                    <div class="site-hub__item site-hub__item--contact">
+                        <a href="/contact.html" class="site-hub__label site-hub__label--link">Contact</a>
+                    </div>
+                </div>
+            </nav>
+        </section>
 
         <section id="begin" class="section gate-section">
             <div class="gate-content">
                 <img src="/images/irendu2.png" alt="irendu — Tamil for 'two'" class="gate-icon" title="irendu — Tamil for 'two'">
                 <!-- Gate Title: Tamil + English -->
                 <h2 class="gate-title gate-title--tamil">வாயில்</h2>
-                <h2 class="gate-title gate-title--english">here, we meet <a href="#begin">(a)gate</a></h2>
+                <h2 class="gate-title gate-title--english">here we meet</h2>
+
+                <!-- CSS-drawn gate — reveals on scroll -->
+                <div class="gate-drawing" aria-hidden="true">
+                    <div class="gate-drawing__rail gate-drawing__rail--top"></div>
+                    <div class="gate-drawing__bars">
+                        <div class="gate-drawing__bar"></div>
+                        <div class="gate-drawing__bar gate-drawing__bar--spired"></div>
+                        <div class="gate-drawing__bar gate-drawing__bar--spired gate-drawing__bar--center"></div>
+                        <div class="gate-drawing__bar gate-drawing__bar--spired"></div>
+                        <div class="gate-drawing__bar"></div>
+                    </div>
+                    <div class="gate-drawing__rail gate-drawing__rail--bottom"></div>
+                </div>
 
                 <!-- Welcome Text: Tamil -->
                 <p class="gate-description gate-welcome--tamil tamil-text">
@@ -218,7 +523,8 @@
 
                     <div class="form-group email-section">
                         <label for="email">
-                            Enter your email to receive a magic link
+                            <span class="question-english">Enter your email to receive a magic link</span>
+                            <span class="question-spanish" lang="es">Introduce tu correo electrónico para recibir un enlace mágico</span>
                         </label>
                         <input
                             type="email"
@@ -258,12 +564,63 @@
                 <a href="/privacy.html">Privacy</a>
             </div>
             <p class="footer-copy">
-                Hosted with zero logs in Iceland
+                Hosted with zero logs in Finland &middot; Encrypted database in Iceland
             </p>
         </div>
     </footer>
 
     <script>
+        // Gate drawing — reveal on scroll
+        const gateDrawing = document.querySelector('.gate-drawing');
+        if (gateDrawing) {
+            const gateObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        gateDrawing.classList.add('visible');
+                    }
+                });
+            }, { threshold: 0.3 });
+            gateObserver.observe(gateDrawing);
+        }
+
+        // Navigation hub — aria-expanded toggle for keyboard accessibility
+        document.querySelectorAll('.site-hub__label').forEach(btn => {
+            btn.addEventListener('mouseenter', () => btn.setAttribute('aria-expanded', 'true'));
+            btn.closest('.site-hub__item').addEventListener('mouseleave', () => btn.setAttribute('aria-expanded', 'false'));
+            btn.addEventListener('click', () => {
+                const expanded = btn.getAttribute('aria-expanded') === 'true';
+                btn.setAttribute('aria-expanded', String(!expanded));
+            });
+        });
+
+        // Navigation hub — show/hide based on scroll position
+        // Appears just above the scroll-indicator, disappears at the gate
+        (function initNavVisibility() {
+            const hub = document.querySelector('.site-hub-section');
+            const scrollIndicator = document.querySelector('.scroll-indicator');
+            const gateSection = document.querySelector('.gate-section');
+            if (!hub || !scrollIndicator || !gateSection) return;
+
+            let pastIndicator = false;
+            let pastGate = false;
+
+            function updateVisibility() {
+                hub.classList.toggle('visible', pastIndicator && !pastGate);
+            }
+
+            // Show when the scroll indicator leaves the viewport (scrolled past it)
+            new IntersectionObserver(([entry]) => {
+                pastIndicator = !entry.isIntersecting && entry.boundingClientRect.top < 0;
+                updateVisibility();
+            }, { threshold: 0 }).observe(scrollIndicator);
+
+            // Hide when the gate section enters the viewport
+            new IntersectionObserver(([entry]) => {
+                pastGate = entry.isIntersecting;
+                updateVisibility();
+            }, { threshold: 0.05 }).observe(gateSection);
+        })();
+
         // Smooth scroll for anchor links
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
             anchor.addEventListener('click', function(e) {
@@ -369,21 +726,17 @@
             setButtonState('loading', 'Encrypting...');
             showStatus('Securing your responses...', 'info');
 
-
-            // Small delay for UX
-            await new Promise(resolve => setTimeout(resolve, 800));
-
             // Update UI - sending
             setButtonState('loading', 'Sending magic link...');
             showStatus('Requesting magic link...', 'info');
 
             try {
-                const response = await fetch('/api/auth/magic-link', {
+                const response = await fetch('/api/gate-submit', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ email })
+                    body: JSON.stringify({ email, answer1, answer2 })
                 });
 
                 // Safely parse JSON - handle empty responses

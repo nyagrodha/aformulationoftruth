@@ -6,13 +6,20 @@
  * gupta-vidya compliance:
  * - No PII stored
  * - Gate token is random, unlinkable
- * - Answers stored as-is (client can encrypt before sending)
+ * - Answers encrypted via Rust Gate (age x25519) before storage
+ * - fresh_gate_responses only stores gate_token for session linking (no answer text)
  */
 
 import { Handlers } from '$fresh/server.ts';
 import { z } from 'zod';
 import { withConnection } from '../../lib/db.ts';
 import { increment } from '../../lib/metrics.ts';
+import { storeEncryptedAnswer } from '../../lib/gate-client.ts';
+
+const GATE_QUESTIONS = [
+  'What is your idea of perfect happiness?',
+  'What is your greatest fear?',
+];
 
 const GateSubmitSchema = z.object({
   gateToken: z.string().min(1).max(128),
@@ -48,34 +55,23 @@ export const handler: Handlers = {
     const { gateToken, questionIndex, answer, skipped } = parsed.data;
 
     try {
+      // Store answer via Rust Gate (age-encrypted into gate_responses)
+      await storeEncryptedAnswer({
+        sessionId: gateToken,
+        questionText: GATE_QUESTIONS[questionIndex],
+        questionIndex,
+        answer: skipped ? '' : answer,
+        skipped,
+      });
+
+      // Upsert fresh_gate_responses as linking table (no answer text)
       await withConnection(async (client) => {
-        // Check if response already exists for this token and question
-        const { rows: existing } = await client.queryObject<{ id: number }>(
-          `SELECT id FROM fresh_gate_responses
-           WHERE gate_token = $1`,
+        await client.queryObject(
+          `INSERT INTO fresh_gate_responses (gate_token)
+           VALUES ($1)
+           ON CONFLICT (gate_token) DO NOTHING`,
           [gateToken]
         );
-
-        if (existing.length > 0) {
-          // Update existing row
-          const column = questionIndex === 0 ? 'q0_answer' : 'q1_answer';
-          await client.queryObject(
-            `UPDATE fresh_gate_responses
-             SET ${column} = $1
-             WHERE gate_token = $2`,
-            [skipped ? null : answer, gateToken]
-          );
-        } else {
-          // Insert new row
-          const q0 = questionIndex === 0 ? (skipped ? null : answer) : null;
-          const q1 = questionIndex === 1 ? (skipped ? null : answer) : null;
-
-          await client.queryObject(
-            `INSERT INTO fresh_gate_responses (gate_token, q0_answer, q1_answer)
-             VALUES ($1, $2, $3)`,
-            [gateToken, q0, q1]
-          );
-        }
       });
 
       increment('questionnaire.started');
@@ -84,8 +80,8 @@ export const handler: Handlers = {
         JSON.stringify({ ok: true }),
         { status: 200, headers: { 'Content-Type': 'application/json' } }
       );
-    } catch (_error) {
-      console.error('[gate] Failed to store response');
+    } catch (error) {
+      console.error('[gate] Failed to store encrypted response:', error);
       increment('errors.5xx');
 
       return new Response(
