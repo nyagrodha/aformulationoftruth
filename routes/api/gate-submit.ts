@@ -23,6 +23,8 @@ import { createQuestionnaireSession, findActiveSession, deleteSession } from '..
 import { createQuestionnaireJWT } from '../../lib/jwt.ts';
 import { increment } from '../../lib/metrics.ts';
 import { sendMagicLinkEmail } from '../../lib/email.ts';
+import { storeEncryptedAnswer } from '../../lib/gate-client.ts';
+import { ageEncrypt } from '../../lib/age-encrypt.ts';
 
 const GateSubmitSchema = z.object({
   email: z.string().min(1),
@@ -75,19 +77,49 @@ export const handler: Handlers = {
       // Step 1: Generate server-side gate token
       const gateToken = crypto.randomUUID();
 
-      // Step 2: Store gate answers
-      await withConnection(async (client) => {
-        const q0 = answer1.trim() || null;
-        const q1 = answer2.trim() || null;
+      // Step 2: Encrypt gate answers via Rust Gate (age x25519)
+      const GATE_QUESTIONS = [
+        'What is your idea of perfect happiness?',
+        'What is your greatest fear?',
+      ];
 
+      const q0 = answer1.trim();
+      const q1 = answer2.trim();
+
+      if (q0) {
+        await storeEncryptedAnswer({
+          sessionId: gateToken,
+          questionText: GATE_QUESTIONS[0],
+          questionIndex: 0,
+          answer: q0,
+          skipped: false,
+        });
+      }
+
+      if (q1) {
+        await storeEncryptedAnswer({
+          sessionId: gateToken,
+          questionText: GATE_QUESTIONS[1],
+          questionIndex: 1,
+          answer: q1,
+          skipped: false,
+        });
+      }
+
+      // Age-encrypt email for offline PDF delivery (only private key holder can recover)
+      const encryptedEmail = await ageEncrypt(email);
+
+      // Insert linking row with encrypted email (no plaintext stored)
+      await withConnection(async (client) => {
         await client.queryObject(
-          `INSERT INTO fresh_gate_responses (gate_token, q0_answer, q1_answer)
-           VALUES ($1, $2, $3)`,
-          [gateToken, q0, q1]
+          `INSERT INTO fresh_gate_responses (gate_token, encrypted_email)
+           VALUES ($1, $2)
+           ON CONFLICT (gate_token) DO UPDATE SET encrypted_email = $2`,
+          [gateToken, encryptedEmail]
         );
       });
 
-      console.log('[gate-submit] Gate answers stored, token:', gateToken.slice(0, 8) + '...');
+      console.log('[gate-submit] Gate answers encrypted and stored, token:', gateToken.slice(0, 8) + '...');
 
       // Step 3: Create magic link
       const { expiresAt, cleanup: cleanupMagicLink } = await createMagicLink(email);
