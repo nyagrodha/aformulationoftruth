@@ -198,9 +198,11 @@
                 var(--gate-brown) 100%
             );
             position: relative;
-            width: 220px;
-            height: 160px;
-            margin: 1.5rem auto 2rem;
+            width: 100vw;
+            height: 200px;
+            margin: 1.5rem 0 2rem;
+            margin-left: calc(-50vw + 50%);
+            box-sizing: border-box;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -233,7 +235,7 @@
             justify-content: space-between;
             align-items: flex-end;
             width: 100%;
-            padding: 0 6px;
+            padding: 0 3rem;
         }
         /* Individual bars */
         .gate-drawing__bar {
@@ -248,13 +250,8 @@
         }
         .gate-drawing.visible .gate-drawing__bar {
             height: 100%;
+            transition-delay: var(--d, 0.5s);
         }
-        /* Staggered reveal */
-        .gate-drawing.visible .gate-drawing__bar:nth-child(1) { transition-delay: 0.5s; }
-        .gate-drawing.visible .gate-drawing__bar:nth-child(2) { transition-delay: 0.65s; }
-        .gate-drawing.visible .gate-drawing__bar:nth-child(3) { transition-delay: 0.8s; }
-        .gate-drawing.visible .gate-drawing__bar:nth-child(4) { transition-delay: 0.65s; }
-        .gate-drawing.visible .gate-drawing__bar:nth-child(5) { transition-delay: 0.5s; }
         /* Pointed spire finial on inner bars */
         .gate-drawing__bar--spired::before {
             content: '';
@@ -273,7 +270,7 @@
         }
         .gate-drawing.visible .gate-drawing__bar--spired::before {
             transform: translateX(-50%) translateY(-100%) scaleY(1);
-            transition-delay: 1.2s;
+            transition-delay: 1.5s;
         }
         /* Center spire taller */
         .gate-drawing__bar--center::before {
@@ -286,7 +283,105 @@
             50% { background-position: 200% 50%; }
         }
         @media (max-width: 480px) {
-            .gate-drawing { width: 160px; height: 120px; }
+            .gate-drawing { height: 140px; }
+        }
+
+        /* ═══════════════════════════════════════════
+           KOLAM YANTRA — SVG draw-in + fade-out
+           Sacred geometry, drawn like rice-flour kolam
+           ═══════════════════════════════════════════ */
+        /* Yantra row — three yantras side by side */
+        .yantra-row {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 2rem;
+            margin: 3rem auto;
+        }
+        .kolam-yantra-container {
+            width: 280px;
+            height: 280px;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+            flex-shrink: 0;
+        }
+        .side-yantra-container {
+            width: 200px;
+            height: 200px;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+            flex-shrink: 0;
+        }
+        .kolam-yantra-container.visible,
+        .side-yantra-container.visible {
+            opacity: 1;
+        }
+        .kolam-yantra, .side-yantra {
+            width: 100%;
+            height: 100%;
+            overflow: visible;
+        }
+        .kolam-stroke {
+            fill: none;
+            stroke: #c9a84c;
+            stroke-width: 1.5;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            stroke-dasharray: 1;
+            stroke-dashoffset: 1;
+            filter: drop-shadow(0 0 2px rgba(201, 168, 76, 0.3));
+        }
+        .kolam-yantra-container.drawing .kolam-stroke,
+        .side-yantra-container.drawing .kolam-stroke {
+            animation: kolam-draw var(--dur, 2s) ease forwards;
+            animation-delay: var(--del, 0s);
+        }
+        .kolam-dot {
+            fill: #c9a84c;
+            opacity: 0;
+        }
+        .kolam-yantra-container.drawing .kolam-dot,
+        .side-yantra-container.drawing .kolam-dot {
+            animation: kolam-dot-pop 0.4s ease forwards;
+            animation-delay: var(--del, 3s);
+        }
+        .kolam-bindu {
+            fill: #c9a84c;
+            opacity: 0;
+            filter: drop-shadow(0 0 8px rgba(201, 168, 76, 0.6));
+        }
+        .kolam-yantra-container.drawing .kolam-bindu,
+        .side-yantra-container.drawing .kolam-bindu {
+            animation: kolam-bindu-glow 0.6s ease forwards;
+            animation-delay: var(--del, 3.5s);
+        }
+        .kolam-yantra-container.fading,
+        .side-yantra-container.fading {
+            animation: kolam-fade 3.5s ease forwards;
+        }
+        @keyframes kolam-draw {
+            to { stroke-dashoffset: 0; }
+        }
+        @keyframes kolam-dot-pop {
+            0% { opacity: 0; }
+            100% { opacity: 0.7; }
+        }
+        @keyframes kolam-bindu-glow {
+            0% { opacity: 0; }
+            50% { opacity: 1; filter: drop-shadow(0 0 16px rgba(201, 168, 76, 0.8)); }
+            100% { opacity: 0.9; filter: drop-shadow(0 0 8px rgba(201, 168, 76, 0.6)); }
+        }
+        @keyframes kolam-fade {
+            0% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+        @media (max-width: 768px) {
+            .yantra-row { flex-direction: column; gap: 1.5rem; }
+            .side-yantra-container { width: 180px; height: 180px; }
+        }
+        @media (max-width: 480px) {
+            .kolam-yantra-container { width: 220px; height: 220px; }
+            .side-yantra-container { width: 150px; height: 150px; }
         }
     </style>
 </head>
@@ -409,13 +504,133 @@
                 <div class="gate-drawing" aria-hidden="true">
                     <div class="gate-drawing__rail gate-drawing__rail--top"></div>
                     <div class="gate-drawing__bars">
-                        <div class="gate-drawing__bar"></div>
-                        <div class="gate-drawing__bar gate-drawing__bar--spired"></div>
-                        <div class="gate-drawing__bar gate-drawing__bar--spired gate-drawing__bar--center"></div>
-                        <div class="gate-drawing__bar gate-drawing__bar--spired"></div>
-                        <div class="gate-drawing__bar"></div>
+                        <div class="gate-drawing__bar" style="--d:0.98s"></div>
+                        <div class="gate-drawing__bar" style="--d:0.94s"></div>
+                        <div class="gate-drawing__bar gate-drawing__bar--spired" style="--d:0.90s"></div>
+                        <div class="gate-drawing__bar" style="--d:0.86s"></div>
+                        <div class="gate-drawing__bar" style="--d:0.82s"></div>
+                        <div class="gate-drawing__bar gate-drawing__bar--spired" style="--d:0.78s"></div>
+                        <div class="gate-drawing__bar" style="--d:0.74s"></div>
+                        <div class="gate-drawing__bar" style="--d:0.70s"></div>
+                        <div class="gate-drawing__bar gate-drawing__bar--spired" style="--d:0.66s"></div>
+                        <div class="gate-drawing__bar" style="--d:0.62s"></div>
+                        <div class="gate-drawing__bar" style="--d:0.58s"></div>
+                        <div class="gate-drawing__bar gate-drawing__bar--spired" style="--d:0.54s"></div>
+                        <div class="gate-drawing__bar gate-drawing__bar--spired gate-drawing__bar--center" style="--d:0.5s"></div>
+                        <div class="gate-drawing__bar gate-drawing__bar--spired" style="--d:0.54s"></div>
+                        <div class="gate-drawing__bar" style="--d:0.58s"></div>
+                        <div class="gate-drawing__bar" style="--d:0.62s"></div>
+                        <div class="gate-drawing__bar gate-drawing__bar--spired" style="--d:0.66s"></div>
+                        <div class="gate-drawing__bar" style="--d:0.70s"></div>
+                        <div class="gate-drawing__bar" style="--d:0.74s"></div>
+                        <div class="gate-drawing__bar gate-drawing__bar--spired" style="--d:0.78s"></div>
+                        <div class="gate-drawing__bar" style="--d:0.82s"></div>
+                        <div class="gate-drawing__bar" style="--d:0.86s"></div>
+                        <div class="gate-drawing__bar gate-drawing__bar--spired" style="--d:0.90s"></div>
+                        <div class="gate-drawing__bar" style="--d:0.94s"></div>
+                        <div class="gate-drawing__bar" style="--d:0.98s"></div>
                     </div>
                     <div class="gate-drawing__rail gate-drawing__rail--bottom"></div>
+                </div>
+
+                <!-- Twin Yantras — Kālabhairava (left) + Śrī (right) -->
+                <div class="yantra-row" aria-hidden="true">
+                    <!-- Kālabhairava Yantra — LEFT -->
+                    <div class="side-yantra-container bhairava-yantra" aria-hidden="true">
+                        <svg viewBox="0 0 400 400" class="side-yantra" xmlns="http://www.w3.org/2000/svg">
+                            <!-- Outer circle -->
+                            <circle cx="200" cy="200" r="190" pathLength="1" class="kolam-stroke" style="--del:0s; --dur:2s;"/>
+                            <!-- 8 lotus petals -->
+                            <path d="M200,38 C185,22 185,12 200,8 C215,12 215,22 200,38" pathLength="1" class="kolam-stroke" style="--del:1s; --dur:0.5s;" transform="rotate(0,200,200)"/>
+                            <path d="M200,38 C185,22 185,12 200,8 C215,12 215,22 200,38" pathLength="1" class="kolam-stroke" style="--del:1.08s; --dur:0.5s;" transform="rotate(45,200,200)"/>
+                            <path d="M200,38 C185,22 185,12 200,8 C215,12 215,22 200,38" pathLength="1" class="kolam-stroke" style="--del:1.16s; --dur:0.5s;" transform="rotate(90,200,200)"/>
+                            <path d="M200,38 C185,22 185,12 200,8 C215,12 215,22 200,38" pathLength="1" class="kolam-stroke" style="--del:1.24s; --dur:0.5s;" transform="rotate(135,200,200)"/>
+                            <path d="M200,38 C185,22 185,12 200,8 C215,12 215,22 200,38" pathLength="1" class="kolam-stroke" style="--del:1.32s; --dur:0.5s;" transform="rotate(180,200,200)"/>
+                            <path d="M200,38 C185,22 185,12 200,8 C215,12 215,22 200,38" pathLength="1" class="kolam-stroke" style="--del:1.4s; --dur:0.5s;" transform="rotate(225,200,200)"/>
+                            <path d="M200,38 C185,22 185,12 200,8 C215,12 215,22 200,38" pathLength="1" class="kolam-stroke" style="--del:1.48s; --dur:0.5s;" transform="rotate(270,200,200)"/>
+                            <path d="M200,38 C185,22 185,12 200,8 C215,12 215,22 200,38" pathLength="1" class="kolam-stroke" style="--del:1.56s; --dur:0.5s;" transform="rotate(315,200,200)"/>
+                            <!-- Inner circle -->
+                            <circle cx="200" cy="200" r="150" pathLength="1" class="kolam-stroke" style="--del:1.6s; --dur:1.5s;"/>
+                            <!-- Hexagram — upward triangle (Bhairava) -->
+                            <path d="M200,60 L330,280 L70,280 Z" pathLength="1" class="kolam-stroke" style="--del:2s; --dur:1.5s; stroke-width:2;"/>
+                            <!-- Hexagram — downward triangle -->
+                            <path d="M200,340 L70,120 L330,120 Z" pathLength="1" class="kolam-stroke" style="--del:2.3s; --dur:1.5s; stroke-width:2;"/>
+                            <!-- Inner circle -->
+                            <circle cx="200" cy="200" r="85" pathLength="1" class="kolam-stroke" style="--del:3s; --dur:1s;"/>
+                            <!-- Trishula — central shaft -->
+                            <path d="M200,130 L200,280" pathLength="1" class="kolam-stroke" style="--del:3.5s; --dur:0.8s; stroke-width:2.5;"/>
+                            <!-- Trishula — left prong -->
+                            <path d="M200,145 C190,135 170,130 160,115" pathLength="1" class="kolam-stroke" style="--del:3.8s; --dur:0.5s; stroke-width:2;"/>
+                            <!-- Trishula — right prong -->
+                            <path d="M200,145 C210,135 230,130 240,115" pathLength="1" class="kolam-stroke" style="--del:3.9s; --dur:0.5s; stroke-width:2;"/>
+                            <!-- Trishula — center tip -->
+                            <path d="M200,130 L200,108" pathLength="1" class="kolam-stroke" style="--del:4s; --dur:0.3s; stroke-width:2.5;"/>
+                            <!-- Vertex dots -->
+                            <circle cx="200" cy="60" r="4" class="kolam-dot" style="--del:4.2s;"/>
+                            <circle cx="330" cy="280" r="4" class="kolam-dot" style="--del:4.25s;"/>
+                            <circle cx="70" cy="280" r="4" class="kolam-dot" style="--del:4.3s;"/>
+                            <circle cx="200" cy="340" r="4" class="kolam-dot" style="--del:4.35s;"/>
+                            <circle cx="70" cy="120" r="4" class="kolam-dot" style="--del:4.4s;"/>
+                            <circle cx="330" cy="120" r="4" class="kolam-dot" style="--del:4.45s;"/>
+                            <!-- Bindu -->
+                            <circle cx="200" cy="200" r="6" class="kolam-bindu" style="--del:4.5s;"/>
+                        </svg>
+                    </div>
+
+                    <!-- Śrī Yantra — RIGHT -->
+                    <div class="side-yantra-container sri-yantra" aria-hidden="true">
+                        <svg viewBox="0 0 400 400" class="side-yantra" xmlns="http://www.w3.org/2000/svg">
+                            <!-- Bhupura — outer square gate -->
+                            <path d="M30,30 L370,30 L370,370 L30,370 Z" pathLength="1" class="kolam-stroke" style="--del:0s; --dur:1.5s; stroke-width:2;"/>
+                            <!-- Bhupura gate openings (T-shapes) -->
+                            <path d="M185,30 L185,15 L215,15 L215,30" pathLength="1" class="kolam-stroke" style="--del:0.8s; --dur:0.4s;"/>
+                            <path d="M185,370 L185,385 L215,385 L215,370" pathLength="1" class="kolam-stroke" style="--del:0.9s; --dur:0.4s;"/>
+                            <path d="M30,185 L15,185 L15,215 L30,215" pathLength="1" class="kolam-stroke" style="--del:1s; --dur:0.4s;"/>
+                            <path d="M370,185 L385,185 L385,215 L370,215" pathLength="1" class="kolam-stroke" style="--del:1.1s; --dur:0.4s;"/>
+                            <!-- Three concentric circles -->
+                            <circle cx="200" cy="200" r="165" pathLength="1" class="kolam-stroke" style="--del:1.2s; --dur:1.2s;"/>
+                            <circle cx="200" cy="200" r="155" pathLength="1" class="kolam-stroke" style="--del:1.4s; --dur:1s;"/>
+                            <circle cx="200" cy="200" r="145" pathLength="1" class="kolam-stroke" style="--del:1.6s; --dur:1s;"/>
+                            <!-- 16 outer lotus petals -->
+                            <path d="M200,55 C192,45 192,38 200,35 C208,38 208,45 200,55" pathLength="1" class="kolam-stroke" style="--del:2s; --dur:0.3s;" transform="rotate(0,200,200)"/>
+                            <path d="M200,55 C192,45 192,38 200,35 C208,38 208,45 200,55" pathLength="1" class="kolam-stroke" style="--del:2.05s; --dur:0.3s;" transform="rotate(22.5,200,200)"/>
+                            <path d="M200,55 C192,45 192,38 200,35 C208,38 208,45 200,55" pathLength="1" class="kolam-stroke" style="--del:2.1s; --dur:0.3s;" transform="rotate(45,200,200)"/>
+                            <path d="M200,55 C192,45 192,38 200,35 C208,38 208,45 200,55" pathLength="1" class="kolam-stroke" style="--del:2.15s; --dur:0.3s;" transform="rotate(67.5,200,200)"/>
+                            <path d="M200,55 C192,45 192,38 200,35 C208,38 208,45 200,55" pathLength="1" class="kolam-stroke" style="--del:2.2s; --dur:0.3s;" transform="rotate(90,200,200)"/>
+                            <path d="M200,55 C192,45 192,38 200,35 C208,38 208,45 200,55" pathLength="1" class="kolam-stroke" style="--del:2.25s; --dur:0.3s;" transform="rotate(112.5,200,200)"/>
+                            <path d="M200,55 C192,45 192,38 200,35 C208,38 208,45 200,55" pathLength="1" class="kolam-stroke" style="--del:2.3s; --dur:0.3s;" transform="rotate(135,200,200)"/>
+                            <path d="M200,55 C192,45 192,38 200,35 C208,38 208,45 200,55" pathLength="1" class="kolam-stroke" style="--del:2.35s; --dur:0.3s;" transform="rotate(157.5,200,200)"/>
+                            <path d="M200,55 C192,45 192,38 200,35 C208,38 208,45 200,55" pathLength="1" class="kolam-stroke" style="--del:2.4s; --dur:0.3s;" transform="rotate(180,200,200)"/>
+                            <path d="M200,55 C192,45 192,38 200,35 C208,38 208,45 200,55" pathLength="1" class="kolam-stroke" style="--del:2.45s; --dur:0.3s;" transform="rotate(202.5,200,200)"/>
+                            <path d="M200,55 C192,45 192,38 200,35 C208,38 208,45 200,55" pathLength="1" class="kolam-stroke" style="--del:2.5s; --dur:0.3s;" transform="rotate(225,200,200)"/>
+                            <path d="M200,55 C192,45 192,38 200,35 C208,38 208,45 200,55" pathLength="1" class="kolam-stroke" style="--del:2.55s; --dur:0.3s;" transform="rotate(247.5,200,200)"/>
+                            <path d="M200,55 C192,45 192,38 200,35 C208,38 208,45 200,55" pathLength="1" class="kolam-stroke" style="--del:2.6s; --dur:0.3s;" transform="rotate(270,200,200)"/>
+                            <path d="M200,55 C192,45 192,38 200,35 C208,38 208,45 200,55" pathLength="1" class="kolam-stroke" style="--del:2.65s; --dur:0.3s;" transform="rotate(292.5,200,200)"/>
+                            <path d="M200,55 C192,45 192,38 200,35 C208,38 208,45 200,55" pathLength="1" class="kolam-stroke" style="--del:2.7s; --dur:0.3s;" transform="rotate(315,200,200)"/>
+                            <path d="M200,55 C192,45 192,38 200,35 C208,38 208,45 200,55" pathLength="1" class="kolam-stroke" style="--del:2.75s; --dur:0.3s;" transform="rotate(337.5,200,200)"/>
+                            <!-- 9 interlocking triangles — 4 upward (Shiva), 5 downward (Shakti) -->
+                            <!-- Upward 1 (outermost) -->
+                            <path d="M200,58 L338,308 L62,308 Z" pathLength="1" class="kolam-stroke" style="--del:3s; --dur:1.2s;"/>
+                            <!-- Upward 2 -->
+                            <path d="M200,88 L318,290 L82,290 Z" pathLength="1" class="kolam-stroke" style="--del:3.2s; --dur:1s;"/>
+                            <!-- Upward 3 -->
+                            <path d="M200,125 L292,268 L108,268 Z" pathLength="1" class="kolam-stroke" style="--del:3.4s; --dur:0.9s;"/>
+                            <!-- Upward 4 (innermost) -->
+                            <path d="M200,158 L268,248 L132,248 Z" pathLength="1" class="kolam-stroke" style="--del:3.6s; --dur:0.8s;"/>
+                            <!-- Downward 1 (outermost) -->
+                            <path d="M200,342 L62,92 L338,92 Z" pathLength="1" class="kolam-stroke" style="--del:3.1s; --dur:1.2s;"/>
+                            <!-- Downward 2 -->
+                            <path d="M200,318 L78,110 L322,110 Z" pathLength="1" class="kolam-stroke" style="--del:3.3s; --dur:1s;"/>
+                            <!-- Downward 3 -->
+                            <path d="M200,288 L102,135 L298,135 Z" pathLength="1" class="kolam-stroke" style="--del:3.5s; --dur:0.9s;"/>
+                            <!-- Downward 4 -->
+                            <path d="M200,262 L125,158 L275,158 Z" pathLength="1" class="kolam-stroke" style="--del:3.7s; --dur:0.8s;"/>
+                            <!-- Downward 5 (innermost) -->
+                            <path d="M200,238 L148,178 L252,178 Z" pathLength="1" class="kolam-stroke" style="--del:3.9s; --dur:0.7s;"/>
+                            <!-- Bindu -->
+                            <circle cx="200" cy="200" r="5" class="kolam-bindu" style="--del:4.5s;"/>
+                        </svg>
+                    </div>
                 </div>
 
                 <!-- Welcome Text: Tamil -->
@@ -579,8 +794,24 @@
                         gateDrawing.classList.add('visible');
                     }
                 });
-            }, { threshold: 0.3 });
+            }, { threshold: 0.1 });
             gateObserver.observe(gateDrawing);
+        }
+
+        // Kolam Yantra — draw and dissolve
+        const kolam = document.querySelector('.kolam-yantra-container');
+        if (kolam) {
+            const kolObs = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        kolam.classList.add('visible');
+                        setTimeout(() => kolam.classList.add('drawing'), 400);
+                        setTimeout(() => kolam.classList.add('fading'), 6500);
+                        kolObs.unobserve(kolam);
+                    }
+                });
+            }, { threshold: 0.3 });
+            kolObs.observe(kolam);
         }
 
         // Navigation hub — aria-expanded toggle for keyboard accessibility

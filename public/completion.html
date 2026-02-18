@@ -13,30 +13,32 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Rye&family=Spectral:ital,wght@0,400;0,700;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Special+Elite&family=Noto+Sans+Tamil:wght@400;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/css/western-theme.css">
+<style>
+@keyframes neonCloudShift {
+  0%   { background: radial-gradient(circle, rgba(201,168,76,0.5) 0%, rgba(76,201,168,0.3) 50%, transparent 80%); }
+  25%  { background: radial-gradient(circle, rgba(168,76,201,0.4) 0%, rgba(201,168,76,0.3) 50%, transparent 80%); }
+  50%  { background: radial-gradient(circle, rgba(76,168,201,0.5) 0%, rgba(201,76,120,0.3) 50%, transparent 80%); }
+  75%  { background: radial-gradient(circle, rgba(120,201,76,0.4) 0%, rgba(76,120,201,0.3) 50%, transparent 80%); }
+  100% { background: radial-gradient(circle, rgba(201,168,76,0.5) 0%, rgba(76,201,168,0.3) 50%, transparent 80%); }
+}
+@media (max-width: 1100px) {
+  .shloka-fixed { display: none; }
+}
+</style>
 </head>
 <body>
-<!-- Christmas Lights Wire -->
-<div class="lights-wire"></div>
 
-<!-- Christmas Lights -->
-<div class="christmas-lights">
-<div class="light red"></div>
-<div class="light green"></div>
-<div class="light blue"></div>
-<div class="light yellow"></div>
-<div class="light purple"></div>
-<div class="light cyan"></div>
-<div class="light red"></div>
-<div class="light green"></div>
-<div class="light blue"></div>
-<div class="light yellow"></div>
-<div class="light purple"></div>
-<div class="light cyan"></div>
-<div class="light red"></div>
-<div class="light green"></div>
-<div class="light blue"></div>
-<div class="light yellow"></div>
+<!-- Fixed shloka card — left column -->
+<div class="shloka-fixed" style="position: fixed; left: 1.5%; top: 55%; transform: translateY(-50%); width: 280px; z-index: 5; background: linear-gradient(135deg, #1a1208 0%, #2a1f10 50%, #1a1208 100%); border: 1px solid rgba(201,168,76,0.3); border-radius: 4px; padding: 1.5rem 1.8rem; text-align: center;">
+  <p style="font-size: 0.95rem; line-height: 2; color: #c9a84c; font-family: 'Noto Sans Tamil', serif; letter-spacing: 0.02em; margin: 0;">
+    केयूरा न विभूषयन्ति पुरुषं<br>हाराः न चन्द्रोज्ज्वलाः<br>
+    न स्नानं न विलेपनं न कुसुमं<br>नालङ्कृता मूर्धजाः ।<br>
+    वाण्येका समलङ्करोति पुरुषं<br>या संस्कृता धार्यते<br>
+    क्षीयन्ते खलु भूषणानि सततं<br>वाग्भूषणं भूषणम् ॥
+  </p>
+  <p style="font-size: 0.75rem; color: rgba(201,168,76,0.5); margin: 0.8rem 0 0; font-style: italic; letter-spacing: 0.05em;">— Bhartṛhari, Nītiśataka</p>
 </div>
+
 
 <!-- Snowflakes Container -->
 <div class="snowflakes" id="snowflakes"></div>
@@ -57,10 +59,37 @@
 
 <!-- Left Sidebar -->
 <aside class="sidebar">
-<a href="/privacy.html" class="sidebar-card">
-  <h3>Privacy First</h3>
-  <p>We believe in radical privacy. All data is encrypted end-to-end. No tracking. No third-party analytics. Your thoughts remain yours.</p>
-</a>
+<div class="sidebar-card tip-card">
+  <h3>Tip Jar</h3>
+  <p style="margin-bottom: 0.8rem;">If you enjoyed this space, tell your friends about it. I happily invest a significant amount of time here, and any support you may be in a position to share is welcome. Sign up for the newsletter to know about upcoming changes.</p>
+  <div class="tip-methods">
+    <div class="tip-row">
+      <span class="tip-label">CashApp</span>
+      <code class="tip-addr" onclick="navigator.clipboard.writeText('$oniontruth')">$oniontruth</code>
+    </div>
+    <div class="tip-row">
+      <span class="tip-label">PayPal</span>
+      <a href="https://paypal.me/a4mulasatyasya?country.x=US&locale.x=en_US" class="tip-link" target="_blank" rel="noopener">paypal.me/a4mulasatyasya</a>
+    </div>
+    <div class="tip-row">
+      <span class="tip-label">BTC</span>
+      <code class="tip-addr" onclick="navigator.clipboard.writeText(this.textContent)">bc1qm3z44j5rhavafvesy7vw6aw7kfuncf42s3xjnt</code>
+    </div>
+    <div class="tip-row">
+      <span class="tip-label">Monero</span>
+      <code class="tip-addr" onclick="navigator.clipboard.writeText(this.textContent)">8AWKYnyN6wS5M39D7Pc5uJQRnMeFkwRRZYHfRzv583X6f1trvbBRgVYQw5Pb9LfBBTdryiWHnJfUMLARtm7WyrAnKxKjCXe</code>
+    </div>
+    <div class="tip-row">
+      <span class="tip-label">Zcash</span>
+      <code class="tip-addr" onclick="navigator.clipboard.writeText(this.textContent)">t1KwdrftpwLyJ3tHccQBCTFLR9P16oLVj9R</code>
+    </div>
+    <div class="tip-row">
+      <span class="tip-label">Ether</span>
+      <code class="tip-addr" onclick="navigator.clipboard.writeText(this.textContent)">0x83AeBd66Eac288339eeC87cD5F8eb840Fa105ffA</code>
+    </div>
+  </div>
+  <p class="tip-note">Tap any address to copy</p>
+</div>
 
 <div class="sidebar-card" id="quote-card">
   <h3>Contemplations</h3>
@@ -74,7 +103,10 @@
 <h1>On the Question of the Questioner: நான் யாரு?</h1>
 
 <div class="hero-symbols">
-  <div class="tamil-numeral-2">௨</div>
+  <div class="irendu-hero" style="position: relative; display: flex; justify-content: center; align-items: center;">
+    <div class="irendu-neon-cloud" style="position: absolute; width: 320px; height: 320px; border-radius: 50%; filter: blur(60px); opacity: 0.35; animation: neonCloudShift 8s ease-in-out infinite; z-index: 0;"></div>
+    <img src="/images/irendu2.png" alt="irendu — Tamil for 'two'" style="width: 220px; height: auto; position: relative; z-index: 1; filter: drop-shadow(0 0 12px rgba(201, 168, 76, 0.4));">
+  </div>
 
   <!-- Spaghetti Bowl SVG 
   <svg class="spaghetti-bowl" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
@@ -136,7 +168,7 @@ Dedicated to the memory and imaginative talent of<br>
 
 <p class="standalone centered">You are not one self.</p>
 
-<p>This is not a tragedy. It is more like weather.</p>
+<p>This is not a tragedy. It is more like the weather.</p>
 
 <div class="divider"></div>
 
@@ -148,15 +180,19 @@ Dedicated to the memory and imaginative talent of<br>
 
 <p>In 2017 it was, like clockwork, "a cabin in Montana with good light for reading."</p>
 
-<p>He thought this meant something. Therein lies the ego's rub not upon the phallusper se. And it did. It meant something the way weather means something.</p>
+<p>He thought this meant something. Therein lies the ego's rub not upon the phallus per se. And it do. The answers mean something the way the weather means something.</p>
 
 <div class="divider"></div>
 
-<p>A thousand or so years ago in what was then as now Kashmir a philosopher named Abhinavagupta lived. Doing what polymaths of brahmanical intellectual tradition do, he likely grew a long beard. Abhinava's name against an ornament of 'skrit that causes mis ojos to glitter translates to English as "the secret of being continuously new." fwiw his idears kinda rock one's headspace; unlikely he posed for a picture. But I am aware of one portrait some devotee drew up of the man, the polymath, the legend. Reportedly his eyes shine red—inebriated as we may be by the rasa—surrounded by yoginīs on a raised platform chalice in hand he sips. Though I've yet to see it, the portrait has appeared in a dream. Or so I think I recall.</p>
+<p>A thousand or so years ago in what was then as now Kashmir a philosopher named Abhinavagupta lived. Doing what polymaths of brahmanical intellectual tradition do, he likely grew a long beard. Abhinava's name against the ornament of Sanskrit that causes this writer's eye pair to glitter translates something like "the secret of being continuously new." fwiw his idears kinda rock one's headspace; unlikely he posed for a picture.</p>
+
+<p>But I am aware of one portrait some devotee drew up of the man, the polymath, the legend. Reportedly his eyes shine red—inebriated as we may be by the rasa—surrounded by yoginīs on a raised platform chalice in hand he sips. Though I've yet to see it, the portrait has appeared in a dream. Or so I think I recall.</p>
 
 <p>In any case, Abhinava watched people watch plays, nāṭakam in the 'skrit sans devanagari</p>
 
-<p>And he noticed that when Rāma (whose creator coined the character, nee god's name as upon māra, or murder, he meditated so long around this common thug a valmīk, or termite mound, enveloped him to become known as Valmīkī in the records of how it's been/was) grieved stage left, the audience felt grief. But this grief was not theirs. The audience hadn't lost anyone; neither was it Rāma's grief either—everyone knew it was a nāṭakam, a play.</p>
+<p>And Abhinava observed that when Rāma—a god among men fashioned by Vālmīki, a common thug by legend, absorbed in repetition of the name Rāma, Rāma, Rāma, māra, māra... reversed as māra ("murder"), remained so long in meditation that a valmīk, a termite mound, rose around him and thus fixed his name in the record of what was—grieved stage left, the audience too experienced grief.</p>
+
+<p>Yet this grief belonged to no one. The spectators had suffered no loss, and Rāma himself did not truly suffer, for all knew this was a nāṭakam, a play. What manifests instead is a transpersonal savoring: sorrow divested of private ownership, universalized through representation. The emotion, stripped of practical consequence and freed from egoic contraction, becomes aesthetic relish—karuṇa-rasa—apprehended in luminous detachment.</p>
 
 <p>So whose grief was it?</p>
 
@@ -378,10 +414,22 @@ See <em>Abhinavabhāratī</em>, Abhinavagupta's commentary on Bharata's <em>Nā�
 
 <!-- Right Sidebar -->
 <aside class="sidebar">
+<div class="sidebar-card" style="padding: 0; overflow: hidden; border: none; box-shadow: none; background: none;">
+  <img src="/images/iMany.JPG" alt="" style="width: 100%; height: auto; display: block; border-radius: 3px; border: 2px solid var(--burnt-sienna);">
+</div>
+
+<div class="sidebar-card" style="padding: 0; overflow: hidden; border: none; box-shadow: none; background: none;">
+  <img src="/images/madurai.JPG" alt="" style="width: 100%; height: auto; display: block; border-radius: 3px; border: 2px solid var(--burnt-sienna);">
+</div>
+
 <a href="/about.html" class="sidebar-card">
   <h3>About</h3>
   <p>Learn more about this slow experiment and the ideas that inform this space and hopefully inspire those who visit.</p>
 </a>
+
+<div class="sidebar-card" style="padding: 0; overflow: hidden; border: none; box-shadow: none; background: none;">
+  <img src="/images/sayHi-banana.PNG" alt="Say Hi" style="width: 100%; height: auto; display: block; border-radius: 3px; border: 2px solid var(--burnt-sienna);">
+</div>
 
 <a href="/contact.html" class="sidebar-card">
   <h3>Contact</h3>
