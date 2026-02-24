@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { z } from "zod";
-import { insertResponseSchema } from "@shared/schema";
+import { insertResponseSchema, insertGateResponseSchema } from "@shared/schema";
 import { setupAuth, isAuthenticated } from "./auth";
 
 // Admin authentication middleware
@@ -32,10 +32,55 @@ import { pdfService } from "./services/pdfService";
 import { questionService } from "./services/questionService";
 import { vpsStorageService } from "./services/vpsStorageService";
 import { encryptionService } from "./services/encryptionService";
+import { responseEncryptionService } from "./services/responseEncryptionService";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
   await setupAuth(app);
+
+  // Route for /begin - redirect to questionnaire app
+  app.get('/begin', (req, res) => {
+    res.redirect('/');
+  });
+
+  // Gate response endpoint - no authentication required (anonymous)
+  app.post('/api/gate/response', async (req, res) => {
+    try {
+      const { sessionId, questionText, questionIndex, answer, skipped } = req.body;
+
+      // Validate required fields
+      if (!sessionId || !questionText || questionIndex === undefined) {
+        return res.status(400).json({ message: "Missing required fields" });
+      }
+
+      // Encrypt the answer before storing (unless skipped)
+      let encryptedData;
+      if (skipped || !answer || answer.trim() === '') {
+        // For skipped questions, encrypt empty string
+        encryptedData = encryptionService.encrypt('');
+      } else {
+        encryptedData = encryptionService.encrypt(answer);
+      }
+
+      // Store gate response
+      const gateResponse = await storage.createGateResponse({
+        sessionId,
+        questionText,
+        questionIndex,
+        answer: encryptedData.encrypted,
+        iv: encryptedData.iv,
+        tag: encryptedData.tag,
+        salt: encryptedData.salt,
+        skipped: skipped || false,
+        userId: null, // Will be linked later when user logs in
+      });
+
+      res.json({ success: true, id: gateResponse.id });
+    } catch (error: any) {
+      console.error('Error saving gate response:', error);
+      res.status(500).json({ message: error.message || "Failed to save response" });
+    }
+  });
 
   // Auth routes
   app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
@@ -68,7 +113,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const questionOrder = questionService.generateQuestionOrder();
         session = await storage.createSession({
           userId,
-          questionOrder
+          questionOrder,
+          currentQuestionIndex: 1, // Skip gate question (index 0); questionnaire begins at index 1
         });
       }
 
@@ -95,8 +141,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const currentQuestion = questionService.getCurrentQuestion(session);
-      const responses = await storage.getResponsesBySessionId(sessionId);
-      
+      const encryptedResponses = await storage.getResponsesBySessionId(sessionId);
+      // Decrypt responses before returning to client
+      const responses = responseEncryptionService.decryptResponses(encryptedResponses);
+
       res.json({
         question: currentQuestion,
         progress: {
@@ -143,17 +191,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Save or update response
+      // Encrypt the answer before storage (per-response encryption)
+      const encryptedData = responseEncryptionService.prepareForStorage(answer);
+
+      // Save or update response with encrypted data
       const existingResponse = await storage.getResponseBySessionAndQuestion(sessionId, questionId);
       let response;
-      
+
       if (existingResponse) {
-        response = await storage.updateResponse(sessionId, questionId, answer);
+        response = await storage.updateResponse(sessionId, questionId, encryptedData);
       } else {
         response = await storage.createResponse({
           sessionId,
           questionId,
-          answer
+          answer: encryptedData.answer,
+          iv: encryptedData.iv,
+          tag: encryptedData.tag,
+          salt: encryptedData.salt,
+          encryptionType: encryptedData.encryptionType
         });
       }
 
@@ -183,18 +238,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         // Complete session and generate PDF
         await storage.completeSession(sessionId, false);
-        
-        // Get user and all responses for PDF
+
+        // Get user and all responses for PDF (decrypt before PDF generation)
         const user = await storage.getUser(userId);
-        const allResponses = await storage.getResponsesBySessionId(sessionId);
-        
+        const encryptedAllResponses = await storage.getResponsesBySessionId(sessionId);
+        const allResponses = responseEncryptionService.decryptResponses(encryptedAllResponses);
+
         if (user?.email) {
           // Generate and send PDF
           const pdfBuffer = await pdfService.generateFormulationOfTruthPDF(
             allResponses,
             session.questionOrder as number[]
           );
-          
+
           await emailService.sendCompletionEmail(user.email, pdfBuffer);
         }
       }
@@ -221,7 +277,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Session not found" });
       }
 
-      const responses = await storage.getResponsesBySessionId(sessionId);
+      const encryptedResponses = await storage.getResponsesBySessionId(sessionId);
+      // Decrypt responses before returning to client
+      const responses = responseEncryptionService.decryptResponses(encryptedResponses);
       res.json(responses);
     } catch (error) {
       console.error('Get responses error:', error);
@@ -267,8 +325,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Check if all questions are answered
-      const responses = await storage.getResponsesBySessionId(sessionId);
-      if (responses.length < 35) {
+      const encryptedResponses = await storage.getResponsesBySessionId(sessionId);
+      if (encryptedResponses.length < 35) {
         return res.status(400).json({ message: 'Not all questions have been answered' });
       }
 
@@ -277,6 +335,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Increment user completion count
       const updatedUser = await storage.incrementUserCompletionCount(userId);
+
+      // Decrypt responses for PDF generation
+      const responses = responseEncryptionService.decryptResponses(encryptedResponses);
 
       // Generate and send PDF
       const pdfBuffer = await pdfService.generateFormulationOfTruthPDF(responses, session.questionOrder as number[]);
@@ -333,7 +394,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Completed session not found" });
       }
 
-      const responses = await storage.getResponsesBySessionId(sessionId);
+      const encryptedResponses = await storage.getResponsesBySessionId(sessionId);
+      // Decrypt responses for PDF generation
+      const responses = responseEncryptionService.decryptResponses(encryptedResponses);
       const pdfBuffer = await pdfService.generateFormulationOfTruthPDF(
         responses,
         session.questionOrder as number[]
@@ -352,14 +415,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/shared/:shareId", async (req, res) => {
     try {
       const { shareId } = req.params;
-      
+
       const session = await storage.getSessionByShareId(shareId);
       if (!session) {
         return res.status(404).json({ message: "Shared questionnaire not found" });
       }
 
-      const responses = await storage.getResponsesBySessionId(session.id);
-      
+      const encryptedResponses = await storage.getResponsesBySessionId(session.id);
+      // Decrypt responses for public viewing
+      const responses = responseEncryptionService.decryptResponses(encryptedResponses);
+
       res.json({
         session: {
           id: session.id,
@@ -413,7 +478,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Newsletter signup endpoint with encrypted storage
-  app.post("/api/newsletter/signup", async (req, res) => {
+  const handleNewsletterSignup = async (req: any, res: any) => {
     try {
       const emailSchema = z.object({
         email: z.string().email()
@@ -429,7 +494,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const exists = await storage.checkNewsletterEmailExists(encryptedData.encrypted);
 
       if (exists) {
-        return res.status(400).json({ message: "Email already subscribed to newsletter" });
+        return res.status(200).json({
+          success: true,
+          message: "Email already subscribed to newsletter",
+          alreadySubscribed: true
+        });
       }
 
       // Generate secure unsubscribe token
@@ -457,17 +526,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.error('VPS backup for newsletter failed:', vpsError);
       }
 
-      res.json({ message: "Successfully subscribed to newsletter" });
+      res.status(201).json({
+        success: true,
+        message: "Successfully subscribed to newsletter",
+        alreadySubscribed: false
+      });
     } catch (error) {
       if (error instanceof z.ZodError) {
-        res.status(400).json({ message: "Invalid email address" });
+        res.status(400).json({
+          success: false,
+          error: "Invalid email address"
+        });
         return;
       }
 
       console.error("Newsletter signup error:", error);
-      res.status(500).json({ message: "Failed to subscribe to newsletter" });
+      res.status(500).json({
+        success: false,
+        error: "Failed to subscribe to newsletter"
+      });
     }
-  });
+  };
+
+  app.post("/api/newsletter/signup", handleNewsletterSignup);
+  app.post("/api/newsletter/subscribe", handleNewsletterSignup);
 
   // Admin routes (temporarily disabled - storage methods need implementation)
   /*

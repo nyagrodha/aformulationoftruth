@@ -5,6 +5,7 @@ import {
   responses,
   newsletterEmails,
   paymentCodes,
+  gateResponses,
   type User,
   type InsertUser,
   type UpsertUser,
@@ -17,7 +18,9 @@ import {
   type NewsletterEmail,
   type InsertNewsletterEmail,
   type PaymentCode,
-  type InsertPaymentCode
+  type InsertPaymentCode,
+  type GateResponse,
+  type InsertGateResponse
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, gt, desc, sql } from "drizzle-orm";
@@ -47,13 +50,23 @@ export interface IStorage {
   // Response operations
   getResponsesBySessionId(sessionId: string): Promise<Response[]>;
   createResponse(response: InsertResponse): Promise<Response>;
-  updateResponse(sessionId: string, questionId: number, answer: string): Promise<Response>;
+  updateResponse(
+    sessionId: string,
+    questionId: number,
+    encryptedData: { answer: string; iv: string; tag: string; salt: string; encryptionType: string }
+  ): Promise<Response>;
   getResponseBySessionAndQuestion(sessionId: string, questionId: number): Promise<Response | undefined>;
 
   // Newsletter operations
   createNewsletterEmail(newsletter: InsertNewsletterEmail): Promise<NewsletterEmail>;
   getNewsletterEmails(): Promise<NewsletterEmail[]>;
   checkNewsletterEmailExists(encryptedEmail: string): Promise<boolean>;
+
+  // Gate response operations
+  createGateResponse(response: InsertGateResponse): Promise<GateResponse>;
+  getGateResponsesBySessionId(sessionId: string): Promise<GateResponse[]>;
+  linkGateResponsesToUser(sessionId: string, userId: string): Promise<void>;
+  getGateResponsesByUserId(userId: string): Promise<GateResponse[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -231,11 +244,19 @@ export class DatabaseStorage implements IStorage {
     return response;
   }
 
-  async updateResponse(sessionId: string, questionId: number, answer: string): Promise<Response> {
+  async updateResponse(
+    sessionId: string,
+    questionId: number,
+    encryptedData: { answer: string; iv: string; tag: string; salt: string; encryptionType: string }
+  ): Promise<Response> {
     const [response] = await db
       .update(responses)
-      .set({ 
-        answer,
+      .set({
+        answer: encryptedData.answer,
+        iv: encryptedData.iv,
+        tag: encryptedData.tag,
+        salt: encryptedData.salt,
+        encryptionType: encryptedData.encryptionType,
         updatedAt: new Date()
       })
       .where(
@@ -391,6 +412,41 @@ export class DatabaseStorage implements IStorage {
       .from(paymentCodes)
       .where(eq(paymentCodes.status, 'pending'))
       .orderBy(desc(paymentCodes.createdAt));
+  }
+
+  // Gate response operations
+  async createGateResponse(response: InsertGateResponse): Promise<GateResponse> {
+    const [gateResponse] = await db
+      .insert(gateResponses)
+      .values(response)
+      .returning();
+    return gateResponse;
+  }
+
+  async getGateResponsesBySessionId(sessionId: string): Promise<GateResponse[]> {
+    return await db
+      .select()
+      .from(gateResponses)
+      .where(eq(gateResponses.sessionId, sessionId))
+      .orderBy(gateResponses.questionIndex);
+  }
+
+  async linkGateResponsesToUser(sessionId: string, userId: string): Promise<void> {
+    await db
+      .update(gateResponses)
+      .set({
+        userId,
+        linkedAt: new Date()
+      })
+      .where(eq(gateResponses.sessionId, sessionId));
+  }
+
+  async getGateResponsesByUserId(userId: string): Promise<GateResponse[]> {
+    return await db
+      .select()
+      .from(gateResponses)
+      .where(eq(gateResponses.userId, userId))
+      .orderBy(desc(gateResponses.createdAt));
   }
 }
 

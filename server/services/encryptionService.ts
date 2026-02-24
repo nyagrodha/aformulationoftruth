@@ -31,7 +31,9 @@ const SCRYPT_PARAMS = {
 };
 
 // Legacy static salt for backward compatibility with existing data
-const LEGACY_SALT = 'salt';
+// Allowing an override ensures deployments can align the salt with other
+// services (e.g. newsletter encryption) without altering the code.
+const LEGACY_SALT = process.env.LEGACY_ENCRYPTION_SALT || 'aformulationoftruth_encryption_salt_2025';
 
 export class EncryptionService {
   private encryptionKey: string;
@@ -40,8 +42,17 @@ export class EncryptionService {
     // Use VPS encryption key or generate one from environment
     this.encryptionKey = process.env.VPS_ENCRYPTION_KEY || process.env.ENCRYPTION_KEY || '';
 
+    this.validateKeyStrength();
+  }
+
+  // Validate encryption key presence and basic strength requirements
+  private validateKeyStrength(): void {
     if (!this.encryptionKey) {
       throw new Error('ENCRYPTION_KEY or VPS_ENCRYPTION_KEY must be set in environment variables');
+    }
+
+    if (this.encryptionKey.length < 32) {
+      throw new Error('Encryption key must be at least 32 characters long for sufficient entropy');
     }
   }
 

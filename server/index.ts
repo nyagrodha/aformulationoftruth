@@ -1,4 +1,6 @@
+import 'dotenv/config';
 import express, { type Request, Response, NextFunction } from "express";
+import fs from "fs";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { reminderService } from "./services/reminderService";
@@ -29,7 +31,7 @@ app.use((req, res, next) => {
       }
 
       if (logLine.length > 80) {
-        logLine = logLine.slice(0, 79) + "…";
+        logLine = logLine.slice(0, 79) + "\u2026";
       }
 
       log(logLine);
@@ -70,16 +72,56 @@ app.use((req, res, next) => {
   // this serves both the API and the client.
   // It is the only port that is not firewalled.
   const port = parseInt(process.env.PORT || '5000', 10);
-  server.listen({
-    port,
-    host: "0.0.0.0",
-    reusePort: true,
-  }, () => {
-    log(`serving on port ${port}`);
+  const socketPath = process.env.SOCKET_PATH;
 
-    // Start the reminder service
-    reminderService.start();
-  });
+  if (socketPath) {
+    // Clean up stale socket file
+    try {
+      const stat = fs.statSync(socketPath);
+      if (stat.isSocket()) fs.unlinkSync(socketPath);
+    } catch (err: any) {
+      if (err.code !== "ENOENT") {
+        log(`Socket cleanup warning: ${err.message}`);
+      }
+    }
+
+    // Try to bind to Unix socket with fallback
+    const tryUnix = () => {
+      return new Promise<void>((resolve, reject) => {
+        server
+          .listen(socketPath, resolve)
+          .once("error", reject);
+      });
+    };
+
+    try {
+      await tryUnix();
+      log(`serving on unix socket ${socketPath}`);
+      reminderService.start();
+    } catch (err: any) {
+      log(`Unix socket failed: ${err.message}`);
+      server.listen({
+        port,
+        host: "127.0.0.1",
+        reusePort: true,
+      }, () => {
+        log(`serving on localhost:${port} (fallback mode)`);
+        reminderService.start();
+      });
+    }
+  } else {
+    // Bind to TCP port (backward compatibility)
+    server.listen({
+      port,
+      host: "127.0.0.1",
+      reusePort: true,
+    }, () => {
+      log(`serving on port ${port}`);
+
+      // Start the reminder service
+      reminderService.start();
+    });
+  }
 
   // Graceful shutdown handling
   const shutdown = async (signal: string) => {

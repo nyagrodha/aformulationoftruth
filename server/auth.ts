@@ -85,7 +85,7 @@ async function createMagicLink(email: string) {
   await emailService.sendMagicLink(email, token);
 }
 
-async function authenticateWithToken(req: Express.Request, token: string) {
+async function authenticateWithToken(req: Express.Request, token: string, gateSessionId?: string) {
   const magicLink = await storage.getMagicLink(token);
   if (!magicLink) {
     throw new Error("Invalid or expired token");
@@ -96,6 +96,17 @@ async function authenticateWithToken(req: Express.Request, token: string) {
 
   if (!user) {
     user = await storage.createUser({ email: userEmail });
+  }
+
+  // Link gate responses if session ID provided
+  if (gateSessionId) {
+    try {
+      await storage.linkGateResponsesToUser(gateSessionId, user.id);
+      console.log(`Linked gate responses for session ${gateSessionId} to user ${user.id}`);
+    } catch (error) {
+      console.error('Error linking gate responses:', error);
+      // Don't fail the auth if linking fails
+    }
   }
 
   await storage.markMagicLinkUsed(token);
@@ -146,8 +157,8 @@ export async function setupAuth(app: Express) {
 
   app.post("/api/auth/magic-link/verify", async (req, res) => {
     try {
-      const { token } = verifySchema.parse(req.body);
-      const user = await authenticateWithToken(req, token);
+      const { token, gateSessionId } = req.body;
+      const user = await authenticateWithToken(req, token, gateSessionId);
       res.json({ user });
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -180,7 +191,7 @@ export async function setupAuth(app: Express) {
   app.get("/api/logout", (req, res) => {
     req.session.destroy(() => {
       res.clearCookie("connect.sid");
-      res.redirect("/auth");
+      res.redirect("/auth.html");
     });
   });
 }

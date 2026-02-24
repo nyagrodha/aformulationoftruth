@@ -20,13 +20,14 @@ class EmailService {
 
   async sendMagicLink(email: string, token: string): Promise<void> {
     const baseUrl = getPublicAppUrl();
+    const url = new URL('/auth.html', baseUrl);
+    url.searchParams.set('token', token);
+    const magicLink = url.toString();
 
     if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
-      console.log(`Magic link for ${email}: ${baseUrl}/auth?token=${token}`);
+      console.log(`Magic link for ${email}: ${magicLink}`);
       return;
     }
-
-    const magicLink = `${baseUrl}/auth?token=${token}`;
 
     const mailOptions = {
       from: process.env.FROM_EMAIL || process.env.SMTP_USER,
