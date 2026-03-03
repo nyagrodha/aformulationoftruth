@@ -1,0 +1,56 @@
+version: "3.9"
+
+services:
+  tor:
+    image: osminogin/tor-simple:latest
+    container_name: tor-dns-tor
+    restart: unless-stopped
+    volumes:
+      - ./torrc:/etc/tor/torrc:ro
+      - tor-data:/var/lib/tor
+    ports:
+      - "9050:9050"      # SOCKS5 proxy for monitor and clients
+      - "5353:5353/udp"  # Tor DNSPort (query via dns service below)
+    networks:
+      - torwatch
+
+  dns:
+    image: andyshinn/dnsmasq:2.86
+    container_name: tor-dns-dnsmasq
+    restart: unless-stopped
+    depends_on:
+      - tor
+    command: ["-k", "--log-facility=-", "--no-resolv", "--server=tor#5353", "--cache-size=1000"]
+    ports:
+      - "53:53/udp"
+      - "53:53/tcp"
+    networks:
+      - torwatch
+
+  monitor:
+    build:
+      context: ./monitor
+    container_name: tor-dns-monitor
+    restart: unless-stopped
+    depends_on:
+      - tor
+    environment:
+      - TOR_SOCKS_HOST=tor
+      - TOR_SOCKS_PORT=9050
+      - MONITOR_INTERVAL_SECONDS=300
+      - MONITOR_TARGETS_FILE=/app/targets.txt
+      - MONITOR_DB_PATH=/data/monitor.db
+      - MONITOR_FOLLOW_REDIRECTS=true
+    volumes:
+      - ./monitor/targets.txt:/app/targets.txt:ro
+      - monitor-data:/data
+    networks:
+      - torwatch
+
+networks:
+  torwatch:
+    driver: bridge
+
+volumes:
+  tor-data:
+  monitor-data:

@@ -1,0 +1,3 @@
+# one onion URL per line
+# example:
+# http://exampleonionaddress1234567890abcdef1234567890abcdef1234.onion/
