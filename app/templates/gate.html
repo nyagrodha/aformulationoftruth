@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block title %}gate — a formulation of truth{% endblock %}
+
+{% block content %}
+<div class="glitch-sm">
+  <div class="glitch-wrap" role="presentation" aria-hidden="true">
+    <span class="glitch-layer gl-1">the gate</span>
+    <span class="glitch-layer gl-2">the gate</span>
+    <span class="glitch-layer gl-3">the gate</span>
+    <span class="glitch-layer gl-4">the gate</span>
+    <span class="glitch-layer gl-main">the gate</span>
+  </div>
+</div>
+
+<h1 class="sr-only">The Gate</h1>
+
+<p>You are about to begin a questionnaire of {{ total_questions }} questions rooted
+in Tamil Sangam literature and the Proust Questionnaire tradition.</p>
+
+<p>The first {{ gate_questions|length }} questions are fixed.
+The remaining questions will appear in an order unique to your session.</p>
+
+<div class="consent-note">
+  <p class="dim small">Your answers are encrypted at rest with age (X25519).
+  Not even the server operator can read them after submission.</p>
+</div>
+
+<hr>
+
+<form method="post" action="/gate/start">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+  <input type="submit" value="Begin">
+</form>
+{% endblock %}

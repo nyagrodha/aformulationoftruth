@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block title %}question {{ position }} — a formulation of truth{% endblock %}
+
+{% block content %}
+<div class="progress">
+  Question {{ position }} of {{ total }}
+  <progress class="progress-bar" value="{{ position }}" max="{{ total }}"></progress>
+</div>
+
+<div class="question-block">
+  <p class="question-tamil">{{ question.tamil_numeral }}. {{ question.tamil }}</p>
+  <p class="question-translit">{{ question.transliteration }}</p>
+  <p class="question-english">{{ question.english }}</p>
+  {% if question.sangam_ref %}
+  <p class="question-ref">{{ question.sangam_ref }}</p>
+  {% endif %}
+</div>
+
+<form method="post" action="/gate/q/{{ position }}">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+  <label for="answer">Your answer</label>
+  <textarea id="answer" name="answer"
+            placeholder="Write freely…">{{ existing_answer }}</textarea>
+  <div class="question-nav">
+    {% if position > 1 %}
+    <a href="/gate/q/{{ position - 1 }}" class="btn-secondary btn-nav">&larr; Back</a>
+    {% else %}
+    <span></span>
+    {% endif %}
+    {% if is_last %}
+    <input type="submit" value="Finish &rarr;">
+    {% else %}
+    <input type="submit" value="Next &rarr;">
+    {% endif %}
+  </div>
+</form>
+{% endblock %}

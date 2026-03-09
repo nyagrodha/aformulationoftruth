@@ -3,6 +3,22 @@
    Zero JS. Zero frameworks. Tor-safe.
    ═══════════════════════════════════════════════ */
 
+@font-face {
+  font-family: 'Orbitron';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/static/fonts/orbitron-v35-latin-regular.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Orbitron';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('/static/fonts/orbitron-v35-latin-700.woff2') format('woff2');
+}
+
 *, *::before, *::after {
   margin: 0;
   padding: 0;
@@ -18,6 +34,7 @@
   --border: #333;
   --input-bg: #111;
   --content: 42rem;
+  --magenta: #e040e0;
 }
 
 ::selection {
@@ -70,6 +87,17 @@ a:focus-visible, button:focus-visible, input[type="submit"]:focus-visible {
 .skip-link:focus {
   left: 1rem;
   top: 1rem;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
 }
 
 /* ── Layout ─────────────────────────────── */
@@ -477,4 +505,154 @@ footer {
   text-align: center;
   font-size: 0.7rem;
   color: var(--fg-dim);
+}
+
+/* ═══════════════════════════════════════════════
+   Glitch title — chromatic aberration + 3D extrusion
+   Multicolor offset layers, each at different opacity
+   ═══════════════════════════════════════════════ */
+
+.hero-title {
+  padding: 4rem 1.5rem 1rem;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.glitch-wrap {
+  position: relative;
+  text-align: center;
+  font-family: 'Orbitron', ui-monospace, monospace;
+  font-size: clamp(2rem, 8vw, 4.5rem);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  line-height: 1.15;
+}
+
+/* Chromatic ghost layers — each offset, different color, descending opacity */
+.glitch-layer {
+  display: block;
+}
+
+.gl-1, .gl-2, .gl-3, .gl-4 {
+  position: absolute;
+  inset: 0;
+  user-select: none;
+  pointer-events: none;
+}
+
+/* Layer 1: crimson — furthest back, largest offset */
+.gl-1 {
+  color: #ff0040;
+  transform: translate(-5px, -4px);
+  opacity: 0.4;
+  z-index: 1;
+}
+
+/* Layer 2: neon green — offset opposite */
+.gl-2 {
+  color: #00ff41;
+  transform: translate(-2px, 3px);
+  opacity: 0.5;
+  z-index: 2;
+}
+
+/* Layer 3: electric cyan — slight right shift */
+.gl-3 {
+  color: #00d4ff;
+  transform: translate(4px, -2px);
+  opacity: 0.45;
+  z-index: 3;
+}
+
+/* Layer 4: gold — subtle, closest to main */
+.gl-4 {
+  color: #ffd700;
+  transform: translate(2px, 4px);
+  opacity: 0.3;
+  z-index: 4;
+}
+
+/* Main face: hot magenta with 3D maroon extrusion */
+.gl-main {
+  position: relative;
+  color: var(--magenta);
+  z-index: 5;
+  text-shadow:
+    1px 1px 0 #4a1530,
+    2px 2px 0 #4a1530,
+    3px 3px 0 #3d1028,
+    4px 4px 0 #3d1028,
+    5px 5px 0 #301020,
+    6px 6px 0 #200a15,
+    7px 7px 0 #180810,
+    8px 8px 14px rgba(0, 0, 0, 0.6);
+}
+
+/* Reflection — flipped, faded, masked */
+.glitch-reflect {
+  text-align: center;
+  font-family: 'Orbitron', ui-monospace, monospace;
+  font-size: clamp(2rem, 8vw, 4.5rem);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  line-height: 1.15;
+  color: var(--magenta);
+  transform: scaleY(-1);
+  opacity: 0.12;
+  -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,0.5), transparent 60%);
+  mask-image: linear-gradient(to bottom, rgba(0,0,0,0.5), transparent 60%);
+  user-select: none;
+  pointer-events: none;
+  margin-top: -0.25rem;
+  max-height: 4rem;
+  overflow: hidden;
+}
+
+/* Smaller variant for inner page headers */
+.glitch-sm .glitch-wrap {
+  font-size: clamp(1.2rem, 4vw, 2rem);
+}
+
+.glitch-sm .glitch-reflect {
+  font-size: clamp(1.2rem, 4vw, 2rem);
+  max-height: 2rem;
+}
+
+.glitch-sm .gl-1 { transform: translate(-3px, -2px); }
+.glitch-sm .gl-2 { transform: translate(-1px, 2px); }
+.glitch-sm .gl-3 { transform: translate(2px, -1px); }
+.glitch-sm .gl-4 { transform: translate(1px, 2px); }
+
+.glitch-sm .gl-main {
+  text-shadow:
+    1px 1px 0 #4a1530,
+    2px 2px 0 #3d1028,
+    3px 3px 0 #301020,
+    4px 4px 8px rgba(0, 0, 0, 0.5);
+}
+
+/* ── Auth pages ────────────────────────── */
+
+.auth-form {
+  max-width: 24rem;
+}
+
+.auth-form .hint {
+  margin-top: -1rem;
+  margin-bottom: 1.5rem;
+}
+
+.auth-links {
+  margin-top: 2rem;
+}
+
+/* ── Gate consent ──────────────────────── */
+
+.consent-note {
+  margin: 1.5rem 0;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  background: var(--input-bg);
 }
