@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block title %}enter — a formulation of truth{% endblock %}
+
+{% block nav %}
+<a href="/about">about</a>
+{% endblock %}
+
+{% block hero %}
+<div class="hero-title">
+  <div class="glitch-wrap" role="heading" aria-level="1" aria-label="a formulation of truth">
+    <span class="glitch-layer gl-1" aria-hidden="true">a formulation<br>of truth</span>
+    <span class="glitch-layer gl-2" aria-hidden="true">a formulation<br>of truth</span>
+    <span class="glitch-layer gl-3" aria-hidden="true">a formulation<br>of truth</span>
+    <span class="glitch-layer gl-4" aria-hidden="true">a formulation<br>of truth</span>
+    <span class="glitch-layer gl-main">a formulation<br>of truth</span>
+  </div>
+  <div class="glitch-reflect" aria-hidden="true">a formulation<br>of truth</div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="waiting-room">
+  {% if error %}
+  <p class="error">{{ error }}</p>
+  {% endif %}
+
+  <div class="captcha-block">
+    <p class="dim small">Prove you are not a bot.</p>
+    <div class="captcha-challenge">
+      <img src="data:image/png;base64,{{ captcha_b64 }}" alt="CAPTCHA" width="560" height="80">
+    </div>
+    <form method="post" action="/">
+      <input type="hidden" name="captcha_token" value="{{ captcha_token }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <label for="captcha_answer">Enter the {{ captcha_len }} characters above</label>
+      <input type="text" id="captcha_answer" name="captcha_answer"
+             maxlength="{{ captcha_len }}" autocomplete="off"
+             autocapitalize="none" spellcheck="false" required autofocus>
+      <input type="submit" value="Enter">
+    </form>
+  </div>
+</div>
+{% endblock %}

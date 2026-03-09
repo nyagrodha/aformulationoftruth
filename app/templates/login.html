@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}login — a formulation of truth{% endblock %}
+
+{% block nav %}
+<a href="/">home</a>
+{% endblock %}
+
+{% block content %}
+<div class="glitch-sm">
+  <div class="glitch-wrap" role="presentation" aria-hidden="true">
+    <span class="glitch-layer gl-1">login</span>
+    <span class="glitch-layer gl-2">login</span>
+    <span class="glitch-layer gl-3">login</span>
+    <span class="glitch-layer gl-4">login</span>
+    <span class="glitch-layer gl-main">login</span>
+  </div>
+</div>
+
+<h1 class="sr-only">Login</h1>
+
+{% if error %}
+<p class="error">{{ error }}</p>
+{% endif %}
+
+<form method="post" action="/login" class="auth-form">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+  <label for="handle">Handle</label>
+  <input type="text" id="handle" name="handle" autocomplete="username" required autofocus>
+  <label for="password">Password</label>
+  <input type="password" id="password" name="password" autocomplete="current-password" required>
+  <input type="submit" value="Login">
+</form>
+
+<p class="dim small auth-links">No account? <a href="/register">Register</a></p>
+{% endblock %}
