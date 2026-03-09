@@ -31,16 +31,37 @@ _NOISE = (51, 51, 51)      # #333
 
 
 def _hmac_key() -> bytes:
+    """
+    Return the HMAC key used for signing CAPTCHA tokens.
+    
+    Returns:
+        bytes: The secret key as UTF-8 bytes. Uses `settings.hmac_secret` when set; otherwise falls back to the literal `"captcha-dev-key"`.
+    """
     return (settings.hmac_secret or "captcha-dev-key").encode()
 
 
 def _sign(answer_upper: str, ts: str) -> str:
+    """
+    Compute a hex-encoded HMAC signature for an uppercase answer and timestamp.
+    
+    Parameters:
+        answer_upper (str): The CAPTCHA answer already converted to uppercase.
+        ts (str): Unix timestamp string to include in the signed payload.
+    
+    Returns:
+        str: Hexadecimal HMAC-SHA256 digest of the payload "<answer_upper>:<ts>" using the module's HMAC key.
+    """
     payload = f"{answer_upper}:{ts}".encode()
     return hmac.new(_hmac_key(), payload, hashlib.sha256).hexdigest()
 
 
 def generate_captcha() -> tuple[str, str]:
-    """Return (answer, token) where token is a self-contained HMAC blob."""
+    """
+    Generate a random CAPTCHA answer and a self-contained token that encodes its HMAC signature and timestamp.
+    
+    Returns:
+        tuple[str, str]: A pair (answer, token) where `answer` is the generated CAPTCHA string and `token` is of the form "<sig>:<ts>" — `sig` is the hex HMAC-SHA256 digest for the answer and `ts` is the UNIX timestamp in seconds.
+    """
     answer = "".join(secrets.choice(_CHARSET) for _ in range(CAPTCHA_LEN))
     ts = str(int(time.time()))
     sig = _sign(answer, ts)
@@ -49,7 +70,15 @@ def generate_captcha() -> tuple[str, str]:
 
 
 def is_token_expired(token: str) -> bool:
-    """Check whether the embedded timestamp exceeds TTL."""
+    """
+    Check whether the timestamp embedded in a token is older than the allowed TTL.
+    
+    Parameters:
+        token (str): Token string in the form "<signature>:<timestamp>" produced by generate_captcha.
+    
+    Returns:
+        `true` if the token is expired or malformed, `false` otherwise.
+    """
     try:
         _, ts_str = token.rsplit(":", 1)
         ts = int(ts_str)
@@ -59,7 +88,16 @@ def is_token_expired(token: str) -> bool:
 
 
 def verify_captcha(answer: str, token: str) -> bool:
-    """Verify the answer against the HMAC token (case-insensitive)."""
+    """
+    Validate a user's CAPTCHA answer against a signed token.
+    
+    Parameters:
+        answer (str): The user's submitted answer; leading/trailing whitespace is ignored and comparison is case-insensitive.
+        token (str): The HMAC token in the format "<signature>:<timestamp>" produced by generate_captcha().
+    
+    Returns:
+        bool: `true` if the token is valid, unexpired, and matches the provided answer; `false` otherwise.
+    """
     if not answer or not token:
         return False
     if is_token_expired(token):
@@ -73,7 +111,15 @@ def verify_captcha(answer: str, token: str) -> bool:
 
 
 def render_captcha_png(answer: str) -> bytes:
-    """Render distorted monospace text as a PNG image."""
+    """
+    Render the provided answer as a distorted, noisy CAPTCHA image and return PNG bytes.
+    
+    Parameters:
+        answer (str): Text to render; characters are drawn individually with random offsets and rotations for distortion.
+    
+    Returns:
+        bytes: PNG-encoded bytes of the generated CAPTCHA image.
+    """
     img = Image.new("RGB", (_WIDTH, _HEIGHT), _BG)
     draw = ImageDraw.Draw(img)
 
