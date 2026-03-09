@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block title %}submit — a formulation of truth{% endblock %}
+
+{% block content %}
+<h1>Review &amp; Submit</h1>
+
+<p>You answered <strong>{{ answered_count }}</strong> of {{ total }} questions.</p>
+
+<p class="dim small">Unanswered questions will be skipped.
+You can go back to fill them in.</p>
+
+<hr>
+
+<div class="question-nav">
+  <a href="/gate/q/{{ total }}" class="btn-secondary btn-nav">&larr; Back to questions</a>
+  <form method="post" action="/gate/submit" style="display:inline">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <input type="submit" value="Submit &amp; Encrypt">
+  </form>
+</div>
+{% endblock %}

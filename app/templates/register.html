@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block title %}register — a formulation of truth{% endblock %}
+
+{% block nav %}
+<a href="/">home</a>
+{% endblock %}
+
+{% block content %}
+<div class="glitch-sm">
+  <div class="glitch-wrap" role="presentation" aria-hidden="true">
+    <span class="glitch-layer gl-1">register</span>
+    <span class="glitch-layer gl-2">register</span>
+    <span class="glitch-layer gl-3">register</span>
+    <span class="glitch-layer gl-4">register</span>
+    <span class="glitch-layer gl-main">register</span>
+  </div>
+</div>
+
+<h1 class="sr-only">Register</h1>
+
+{% if error %}
+<p class="error">{{ error }}</p>
+{% endif %}
+
+<form method="post" action="/register" class="auth-form">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+  <label for="handle">Handle <span class="dim">(3–32 characters)</span></label>
+  <input type="text" id="handle" name="handle" minlength="3" maxlength="32"
+         value="{{ suggested_handle|default('') }}"
+         autocomplete="username" required autofocus>
+  <p class="dim small hint">Want anonymity? <a href="/register/random">Generate a random handle</a></p>
+
+  <label for="password">Password <span class="dim">(12+ characters)</span></label>
+  <input type="password" id="password" name="password" minlength="12"
+         autocomplete="new-password" required>
+  <label for="password_confirm">Confirm password</label>
+  <input type="password" id="password_confirm" name="password_confirm"
+         autocomplete="new-password" required>
+  <input type="submit" value="Register">
+</form>
+
+<p class="dim small auth-links">Already have an account? <a href="/login">Login</a></p>
+{% endblock %}

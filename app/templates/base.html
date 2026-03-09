@@ -11,11 +11,14 @@
   <a class="skip-link" href="#content">Skip</a>
   <header>
     <nav>
+      {% block nav %}
       <a href="/gate">gate</a>
       <a href="/lotto">lotto</a>
       <a href="/logout">logout</a>
+      {% endblock %}
     </nav>
   </header>
+  {% block hero %}{% endblock %}
   <main id="content">
     {% block content %}{% endblock %}
   </main>
