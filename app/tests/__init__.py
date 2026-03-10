@@ -1,0 +1,1 @@
+"""Test suite for a formulation of truth application."""
