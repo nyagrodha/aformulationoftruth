@@ -446,14 +446,25 @@ nav {
 }
 
 /* Green "4" - leftmost — 2× */
+/* Anchor span wrapping "form" — positioning reference for the 4 */
+.form-anchor {
+    position: relative;
+    display: inline-block;
+}
+
 .bg-four {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
     color: var(--neon-emerald);
     opacity: 0.18;
     text-shadow: 0 0 30px rgba(0, 255, 136, 0.3);
     animation: bgFourPulse 10s ease-in-out infinite;
-    position: relative;
     z-index: 2;
     font-size: 2em;
+    pointer-events: none;
+    line-height: 1;
 }
 
 @keyframes bgFourPulse {
@@ -1897,8 +1908,7 @@ footer {
     }
 
     .bg-four {
-        left: 0.3em;  /* Aligned behind "form" on smaller screens */
-        font-size: 2.5em;
+        font-size: 2.5em;  /* Centered via transform, no left offset needed */
     }
 
     /* Indic numerals - column layout on mobile */
