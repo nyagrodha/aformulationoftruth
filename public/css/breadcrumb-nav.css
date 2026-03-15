@@ -1,0 +1,229 @@
+/* ============================================ */
+/* BREADCRUMB NAVIGATION - Emerges from top */
+/* ============================================ */
+
+.breadcrumb-nav {
+  position: fixed;
+  top: -100px;
+  left: 0;
+  width: 100%;
+  height: 80px;
+  background: linear-gradient(
+    180deg,
+    rgba(26, 10, 46, 0.95) 0%,
+    rgba(15, 5, 29, 0.85) 100%
+  );
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--neon-pink);
+  box-shadow:
+    0 4px 30px rgba(0, 0, 0, 0.7),
+    0 0 20px var(--neon-pink-glow);
+  z-index: 1000;
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 2rem;
+}
+
+/* Trigger zone for hover */
+.nav-trigger-zone {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 60px;
+  z-index: 999;
+  background: transparent;
+}
+
+/* Show navigation on hover */
+.nav-trigger-zone:hover + .breadcrumb-nav,
+.breadcrumb-nav:hover {
+  transform: translateY(100px);
+}
+
+/* Navigation items container */
+.breadcrumb-nav ul {
+  list-style: none;
+  display: flex;
+  gap: 2rem;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  padding: 0;
+  margin: 0;
+}
+
+.breadcrumb-nav li {
+  position: relative;
+}
+
+/* Navigation links */
+.breadcrumb-nav a {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  text-decoration: none;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  padding: 0.5rem 1rem;
+  display: block;
+  position: relative;
+  transition: var(--transition-fast);
+  overflow: hidden;
+}
+
+/* Hover effects */
+.breadcrumb-nav a::before {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 0;
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    var(--neon-pink) 0%,
+    var(--neon-orange) 100%
+  );
+  transform: translateX(-50%);
+  transition: width 0.3s ease;
+  box-shadow: 0 0 10px var(--neon-pink-glow);
+}
+
+.breadcrumb-nav a:hover::before {
+  width: 100%;
+}
+
+.breadcrumb-nav a:hover {
+  color: var(--neon-pink);
+  text-shadow: 0 0 15px var(--neon-pink-glow);
+  transform: translateY(-2px);
+}
+
+/* Active/current page indicator */
+.breadcrumb-nav a.active {
+  color: var(--neon-orange);
+  text-shadow: 0 0 20px var(--neon-orange-glow);
+}
+
+.breadcrumb-nav a.active::before {
+  width: 100%;
+  background: var(--neon-orange);
+}
+
+/* Separator between items */
+.breadcrumb-nav li:not(:last-child)::after {
+  content: '⟫';
+  position: absolute;
+  right: -1.2rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--neon-pink);
+  opacity: 0.5;
+  font-size: 1.2rem;
+}
+
+/* ============================================ */
+/* MOBILE RESPONSIVE */
+/* ============================================ */
+
+@media (max-width: 768px) {
+  .breadcrumb-nav {
+    height: auto;
+    padding: 1rem;
+  }
+
+  .breadcrumb-nav ul {
+    gap: 1rem;
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .breadcrumb-nav li {
+    width: 100%;
+    text-align: center;
+  }
+
+  .breadcrumb-nav a {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    font-size: 0.9rem;
+  }
+
+  .breadcrumb-nav li:not(:last-child)::after {
+    content: '';
+    display: none;
+  }
+
+  /* Mobile: slide down on tap/hover */
+  .nav-trigger-zone:active + .breadcrumb-nav,
+  .breadcrumb-nav:active {
+    transform: translateY(100px);
+  }
+}
+
+/* ============================================ */
+/* DESKTOP ENHANCEMENTS */
+/* ============================================ */
+
+@media (min-width: 1024px) {
+  .breadcrumb-nav {
+    height: 90px;
+  }
+
+  .breadcrumb-nav ul {
+    gap: 3rem;
+  }
+
+  .breadcrumb-nav a {
+    font-size: 1.1rem;
+    padding: 0.6rem 1.2rem;
+  }
+
+  /* Glow effect on hover for desktop */
+  .breadcrumb-nav a:hover {
+    background: radial-gradient(
+      ellipse at center,
+      rgba(255, 0, 128, 0.1) 0%,
+      transparent 70%
+    );
+  }
+}
+
+/* ============================================ */
+/* TOUCH DEVICE SUPPORT */
+/* ============================================ */
+
+@media (hover: none) and (pointer: coarse) {
+  /* On touch devices, show nav on touch of trigger zone */
+  .nav-trigger-zone {
+    height: 80px;
+  }
+
+  .nav-trigger-zone.touched + .breadcrumb-nav,
+  .breadcrumb-nav.touched {
+    transform: translateY(100px);
+  }
+}
+
+/* ============================================ */
+/* ANIMATION FOR ENTRANCE */
+/* ============================================ */
+
+@keyframes slideDownNav {
+  from {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(100px);
+    opacity: 1;
+  }
+}
+
+.breadcrumb-nav.animated {
+  animation: slideDownNav 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}

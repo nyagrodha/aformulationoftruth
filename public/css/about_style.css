@@ -1,0 +1,37 @@
+/* Style utilities for about page */
+
+/* Sanskrit terms display */
+.sanskrit-terms {
+    color: var(--text-secondary);
+    font-size: 0.95em;
+    margin: 0.3em 0;
+    padding: 0 0.5em;
+}
+
+/* Devanagari script */
+.devanagari {
+    font-size: 0.85em;
+}
+
+/* IAST transliteration */
+.transliteration {
+    font-variant: small-caps;
+    letter-spacing: 0.05em;
+}
+
+/* Grammar/linguistic notes */
+.grammar-note {
+    color: var(--text-muted, #888);
+    font-size: 0.75em;
+    font-style: italic;
+}
+
+/* Centered button container */
+.button-group {
+    text-align: center;
+}
+
+/* Secondary button spacing */
+.btn-spaced {
+    margin-left: 1rem;
+}

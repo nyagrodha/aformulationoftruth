@@ -4,7 +4,7 @@
  */
 
 (function() {
-  'use strict';
+    'use strict';
 
   // Theme configuration
   const THEMES = ['system', 'tamas', 'nila', 'uruvam'];
@@ -25,11 +25,6 @@
     return THEMES.includes(saved) ? saved : 'system';
   }
 
-  // Save theme to localStorage
-  function saveTheme(theme) {
-    localStorage.setItem(STORAGE_KEY, theme);
-  }
-
   // Apply theme to document
   function applyTheme(theme) {
     let actualTheme = theme;
@@ -45,32 +40,37 @@
   }
 
   // Update active button state
-  function updateActiveButton(activeTheme) {
-    const buttons = document.querySelectorAll('.theme-btn');
-    buttons.forEach(btn => {
-      if (btn.getAttribute('data-theme') === activeTheme) {
-        btn.classList.add('active');
-      } else {
-        btn.classList.remove('active');
-      }
+  function updateActiveButton(theme) {
+    document.querySelectorAll('.theme-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.theme === theme);
     });
   }
 
-  // Initialize theme on page load
+  // Save theme preference
+  function saveTheme(theme) {
+    try {
+      localStorage.setItem(STORAGE_KEY, theme);
+    } catch (e) {
+      // localStorage not available, silent fail
+    }
+  }
+
+  // Set up click handlers for theme buttons
+  function setupEventListeners() {
+    document.querySelectorAll('.theme-btn').forEach(btn => {
+      btn.addEventListener('click', function() {
+        const themeName = this.dataset.theme;
+        if (themeName && THEMES.includes(themeName)) {
+          applyTheme(themeName);
+        }
+      });
+    });
+  }
+
+  // Initialize theme
   function initTheme() {
     const savedTheme = getSavedTheme();
     applyTheme(savedTheme);
-  }
-
-  // Set up event listeners
-  function setupEventListeners() {
-    const buttons = document.querySelectorAll('.theme-btn');
-    buttons.forEach(btn => {
-      btn.addEventListener('click', function() {
-        const theme = this.getAttribute('data-theme');
-        applyTheme(theme);
-      });
-    });
   }
 
   // Listen for system theme changes
@@ -102,4 +102,10 @@
     setupSystemThemeListener();
   }
 
+    // Expose for external use
+    window.ThemeToggle = {
+        apply: applyTheme,
+        getCurrent: getSavedTheme,
+        themes: THEMES
+    };
 })();

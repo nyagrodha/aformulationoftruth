@@ -1,3 +1,61 @@
-# https://www.robotstxt.org/robotstxt.html
+# robots.txt — aformulationoftruth.com
+# Allow indexing of public content, block private/API/admin paths
+
 User-agent: *
-Disallow:
+Allow: /
+Allow: /about.html
+Allow: /contact.html
+Allow: /privacy.html
+
+# Block all API endpoints
+Disallow: /api/
+Disallow: /auth/
+Disallow: /user/
+
+# Block interactive/private sections
+Disallow: /questionnaire
+Disallow: /completion
+Disallow: /bhairava-await
+Disallow: /Login
+
+# Block uploads directory
+Disallow: /uploads/
+
+# Block common scanner targets (reduce noise in logs)
+Disallow: /.env
+Disallow: /.git/
+Disallow: /wp-login.php
+Disallow: /wp-content/
+Disallow: /xmlrpc.php
+Disallow: /admin
+Disallow: /*.php$
+
+# Crawl rate limit
+Crawl-delay: 10
+
+# AI training crawlers — disallow
+User-agent: GPTBot
+Disallow: /
+
+User-agent: ChatGPT-User
+Disallow: /
+
+User-agent: CCBot
+Disallow: /
+
+User-agent: anthropic-ai
+Disallow: /
+
+User-agent: Claude-Web
+Disallow: /
+
+User-agent: Google-Extended
+Disallow: /
+
+User-agent: Bytespider
+Disallow: /
+
+User-agent: FacebookBot
+Disallow: /
+
+Sitemap: https://aformulationoftruth.com/sitemap.xml

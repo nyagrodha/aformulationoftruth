@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zcash (ZEC) - a formulation of truth</title>
+
+    <!-- Favicons -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicons/favicon-simple-32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicons/favicon-simple-16.png">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            background: #0a0a0a;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Orbitron', sans-serif;
+            overflow-x: hidden;
+        }
+
+        /* Wallpaper background with both images */
+        .wallpaper {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            display: flex;
+        }
+
+        .wallpaper-left,
+        .wallpaper-right {
+            flex: 1;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            opacity: 0.15;
+            filter: blur(2px);
+        }
+
+        .wallpaper-left {
+            background-image: url('/images/zec.PNG');
+        }
+
+        .wallpaper-right {
+            background-image: url('/images/zcash.PNG');
+        }
+
+        /* Dark overlay */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(ellipse at center, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.7) 100%);
+            z-index: 1;
+        }
+
+        /* Content container */
+        .content {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+            padding: 2rem;
+            max-width: 800px;
+        }
+
+        h1 {
+            color: #f4b728;
+            font-size: clamp(1.5rem, 4vw, 2.5rem);
+            margin-bottom: 1rem;
+            text-shadow: 0 0 20px rgba(244, 183, 40, 0.5);
+            letter-spacing: 0.1em;
+        }
+
+        .subtitle {
+            color: #888;
+            font-size: 0.9rem;
+            margin-bottom: 2rem;
+            letter-spacing: 0.2em;
+        }
+
+        /* QR code display */
+        .qr-container {
+            display: flex;
+            gap: 2rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin: 2rem 0;
+        }
+
+        .qr-box {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 1rem;
+            border-radius: 12px;
+            box-shadow: 0 0 40px rgba(244, 183, 40, 0.3);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .qr-box:hover {
+            transform: scale(1.02);
+            box-shadow: 0 0 60px rgba(244, 183, 40, 0.5);
+        }
+
+        .qr-box img {
+            max-width: 280px;
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .qr-label {
+            color: #333;
+            font-size: 0.7rem;
+            margin-top: 0.5rem;
+            letter-spacing: 0.1em;
+        }
+
+        /* Privacy note */
+        .privacy-note {
+            color: #666;
+            font-size: 0.7rem;
+            margin-top: 2rem;
+            line-height: 1.6;
+            max-width: 500px;
+        }
+
+        .privacy-note strong {
+            color: #f4b728;
+        }
+
+        /* Back link */
+        .back-link {
+            display: inline-block;
+            margin-top: 2rem;
+            padding: 0.8rem 2rem;
+            color: #f4b728;
+            text-decoration: none;
+            border: 2px solid #f4b728;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            letter-spacing: 0.1em;
+            transition: all 0.3s ease;
+        }
+
+        .back-link:hover {
+            background: #f4b728;
+            color: #0a0a0a;
+            box-shadow: 0 0 20px rgba(244, 183, 40, 0.4);
+        }
+
+        /* Zcash logo icon */
+        .zcash-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: #f4b728;
+            text-shadow: 0 0 30px rgba(244, 183, 40, 0.6);
+        }
+    </style>
+</head>
+<body>
+    <!-- Wallpaper background -->
+    <div class="wallpaper">
+        <div class="wallpaper-left"></div>
+        <div class="wallpaper-right"></div>
+    </div>
+    <div class="overlay"></div>
+
+    <!-- Content -->
+    <div class="content">
+        <div class="zcash-icon">Ⓩ</div>
+        <h1>Zcash (ZEC)</h1>
+        <p class="subtitle">SHIELDED TRANSACTION</p>
+
+        <div class="qr-container">
+            <div class="qr-box">
+                <img src="/images/zec.PNG" alt="Zcash QR Code">
+                <p class="qr-label">SCAN TO DONATE</p>
+            </div>
+        </div>
+
+        <p class="privacy-note">
+            <strong>Privacy-preserving cryptocurrency</strong> with shielded transactions.
+            Scan the QR code with your Zcash wallet to donate.
+            Thank you for your support.
+        </p>
+
+        <a href="/donate.html" class="back-link">Return to Donations</a>
+    </div>
+</body>
+</html>
