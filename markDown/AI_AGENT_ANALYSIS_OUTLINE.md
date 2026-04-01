@@ -198,10 +198,13 @@ The agent must not:
 - replace therapy or clinical judgment;
 - collapse literary interpretation into factual biography.
 
+The agent must:
+
+- keep every interpretive claim provisional.
+
 The agent should:
 
 - quote or paraphrase the user's answers carefully;
-- mark every interpretation as provisional;
 - invite reflection instead of issuing verdicts.
 
 ## Best next implementation step
