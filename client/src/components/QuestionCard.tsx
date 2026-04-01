@@ -167,23 +167,24 @@ export default function QuestionCard({
         </div>
 
         {/* Navigation Buttons */}
-        <div className="flex justify-between items-center mt-8 pt-6 border-t border-border">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mt-8 pt-6 border-t border-border">
           <Button 
             variant="outline"
             onClick={onPrevious}
             disabled={!canGoBack || isNavigating}
+            className="w-full sm:w-auto"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Previous
           </Button>
 
-          <div className="flex space-x-3">
+          <div className="flex flex-col sm:flex-row gap-2 sm:space-x-3">
             {!declined && (
               <Button 
                 variant="outline"
                 onClick={onDecline}
                 disabled={isSaving || isNavigating}
-                className="text-yellow-600 border-yellow-600 hover:bg-yellow-50 dark:hover:bg-yellow-950"
+                className="w-full sm:w-auto text-yellow-600 border-yellow-600 hover:bg-yellow-50 dark:hover:bg-yellow-950"
               >
                 Decline to Answer
               </Button>
@@ -193,6 +194,7 @@ export default function QuestionCard({
               variant="secondary"
               onClick={onSave}
               disabled={(!answer.trim() && !declined) || isSaving || !canProceed}
+              className="w-full sm:w-auto"
             >
               {isSaving ? (
                 <>
@@ -210,6 +212,7 @@ export default function QuestionCard({
             <Button 
               onClick={handleNext}
               disabled={!canProceed || isNavigating}
+              className="w-full sm:w-auto"
             >
               {isNavigating ? (
                 <>

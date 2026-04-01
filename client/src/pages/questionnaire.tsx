@@ -258,10 +258,10 @@ export default function QuestionnairePage() {
             variant="outline" 
             size="sm" 
             onClick={handleLogout}
-            className="text-slate-400 hover:text-slate-200"
+            className="text-slate-400 hover:text-slate-200 shrink-0"
           >
-            <LogOut className="w-4 h-4 mr-2" />
-            Click to save now; return later
+            <LogOut className="w-4 h-4 sm:mr-2" />
+            <span className="hidden sm:inline">Click to save now; return later</span>
           </Button>
         </div>
         
@@ -275,20 +275,20 @@ export default function QuestionnairePage() {
       <div className="max-w-4xl mx-auto px-4 py-8">
         <Card className="border border-slate-700/50 shadow-xl bg-slate-800/60 backdrop-blur-sm">
           <CardHeader className="pb-6">
-            <div className="flex items-start gap-4 mb-6">
+            <div className="flex items-start gap-2 sm:gap-4 mb-6">
               {/* Question numerals */}
-              <div className="flex flex-col items-center gap-2 min-w-[80px] pt-1">
-                <div className={`text-3xl font-bold ${questionData.progress.current % 2 === 1 ? 'text-emerald-400' : 'text-yellow-400'}`}>
+              <div className="flex flex-col items-center gap-2 min-w-[60px] sm:min-w-[80px] pt-1">
+                <div className={`text-2xl sm:text-3xl font-bold ${questionData.progress.current % 2 === 1 ? 'text-emerald-400' : 'text-yellow-400'}`}>
                   {getKannadaNumeral(questionData.progress.current)}
                 </div>
-                <div className={`text-2xl font-semibold ${questionData.progress.current % 2 === 1 ? 'text-yellow-400' : 'text-emerald-400'}`}>
+                <div className={`text-xl sm:text-2xl font-semibold ${questionData.progress.current % 2 === 1 ? 'text-yellow-400' : 'text-emerald-400'}`}>
                   {questionData.progress.current}
                 </div>
               </div>
               
               {/* Question text */}
               <div className="flex-1">
-                <div className="text-xl text-slate-100 leading-relaxed question-text">
+                <div className="text-lg sm:text-xl text-slate-100 leading-relaxed question-text">
                   {questionData.question.text}
                 </div>
               </div>
@@ -323,14 +323,14 @@ export default function QuestionnairePage() {
               )}
             </div>
 
-            <div className="flex items-center justify-between pt-4">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-4">
               {questionData.progress.current === 1 && (
                 <div className="text-xs text-slate-500 italic">
                   Each response is encrypted using industry-standard AES-256 encryption. The data you create is stored securely on the server in Finland, and will not be used or shared or in any way disseminated without your express consent.
                 </div>
               )}
               
-              <div className="flex gap-3">
+              <div className="flex gap-3 sm:ml-auto">
                 {hasUnsavedChanges && (
                   <Button
                     variant="outline"

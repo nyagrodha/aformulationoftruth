@@ -171,7 +171,7 @@ export default function AuthPage() {
 
   return (
     <div
-      className="min-h-screen overflow-hidden flex items-center justify-center neon-background"
+      className="min-h-screen overflow-y-auto flex items-center justify-center neon-background py-6 px-4"
       style={{
         background: `
           radial-gradient(circle at 20% 20%, rgba(0, 255, 255, 0.1) 0%, transparent 50%),
@@ -183,7 +183,7 @@ export default function AuthPage() {
       }}
     >
       <div
-        className="relative px-12 py-8 neon-frame"
+        className="relative w-full max-w-3xl px-4 py-6 sm:px-12 sm:py-8 neon-frame"
         style={{
           background: "rgba(212, 175, 55, 0.8)",
           border: "12px solid #8B4513",
@@ -197,7 +197,7 @@ export default function AuthPage() {
       >
         <div className="text-center mb-6">
           <span
-            className="block lowercase text-5xl"
+            className="block lowercase text-3xl sm:text-5xl"
             style={{
               fontFamily: '"Playfair Display", serif',
               color: "#111",
@@ -225,7 +225,7 @@ export default function AuthPage() {
           </div>
 
           <span
-            className="block lowercase text-5xl mt-2"
+            className="block lowercase text-3xl sm:text-5xl mt-2"
             style={{
               fontFamily: '"Playfair Display", serif',
               color: "#111",
@@ -242,7 +242,7 @@ export default function AuthPage() {
         </div>
 
         <p
-          className="text-lg leading-relaxed max-w-2xl mx-auto mb-12 font-light text-center text-[#4d2316] pt-[0px] pb-[0px]"
+          className="text-base sm:text-lg leading-relaxed max-w-2xl mx-auto mb-12 font-light text-center text-[#4d2316] pt-[0px] pb-[0px]"
           style={{
             fontFamily: '"Playfair Display", serif',
             color: "#2d1810",
