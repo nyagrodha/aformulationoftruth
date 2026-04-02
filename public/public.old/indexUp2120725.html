@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>a formulation of truth</title>
+
+  <!-- Favicons -->
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;800&family=Noto+Sans+Tamil:wght@400;700&family=Noto+Sans+Devanagari:wght@400;700&display=swap" rel="stylesheet"><!-- Stylesheets -->
+  <link rel="stylesheet" href="/css/themes.css">
+  <style>
+  </style>
+  <meta name="description" content="a Proust questionnaire dba Karupacami kelvittal">
+
+  <!-- Open Graph Meta Tags -->
+  <meta property="og:title" content="a formulation of truth">
+  <meta property="og:description" content="A practice in self-inquiry. These questions invite upon users reflective states of awareness, revealing something interior that vivifies oneself as a formulation of truth.">
+  <meta property="og:image" content="https://aformulationoftruth.com/callbackground.png">
+  <meta property="og:url" content="https://aformulationoftruth.com">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="a formulation of truth">
+
+  <!-- Twitter Card Meta Tags -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="a formulation of truth">
+  <meta name="twitter:description" content="A practice in self-inquiry. These questions invite upon users reflective states of awareness, revealing something interior that vivifies oneself as a formulation of truth.">
+  <meta name="twitter:image" content="https://aformulationoftruth.com/callbackground.png">
+</head>
+<body>
+  <section class="hero">
+   <div style="font-family: 'Noto Sans Tamil', sans-serif; font-size: clamp(2rem, 5vw, 3rem); font-weight: 700; text-align: center; margin-bottom: 0.5rem; color: var(--accent-1); text-shadow: 0 0 10px var(--glow-1);">௨</div>
+    <h1 class="hero-title">you are this moment</h1>
+
+    <!-- Large @ Symbol -->
+    <div style="font-family: 'Orbitron', monospace; font-size: clamp(8rem, 15vw, 12rem); font-weight: 700; text-align: center; margin: 2rem auto; color: var(--accent-1); text-shadow: 0 0 20px var(--glow-1), 0 0 40px var(--glow-1); line-height: 1; opacity: 0.9;">@</div>
+
+    <!-- Lockup -->
+    <div class="lockup">
+      <div class="lockup-tamil">
+        உண்மையை சூத்திரம்
+      </div>
+      <div class="lockup-center">
+        || a formulation of truth ||
+      </div>
+      <div class="lockup-ukr">
+        формулювання істини
+      </div>
+    </div><!-- Description -->
+    <p style="max-width: 800px; margin: 2rem auto; padding: 0 1rem;">A practice in <a href="https://www.davidgodman.org/the-practice-of-self-enquiry/" target="_blank">self-inquiry</a> these questions invite upon users reflective states of awareness. Persons' crafted responses (or a non-response!) reveal something interior (<a href="https://en.wikipedia.org/wiki/Puram" target="_blank">அகம்</a>)--the idiosyncratic machinations that vivify oneself, as such, a person and a formulation of truth.</p><!-- Navigation Cards -->
+    <div class="grid">
+      <a class="card" href="/about.html">
+        <h3>about the site</h3>
+        <p>We are able to find everything in our memory, which is like a dispensary or chemical laboratory in which chance steers our hand sometimes to a soothing drug and sometimes to a dangerous poison.</p>
+      </a>
+
+      <a class="card" href="/preambleramble.html">
+        <h3>preamble ramble</h3>
+        <p>From the great American classic *Trout Fishing in America* by a hero of the mind and imaginataion, Richard Brautigan. Prior to beginning, an opener and a dedication.</p>
+      </a>
+
+      <div class="card">
+        <h3>Begin</h3>
+        <p style="margin-bottom: 1rem;">Sign in to begin the questionnaire</p>
+
+        <form id="auth-form" style="margin-top: 1rem;">
+          <!-- KEYCLOAK AUTHENTICATION COMMENTED OUT
+          <button type="button" id="oauth-login-btn" style="width: 100%; padding: 0.75rem; background: var(--accent-1); color: var(--bg-color); border: none; border-radius: 4px; font-family: 'Orbitron', monospace; font-weight: 600; cursor: pointer; transition: all 0.4s ease; margin-bottom: 0.75rem;">
+            🔐 Sign in with Keycloak
+          </button>
+
+          <div style="text-align: center; margin: 0.75rem 0; color: var(--text-color); opacity: 0.6; font-size: 0.9rem;">
+            — or use email magic link —
+          </div>
+          -->
+
+          <!-- Telegram Login Widget - Kelvi_Tal (@qu3stvbot) -->
+          <div style="display: flex; justify-content: center; margin-bottom: 1rem;">
+            <script async src="https://telegram.org/js/telegram-widget.js?22"
+                    data-telegram-login="qu3stvbot"
+                    data-size="large"
+                    data-onauth="onTelegramAuth(user)"
+                    data-request-access="write">
+            </script>
+          </div>
+
+          <div style="text-align: center; margin: 0.75rem 0; color: var(--text-color); opacity: 0.6; font-size: 0.9rem;">
+            — or use email magic link —
+          </div>
+
+          <input
+            type="email"
+            id="email-input"
+            placeholder="your.email@example.com"
+            style="width: 100%; padding: 0.75rem; border: 1px solid var(--accent-1); background: var(--bg-color); color: var(--text-color); border-radius: 4px; margin-bottom: 0.75rem; font-family: 'Orbitron', monospace;"
+          >
+          <button type="submit" style="width: 100%; padding: 0.75rem; background: transparent; color: var(--accent-1); border: 2px solid var(--accent-1); border-radius: 4px; font-family: 'Orbitron', monospace; font-weight: 600; cursor: pointer; transition: all 0.4s ease;">
+            Send Magic Link
+          </button>
+
+          <!-- SMS VALIDATION FEATURE COMMENTED OUT
+          <div id="phone-verification-section" style="display: none;">
+            <div style="text-align: center; margin: 1rem 0; color: var(--text-color); opacity: 0.6; font-size: 0.9rem;">
+              — or use SMS/phone verification —
+            </div>
+
+            <input
+              type="tel"
+              id="phone-input"
+              placeholder="2345678901 (USA: auto +1)"
+              style="width: 100%; padding: 0.75rem; border: 1px solid var(--accent-1); background: var(--bg-color); color: var(--text-color); border-radius: 4px; margin-bottom: 0.75rem; font-family: 'Orbitron', monospace;"
+            >
+            <button type="button" id="phone-sms-btn" style="width: 100%; padding: 0.75rem; background: transparent; color: var(--accent-1); border: 2px solid var(--accent-1); border-radius: 4px; font-family: 'Orbitron', monospace; font-weight: 600; cursor: pointer; transition: all 0.4s ease; margin-bottom: 0.5rem;">
+              📱 Send SMS Code
+            </button>
+            <button type="button" id="phone-call-btn" style="width: 100%; padding: 0.75rem; background: transparent; color: var(--accent-1); border: 2px solid var(--accent-1); border-radius: 4px; font-family: 'Orbitron', monospace; font-weight: 600; cursor: pointer; transition: all 0.4s ease;">
+              📞 Call with Code
+            </button>
+
+            <div id="verify-code-section" style="display: none; margin-top: 1rem;">
+              <input
+                type="text"
+                id="code-input"
+                placeholder="Enter 6-digit code"
+                maxlength="6"
+                style="width: 100%; padding: 0.75rem; border: 1px solid var(--accent-1); background: var(--bg-color); color: var(--text-color); border-radius: 4px; margin-bottom: 0.75rem; font-family: 'Orbitron', monospace; text-align: center; font-size: 1.2rem; letter-spacing: 0.3rem;"
+              >
+              <button type="button" id="verify-code-btn" style="width: 100%; padding: 0.75rem; background: var(--accent-1); color: var(--bg-color); border: none; border-radius: 4px; font-family: 'Orbitron', monospace; font-weight: 600; cursor: pointer; transition: all 0.4s ease;">
+                ✓ Verify Code
+              </button>
+            </div>
+          </div>
+          -->
+        </form>
+
+        <div id="auth-message" style="margin-top: 1rem; padding: 0.75rem; border-radius: 4px; display: none;"></div>
+      </div>
+    </div><!-- Footer Quote -->
+    <p style="margin-top: 2rem; font-style: italic; opacity: 0.9; max-width: 700px; padding: 0 1rem;">It has been said that beauty brings a promise of happiness, but it could be otherwise that the possibility of joy is the beginning of beauty. So have fun and, if you wish, share what you create so joy may ever await you.</p>
+  </section><!-- Theme Toggle Script -->
+  <a href="https://billing.flokinet.is/aff.php?aff=543"><img src=https://flokinet.is/images/floki_logo.svg width="542" height="161" border="0"></a>
+ <script>
+  // Handle OAuth, magic link, and phone authentication
+  (function() {
+    const authForm = document.getElementById('auth-form');
+    const emailInput = document.getElementById('email-input');
+    const phoneInput = document.getElementById('phone-input');
+    const oauthBtn = document.getElementById('oauth-login-btn');
+    const phoneSmsBtn = document.getElementById('phone-sms-btn');
+    const phoneCallBtn = document.getElementById('phone-call-btn');
+    const verifyCodeSection = document.getElementById('verify-code-section');
+    const phoneVerificationSection = document.getElementById('phone-verification-section');
+    const codeInput = document.getElementById('code-input');
+    const verifyCodeBtn = document.getElementById('verify-code-btn');
+    const authMessage = document.getElementById('auth-message');
+
+    let currentEmail = '';
+    let currentPhone = '';
+
+    // SMS VALIDATION FEATURE COMMENTED OUT - Geolocation check
+    /*
+    async function checkGeolocation() {
+      try {
+        const response = await fetch('/api/geolocation');
+        const data = await response.json();
+
+        if (data.isUSA) {
+          phoneVerificationSection.style.display = 'block';
+          console.log('Phone verification enabled for USA user');
+        } else {
+          console.log(`Phone verification disabled for ${data.country} user`);
+        }
+      } catch (error) {
+        console.error('Error checking geolocation:', error);
+        // Default to showing phone verification if geolocation fails
+        phoneVerificationSection.style.display = 'block';
+      }
+    }
+
+    // Check geolocation on page load
+    checkGeolocation();
+    */
+
+    // KEYCLOAK OAUTH LOGIN HANDLER COMMENTED OUT
+    /*
+    // OAuth login handler
+    oauthBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      oauthBtn.disabled = true;
+      oauthBtn.textContent = '🔐 Redirecting to Keycloak...';
+      window.location.href = '/api/auth/oidc/login';
+    });
+    */
+
+    // Telegram authentication handler
+    window.onTelegramAuth = async function(user) {
+      console.log('Telegram auth received:', user);
+      showMessage('Authenticating with Telegram...', 'info');
+
+      try {
+        const response = await fetch('/api/auth/telegram', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            id: user.id,
+            first_name: user.first_name,
+            last_name: user.last_name,
+            username: user.username,
+            photo_url: user.photo_url,
+            auth_date: user.auth_date,
+            hash: user.hash
+          })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          showMessage('✅ Telegram authentication successful! Redirecting...', 'success');
+
+          // Store token if provided
+          if (data.token) {
+            localStorage.setItem('token', data.token);
+          }
+
+          setTimeout(() => {
+            window.location.href = '/questionnaire.html';
+          }, 1500);
+        } else {
+          showMessage(data.error || 'Telegram authentication failed.', 'error');
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        showMessage('Network error during Telegram authentication.', 'error');
+      }
+    };
+
+    // Magic link handler
+    authForm.addEventListener('submit', async function(e) {
+      e.preventDefault();
+
+      const email = emailInput.value.trim();
+      if (!email) {
+        showMessage('Please enter your email', 'error');
+        return;
+      }
+
+      emailInput.disabled = true;
+      authForm.querySelector('button[type="submit"]').disabled = true;
+      showMessage('Sending magic link...', 'info');
+
+      try {
+        const response = await fetch('/auth/request', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          showMessage('✅ Check your email! Click the magic link to begin.', 'success');
+          emailInput.value = '';
+        } else {
+          showMessage(data.error || 'Failed to send magic link.', 'error');
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        showMessage('Network error. Please try again.', 'error');
+      } finally {
+        emailInput.disabled = false;
+        authForm.querySelector('button[type="submit"]').disabled = false;
+      }
+    });
+
+    // SMS VALIDATION FEATURE COMMENTED OUT - Phone handlers
+    /*
+    // Phone SMS handler
+    phoneSmsBtn.addEventListener('click', async function(e) {
+      e.preventDefault();
+      await sendPhoneVerification('sms');
+    });
+
+    // Phone call handler
+    phoneCallBtn.addEventListener('click', async function(e) {
+      e.preventDefault();
+      await sendPhoneVerification('voice');
+    });
+
+    // Verify code handler
+    verifyCodeBtn.addEventListener('click', async function(e) {
+      e.preventDefault();
+
+      const code = codeInput.value.trim();
+      if (!code || code.length !== 6) {
+        showMessage('Please enter a valid 6-digit code', 'error');
+        return;
+      }
+
+      verifyCodeBtn.disabled = true;
+      verifyCodeBtn.textContent = 'Verifying...';
+      showMessage('Verifying code...', 'info');
+
+      try {
+        const response = await fetch('/api/phone/verify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: currentEmail,
+            code: code,
+            phoneNumber: currentPhone
+          })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          showMessage('✅ Phone verified! Redirecting to questionnaire...', 'success');
+
+          setTimeout(() => {
+            window.location.href = `/questionnaire.html?email=${encodeURIComponent(currentEmail)}`;
+          }, 1500);
+        } else {
+          showMessage(data.error || 'Failed to verify code.', 'error');
+          verifyCodeBtn.disabled = false;
+          verifyCodeBtn.textContent = '✓ Verify Code';
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        showMessage('Network error. Please try again.', 'error');
+        verifyCodeBtn.disabled = false;
+        verifyCodeBtn.textContent = '✓ Verify Code';
+      }
+    });
+
+    async function sendPhoneVerification(method) {
+      let phone = phoneInput.value.trim();
+      const email = emailInput.value.trim();
+
+      if (!email) {
+        showMessage('Please enter your email address first', 'error');
+        emailInput.focus();
+        return;
+      }
+
+      if (!phone) {
+        showMessage('Please enter your phone number', 'error');
+        return;
+      }
+
+      // Auto-prepend +1 for USA numbers (10 or 11 digits without country code)
+      if (!phone.startsWith('+')) {
+        // Remove any non-digit characters
+        const digitsOnly = phone.replace(/\D/g, '');
+
+        // Check if it looks like a US number (10 digits, or 11 digits starting with 1)
+        if (digitsOnly.length === 10) {
+          phone = '+1' + digitsOnly;
+          phoneInput.value = phone; // Update the input field
+          console.log('Auto-prepended +1 for US number');
+        } else if (digitsOnly.length === 11 && digitsOnly.startsWith('1')) {
+          phone = '+' + digitsOnly;
+          phoneInput.value = phone; // Update the input field
+          console.log('Auto-prepended + for US number starting with 1');
+        } else {
+          showMessage('Phone number must start with + or be a valid 10-digit US number', 'error');
+          return;
+        }
+      }
+
+      currentEmail = email;
+      currentPhone = phone;
+      phoneSmsBtn.disabled = true;
+      phoneCallBtn.disabled = true;
+      showMessage(`Sending ${method === 'sms' ? 'SMS' : 'voice call'}...`, 'info');
+
+      try {
+        const response = await fetch('/api/phone/request', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: email,
+            phoneNumber: phone,
+            method: method
+          })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          showMessage(`✅ ${method === 'sms' ? 'SMS sent' : 'Calling'}! Enter the 6-digit code below.`, 'success');
+          verifyCodeSection.style.display = 'block';
+          codeInput.focus();
+        } else {
+          showMessage(data.error || `Failed to send ${method}.`, 'error');
+          phoneSmsBtn.disabled = false;
+          phoneCallBtn.disabled = false;
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        showMessage('Network error. Please try again.', 'error');
+        phoneSmsBtn.disabled = false;
+        phoneCallBtn.disabled = false;
+      }
+    }
+    */
+
+    function showMessage(text, type) {
+      authMessage.textContent = text;
+      authMessage.style.display = 'block';
+      authMessage.style.background = type === 'error' ? 'rgba(239, 68, 68, 0.2)' :
+                                      type === 'success' ? 'rgba(34, 197, 94, 0.2)' :
+                                      'rgba(59, 130, 246, 0.2)';
+      authMessage.style.border = type === 'error' ? '1px solid #ef4444' :
+                                  type === 'success' ? '1px solid #22c55e' :
+                                  '1px solid #3b82f6';
+      authMessage.style.color = 'var(--text-color)';
+
+      if (type !== 'success') {
+        setTimeout(() => {
+          authMessage.style.display = 'none';
+        }, 5000);
+      }
+    }
+  })();
+ </script>
+</body>
+</html>

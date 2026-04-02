@@ -1,0 +1,248 @@
+:root {
+  --blue-deep: #0b1020;
+  --blue-soft: #1b2a4a;
+  --blue-medium: #2a3a5a;
+  --pink: #ff6fae;
+  --green: #4cffb0;
+  --text-main: #e6ebff;
+  --text-muted: #9aa3c7;
+  --text-pale: #d0d8f0;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: linear-gradient(180deg, var(--blue-deep) 0%, #0a0e1a 50%, var(--blue-deep) 100%);
+  color: var(--text-main);
+  font-family: 'Space Grotesk', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem 1rem;
+}
+
+.container {
+  max-width: 900px;
+  width: 100%;
+  text-align: center;
+}
+
+/* Small sigil */
+.sigil-small {
+  font-size: 2.5rem;
+  font-weight: 300;
+  opacity: 0.4;
+  margin-bottom: 2rem;
+  transform: rotate(-3deg);
+  filter: blur(0.3px);
+}
+
+.sigil-small img {
+  max-width: 50px;
+  height: auto;
+  opacity: 0.6;
+  transform: rotate(-3deg);
+  filter: brightness(1.1) drop-shadow(0 0 15px rgba(255, 111, 174, 0.5));
+}
+
+/* Hero title */
+.hero-title {
+  font-size: 3.5rem;
+  font-weight: 600;
+  line-height: 1.2;
+  margin-bottom: 1rem;
+  letter-spacing: -0.02em;
+}
+
+.title-line-1 {
+  display: block;
+  color: var(--text-main);
+}
+
+.title-line-2 {
+  display: block;
+  background: linear-gradient(90deg, var(--pink), var(--green));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.hero-subtitle {
+  font-size: 1.1rem;
+  color: var(--text-muted);
+  margin-bottom: 4rem;
+  font-weight: 300;
+  letter-spacing: 0.02em;
+}
+
+/* Action boxes */
+.action-boxes {
+  display: flex;
+  gap: 2rem;
+  justify-content: center;
+  margin-bottom: 4rem;
+}
+
+.action-box {
+  flex: 1;
+  max-width: 320px;
+  background: rgba(27, 42, 74, 0.3);
+  border: 2px solid var(--blue-soft);
+  border-radius: 16px;
+  padding: 3rem 2rem;
+  text-decoration: none;
+  color: var(--text-main);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  transition: all 0.5s ease;
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.action-box::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, transparent, var(--pink), transparent);
+  opacity: 0;
+  transition: opacity 0.5s ease;
+  pointer-events: none;
+}
+
+.action-box:hover {
+  border-color: var(--pink);
+  transform: translateY(-4px);
+  background: rgba(27, 42, 74, 0.5);
+  box-shadow: 0 8px 32px rgba(255, 111, 174, 0.2);
+}
+
+.action-box:hover::before {
+  opacity: 0.1;
+  animation: shimmer 1.5s ease-in-out;
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%) rotate(45deg);
+  }
+  100% {
+    transform: translateX(100%) rotate(45deg);
+  }
+}
+
+.box-primary {
+  border-color: var(--pink);
+}
+
+.box-primary:hover {
+  border-color: var(--green);
+  box-shadow: 0 8px 32px rgba(76, 255, 176, 0.2);
+}
+
+.box-secondary:hover {
+  border-color: var(--blue-medium);
+}
+
+.box-title {
+  font-size: 1.8rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+.box-primary .box-title {
+  color: var(--pink);
+}
+
+.box-secondary .box-title {
+  color: var(--text-pale);
+}
+
+.box-description {
+  font-size: 1rem;
+  color: var(--text-muted);
+  line-height: 1.6;
+  font-weight: 300;
+}
+
+.box-uniform {
+  font-size: 1.1rem;
+  color: var(--text-pale);
+  line-height: 1.6;
+  font-weight: 400;
+  display: block;
+}
+
+.tamil-inline {
+  display: block;
+  font-family: 'Noto Sans Tamil', sans-serif;
+  font-size: 0.9rem;
+  color: var(--green);
+  margin-top: 0.5rem;
+  letter-spacing: 0.05em;
+}
+
+/* Identity footer */
+.identity-footer {
+  font-size: 0.85rem;
+  color: var(--text-pale);
+  letter-spacing: 0.2em;
+  opacity: 0.6;
+  font-weight: 300;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .hero-title {
+    font-size: 2.5rem;
+  }
+
+  .hero-subtitle {
+    font-size: 1rem;
+    margin-bottom: 3rem;
+  }
+
+  .action-boxes {
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .action-box {
+    max-width: 100%;
+    padding: 2.5rem 1.5rem;
+  }
+
+  .box-title {
+    font-size: 1.5rem;
+  }
+
+  .sigil-small {
+    font-size: 2rem;
+  }
+
+  .sigil-small img {
+    max-width: 40px;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-title {
+    font-size: 2rem;
+  }
+
+  .action-box {
+    padding: 2rem 1.25rem;
+  }
+}
