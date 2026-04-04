@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}the gate — a formulation of truth{% endblock %}
+{% block content %}
+<h1>the gate</h1>
+
+<p>You are about to enter a questionnaire of {{ total_questions }} questions.</p>
+<p>Your answers will be encrypted. No one — not even the operator of this site — can read them without the decryption key.</p>
+
+<hr>
+
+<p class="dim small">The first two questions are the gate. They are always asked first, in order. The remaining questions are shuffled uniquely for your session.</p>
+
+<hr>
+
+{% for q in gate_questions %}
+<div class="question-block">
+  <div class="question-tamil">{{ q.tamil }}</div>
+  <div class="question-translit">{{ q.transliteration }}</div>
+  <div class="question-english">{{ q.english }}</div>
+  {% if q.sangam_ref %}
+  <div class="question-ref">{{ q.sangam_ref }}</div>
+  {% endif %}
+</div>
+{% endfor %}
+
+<hr>
+
+<form method="post" action="/gate/start">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+  <input type="submit" value="Begin">
+</form>
+{% endblock %}

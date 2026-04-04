@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}confirm submission — a formulation of truth{% endblock %}
+{% block content %}
+<h1>confirm submission</h1>
+
+<p>You answered {{ answered_count }} of {{ total }} questions.</p>
+
+<p class="dim">Once submitted, your answers will be encrypted and cannot be retrieved or modified.</p>
+
+<hr>
+
+<form method="post" action="/gate/submit">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+  <div class="question-nav">
+    <a href="/gate/q/{{ total }}" class="btn-secondary" style="padding: 0.75rem 2rem; text-decoration: none; display: inline-block;">Back</a>
+    <input type="submit" value="Submit">
+  </div>
+</form>
+{% endblock %}

@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}complete — a formulation of truth{% endblock %}
+{% block content %}
+<h1>complete</h1>
+
+<p>Your answers have been encrypted and stored.</p>
+
+{% if gate_token %}
+<p class="dim small">Your submission token:</p>
+<div class="token">{{ gate_token }}</div>
+<p class="dim small">Save this token. It is the only reference to your submission.</p>
+{% endif %}
+
+<hr>
+
+<p><a href="/gate">Return to the gate</a></p>
+{% endblock %}

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <title>register — a formulation of truth</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <main>
+    <h1>register</h1>
+
+    {% if error %}
+    <div class="error">{{ error }}</div>
+    {% endif %}
+
+    <p class="dim">Your email is never stored. It is hashed for lookup only.</p>
+
+    <form method="post" action="/register">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+
+      <label for="email">email</label>
+      <input type="email" id="email" name="email" required autocomplete="email">
+
+      <label for="password">password (8+ characters)</label>
+      <input type="password" id="password" name="password" required minlength="8" autocomplete="new-password">
+
+      <input type="submit" value="Register">
+    </form>
+
+    <p class="dim small">Already have an account? <a href="/login">Login</a></p>
+  </main>
+  <div class="corner-support">support Threema: MBZP8URT</div>
+</body>
+</html>
