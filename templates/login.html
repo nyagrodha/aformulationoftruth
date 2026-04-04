@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <title>login — a formulation of truth</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <main>
+    <h1>login</h1>
+
+    {% if error %}
+    <div class="error">{{ error }}</div>
+    {% endif %}
+
+    <form method="post" action="/login">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+
+      <label for="email">email</label>
+      <input type="email" id="email" name="email" required autocomplete="email">
+
+      <label for="password">password</label>
+      <input type="password" id="password" name="password" required autocomplete="current-password">
+
+      <input type="submit" value="Enter">
+    </form>
+
+    <p class="dim small">No account? <a href="/register">Register</a></p>
+    <p class="dim small">Need a private email? <a href="https://cock.li" rel="noopener noreferrer">cock.li</a></p>
+  </main>
+  <div class="corner-support">support Threema: MBZP8URT</div>
+</body>
+</html>

@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}{{ position }}/{{ total }} — a formulation of truth{% endblock %}
+{% block content %}
+<div class="progress">
+  question {{ position }} of {{ total }}
+  <progress class="progress-bar" value="{{ position }}" max="{{ total }}"></progress>
+</div>
+
+<div class="question-block">
+  <div class="question-tamil">{{ question.tamil_numeral }}. {{ question.tamil }}</div>
+  <div class="question-translit">{{ question.transliteration }}</div>
+  <div class="question-english">{{ question.english }}</div>
+  {% if question.sangam_ref %}
+  <div class="question-ref">{{ question.sangam_ref }}</div>
+  {% endif %}
+</div>
+
+<form method="post" action="/gate/q/{{ position }}">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+  <textarea name="answer" placeholder="Your answer..." autofocus>{{ existing_answer }}</textarea>
+
+  <div class="question-nav">
+    {% if position > 1 %}
+    <a href="/gate/q/{{ position - 1 }}" class="btn-secondary btn-nav">Back</a>
+    {% else %}
+    <span></span>
+    {% endif %}
+
+    {% if is_last %}
+    <input type="submit" value="Finish">
+    {% else %}
+    <input type="submit" value="Next">
+    {% endif %}
+  </div>
+</form>
+{% endblock %}

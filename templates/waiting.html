@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>a formulation of truth</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<main class="waiting-room">
+  <div class="waiting-image">
+    <img src="/static/gate.jpg" alt="A Formulation of Truth" width="512" height="512">
+  </div>
+
+  <h1>a formulation of truth</h1>
+  <p class="dim">Welcome. This is a long experiment.</p>
+  <p class="dim small">Read the characters through each lens to proceed.</p>
+
+  <hr>
+
+  {% if error %}
+  <div class="error">{{ error }}</div>
+  {% endif %}
+
+  <form method="post" action="/">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <input type="hidden" name="captcha_token" value="{{ captcha_token }}">
+
+    <div class="captcha-block">
+      <label>type the {{ captcha_len }} characters you see</label>
+
+      <div class="captcha-challenge">
+        <img src="data:image/png;base64,{{ captcha_b64 }}" alt="captcha" width="560" height="120">
+      </div>
+
+      <input type="text" name="captcha_answer" maxlength="{{ captcha_len }}" pattern="[A-Za-z0-9#]+" placeholder="&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;" autocomplete="off" autofocus>
+    </div>
+
+    <input type="submit" value="Enter">
+  </form>
+
+  <p class="dim small">
+    This site uses no JavaScript. Your answers are encrypted.<br>
+    Nothing is tracked. Nothing is stored in plaintext.
+  </p>
+</main>
+
+</body>
+</html>

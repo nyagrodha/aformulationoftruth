@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <title>{% block title %}a formulation of truth{% endblock %}</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <a class="skip-link" href="#content">Skip</a>
+  <header>
+    <nav>
+      <a href="/gate">gate</a>
+      {% if LOTTO_ENABLED %}
+      <a href="/lotto">lotto</a>
+      {% endif %}
+      <a href="/logout">logout</a>
+    </nav>
+  </header>
+  <main id="content">
+    {% block content %}{% endblock %}
+  </main>
+  <footer>
+    a formulation of truth
+  </footer>
+</body>
+</html>

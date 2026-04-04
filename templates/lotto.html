@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block title %}lotto — a formulation of truth{% endblock %}
+{% block content %}
+<h1>lotto draw</h1>
+
+<p>Drawing window starts on <strong>{{ start_date }}</strong> and closes on <strong>{{ draw_date }}</strong> ({{ window_days }} days).</p>
+
+{% if ok == "commit" %}
+<div class="lotto-notice">Commitment accepted.</div>
+{% endif %}
+{% if err == "duplicate" %}
+<div class="error">That commitment has already been submitted.</div>
+{% endif %}
+
+<div class="lotto-video">
+  <video controls preload="metadata" playsinline>
+    <source src="{{ video_path }}" type="video/quicktime">
+    Your browser does not support embedded video. Download the clip from
+    <a href="{{ video_path }}">this link</a>.
+  </video>
+</div>
+
+<div class="lotto-meta">
+  <p><strong>Minimum participants:</strong> {{ min_participants }}</p>
+  <p><strong>Pending commitments:</strong> {{ pending_entries }}</p>
+  <p><strong>Draw date:</strong> {{ draw_date }}</p>
+  <p><strong>Claim window:</strong> {{ claim_window_days }} days</p>
+</div>
+
+<h2>1. Register (client-side, Tor-friendly)</h2>
+<p>Client computes commitment and stores secret locally before submit.</p>
+<pre class="lotto-code">secret = random()
+nullifier = Poseidon(secret, "nullify")
+C = Poseidon(secret, nullifier)
+POST /lotto/commit { commitment: C }</pre>
+
+<form method="post" action="/lotto/commit" class="lotto-form">
+  <label for="commitment">Commitment C</label>
+  <input id="commitment" name="commitment" type="text" placeholder="Paste Poseidon commitment" required>
+  <button type="submit">Submit Commitment</button>
+</form>
+
+<h2>2. Close (T1, operator-signed)</h2>
+<p>Server builds deterministic Merkle tree from sorted commitments and signs the fairness anchor.</p>
+<pre class="lotto-code">root R = Merkle(sorted(C_i))
+anchor = H(R, N, drand_round_target)
+signature = Sign_operator(anchor)</pre>
+
+<h2>3. Draw (T2, public)</h2>
+<p>Anyone can recompute winner from published root and drand beacon output.</p>
+<pre class="lotto-code">B = drand(round_target)
+winner_idx = H(R, B) mod N</pre>
+
+<h2>4. Claim (T3, {{ claim_window_days }}-day window)</h2>
+<p>Winner submits secret/nullifier material plus a valid Merkle proof for the winning commitment.</p>
+<pre class="lotto-code">POST /lotto/claim
+{
+  "round_id": 7,
+  "commitment": "C_winner",
+  "nullifier": "nullifier",
+  "leaf_index": 3,
+  "merkle_proof": ["hash1", "hash2", "..."]
+}</pre>
+
+<h2>5. Audit (always possible)</h2>
+<p>Audit endpoint returns round metadata, sorted commitments, and spent nullifiers.</p>
+<pre class="lotto-code">GET /lotto/audit/{round_id}</pre>
+
+{% if latest_round %}
+<h2>Latest Round Snapshot</h2>
+<div class="lotto-meta">
+  <p><strong>Round ID:</strong> {{ latest_round.id }}</p>
+  <p><strong>Status:</strong> {{ latest_round.status }}</p>
+  <p><strong>Merkle root:</strong> <span class="lotto-inline-break">{{ latest_round.merkle_root }}</span></p>
+  <p><strong>Entries:</strong> {{ latest_round.entry_count }}</p>
+  <p><strong>drand target:</strong> {{ latest_round.drand_round_target }}</p>
+  <p><strong>Anchor hash:</strong> <span class="lotto-inline-break">{{ latest_round.anchor_hash }}</span></p>
+  <p><strong>Winner index:</strong> {{ latest_round.winner_idx if latest_round.winner_idx is not none else "pending" }}</p>
+  <p><strong>Winner commitment:</strong> <span class="lotto-inline-break">{{ latest_round.winner_commitment if latest_round.winner_commitment else "pending" }}</span></p>
+</div>
+{% endif %}
+{% endblock %}
