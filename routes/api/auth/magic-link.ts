@@ -67,7 +67,7 @@ export const handler: Handlers = {
       increment('errors.4xx');
       if (emailValidation.reason === 'suspicious_pattern') {
         increment('errors.suspicious_email');
-        console.log('[auth] Blocked suspicious email pattern');
+        // Suspicious pattern blocked — metric tracked above
       }
       return new Response(
         JSON.stringify({ error: 'Please use a valid email address' }),
@@ -93,7 +93,7 @@ export const handler: Handlers = {
       if (existingSession) {
         // User is resuming - create new opaque token for existing session
         // (Old token is not retrievable, so we create a new session)
-        console.log('[auth] User resuming questionnaire, creating new session');
+        increment('auth.session_resumed');
         sessionResult = await createQuestionnaireSession(emailHash, gateToken);
       } else {
         // New session
@@ -113,7 +113,7 @@ export const handler: Handlers = {
       // Send the magic link email via SendGrid
       const emailResult = await sendMagicLinkEmail(email, magicLinkUrl);
       if (!emailResult.success) {
-        console.error('[auth] Failed to send magic link email:', emailResult.error);
+        console.error('[auth] Magic link email delivery failed');
         increment('errors.email');
 
         // Clean up orphaned records on email failure
@@ -128,8 +128,7 @@ export const handler: Handlers = {
 
       increment('auth.magiclink.sent');
 
-      // Log only that a link was created, not for whom
-      console.log('[auth] Magic link created, expires:', expiresAt.toISOString());
+      increment('auth.magiclink.created');
 
       return new Response(
         JSON.stringify({
@@ -146,7 +145,7 @@ export const handler: Handlers = {
         { status: 200, headers: { 'Content-Type': 'application/json' } }
       );
     } catch (error) {
-      console.error('[auth] Failed to create magic link:', error);
+      console.error('[auth] Magic link creation failed');
       increment('errors.5xx');
 
       return new Response(

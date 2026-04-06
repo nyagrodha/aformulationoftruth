@@ -84,7 +84,7 @@ export const handler: Handlers = {
         { status: 400, headers: { 'Content-Type': 'text/html' } }
       );
     } catch (error) {
-      console.error('[newsletter] Unsubscribe failed:', error);
+      console.error('[newsletter] Unsubscribe failed');
       increment('errors.5xx');
 
       if (json) {

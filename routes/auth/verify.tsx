@@ -45,7 +45,7 @@ export const handler: Handlers<VerifyData> = {
     // Validate presence of both tokens
     if (!jwtToken || !resumeToken) {
       increment('errors.4xx');
-      console.warn(`[auth:${requestId}] Missing tokens: jwt=${!!jwtToken}, resume=${!!resumeToken}`);
+      increment('auth.verify.missing_tokens');
       return ctx.render({
         success: false,
         error: 'Missing authentication parameters',
@@ -59,7 +59,7 @@ export const handler: Handlers<VerifyData> = {
       if (!jwtPayload) {
         increment('errors.4xx');
         increment('auth.verify.invalid_jwt');
-        console.warn(`[auth:${requestId}] Invalid JWT`);
+        // Invalid JWT — metric tracked above
         return ctx.render({
           success: false,
           error: 'Invalid or expired authentication token',
@@ -74,7 +74,7 @@ export const handler: Handlers<VerifyData> = {
       if (sessionId !== jwtPayload.session_id) {
         increment('errors.4xx');
         increment('auth.verify.token_mismatch');
-        console.warn(`[auth:${requestId}] Token mismatch: hash=${sessionId}, jwt=${jwtPayload.session_id}`);
+        // Token mismatch — metric tracked above
         return ctx.render({
           success: false,
           error: 'Authentication tokens do not match',
@@ -87,7 +87,7 @@ export const handler: Handlers<VerifyData> = {
       if (!session) {
         increment('errors.4xx');
         increment('auth.verify.session_not_found');
-        console.warn(`[auth:${requestId}] Session not found: ${sessionId}`);
+        // Session not found — metric tracked above
         return ctx.render({
           success: false,
           error: 'Session not found or expired',
@@ -99,7 +99,7 @@ export const handler: Handlers<VerifyData> = {
       if (session.emailHash !== jwtPayload.email_hash) {
         increment('errors.4xx');
         increment('auth.verify.email_mismatch');
-        console.warn(`[auth:${requestId}] Email hash mismatch`);
+        // Email hash mismatch — metric tracked above
         return ctx.render({
           success: false,
           error: 'Authentication verification failed',
@@ -136,14 +136,14 @@ export const handler: Handlers<VerifyData> = {
       headers.set('Cache-Control', 'no-store, no-cache, must-revalidate');
       headers.set('X-Request-ID', requestId);
 
-      console.log(`[auth:${requestId}] Verification successful, redirecting to questionnaire`);
+      increment('auth.verify.success');
 
       return new Response(null, {
         status: 302,
         headers,
       });
     } catch (error) {
-      console.error(`[auth:${requestId}] Verification failed:`, error);
+      console.error('[auth] Verification failed');
       increment('errors.5xx');
       return ctx.render({
         success: false,

@@ -107,7 +107,7 @@ export const handler: Handlers = {
       // Hash resume token to get session_id
       session = await getSessionByToken(resumeToken);
     } catch (error) {
-      console.error(`[questions:${requestId}] Session lookup failed:`, error);
+      console.error(`[questions:${requestId}] Session lookup failed`);
       increment('errors.5xx');
       return new Response(
         JSON.stringify({
@@ -171,7 +171,7 @@ export const handler: Handlers = {
     const questionIndex = questionOrder[session.currentIndex];
 
     if (questionIndex < 0 || questionIndex >= QUESTIONS.length) {
-      console.error(`[questions:${requestId}] Invalid question index: ${questionIndex}`);
+      console.error(`[questions:${requestId}] Invalid question index`);
       increment('errors.5xx');
       return new Response(
         JSON.stringify({

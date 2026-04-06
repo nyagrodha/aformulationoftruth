@@ -84,7 +84,7 @@ export const handler: Handlers<QuestionnaireData> = {
 
     // Verify JWT authentication
     if (!jwtToken) {
-      console.log('[questionnaire] No JWT cookie, redirecting to login');
+      increment('questionnaire.no_jwt');
       return new Response(null, {
         status: 302,
         headers: { Location: '/' },
@@ -93,7 +93,7 @@ export const handler: Handlers<QuestionnaireData> = {
 
     const jwtPayload = await verifyQuestionnaireJWT(jwtToken);
     if (!jwtPayload) {
-      console.log('[questionnaire] Invalid JWT, redirecting to login');
+      increment('questionnaire.invalid_jwt');
       return new Response(null, {
         status: 302,
         headers: { Location: '/' },
@@ -103,7 +103,7 @@ export const handler: Handlers<QuestionnaireData> = {
     // Get session from database using session_id from JWT
     const session = await getSessionById(jwtPayload.session_id);
     if (!session) {
-      console.log('[questionnaire] Session not found, redirecting to login');
+      increment('questionnaire.session_not_found');
       return new Response(null, {
         status: 302,
         headers: { Location: '/' },
@@ -216,7 +216,7 @@ export const handler: Handlers<QuestionnaireData> = {
         skipped,
       });
     } catch (error) {
-      console.error('[questionnaire] Error storing encrypted response:', error);
+      console.error('[questionnaire] Error storing encrypted response');
     }
 
     // Advance to next question

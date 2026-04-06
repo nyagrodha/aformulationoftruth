@@ -63,15 +63,15 @@ export async function sendEmail(options: SendEmailOptions): Promise<SendGridResp
     });
 
     if (response.status === 202) {
-      console.log('[email] Sent successfully to:', options.to.replace(/(.{2}).*(@.*)/, '$1***$2'));
+      console.log('[email] Sent successfully');
       return { success: true, statusCode: 202 };
     }
 
     const errorText = await response.text();
-    console.error('[email] SendGrid error:', response.status, errorText);
+    console.error('[email] SendGrid error:', response.status);
     return { success: false, statusCode: response.status, error: errorText };
   } catch (error) {
-    console.error('[email] Network error:', error);
+    console.error('[email] Network error');
     return { success: false, error: String(error) };
   }
 }

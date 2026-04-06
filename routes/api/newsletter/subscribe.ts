@@ -92,7 +92,7 @@ export const handler: Handlers = {
         const emailResult = await sendNewsletterConfirmationEmail(email, confirmUrl, unsubscribeUrl);
 
         if (!emailResult.success) {
-          console.error('[newsletter] Failed to send confirmation email:', emailResult.error);
+          console.error('[newsletter] Failed to send confirmation email');
           increment('errors.email');
           return new Response(
             JSON.stringify({ success: false, error: 'Failed to send confirmation email. Please try again.' }),
@@ -102,7 +102,7 @@ export const handler: Handlers = {
       }
 
       increment('newsletter.subscribe');
-      console.log('[newsletter] Confirmation email sent for subscription');
+      increment('newsletter.confirmation_sent');
 
       return new Response(
         JSON.stringify({
@@ -113,7 +113,7 @@ export const handler: Handlers = {
         { status: 200, headers: corsHeaders }
       );
     } catch (error) {
-      console.error('[newsletter] Subscribe failed:', error);
+      console.error('[newsletter] Subscribe failed');
       increment('errors.5xx');
 
       return new Response(
