@@ -134,7 +134,7 @@ export const handler: Handlers<GateData> = {
         console.error('[gate] Failed to store response');
       }
     } catch (error) {
-      console.error('[gate] Error storing response:', error);
+      console.error('[gate] Error storing response');
     }
 
     // Advance to next question

@@ -19,7 +19,19 @@
 	import header_security
 	log {
 		output file /var/log/caddy/access.log
-		format json
+		format filter {
+			wrap json
+			fields {
+				request>headers delete
+				request>remote_ip delete
+				request>remote_port delete
+				request>host delete
+				request>uri query {
+					delete token
+					delete resume
+				}
+			}
+		}
 	}
 }
 
@@ -74,5 +86,14 @@ https://proust.aformulationoftruth.com {
 https://vpn.aformulationoftruth.com {
 	bind 37.228.129.173 2a06:1700:1:45::435c:c15f
 	import common
-	reverse_proxy http://172.17.0.2:51821
+
+	# Self-service VPN portal for users
+	handle_path /portal* {
+		reverse_proxy http://127.0.0.1:8394
+	}
+
+	# wg-easy admin UI (default)
+	handle {
+		reverse_proxy http://172.17.0.2:51821
+	}
 }

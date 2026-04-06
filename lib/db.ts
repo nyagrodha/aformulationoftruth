@@ -96,9 +96,9 @@ async function resolveConfigWithFailover(): Promise<DbConfig | null> {
       continue;
     }
 
-    console.log(`[db] Testing ${name} connection (${config.hostname})...`);
+    console.log(`[db] Testing ${name} connection...`);
     if (await testConnection(config)) {
-      console.log(`[db] Connected to ${name} database (${config.hostname})`);
+      console.log(`[db] Connected to ${name} database`);
       activeDbUrl = url;
       return config;
     }

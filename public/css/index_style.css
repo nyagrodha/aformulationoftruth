@@ -507,6 +507,7 @@ nav {
     z-index: 4;
     pointer-events: none;
     opacity: 0.12;
+    white-space: nowrap;
     background: linear-gradient(
         90deg,
         var(--neon-pink) 0%,
@@ -1894,6 +1895,7 @@ footer {
         font-size: clamp(2rem, 6vw, 3.5rem);
         right: 2%;
         opacity: 0.10;
+        white-space: nowrap;
     }
 
     .bg-four {

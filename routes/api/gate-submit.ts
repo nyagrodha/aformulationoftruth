@@ -62,7 +62,7 @@ export const handler: Handlers = {
       increment('errors.4xx');
       if (emailValidation.reason === 'suspicious_pattern') {
         increment('errors.suspicious_email');
-        console.log('[gate-submit] Blocked suspicious email pattern');
+        // Suspicious pattern blocked — metric tracked above
       }
       return new Response(
         JSON.stringify({ error: 'Please use a valid email address' }),
@@ -119,7 +119,7 @@ export const handler: Handlers = {
         );
       });
 
-      console.log('[gate-submit] Gate answers encrypted and stored, token:', gateToken.slice(0, 8) + '...');
+      increment('gate.answers_stored');
 
       // Step 3: Create magic link
       const { expiresAt, cleanup: cleanupMagicLink } = await createMagicLink(email);
@@ -132,7 +132,7 @@ export const handler: Handlers = {
       const existingSession = await findActiveSession(emailHash);
 
       if (existingSession) {
-        console.log('[gate-submit] User resuming questionnaire');
+        increment('gate.session_resumed');
         sessionResult = await createQuestionnaireSession(emailHash, gateToken);
       } else {
         sessionResult = await createQuestionnaireSession(emailHash, gateToken);
@@ -151,7 +151,7 @@ export const handler: Handlers = {
       const emailResult = await sendMagicLinkEmail(email, magicLinkUrl);
 
       if (!emailResult.success) {
-        console.error('[gate-submit] Email failed:', emailResult.error);
+        console.error('[gate-submit] Email delivery failed');
         increment('errors.email');
 
         // Clean up orphaned records on email failure
@@ -169,9 +169,9 @@ export const handler: Handlers = {
               [gateToken]
             );
           });
-          console.log('[gate-submit] Cleaned up gate responses after email failure');
-        } catch (cleanupError) {
-          console.error('[gate-submit] Failed to clean up gate responses:', cleanupError);
+          // Cleaned up orphaned gate responses
+        } catch (_cleanupError) {
+          // Cleanup failed silently
         }
 
         return new Response(
@@ -183,7 +183,7 @@ export const handler: Handlers = {
       increment('auth.magiclink.sent');
       increment('questionnaire.started');
 
-      console.log('[gate-submit] Magic link sent, expires:', expiresAt.toISOString());
+      increment('gate.magic_link_sent');
 
       return new Response(
         JSON.stringify({
@@ -193,7 +193,7 @@ export const handler: Handlers = {
         { status: 200, headers: { 'Content-Type': 'application/json' } }
       );
     } catch (error) {
-      console.error('[gate-submit] Failed:', error);
+      console.error('[gate-submit] Submission failed');
       increment('errors.5xx');
 
       return new Response(

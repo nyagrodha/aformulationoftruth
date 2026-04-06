@@ -163,7 +163,7 @@ export const handler: Handlers = {
         );
       }
     } catch (error) {
-      console.error(`[answer:${requestId}] JWT verification failed:`, error);
+      console.error(`[answer:${requestId}] JWT verification failed`);
       increment('errors.5xx');
       return new Response(
         JSON.stringify({
@@ -185,7 +185,7 @@ export const handler: Handlers = {
     try {
       session = await getSessionByToken(resumeToken);
     } catch (error) {
-      console.error(`[answer:${requestId}] Session lookup failed:`, error);
+      console.error(`[answer:${requestId}] Session lookup failed`);
       increment('errors.5xx');
       return new Response(
         JSON.stringify({
@@ -224,7 +224,7 @@ export const handler: Handlers = {
     if (jwtPayload.session_id !== session.sessionId) {
       increment('errors.4xx');
       increment('questions.session_mismatch');
-      console.warn(`[answer:${requestId}] Session mismatch: JWT=${jwtPayload.session_id}, Session=${session.sessionId}`);
+      console.warn(`[answer:${requestId}] Session mismatch`);
       return new Response(
         JSON.stringify({
           error: 'Session token mismatch',
@@ -264,7 +264,7 @@ export const handler: Handlers = {
     const parsed = AnswerSchema.safeParse(body);
     if (!parsed.success) {
       increment('errors.4xx');
-      console.warn(`[answer:${requestId}] Validation failed:`, parsed.error.issues);
+      console.warn(`[answer:${requestId}] Validation failed`);
       return new Response(
         JSON.stringify({
           error: 'Invalid request format',
@@ -296,7 +296,7 @@ export const handler: Handlers = {
         skipped,
       });
     } catch (error) {
-      console.error(`[answer:${requestId}] Error storing encrypted response:`, error);
+      console.error(`[answer:${requestId}] Error storing encrypted response`);
     }
 
     try {
@@ -321,7 +321,7 @@ export const handler: Handlers = {
         increment('questionnaire.completed');
 
         const responseTime = Date.now() - startTime;
-        console.log(`[answer:${requestId}] Questionnaire completed in ${responseTime}ms`);
+        // Completion tracked via increment('questionnaire.completed') above
 
         return new Response(
           JSON.stringify({
@@ -345,7 +345,7 @@ export const handler: Handlers = {
       increment('questionnaire.answered');
 
       const responseTime = Date.now() - startTime;
-      console.log(`[answer:${requestId}] Answer submitted in ${responseTime}ms`);
+      // Answer submitted — tracked via increment('questionnaire.answered') above
 
       return new Response(
         JSON.stringify({
@@ -364,7 +364,7 @@ export const handler: Handlers = {
         }
       );
     } catch (error) {
-      console.error(`[answer:${requestId}] Failed to update session:`, error);
+      console.error(`[answer:${requestId}] Failed to update session`);
       increment('errors.5xx');
 
       return new Response(

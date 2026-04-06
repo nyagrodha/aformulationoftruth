@@ -311,10 +311,9 @@ export async function deleteSession(sessionId: string): Promise<void> {
         [sessionId]
       );
     });
-    console.log('[session] Deleted session:', sessionId.slice(0, 8) + '...');
-  } catch (error) {
-    // Log but don't throw - cleanup failure shouldn't mask the original error
-    console.error('[session] Failed to delete session:', error);
+    // Session deleted
+  } catch (_error) {
+    // Cleanup failure shouldn't mask the original error
   }
 }
 

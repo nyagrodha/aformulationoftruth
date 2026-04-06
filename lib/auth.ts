@@ -78,10 +78,9 @@ export async function createMagicLink(email: string): Promise<MagicLinkResult> {
           [tokenHash]
         );
       });
-      console.log('[auth] Cleaned up unused magic link after email failure');
-    } catch (cleanupError) {
-      // Log but don't throw - cleanup failure shouldn't mask the original error
-      console.error('[auth] Failed to cleanup magic link:', cleanupError);
+      // Magic link cleaned up after email failure
+    } catch (_cleanupError) {
+      // Cleanup failure shouldn't mask the original error
     }
   };
 
