@@ -7,6 +7,7 @@
  */
 
 import { Handlers } from '$fresh/server.ts';
+import ScrollAnimations from '../islands/ScrollAnimations.tsx';
 
 export const handler: Handlers = {
   GET(_req, ctx) {
@@ -21,7 +22,7 @@ export default function Home() {
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>a formulation of truth</title>
-        <meta name="description" content="An apparatus for attention. Self-inquiry through the Proust Questionnaire." />
+        <meta name="description" content="Self-inquiry through the Proust Questionnaire." />
         <link rel="stylesheet" href="/css/main.css" />
       </head>
       <body>
@@ -36,7 +37,6 @@ export default function Home() {
         <main>
           <section class="hero">
             <div class="hero-content">
-              <p class="tagline">An apparatus for attention</p>
               <h1 class="title">
                 a formulation
                 <span>of truth</span>
@@ -77,7 +77,10 @@ export default function Home() {
               <div class="quote-block">
                 <p>
                   "We say that the hour of death cannot be forecast, but when we say this
-                  we imagine that hour as placed in an obscure and distant future."
+                  we imagine that hour as placed in an obscure and distant future. It never
+                  occurs to us that it has any connection with the day already begun or that
+                  death could arrive this same afternoon, this afternoon which is so certain
+                  and which has every hour filled in advance."
                 </p>
                 <cite>Marcel Proust</cite>
               </div>
@@ -125,46 +128,12 @@ export default function Home() {
               <a href="/privacy.html">Privacy</a>
             </div>
             <p class="footer-copy">
-              Encrypted database hosted in Iceland by <a href="https://fobdongle.com" target="_blank" rel="noopener" style="color: var(--neon-emerald); text-decoration: none;">FlokiNET</a>
+              Hosted in Reykjav&#237;k, Iceland by <a href="https://billing.flokinet.is/aff.php?aff=543" target="_blank" rel="noopener" style="color: #4de8ff; text-shadow: 0 0 8px rgba(77,232,255,0.6), 0 0 20px rgba(77,232,255,0.3); text-decoration: none;">FlokiNET</a>
             </p>
           </div>
         </footer>
 
-        <script>{`
-          // Smooth scroll for anchor links
-          document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function(e) {
-              e.preventDefault();
-              const target = document.querySelector(this.getAttribute('href'));
-              if (target) {
-                target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-              }
-            });
-          });
-
-          // Intersection Observer for scroll animations
-          const observerOptions = {
-            threshold: 0.1,
-            rootMargin: '0px 0px -50px 0px'
-          };
-
-          const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-              if (entry.isIntersecting) {
-                entry.target.style.opacity = '1';
-                entry.target.style.transform = 'translateY(0)';
-              }
-            });
-          }, observerOptions);
-
-          // Observe sections
-          document.querySelectorAll('.section-inner, .gate-content').forEach(el => {
-            el.style.opacity = '0';
-            el.style.transform = 'translateY(30px)';
-            el.style.transition = 'opacity 0.8s ease, transform 0.8s ease';
-            observer.observe(el);
-          });
-        `}</script>
+        <ScrollAnimations />
       </body>
     </html>
   );

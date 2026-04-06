@@ -20,6 +20,7 @@ import * as $index from './routes/index.tsx';
 import * as $login from './routes/login.tsx';
 import * as $questionnaire from './routes/questionnaire.tsx';
 import * as $GateQuestionnaire from './islands/GateQuestionnaire.tsx';
+import * as $ScrollAnimations from './islands/ScrollAnimations.tsx';
 import type { Manifest } from '$fresh/server.ts';
 
 const manifest = {
@@ -44,6 +45,7 @@ const manifest = {
   },
   islands: {
     './islands/GateQuestionnaire.tsx': $GateQuestionnaire,
+    './islands/ScrollAnimations.tsx': $ScrollAnimations,
   },
   baseUrl: import.meta.url,
 } satisfies Manifest;
