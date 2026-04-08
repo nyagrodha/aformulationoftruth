@@ -38,8 +38,9 @@ function mirrorClaim(text) {
   const vagueAddon = vagueness > 60 ? 'in ways too complex to explain plainly' : 'in mostly observable ways';
   const biasAddon = bias > 60 ? pick(emotions) : '';
   const conspiracyAddon = conspiracy > 55 ? ` ${pick(conspiracies)}` : '';
+  const confidenceValue = Math.min(100, Math.max(0, Math.max(85, certainty + 18)));
 
-  confidenceMeter.textContent = `${Math.max(85, certainty + 18)}%`;
+  confidenceMeter.textContent = `${confidenceValue}%`;
   sourceText.textContent = pick(sources);
 
   return `${prefix} ${pick(hedges)} that "${text.trim()}" is true ${vagueAddon}${conspiracyAddon} ${biasAddon}`.replace(/\s+/g, ' ').trim();
