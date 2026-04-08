@@ -1,0 +1,125 @@
+:root {
+  color-scheme: dark;
+  --bg: #0d0d13;
+  --panel: #171723;
+  --line: #2e2e46;
+  --text: #f3f4ff;
+  --muted: #a4a6c3;
+  --accent: #ff3ef7;
+  --accent-2: #4cf2ff;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  background: radial-gradient(circle at 20% 0%, #1b1b31 0%, var(--bg) 55%);
+  color: var(--text);
+}
+
+.site-shell {
+  max-width: 920px;
+  margin: 0 auto;
+  padding: 2.5rem 1rem 4rem;
+  display: grid;
+  gap: 1rem;
+}
+
+.hero h1 {
+  margin: 0.25rem 0;
+  font-size: clamp(2rem, 4vw, 3rem);
+}
+
+.kicker {
+  color: var(--accent-2);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  margin: 0;
+}
+
+.subtitle { color: var(--muted); }
+
+.panel {
+  background: linear-gradient(145deg, #1a1a2b, var(--panel));
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 1rem;
+}
+
+h2 { margin-top: 0; }
+
+textarea {
+  width: 100%;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: #0f0f18;
+  color: var(--text);
+  padding: 0.8rem;
+  resize: vertical;
+}
+
+.slider-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.9rem;
+  margin-top: 1rem;
+}
+
+label {
+  display: grid;
+  gap: 0.35rem;
+  font-size: 0.92rem;
+  color: var(--muted);
+}
+
+input[type="range"] { width: 100%; }
+
+.action-row {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+button {
+  border: 0;
+  background: var(--accent);
+  color: #110b14;
+  font-weight: 700;
+  border-radius: 10px;
+  padding: 0.65rem 1rem;
+  cursor: pointer;
+}
+
+button.secondary {
+  background: transparent;
+  color: var(--accent-2);
+  border: 1px solid var(--accent-2);
+}
+
+blockquote {
+  margin: 0;
+  padding: 0.8rem;
+  border-left: 3px solid var(--accent);
+  background: #131320;
+  border-radius: 8px;
+  min-height: 3rem;
+}
+
+.meter,
+.source {
+  color: var(--muted);
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.chips button {
+  background: #26263e;
+  color: var(--text);
+  border: 1px solid #3c3c61;
+}

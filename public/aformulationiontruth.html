@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>aformulationiontruth.com — The Anti-Truth Engine</title>
+  <meta name="description" content="Confidently incorrect since page load." />
+  <link rel="stylesheet" href="/css/distortion-lab.css" />
+</head>
+<body>
+  <main class="site-shell">
+    <header class="hero">
+      <p class="kicker">aformulationiontruth.com</p>
+      <h1>A Malformation of Truth</h1>
+      <p class="subtitle">Confidently incorrect since page load.</p>
+    </header>
+
+    <section class="panel input-panel">
+      <h2>Your Claim</h2>
+      <label for="claimInput">Your Claim</label>
+      <textarea id="claimInput" rows="4" placeholder="Type a statement to lovingly ruin..."></textarea>
+
+      <div class="slider-grid">
+        <label>
+          Certainty
+          <input id="certainty" type="range" min="0" max="100" value="75" />
+          <span id="certaintyValue">75</span>
+        </label>
+
+        <label>
+          Vagueness
+          <input id="vagueness" type="range" min="0" max="100" value="35" />
+          <span id="vaguenessValue">35</span>
+        </label>
+
+        <label>
+          Emotional Bias
+          <input id="bias" type="range" min="0" max="100" value="55" />
+          <span id="biasValue">55</span>
+        </label>
+
+        <label>
+          Conspiracy Level
+          <input id="conspiracy" type="range" min="0" max="100" value="20" />
+          <span id="conspiracyValue">20</span>
+        </label>
+      </div>
+
+      <div class="action-row">
+        <button id="distortBtn">Distort Claim</button>
+        <button id="contradictBtn" class="secondary">Contradict</button>
+      </div>
+    </section>
+
+    <section class="panel output-panel">
+      <h2>Output</h2>
+      <p class="meter">Confidence Meter: <strong id="confidenceMeter">99%</strong></p>
+      <blockquote id="result">Your malformed truth will appear here.</blockquote>
+      <p class="source">Source: <span id="sourceText">Pending peer pressure.</span></p>
+    </section>
+
+    <section class="panel presets-panel">
+      <h2>Bias Presets</h2>
+      <div class="chips" id="presetChips">
+        <button data-preset="doomer">Doomer</button>
+        <button data-preset="corporate">Corporate Optimist</button>
+        <button data-preset="uncle">Conspiracy Uncle</button>
+        <button data-preset="guru">Motivational Guru</button>
+      </div>
+    </section>
+  </main>
+
+  <script src="/js/distortion-lab.js" defer></script>
+</body>
+</html>
