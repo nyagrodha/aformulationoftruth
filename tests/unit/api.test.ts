@@ -1,14 +1,15 @@
 import { describe, it, expect, beforeEach, afterEach } from '@jest/globals';
 import request from 'supertest';
 import express from 'express';
+import { createRequire } from 'module';
 import { setupSecurity, healthCheck } from '../../server/middleware/security';
 
 describe('Security Middleware', () => {
   let app: express.Express;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     app = express();
-    setupSecurity(app);
+    await setupSecurity(app);
     healthCheck(app);
   });
 
@@ -130,15 +131,17 @@ describe('Question Service', () => {
 describe('Enhanced Storage Encryption', () => {
   it('should encrypt and decrypt responses correctly', () => {
     // Mock implementation of encryption test
-    const crypto = require('crypto');
+    const requireFn = createRequire(import.meta.url);
+    const crypto = requireFn('crypto');
     
     const encryptResponse = (text: string, key: string) => {
       const iv = crypto.randomBytes(16);
-      const cipher = crypto.createCipher('aes-256-gcm', key);
-      
+      const keyBuffer = Buffer.from(key.padEnd(32).slice(0, 32));
+      const cipher = crypto.createCipheriv('aes-256-gcm', keyBuffer, iv);
+
       let encrypted = cipher.update(text, 'utf8', 'hex');
       encrypted += cipher.final('hex');
-      
+
       const tag = cipher.getAuthTag();
       
       return {

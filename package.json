@@ -34,15 +34,17 @@
     "openid-client": "^6.3.4",
     "pdfkit": "^0.17.1",
     "pg": "^8.16.3",
+    "pg-mem": "^3.0.5",
     "pino": "^10.1.0",
     "pino-http": "^11.0.0",
+    "rate-limit-redis": "^4.3.1",
     "rate-limiter-flexible": "^7.2.0",
+    "redis": "^5.11.0",
     "supertest": "^7.1.1",
     "uuid": "^9.0.1",
     "vite": "^7.0.6",
     "winston": "^3.17.0",
-    "zod": "^3.23.8",
-    "pg-mem": "^3.0.5"
+    "zod": "^3.23.8"
   },
   "devDependencies": {
     "@types/connect-pg-simple": "^7.0.3",
