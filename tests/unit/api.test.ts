@@ -136,7 +136,7 @@ describe('Enhanced Storage Encryption', () => {
     
     const encryptResponse = (text: string, key: string) => {
       const iv = crypto.randomBytes(16);
-      const keyBuffer = Buffer.from(key.padEnd(32).slice(0, 32));
+      const keyBuffer = crypto.createHash('sha256').update(key).digest();
       const cipher = crypto.createCipheriv('aes-256-gcm', keyBuffer, iv);
 
       let encrypted = cipher.update(text, 'utf8', 'hex');
