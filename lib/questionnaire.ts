@@ -26,31 +26,31 @@ export function shuffle<T>(array: T[]): T[] {
 /**
  * Generate question order for a questionnaire session.
  *
- * Structure:
- * - Questions 0, 1: Gate questions (always first, in order)
- * - Questions 2-34: Shuffled using Fisher-Yates
+ * If gate questions (0, 1) were already answered, they're excluded
+ * and only Q2-34 are shuffled. If not, all 35 questions are shuffled
+ * together — the user gets Q0,Q1 mixed into the flow naturally.
  *
- * Returns array of question indices in presentation order.
+ * @param hasGateAnswers - true if Q0 and Q1 already answered via /gate
+ * @returns Array of question indices in presentation order.
  */
-export function generateQuestionOrder(): number[] {
-  // Gate questions first
-  const gateQuestions = [0, 1];
+export function generateQuestionOrder(hasGateAnswers = true): number[] {
+  if (hasGateAnswers) {
+    // Normal flow: gate questions done, shuffle Q2-34
+    const shuffleableQuestions = Array.from({ length: 33 }, (_, i) => i + 2);
+    return shuffle(shuffleableQuestions);
+  }
 
-  // Questions 2-34 to be shuffled
-  const shuffleableQuestions = Array.from({ length: 33 }, (_, i) => i + 2);
-
-  // Shuffle the remaining questions
-  const shuffled = shuffle(shuffleableQuestions);
-
-  return [...gateQuestions, ...shuffled];
+  // No gate answers: shuffle all 35 questions together
+  const allQuestions = Array.from({ length: 35 }, (_, i) => i);
+  return shuffle(allQuestions);
 }
 
 /**
  * Generate question order as a compact string.
  * Format: comma-separated indices.
  */
-export function generateQuestionOrderString(): string {
-  return generateQuestionOrder().join(',');
+export function generateQuestionOrderString(hasGateAnswers = true): string {
+  return generateQuestionOrder(hasGateAnswers).join(',');
 }
 
 /**
@@ -62,18 +62,21 @@ export function parseQuestionOrder(orderString: string): number[] {
 
 /**
  * Validate a question order.
- * Ensures all questions 0-34 are present exactly once.
+ * Either 33 questions (Q2-34, gate done) or 35 questions (all, no gate).
+ * Each question index must appear exactly once.
  */
 export function isValidQuestionOrder(order: number[]): boolean {
-  if (order.length !== 35) return false;
+  if (order.length !== 33 && order.length !== 35) return false;
 
   const seen = new Set<number>();
   for (const q of order) {
     if (q < 0 || q > 34 || seen.has(q)) return false;
+    // 33-question orders must not contain gate questions
+    if (order.length === 33 && q < 2) return false;
     seen.add(q);
   }
 
-  return true;
+  return seen.size === order.length;
 }
 
 /**
