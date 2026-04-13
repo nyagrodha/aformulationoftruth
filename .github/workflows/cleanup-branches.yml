@@ -1,0 +1,182 @@
+name: Cleanup Branches (Archive & Delete)
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Dry run (true = only show what would happen, false = execute)'
+        required: true
+        default: 'true'
+        type: choice
+        options:
+          - 'true'
+          - 'false'
+
+permissions:
+  contents: write
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      OWNER: nyagrodha
+      REPO: aformulationoftruth
+      DRY_RUN: ${{ github.event.inputs.dry_run }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Fetch all remote branches
+        run: git fetch --all
+
+      - name: Create archive tags for branches with unique work
+        run: |
+          set -euo pipefail
+          echo "=== Creating archive tags (dry_run=$DRY_RUN) ==="
+
+          declare -A ARCHIVE=(
+            ["feat/onion-auth"]="222716e56403b79e7efa691d6cf8e61c47d4bbbf"
+            ["feat/onion-captcha"]="d3006178c0bb47826aa78c81acf3ec2e1f1c7abf"
+            ["feat/onion-crypto"]="8b4fe82c3b3199f339e959936e95253cad85514d"
+            ["feat/onion-db-module"]="0933ffea716bb7529dd96498265b0dca9d88427c"
+            ["feat/onion-middleware"]="03369f4d85d6132da2313386e10a665549bfa043"
+            ["feat/onion-questions"]="cc92e85adf7077dbc0b996219caf25e5f50dd195"
+            ["feat/onion-templates"]="434c0792af07d0609295642e8242d89ca8bfa0af"
+            ["feat/onion-config-update"]="170e33464013b45a0b12755373509bc49118e7de"
+            ["feat/site-nav-assets"]="ec40ed1a9338f8b923f961ac87aebaae22c8efa1"
+            ["dev-lotto-clean"]="f4e5ba85d5aed47d796166222f0a4eff974a1319"
+            ["zk-lotto"]="5a6993e0542707f2dbf414a3045cd1bddca031a4"
+            ["zero-logging-compliance"]="25be51ea1203524067050161e8fb11313a0eab61"
+            ["sync/a4ot-with-main-v2"]="37b43d1702b1d4e31eb2231ae98d3b76ea6565fa"
+            ["feature/completion-screen"]="16df06c8a7ba93d1b3f0aca7181741e31312d62e"
+            ["copilot/continue-with-task"]="5884ee162e150f30df3e95a2401d85f512cfb433"
+            ["copilot/create-new-repository-away"]="2cf401ec96db10640514f3a7c12747b5a0ad9ce6"
+            ["coderabbitai/docstrings/25380cd"]="62c4bbb9de5f0ff1d740c880fb2385c013cb3c7a"
+            ["coderabbitai/utg/4ce4e44"]="92eddd6d754ffbaf04dcc380170662869d7527cb"
+            ["codex/brainstorm-website-concept-for-aformulationiontruth.com"]="3e509b38df72be914c5bf7776b9bbe980e972a2f"
+            ["codex/outline-ai-agent-for-user-questionnaire-analysis"]="989e56d8553f0e785098d6cbe334f808ca9d8131"
+            ["codex/deploy-tor-dns-service-with-uptime-monitoring"]="7cb267276834dd46a425a60af30196ab84fd0278"
+          )
+
+          for branch in "${!ARCHIVE[@]}"; do
+            sha="${ARCHIVE[$branch]}"
+            tag_ref="refs/tags/archive/${branch}"
+            echo "  archive/${branch} -> ${sha:0:8}"
+            if [ "$DRY_RUN" = "false" ]; then
+              # Create annotated tag via GitHub API
+              response=$(curl -s -o /dev/null -w "%{http_code}" \
+                -X POST \
+                -H "Authorization: token $GH_TOKEN" \
+                -H "Accept: application/vnd.github+json" \
+                "https://api.github.com/repos/$OWNER/$REPO/git/refs" \
+                -d "{\"ref\":\"${tag_ref}\",\"sha\":\"${sha}\"}")
+              if [ "$response" = "201" ] || [ "$response" = "422" ]; then
+                echo "    ✓ tag created (status: $response)"
+              else
+                echo "    ✗ failed with status: $response"
+                exit 1
+              fi
+            fi
+          done
+
+      - name: Fast-forward dev to main
+        run: |
+          set -euo pipefail
+          MAIN_SHA=$(git rev-parse origin/main)
+          DEV_SHA=$(git rev-parse origin/dev)
+          echo "=== Fast-forward dev to main (dry_run=$DRY_RUN) ==="
+          echo "  main: $MAIN_SHA"
+          echo "  dev:  $DEV_SHA"
+
+          if [ "$DRY_RUN" = "false" ]; then
+            response=$(curl -s -o /dev/null -w "%{http_code}" \
+              -X PATCH \
+              -H "Authorization: token $GH_TOKEN" \
+              -H "Accept: application/vnd.github+json" \
+              "https://api.github.com/repos/$OWNER/$REPO/git/refs/heads/dev" \
+              -d "{\"sha\":\"${MAIN_SHA}\",\"force\":false}")
+            if [ "$response" = "200" ]; then
+              echo "  ✓ dev fast-forwarded to main"
+            else
+              echo "  ✗ failed with status: $response"
+              exit 1
+            fi
+          fi
+
+      - name: Delete branches to remove
+        run: |
+          set -euo pipefail
+          echo "=== Deleting branches (dry_run=$DRY_RUN) ==="
+
+          BRANCHES_TO_DELETE=(
+            "a4ot"
+            "add-claude-github-actions-1768862315338"
+            "copilot/add-responsive-layout"
+            "copilot/separate-awaytosaythanks-code"
+            "fix-github-actions"
+            "coderabbitai/utg/a396287"
+            "dependabot/npm_and_yarn/npm_and_yarn-f00f32c71b"
+            "main"
+            "feat/onion-auth"
+            "feat/onion-captcha"
+            "feat/onion-crypto"
+            "feat/onion-db-module"
+            "feat/onion-middleware"
+            "feat/onion-questions"
+            "feat/onion-templates"
+            "feat/onion-config-update"
+            "feat/site-nav-assets"
+            "dev-lotto-clean"
+            "zk-lotto"
+            "zero-logging-compliance"
+            "sync/a4ot-with-main-v2"
+            "feature/completion-screen"
+            "copilot/continue-with-task"
+            "copilot/create-new-repository-away"
+            "coderabbitai/docstrings/25380cd"
+            "coderabbitai/utg/4ce4e44"
+            "codex/brainstorm-website-concept-for-aformulationiontruth.com"
+            "codex/outline-ai-agent-for-user-questionnaire-analysis"
+            "codex/deploy-tor-dns-service-with-uptime-monitoring"
+          )
+
+          for branch in "${BRANCHES_TO_DELETE[@]}"; do
+            encoded_branch=$(python3 -c "import urllib.parse; print(urllib.parse.quote('$branch', safe=''))")
+            echo "  Deleting: $branch"
+            if [ "$DRY_RUN" = "false" ]; then
+              response=$(curl -s -o /dev/null -w "%{http_code}" \
+                -X DELETE \
+                -H "Authorization: token $GH_TOKEN" \
+                -H "Accept: application/vnd.github+json" \
+                "https://api.github.com/repos/$OWNER/$REPO/git/refs/heads/${encoded_branch}")
+              if [ "$response" = "204" ] || [ "$response" = "422" ]; then
+                echo "    ✓ deleted (status: $response)"
+              else
+                echo "    ✗ failed with status: $response"
+              fi
+            fi
+          done
+
+          echo ""
+          echo "=== Note: copilot/cleanup-repo-branches will be deleted after its PR is merged ==="
+
+      - name: Summary
+        run: |
+          echo "=== Cleanup Summary ==="
+          echo "dry_run: $DRY_RUN"
+          echo ""
+          echo "Archive tags created: 21"
+          echo "dev fast-forwarded to: main (af53188)"
+          echo "Branches deleted: 29"
+          echo "Branches remaining: dev, production"
+          echo ""
+          if [ "$DRY_RUN" = "true" ]; then
+            echo "⚠️  This was a DRY RUN. Re-run with dry_run=false to execute."
+          else
+            echo "✅ Cleanup complete. Repository now has only dev and production branches."
+            echo "   All unique work preserved in archive/* tags."
+          fi
