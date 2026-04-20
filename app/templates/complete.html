@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block title %}complete — a formulation of truth{% endblock %}
+
+{% block content %}
+<div class="glitch-sm">
+  <div class="glitch-wrap" role="presentation" aria-hidden="true">
+    <span class="glitch-layer gl-1">complete</span>
+    <span class="glitch-layer gl-2">complete</span>
+    <span class="glitch-layer gl-3">complete</span>
+    <span class="glitch-layer gl-4">complete</span>
+    <span class="glitch-layer gl-main">complete</span>
+  </div>
+</div>
+
+<h1 class="sr-only">Complete</h1>
+
+<p>Your answers have been encrypted and stored.</p>
+
+{% if gate_token %}
+<p class="dim small">Your gate token:</p>
+<div class="token">{{ gate_token }}</div>
+<p class="dim small">Save this token. It is your proof of completion.</p>
+{% endif %}
+
+<hr>
+
+<p><a href="/lotto">Proceed to the Lotto &rarr;</a></p>
+{% endblock %}
