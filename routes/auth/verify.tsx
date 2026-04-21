@@ -1,40 +1,28 @@
-/**
- * Magic Link Verification Page - WITH JWT + OPAQUE RESUME TOKEN
- *
- * GET /auth/verify?token=<JWT>&resume=<opaque_token>
- *
- * Verifies JWT and resume token, then redirects to questionnaire.
- * Tokens are stored in cookies and should be copied to localStorage by client.
- *
- * Flow:
- * 1. Extract JWT and resume token from URL
- * 2. Verify JWT signature and expiration
- * 3. Hash resume token to get session_id
- * 4. Verify session_id matches JWT payload
- * 5. Verify session exists and is active
- * 6. Set cookies and redirect to /questionnaire
- * 7. Client copies tokens to localStorage
- *
- * gupta-vidya compliance:
- * - NO email in URL
- * - Tokens are opaque and unlinkable
- * - Resume token requires server secret to decode
- */
-
 import { Handlers, PageProps } from '$fresh/server.ts';
+import JourneyLayout from '../../components/JourneyLayout.tsx';
+import LocalizedText from '../../components/LocalizedText.tsx';
 import { verifyQuestionnaireJWT } from '../../lib/jwt.ts';
 import { hashResumeToken } from '../../lib/crypto.ts';
 import { getSessionById } from '../../lib/questionnaire-session.ts';
 import { increment } from '../../lib/metrics.ts';
+import {
+  type LanguageMode,
+  resolveLanguagePreference,
+  shouldSecureCookies,
+  withLanguageCookie,
+} from '../../lib/language.ts';
 
 interface VerifyData {
   success: boolean;
   error?: string;
   errorCode?: string;
+  htmlLang: string;
+  langMode: LanguageMode;
 }
 
 export const handler: Handlers<VerifyData> = {
   async GET(req, ctx) {
+    const preference = resolveLanguagePreference(req);
     const requestId = crypto.randomUUID();
     increment('requests.api');
 
@@ -42,163 +30,158 @@ export const handler: Handlers<VerifyData> = {
     const jwtToken = url.searchParams.get('token');
     const resumeToken = url.searchParams.get('resume');
 
-    // Validate presence of both tokens
+    const renderError = (error: string, errorCode: string) =>
+      ctx.render(
+        {
+          success: false,
+          error,
+          errorCode,
+          htmlLang: preference.htmlLang,
+          langMode: preference.mode,
+        },
+        { headers: withLanguageCookie(undefined, req, preference.mode) },
+      );
+
     if (!jwtToken || !resumeToken) {
       increment('errors.4xx');
       increment('auth.verify.missing_tokens');
-      return ctx.render({
-        success: false,
-        error: 'Missing authentication parameters',
-        errorCode: 'MISSING_TOKENS',
-      });
+      return renderError('Missing authentication parameters', 'MISSING_TOKENS');
     }
 
     try {
-      // Step 1: Verify JWT
       const jwtPayload = await verifyQuestionnaireJWT(jwtToken);
       if (!jwtPayload) {
         increment('errors.4xx');
         increment('auth.verify.invalid_jwt');
-        // Invalid JWT — metric tracked above
-        return ctx.render({
-          success: false,
-          error: 'Invalid or expired authentication token',
-          errorCode: 'INVALID_JWT',
-        });
+        return renderError('Invalid or expired authentication token', 'INVALID_JWT');
       }
 
-      // Step 2: Hash resume token to get session_id
       const sessionId = await hashResumeToken(resumeToken);
-
-      // Step 3: Verify session_id matches JWT payload
       if (sessionId !== jwtPayload.session_id) {
         increment('errors.4xx');
         increment('auth.verify.token_mismatch');
-        // Token mismatch — metric tracked above
-        return ctx.render({
-          success: false,
-          error: 'Authentication tokens do not match',
-          errorCode: 'TOKEN_MISMATCH',
-        });
+        return renderError('Authentication tokens do not match', 'TOKEN_MISMATCH');
       }
 
-      // Step 4: Verify session exists and is active
       const session = await getSessionById(sessionId);
       if (!session) {
         increment('errors.4xx');
         increment('auth.verify.session_not_found');
-        // Session not found — metric tracked above
-        return ctx.render({
-          success: false,
-          error: 'Session not found or expired',
-          errorCode: 'SESSION_NOT_FOUND',
-        });
+        return renderError('Session not found or expired', 'SESSION_NOT_FOUND');
       }
 
-      // Step 5: Verify email hash matches (additional security check)
       if (session.emailHash !== jwtPayload.email_hash) {
         increment('errors.4xx');
         increment('auth.verify.email_mismatch');
-        // Email hash mismatch — metric tracked above
-        return ctx.render({
-          success: false,
-          error: 'Authentication verification failed',
-          errorCode: 'EMAIL_MISMATCH',
-        });
+        return renderError('Authentication verification failed', 'EMAIL_MISMATCH');
       }
 
-      // Success! Set cookies and redirect
       increment('auth.magiclink.verified');
 
       const cookieOptions = [
         'HttpOnly',
-        'Secure',
         'SameSite=Lax',
         'Path=/',
-      ].filter(Boolean).join('; ');
-
-      const headers = new Headers();
-
-      // Set JWT cookie (24 hour expiry)
+        ...(shouldSecureCookies(req) ? ['Secure'] : []),
+      ].join('; ');
+      const headers = withLanguageCookie(undefined, req, preference.mode);
+      headers.append('Set-Cookie', `jwt=${jwtToken}; ${cookieOptions}; Max-Age=86400`);
       headers.append(
         'Set-Cookie',
-        `jwt=${jwtToken}; ${cookieOptions}; Max-Age=86400`
+        `resume_token=${resumeToken}; ${cookieOptions}; Max-Age=2592000`,
       );
-
-      // Set resume token cookie (30 day expiry for long-term resumption)
-      headers.append(
-        'Set-Cookie',
-        `resume_token=${resumeToken}; ${cookieOptions}; Max-Age=2592000`
-      );
-
-      // Redirect to questionnaire
       headers.set('Location', '/questionnaire');
       headers.set('Cache-Control', 'no-store, no-cache, must-revalidate');
       headers.set('X-Request-ID', requestId);
 
       increment('auth.verify.success');
-
-      return new Response(null, {
-        status: 302,
-        headers,
-      });
-    } catch (error) {
+      return new Response(null, { status: 302, headers });
+    } catch {
       console.error('[auth] Verification failed');
       increment('errors.5xx');
-      return ctx.render({
-        success: false,
-        error: 'Verification failed. Please try requesting a new magic link.',
-        errorCode: 'INTERNAL_ERROR',
-      });
+      return renderError(
+        'Verification failed. Please try requesting a new magic link.',
+        'INTERNAL_ERROR',
+      );
     }
   },
 };
 
 export default function VerifyPage({ data }: PageProps<VerifyData>) {
-  if (data.success) {
-    return (
-      <div>
-        <p>Redirecting...</p>
-      </div>
-    );
-  }
+  const errorCopy = data.errorCode === 'MISSING_TOKENS'
+    ? {
+      tamil: 'அங்கீகார அளவுருக்கள் இல்லை.',
+      transliteration: 'Aṅkīkāra aḷavurukkaḷ illai.',
+      english: 'Missing authentication parameters.',
+      spanish: 'Faltan parámetros de autenticación.',
+    }
+    : data.errorCode === 'INVALID_JWT'
+    ? {
+      tamil: 'இணைப்பு செல்லுபடியாகவில்லை அல்லது காலாவதியானது.',
+      transliteration: 'Iṇaippu cellupaṭiyākavillai allatu kālāvatiyāṉatu.',
+      english: 'The authentication link is invalid or expired.',
+      spanish: 'El enlace de autenticación es inválido o ha caducado.',
+    }
+    : data.errorCode === 'SESSION_NOT_FOUND'
+    ? {
+      tamil: 'அமர்வு இல்லை அல்லது முடிந்துவிட்டது.',
+      transliteration: 'Amarvu illai allatu muṭintuvittatu.',
+      english: 'The session was not found or has expired.',
+      spanish: 'La sesión no se encontró o ya expiró.',
+    }
+    : {
+      tamil: 'புதிய இணைப்பை கேட்டால் பாதுகாப்பாக தொடரலாம்.',
+      transliteration: 'Putiya iṇaippai kēṭṭāl pātukāppāka toṭaralām.',
+      english: data.error || 'An error occurred.',
+      spanish: 'Solicita un enlace nuevo para continuar con seguridad.',
+    };
 
   return (
-    <html>
-      <head>
-        <title>Verification Failed</title>
-        <style>{`
-          body {
-            font-family: Georgia, serif;
-            background: #0c0720;
-            color: #d7ccff;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            margin: 0;
-          }
-          .container {
-            text-align: center;
-            padding: 2rem;
-          }
-          h1 { color: #ff6b6b; }
-          a {
-            color: #ffd56b;
-            text-decoration: none;
-          }
-          a:hover { text-decoration: underline; }
-        `}</style>
-      </head>
-      <body>
-        <div class="container">
-          <h1>Verification Failed</h1>
-          <p>{data.error || 'An error occurred'}</p>
-          <p>
-            <a href="/login">Request a new magic link</a>
-          </p>
-        </div>
-      </body>
-    </html>
+    <JourneyLayout
+      currentMode={data.langMode}
+      htmlLang={data.htmlLang}
+      pageTitle='Verification Failed'
+      description='Magic link verification status.'
+      stage='Verification'
+      title={
+        <LocalizedText
+          as='span'
+          tamil='இணைப்பு தடுமாறியது'
+          transliteration='Iṇaippu taṭumāṟiyatu'
+          english='the link lost its shape'
+          spanish='el enlace perdió su forma'
+        />
+      }
+      lead={
+        <LocalizedText
+          as='span'
+          tamil='புதிய இணைப்பை கேட்பது பாதுகாப்பான வழி.'
+          transliteration='Putiya iṇaippai kēṭpatu pātukāppāṉa vaḻi.'
+          english='The safest path now is to request a fresh return link.'
+          spanish='Lo más seguro ahora es pedir un enlace nuevo para regresar.'
+        />
+      }
+    >
+      <LocalizedText
+        as='p'
+        className='journey-copy'
+        {...errorCopy}
+      />
+      <div class='journey-actions'>
+        <a
+          href='/login'
+          class='journey-button journey-button--primary'
+          style={{ textDecoration: 'none' }}
+        >
+          {data.langMode === 'spanish-only'
+            ? 'Solicitar un nuevo enlace'
+            : data.langMode === 'tamil-only' ||
+                data.langMode === 'tamil-translit' ||
+                data.langMode === 'all'
+            ? 'புதிய இணைப்பை கேள்'
+            : 'Request a new link'}
+        </a>
+      </div>
+    </JourneyLayout>
   );
 }

@@ -29,6 +29,8 @@ export interface Question {
   transliteration: string;
   /** English translation (Proust original) */
   english: string;
+  /** Spanish translation for regionalized display */
+  spanish?: string;
   /** Optional Sangam/classical Tamil literary reference */
   sangamRef?: string;
   /** Gate question (shown on landing) vs main questionnaire */
@@ -41,7 +43,7 @@ const TAMIL_NUMERALS = ['௦', '௧', '௨', '௩', '௪', '௫', '௬', '௭', 
 function toTamilNumeral(n: number): string {
   if (!Number.isInteger(n) || n < 0) {
     throw new RangeError(
-      `toTamilNumeral requires a non-negative integer, got: ${n}`
+      `toTamilNumeral requires a non-negative integer, got: ${n}`,
     );
   }
   if (n === 0) return TAMIL_NUMERALS[0];
@@ -363,32 +365,78 @@ export const QUESTIONS: Question[] = [
   },
 ];
 
+const SPANISH_QUESTIONS = [
+  '¿Cuál es tu idea de la felicidad perfecta?',
+  '¿Cuál es tu mayor temor?',
+  '¿Qué rasgo deploras más de ti mismo?',
+  '¿Qué rasgo deploras más en los demás?',
+  '¿A qué persona viva admiras más?',
+  '¿Cuál es tu mayor extravagancia?',
+  '¿Cuál es tu estado de ánimo actual?',
+  '¿Qué virtud consideras más sobrevalorada?',
+  '¿En qué ocasión mientes?',
+  '¿Qué es lo que más te disgusta de tu apariencia?',
+  '¿Qué persona viva desprecias más?',
+  '¿Qué cualidad aprecias más en un hombre?',
+  '¿Qué cualidad aprecias más en una mujer?',
+  '¿Qué palabras o frases usas en exceso?',
+  '¿Qué o quién es el gran amor de tu vida?',
+  '¿Cuándo y dónde fuiste más feliz?',
+  '¿Qué talento te gustaría más tener?',
+  'Si pudieras cambiar una sola cosa de ti mismo, ¿cuál sería?',
+  '¿Cuál consideras tu mayor logro?',
+  'Si murieras y volvieras como persona o cosa, ¿qué te gustaría ser?',
+  '¿Dónde te gustaría vivir?',
+  '¿Cuál es tu posesión más preciada?',
+  '¿Cuál consideras el grado más hondo de la miseria?',
+  '¿Cuál es tu ocupación favorita?',
+  '¿Cuál es tu rasgo más marcado?',
+  '¿Qué valoras más en tus amigos?',
+  '¿Quiénes son tus escritores favoritos?',
+  '¿Quién es tu héroe de ficción?',
+  '¿Con qué figura histórica te identificas más?',
+  '¿Quiénes son tus héroes en la vida real?',
+  '¿Cuáles son tus nombres favoritos?',
+  '¿Qué es lo que más detestas?',
+  '¿Cuál es tu mayor arrepentimiento?',
+  '¿Cómo te gustaría morir?',
+  '¿Cuál es tu lema?',
+] as const;
+
+function withSpanish(question: Question): Question {
+  return {
+    ...question,
+    spanish: SPANISH_QUESTIONS[question.id] ?? question.english,
+  };
+}
+
 /**
  * Get gate questions (for landing page)
  */
 export function getGateQuestions(): Question[] {
-  return QUESTIONS.filter((q) => q.isGate);
+  return QUESTIONS.filter((q) => q.isGate).map(withSpanish);
 }
 
 /**
  * Get shuffleable questions (for main questionnaire)
  */
 export function getShuffleableQuestions(): Question[] {
-  return QUESTIONS.filter((q) => !q.isGate);
+  return QUESTIONS.filter((q) => !q.isGate).map(withSpanish);
 }
 
 /**
  * Get question by ID
  */
 export function getQuestionById(id: number): Question | undefined {
-  return QUESTIONS.find((q) => q.id === id);
+  const question = QUESTIONS.find((q) => q.id === id);
+  return question ? withSpanish(question) : undefined;
 }
 
 /**
  * Get all questions in a specific language layer
  */
 export function getQuestionsInLanguage(
-  lang: 'tamil' | 'transliteration' | 'english'
+  lang: 'tamil' | 'transliteration' | 'english',
 ): string[] {
   return QUESTIONS.map((q) => q[lang]);
 }

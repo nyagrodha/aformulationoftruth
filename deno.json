@@ -4,9 +4,12 @@
   "tasks": {
     "check": "deno fmt --check && deno lint && deno check **/*.ts **/*.tsx",
     "dev": "deno run -A --watch=static/,routes/ dev.ts",
+    "dev:regional": "PORT=8395 BASE_URL=http://localhost:8395 deno run -A --watch=static/,routes/ dev.ts",
     "build": "deno run -A dev.ts build",
     "preview": "deno run -A main.ts",
+    "preview:regional": "PORT=8395 BASE_URL=http://localhost:8395 deno run -A main.ts",
     "start": "deno run --allow-net --allow-env=PORT,DATABASE_URL,PGHOST,PGPORT,PGDATABASE,PGUSER,PGPASSWORD,PGSSLMODE,BASE_URL,DENO_ENV,SENDGRID_API_KEY,TWILIO_ACCOUNT_SID,TWILIO_AUTH_TOKEN,TWILIO_VERIFY_SERVICE_SID,GATE_URL,GATE_API_KEY,AGE_RECIPIENT,DATABASE_URL_PRIMARY,DATABASE_URL_LOCAL --allow-read=./static,./public,./.env --deny-write --deny-run main.ts",
+    "start:regional": "PORT=8395 BASE_URL=http://localhost:8395 deno run --allow-net --allow-env=PORT,DATABASE_URL,PGHOST,PGPORT,PGDATABASE,PGUSER,PGPASSWORD,PGSSLMODE,BASE_URL,DENO_ENV,SENDGRID_API_KEY,TWILIO_ACCOUNT_SID,TWILIO_AUTH_TOKEN,TWILIO_VERIFY_SERVICE_SID,GATE_URL,GATE_API_KEY,AGE_RECIPIENT,DATABASE_URL_PRIMARY,DATABASE_URL_LOCAL --allow-read=./static,./public,./.env --deny-write --deny-run main.ts",
     "db:migrate": "deno run --allow-net --allow-env --allow-read=./db/migrations migrate.ts",
     "test": "deno test --allow-net --allow-env --allow-read --ignore=node_modules,dist,trash,trashy,_fresh,public/js,fresh-questionnaire tests/",
     "test:e2e": "deno test --allow-net --allow-env --allow-read --ignore=node_modules,dist,trash,trashy,_fresh,public/js,fresh-questionnaire tests/questionnaire_e2e_test.ts",

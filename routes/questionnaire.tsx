@@ -1,72 +1,32 @@
-/**
- * Questionnaire Page - JWT Authentication
- *
- * GET /questionnaire
- *
- * Serves the Proust-style questionnaire with shuffled questions.
- * If gate questions (0-1) were answered at /gate, session has 33 questions (Q2-34).
- * If gate was skipped, session has all 35 questions shuffled together.
- *
- * Authentication: JWT token in cookie, session state in DB
- */
-
 import { Handlers, PageProps } from '$fresh/server.ts';
+import JourneyLayout from '../components/JourneyLayout.tsx';
+import LocalizedText from '../components/LocalizedText.tsx';
 import { verifyQuestionnaireJWT } from '../lib/jwt.ts';
-import { getSessionById, updateSessionProgress, updateSessionIndex } from '../lib/questionnaire-session.ts';
+import {
+  getSessionById,
+  updateSessionIndex,
+  updateSessionProgress,
+} from '../lib/questionnaire-session.ts';
 import { parseQuestionOrder } from '../lib/questionnaire.ts';
 import { increment, trackFunnelQuestion, trackTemporalPattern } from '../lib/metrics.ts';
 import { storeEncryptedAnswer } from '../lib/gate-client.ts';
-
-// The 35 Proust questionnaire questions
-const QUESTIONS = [
-  // Gate questions (0-1) - may have been answered at /gate
-  'What is your idea of perfect happiness?',
-  'What is your greatest fear?',
-  // Main questions (2-34)
-  'What is the trait you most deplore in yourself?',
-  'What is the trait you most deplore in others?',
-  'Which living person do you most admire?',
-  'What is your greatest extravagance?',
-  'What is your current state of mind?',
-  'What do you consider the most overrated virtue?',
-  'On what occasion do you lie?',
-  'What do you most dislike about your appearance?',
-  'Which living person do you most despise?',
-  'What is the quality you most like in a man?',
-  'What is the quality you most like in a woman?',
-  'Which words or phrases do you most overuse?',
-  'What or who is the greatest love of your life?',
-  'When and where were you happiest?',
-  'Which talent would you most like to have?',
-  'If you could change one thing about yourself, what would it be?',
-  'What do you consider your greatest achievement?',
-  'If you were to die and come back as a person or a thing, what would it be?',
-  'Where would you most like to live?',
-  'What is your most treasured possession?',
-  'What do you regard as the lowest depth of misery?',
-  'What is your favorite occupation?',
-  'What is your most marked characteristic?',
-  'What do you most value in your friends?',
-  'Who are your favorite writers?',
-  'Who is your hero of fiction?',
-  'Which historical figure do you most identify with?',
-  'Who are your heroes in real life?',
-  'What are your favorite names?',
-  'What is it that you most dislike?', // Proust's response: "My own worst qualities. And people who do not feel what is good; who are ignorant the sweetness of sympathy."
-  'What is your greatest regret?',
-  'How would you like to die?',
-  'What is your motto?',
-];
+import { getQuestionById, type Question } from '../lib/questions_dakshinaparvanuvadam.ts';
+import {
+  type LanguageMode,
+  resolveLanguagePreference,
+  withLanguageCookie,
+} from '../lib/language.ts';
 
 interface QuestionnaireData {
   authenticated: boolean;
   sessionId: string;
-  questionOrder: number[];
   currentIndex: number;
-  currentQuestion: string;
+  currentQuestion: Question;
   questionNumber: number;
   totalQuestions: number;
   isFirstQuestion: boolean;
+  htmlLang: string;
+  langMode: LanguageMode;
 }
 
 function getCookie(cookieHeader: string | null, name: string): string | null {
@@ -81,8 +41,6 @@ export const handler: Handlers<QuestionnaireData> = {
 
     const cookies = req.headers.get('Cookie');
     const jwtToken = getCookie(cookies, 'jwt');
-
-    // Verify JWT authentication
     if (!jwtToken) {
       increment('questionnaire.no_jwt');
       return new Response(null, {
@@ -100,7 +58,6 @@ export const handler: Handlers<QuestionnaireData> = {
       });
     }
 
-    // Get session from database using session_id from JWT
     const session = await getSessionById(jwtPayload.session_id);
     if (!session) {
       increment('questionnaire.session_not_found');
@@ -110,13 +67,10 @@ export const handler: Handlers<QuestionnaireData> = {
       });
     }
 
-    // Parse question order from session
-    // Session already contains the correct order: 33 questions (gate done) or 35 (no gate)
     const questionOrder = parseQuestionOrder(session.questionOrder);
     const totalQuestions = questionOrder.length;
     const currentIndex = session.currentIndex;
 
-    // Check if completed
     if (currentIndex >= totalQuestions) {
       return new Response(null, {
         status: 302,
@@ -124,23 +78,36 @@ export const handler: Handlers<QuestionnaireData> = {
       });
     }
 
-    const questionNum = questionOrder[currentIndex];
-    const currentQuestion = QUESTIONS[questionNum];
-    const displayNum = currentIndex + 1;
+    const questionId = questionOrder[currentIndex];
+    const currentQuestion = getQuestionById(questionId);
+    if (!currentQuestion) {
+      increment('errors.5xx');
+      return new Response(null, {
+        status: 302,
+        headers: { Location: '/' },
+      });
+    }
 
     increment('questionnaire.viewed');
     trackTemporalPattern();
 
-    return ctx.render({
-      authenticated: true,
-      sessionId: session.sessionId,
-      questionOrder,
-      currentIndex,
-      currentQuestion,
-      questionNumber: displayNum,
-      totalQuestions,
-      isFirstQuestion: currentIndex === 0,
-    });
+    const preference = resolveLanguagePreference(req);
+    const headers = withLanguageCookie(undefined, req, preference.mode);
+
+    return ctx.render(
+      {
+        authenticated: true,
+        sessionId: session.sessionId,
+        currentIndex,
+        currentQuestion,
+        questionNumber: currentIndex + 1,
+        totalQuestions,
+        isFirstQuestion: currentIndex === 0,
+        htmlLang: preference.htmlLang,
+        langMode: preference.mode,
+      },
+      { headers },
+    );
   },
 
   async POST(req, _ctx) {
@@ -148,8 +115,6 @@ export const handler: Handlers<QuestionnaireData> = {
 
     const cookies = req.headers.get('Cookie');
     const jwtToken = getCookie(cookies, 'jwt');
-
-    // Verify JWT authentication
     if (!jwtToken) {
       return new Response(null, {
         status: 302,
@@ -165,7 +130,6 @@ export const handler: Handlers<QuestionnaireData> = {
       });
     }
 
-    // Get session from database
     const session = await getSessionById(jwtPayload.session_id);
     if (!session) {
       return new Response(null, {
@@ -174,19 +138,15 @@ export const handler: Handlers<QuestionnaireData> = {
       });
     }
 
-    // Parse form data
     const formData = await req.formData();
     const answer = formData.get('answer')?.toString() || '';
     const action = formData.get('action')?.toString() || 'continue';
-
     const questionOrder = parseQuestionOrder(session.questionOrder);
     const currentIndex = session.currentIndex;
 
-    // Handle "previous" action - go back to prior question
     if (action === 'previous') {
       if (currentIndex > 0) {
-        const prevIndex = currentIndex - 1;
-        await updateSessionIndex(session.sessionId, prevIndex);
+        await updateSessionIndex(session.sessionId, currentIndex - 1);
         increment('feature.previous_used');
       }
       return new Response(null, {
@@ -195,41 +155,42 @@ export const handler: Handlers<QuestionnaireData> = {
       });
     }
 
-    const questionNum = questionOrder[currentIndex];
+    const questionId = questionOrder[currentIndex];
+    const question = getQuestionById(questionId);
+    if (!question) {
+      increment('errors.5xx');
+      return new Response(null, {
+        status: 302,
+        headers: { Location: '/' },
+      });
+    }
 
-    // Store the answer
     const skipped = action === 'skip' || answer.trim() === '';
 
-    // Track funnel progression and feature usage
-    trackFunnelQuestion(questionNum);
+    trackFunnelQuestion(questionId);
     if (skipped) {
       increment('feature.skip_used');
     }
 
     try {
-      // Store answer via Rust Gate (age-encrypted)
       await storeEncryptedAnswer({
         sessionId: session.sessionId,
-        questionText: QUESTIONS[questionNum],
-        questionIndex: questionNum,
+        questionText: question.english,
+        questionIndex: questionId,
         answer: skipped ? '' : answer,
         skipped,
       });
-    } catch (error) {
+    } catch {
       console.error('[questionnaire] Error storing encrypted response');
     }
 
-    // Advance to next question
     const nextIndex = currentIndex + 1;
-
-    // Update session progress in database
     if (skipped) {
       await updateSessionIndex(session.sessionId, nextIndex);
     } else {
-      await updateSessionProgress(session.sessionId, questionNum, nextIndex);
+      await updateSessionProgress(session.sessionId, questionId, nextIndex);
     }
 
-    // Check if completed
     if (nextIndex >= questionOrder.length) {
       return new Response(null, {
         status: 302,
@@ -237,7 +198,6 @@ export const handler: Handlers<QuestionnaireData> = {
       });
     }
 
-    // Redirect back to questionnaire (will show next question)
     return new Response(null, {
       status: 302,
       headers: { Location: '/questionnaire' },
@@ -246,270 +206,139 @@ export const handler: Handlers<QuestionnaireData> = {
 };
 
 export default function QuestionnairePage({ data }: PageProps<QuestionnaireData>) {
-  const { currentQuestion, questionNumber, totalQuestions, isFirstQuestion } = data;
+  const progress = `${(data.questionNumber / data.totalQuestions) * 100}%`;
+  const placeholder = data.langMode === 'spanish-only'
+    ? 'Escribe lo que aparezca, aunque todavía no tenga forma...'
+    : data.langMode === 'tamil-only' ||
+        data.langMode === 'tamil-translit' ||
+        data.langMode === 'all'
+    ? 'மனத்தில் வரும் முதல் அசைவைக் கைவிடாதே...'
+    : 'Write the first shape of the thought before it hardens...';
 
   return (
-    <html lang="en">
-      <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>a formulation of truth</title>
-        <meta name="description" content="An apparatus for attention. Self-inquiry through the Proust Questionnaire." />
-        <link rel="stylesheet" href="/css/main.css" />
-        <style>{`
-          body {
-            background: #000;
-            color: #ccc;
-            font-family: 'Georgia', serif;
-            margin: 0;
-            min-height: 100vh;
-          }
-          nav {
-            padding: 1.5rem 2rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-          }
-          .logo {
-            font-family: 'Courier New', monospace;
-            font-size: 0.8rem;
-            letter-spacing: 0.2em;
-            color: #666;
-            text-decoration: none;
-          }
-          .logo:hover { color: #fff; }
-          .nav-links { display: flex; gap: 2rem; }
-          .nav-links a {
-            font-size: 0.75rem;
-            letter-spacing: 0.1em;
-            text-transform: uppercase;
-            color: #666;
-            text-decoration: none;
-          }
-          .nav-links a:hover { color: #fff; }
-          main {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: calc(100vh - 120px);
-            padding: 2rem;
-          }
-          .questionnaire-container {
-            max-width: 600px;
-            width: 100%;
-            text-align: center;
-          }
-          .progress-bar {
-            background: #1a1a1a;
-            height: 4px;
-            border-radius: 2px;
-            margin-bottom: 2rem;
-            overflow: hidden;
-          }
-          .progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #ff69b4, #ff8c42, #00ff88);
-            transition: width 0.3s ease;
-          }
-          .question-count {
-            font-size: 0.75rem;
-            color: #666;
-            letter-spacing: 0.1em;
-            margin-bottom: 2rem;
-          }
-          .question-text {
-            font-size: 1.5rem;
-            line-height: 1.6;
-            color: #fff;
-            margin-bottom: 2rem;
-          }
-          .hint {
-            font-size: 0.85rem;
-            color: #555;
-            margin-bottom: 2rem;
-          }
-          .answer-form {
-            display: flex;
-            flex-direction: column;
-            gap: 1.5rem;
-          }
-          textarea {
-            width: 100%;
-            min-height: 150px;
-            padding: 1rem;
-            background: #0a0a0a;
-            border: 1px solid #222;
-            border-radius: 4px;
-            color: #ccc;
-            font-family: 'Georgia', serif;
-            font-size: 1rem;
-            line-height: 1.6;
-            resize: vertical;
-          }
-          textarea:focus {
-            outline: none;
-            border-color: #ff69b4;
-          }
-          textarea::placeholder {
-            color: #444;
-          }
-          .button-group {
-            display: flex;
-            gap: 1rem;
-            justify-content: center;
-          }
-          button {
-            padding: 0.875rem 2rem;
-            font-size: 0.85rem;
-            letter-spacing: 0.1em;
-            text-transform: uppercase;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-          }
-          .btn-primary {
-            background: linear-gradient(135deg, #ff69b4, #ff8c42);
-            color: #000;
-            font-weight: bold;
-          }
-          .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 20px rgba(255, 105, 180, 0.3);
-          }
-          .btn-secondary {
-            background: transparent;
-            border: 1px solid #333;
-            color: #666;
-          }
-          .btn-secondary:hover {
-            border-color: #555;
-            color: #999;
-          }
-          .btn-prior {
-            background: transparent;
-            border: 1px solid #444;
-            color: #888;
-          }
-          .btn-prior:hover:not(:disabled) {
-            border-color: #c0c0c0;
-            color: #e8e8e8;
-            text-shadow: 0 0 8px rgba(192, 192, 192, 0.6);
-            box-shadow: 0 0 12px rgba(192, 192, 192, 0.3), inset 0 0 8px rgba(192, 192, 192, 0.1);
-          }
-          .voice-hint {
-            font-size: 0.75rem;
-            color: #444;
-            margin-top: 1rem;
-          }
-          .voice-hint a {
-            color: #00ff88;
-            text-decoration: none;
-          }
-          .voice-hint a:hover {
-            text-decoration: underline;
-          }
-          footer {
-            padding: 2rem;
-            text-align: center;
-          }
-          .footer-links {
-            display: flex;
-            justify-content: center;
-            gap: 2rem;
-            margin-bottom: 1rem;
-          }
-          .footer-links a {
-            font-size: 0.75rem;
-            color: #444;
-            text-decoration: none;
-          }
-          .footer-links a:hover { color: #888; }
-          .footer-copy {
-            font-size: 0.7rem;
-            color: #333;
-          }
-        `}</style>
-      </head>
-      <body>
-        {/* Commented out per design review - blue circled items
-        <nav>
-          <a href="/" class="logo">A4T</a>
-          <div class="nav-links">
-            <a href="/about.html">About</a>
-            <a href="/contact.html">Contact</a>
-          </div>
-        </nav>
-        */}
+    <JourneyLayout
+      currentMode={data.langMode}
+      htmlLang={data.htmlLang}
+      pageTitle='a formulation of truth'
+      description='Continue the encrypted Proust questionnaire.'
+      stage={`Question ${data.questionNumber} / ${data.totalQuestions}`}
+      title={
+        <LocalizedText
+          as='span'
+          tamil='உள் வானிலை'
+          transliteration='Uḷ vāṉilai'
+          english='interior weather'
+          spanish='tiempo interior'
+        />
+      }
+      lead={
+        <LocalizedText
+          as='span'
+          tamil='அவசரம் வேண்டாம். ஒவ்வொரு பதிலும் அடுத்த கேள்வியின் வெளிச்சத்தை மாற்றும்.'
+          transliteration='Avasaram vēṇṭām. Ovvoru patilum aṭutta kēḷviyiṉ veḷiccatthai māṟṟum.'
+          english='Move with enough slowness that each answer can alter the light of the next question.'
+          spanish='Avanza con la lentitud suficiente para que cada respuesta altere la luz de la siguiente pregunta.'
+        />
+      }
+    >
+      <div
+        style={{
+          height: '4px',
+          background: 'rgba(248, 240, 218, 0.08)',
+          marginBottom: '1.2rem',
+          overflow: 'hidden',
+        }}
+      >
+        <div
+          style={{
+            width: progress,
+            height: '100%',
+            background:
+              'linear-gradient(90deg, rgba(245, 199, 106, 0.92), rgba(106, 215, 255, 0.88))',
+            boxShadow: '0 0 28px rgba(245, 199, 106, 0.25)',
+          }}
+        />
+      </div>
 
-        <main>
-          <div class="questionnaire-container">
-            <div class="progress-bar">
-              <div
-                class="progress-fill"
-                style={`width: ${(questionNumber / totalQuestions) * 100}%`}
-              ></div>
-            </div>
+      <LocalizedText
+        as='p'
+        className='journey-copy'
+        tamil={`கேள்வி ${data.questionNumber} / ${data.totalQuestions}`}
+        transliteration={`Kēḷvi ${data.questionNumber} / ${data.totalQuestions}`}
+        english={`Question ${data.questionNumber} of ${data.totalQuestions}`}
+        spanish={`Pregunta ${data.questionNumber} de ${data.totalQuestions}`}
+      />
 
-            <p class="question-count">
-              question {questionNumber} of {totalQuestions}
-            </p>
+      <form method='POST' action='/questionnaire' class='journey-form'>
+        <div class='journey-field'>
+          <LocalizedText
+            as='label'
+            htmlFor='answer'
+            tamil={data.currentQuestion.tamil}
+            transliteration={data.currentQuestion.transliteration}
+            english={data.currentQuestion.english}
+            spanish={data.currentQuestion.spanish}
+          />
+          <textarea
+            id='answer'
+            name='answer'
+            placeholder={placeholder}
+            aria-describedby='questionnaire-note'
+          >
+          </textarea>
+        </div>
 
-            <h1 class="question-text">{currentQuestion}</h1>
+        <div class='journey-actions'>
+          <button
+            type='submit'
+            name='action'
+            value='previous'
+            class='journey-button journey-button--secondary'
+            disabled={data.isFirstQuestion}
+            style={data.isFirstQuestion ? { opacity: '0.45', cursor: 'not-allowed' } : undefined}
+          >
+            {data.langMode === 'spanish-only' ? 'Anterior' : data.langMode === 'tamil-only' ||
+                data.langMode === 'tamil-translit' ||
+                data.langMode === 'all'
+              ? 'முன்'
+              : 'Prior'}
+          </button>
+          <button
+            type='submit'
+            name='action'
+            value='continue'
+            class='journey-button journey-button--primary'
+          >
+            {data.langMode === 'spanish-only' ? 'Continuar' : data.langMode === 'tamil-only' ||
+                data.langMode === 'tamil-translit' ||
+                data.langMode === 'all'
+              ? 'தொடர்'
+              : 'Continue'}
+          </button>
+          <button
+            type='submit'
+            name='action'
+            value='skip'
+            class='journey-button journey-button--secondary'
+          >
+            {data.langMode === 'spanish-only' ? 'Omitir' : data.langMode === 'tamil-only' ||
+                data.langMode === 'tamil-translit' ||
+                data.langMode === 'all'
+              ? 'விட்டு செல்'
+              : 'Skip'}
+          </button>
+        </div>
 
-            {/* Commented out per design review - yellow circled item
-            <p class="hint">
-              Take your time. There are no right answers, only honest ones.
-            </p>
-            */}
-
-            <form method="POST" action="/questionnaire" class="answer-form">
-              <textarea
-                name="answer"
-                placeholder="Take your time..."
-                aria-label="Your answer"
-              ></textarea>
-
-              <div class="button-group">
-                <button
-                  type="submit"
-                  name="action"
-                  value="previous"
-                  class="btn-prior"
-                  disabled={isFirstQuestion}
-                  style={isFirstQuestion ? { opacity: '0.4', cursor: 'not-allowed' } : {}}
-                >
-                  Prior
-                </button>
-                <button type="submit" name="action" value="continue" class="btn-primary">
-                  Continue
-                </button>
-                <button type="submit" name="action" value="skip" class="btn-secondary">
-                  Skip
-                </button>
-              </div>
-            </form>
-
-            {/* Commented out per design review - blue circled item
-            <p class="voice-hint">
-              For voice input, use <a href="https://github.com/cjpais/Handy" target="_blank" rel="noopener">Handy</a> — free offline speech-to-text
-            </p>
-            */}
-          </div>
-        </main>
-
-        <footer>
-          <div class="footer-links">
-            <a href="/about.html">About</a>
-            <a href="/contact.html">Contact</a>
-            <a href="/privacy.html">Privacy</a>
-            <a href="/accessibility.html">Accessibility</a>
-          </div>
-          <p class="footer-copy">
-            Hosted in Finland by <a href="https://billing.flokinet.is/aff.php?aff=543" target="_blank" rel="noopener" style="color: #666; text-decoration: none;">FlokiNET</a> &middot; Encrypted database in Iceland
-          </p>
-        </footer>
-      </body>
-    </html>
+        <LocalizedText
+          as='p'
+          id='questionnaire-note'
+          className='journey-meta'
+          tamil='பதில் சேமிக்கப்படும் முன் குறியாக்கம் செய்யப்படும்.'
+          transliteration='Patil cēmikkappaṭum muṉ kuṟiyākkam ceyyappaṭum.'
+          english='Every answer is encrypted before it leaves this page.'
+          spanish='Cada respuesta se cifra antes de salir de esta página.'
+        />
+      </form>
+    </JourneyLayout>
   );
 }
