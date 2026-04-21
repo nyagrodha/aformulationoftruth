@@ -27,14 +27,20 @@ import { z } from 'zod';
 import { validateEmail } from '../../../lib/emailValidator.ts';
 import { createMagicLink } from '../../../lib/auth.ts';
 import { hashEmail } from '../../../lib/crypto.ts';
-import { createQuestionnaireSession, findActiveSession, deleteSession } from '../../../lib/questionnaire-session.ts';
+import {
+  createQuestionnaireSession,
+  deleteSession,
+  findActiveSession,
+} from '../../../lib/questionnaire-session.ts';
 import { createQuestionnaireJWT } from '../../../lib/jwt.ts';
 import { increment } from '../../../lib/metrics.ts';
 import { sendMagicLinkEmail } from '../../../lib/email.ts';
+import { sanitizeLanguageMode } from '../../../lib/language.ts';
 
 const RequestSchema = z.object({
   email: z.string().min(1),
   gateToken: z.string().optional(), // Optional gate token to link gate responses
+  langMode: z.string().optional(),
 });
 
 export const handler: Handlers = {
@@ -48,7 +54,7 @@ export const handler: Handlers = {
       increment('errors.4xx');
       return new Response(
         JSON.stringify({ error: 'Invalid JSON body' }),
-        { status: 400, headers: { 'Content-Type': 'application/json' } }
+        { status: 400, headers: { 'Content-Type': 'application/json' } },
       );
     }
 
@@ -57,7 +63,7 @@ export const handler: Handlers = {
       increment('errors.4xx');
       return new Response(
         JSON.stringify({ error: 'Email required' }),
-        { status: 400, headers: { 'Content-Type': 'application/json' } }
+        { status: 400, headers: { 'Content-Type': 'application/json' } },
       );
     }
 
@@ -71,13 +77,14 @@ export const handler: Handlers = {
       }
       return new Response(
         JSON.stringify({ error: 'Please use a valid email address' }),
-        { status: 400, headers: { 'Content-Type': 'application/json' } }
+        { status: 400, headers: { 'Content-Type': 'application/json' } },
       );
     }
 
     try {
       const email = emailValidation.normalized;
       const { gateToken } = parsed.data;
+      const langMode = sanitizeLanguageMode(parsed.data.langMode);
 
       // Step 1: Create magic link (for email delivery verification)
       const { expiresAt, cleanup: cleanupMagicLink } = await createMagicLink(email);
@@ -108,7 +115,13 @@ export const handler: Handlers = {
       // Step 5: Build magic link URL with JWT + resume token
       // IMPORTANT: NO EMAIL IN URL (gupta-vidya compliant)
       const baseUrl = Deno.env.get('BASE_URL') || 'http://localhost:8000';
-      const magicLinkUrl = `${baseUrl}/auth/verify?token=${jwt}&resume=${opaqueToken}`;
+      const verifyUrl = new URL('/auth/verify', baseUrl);
+      verifyUrl.searchParams.set('token', jwt);
+      verifyUrl.searchParams.set('resume', opaqueToken);
+      if (langMode) {
+        verifyUrl.searchParams.set('lang', langMode);
+      }
+      const magicLinkUrl = verifyUrl.toString();
 
       // Send the magic link email via SendGrid
       const emailResult = await sendMagicLinkEmail(email, magicLinkUrl);
@@ -122,7 +135,7 @@ export const handler: Handlers = {
 
         return new Response(
           JSON.stringify({ error: 'Failed to send email. Please try again.' }),
-          { status: 500, headers: { 'Content-Type': 'application/json' } }
+          { status: 500, headers: { 'Content-Type': 'application/json' } },
         );
       }
 
@@ -142,7 +155,7 @@ export const handler: Handlers = {
             _devSessionId: sessionId,
           }),
         }),
-        { status: 200, headers: { 'Content-Type': 'application/json' } }
+        { status: 200, headers: { 'Content-Type': 'application/json' } },
       );
     } catch (error) {
       console.error('[auth] Magic link creation failed');
@@ -150,7 +163,7 @@ export const handler: Handlers = {
 
       return new Response(
         JSON.stringify({ error: 'Failed to send magic link' }),
-        { status: 500, headers: { 'Content-Type': 'application/json' } }
+        { status: 500, headers: { 'Content-Type': 'application/json' } },
       );
     }
   },

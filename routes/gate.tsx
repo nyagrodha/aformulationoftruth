@@ -1,30 +1,20 @@
-/**
- * Gate Route - First two questions before authentication
- *
- * GET /gate - Show current gate question (0 or 1)
- * POST /gate - Submit answer, advance to next question or auth
- *
- * Questions presented one at a time.
- * After both questions, redirects to email authentication.
- */
-
 import { Handlers, PageProps } from '$fresh/server.ts';
+import JourneyLayout from '../components/JourneyLayout.tsx';
+import LocalizedText from '../components/LocalizedText.tsx';
 import { randomToken } from '../lib/crypto.ts';
 import { increment, trackFunnelQuestion, trackTemporalPattern } from '../lib/metrics.ts';
 import { getGateQuestions, type Question } from '../lib/questions_dakshinaparvanuvadam.ts';
+import {
+  type LanguageMode,
+  resolveLanguagePreference,
+  shouldSecureCookies,
+  withLanguageCookie,
+} from '../lib/language.ts';
 
-// Gate questions from shared dataset (questions 0-1 from Proust Questionnaire)
 const GATE_QUESTIONS: Question[] = getGateQuestions();
 
-/**
- * Build cookie suffix with Secure flag when appropriate.
- * Adds "; Secure" for HTTPS requests or production environment.
- */
 function getCookieSecureFlag(req: Request): string {
-  const isHttps = new URL(req.url).protocol === 'https:';
-  const isProd = Deno.env.get('DENO_ENV') === 'production' ||
-                 Deno.env.get('NODE_ENV') === 'production';
-  return (isHttps || isProd) ? '; Secure' : '';
+  return shouldSecureCookies(req) ? '; Secure' : '';
 }
 
 interface GateData {
@@ -32,6 +22,8 @@ interface GateData {
   question: Question;
   gateToken: string;
   error?: string;
+  htmlLang: string;
+  langMode: LanguageMode;
 }
 
 function getCookie(cookieHeader: string | null, name: string): string | null {
@@ -46,16 +38,15 @@ export const handler: Handlers<GateData> = {
     increment('funnel.gate.viewed');
     trackTemporalPattern();
 
+    const preference = resolveLanguagePreference(req);
     const cookies = req.headers.get('Cookie');
     let gateToken = getCookie(cookies, 'gate_token');
     let questionIndex = parseInt(getCookie(cookies, 'gate_q') || '0', 10);
 
-    // Validate question index
-    if (isNaN(questionIndex) || questionIndex < 0) {
+    if (Number.isNaN(questionIndex) || questionIndex < 0) {
       questionIndex = 0;
     }
 
-    // If already past gate questions, redirect to login
     if (questionIndex >= GATE_QUESTIONS.length) {
       return new Response(null, {
         status: 302,
@@ -63,28 +54,31 @@ export const handler: Handlers<GateData> = {
       });
     }
 
-    // Generate gate token if not exists
     if (!gateToken) {
       gateToken = `gate_${randomToken(16)}`;
     }
 
-    // Set cookies with Secure flag for HTTPS/production
     const secureFlag = getCookieSecureFlag(req);
-    const headers = new Headers();
+    const headers = withLanguageCookie(undefined, req, preference.mode);
     headers.append(
       'Set-Cookie',
-      `gate_token=${gateToken}; HttpOnly; SameSite=Strict; Path=/; Max-Age=3600${secureFlag}`
+      `gate_token=${gateToken}; HttpOnly; SameSite=Strict; Path=/; Max-Age=3600${secureFlag}`,
     );
     headers.append(
       'Set-Cookie',
-      `gate_q=${questionIndex}; HttpOnly; SameSite=Strict; Path=/; Max-Age=3600${secureFlag}`
+      `gate_q=${questionIndex}; HttpOnly; SameSite=Strict; Path=/; Max-Age=3600${secureFlag}`,
     );
 
-    return ctx.render({
-      questionIndex,
-      question: GATE_QUESTIONS[questionIndex],
-      gateToken,
-    }, { headers });
+    return ctx.render(
+      {
+        questionIndex,
+        question: GATE_QUESTIONS[questionIndex],
+        gateToken,
+        htmlLang: preference.htmlLang,
+        langMode: preference.mode,
+      },
+      { headers },
+    );
   },
 
   async POST(req, _ctx) {
@@ -101,24 +95,17 @@ export const handler: Handlers<GateData> = {
       });
     }
 
-    // Parse form data
     const formData = await req.formData();
     const answer = formData.get('answer')?.toString() || '';
     const action = formData.get('action')?.toString() || 'continue';
-
-    // Determine if answer was skipped (explicit skip or blank answer)
     const skipped = action === 'skip' || answer.trim() === '';
 
-    // Track funnel progression
     trackFunnelQuestion(questionIndex);
-
-    // Only count explicit skip button usage, not blank answers
     if (action === 'skip') {
       increment('feature.skip_used');
     }
 
     try {
-      // Store gate response via internal fetch
       const storeRes = await fetch(new URL('/api/gate', req.url), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -133,126 +120,135 @@ export const handler: Handlers<GateData> = {
       if (!storeRes.ok) {
         console.error('[gate] Failed to store response');
       }
-    } catch (error) {
+    } catch {
       console.error('[gate] Error storing response');
     }
 
-    // Advance to next question
     const nextIndex = questionIndex + 1;
     const secureFlag = getCookieSecureFlag(req);
 
     if (nextIndex >= GATE_QUESTIONS.length) {
-      // All gate questions done, redirect to login with gate token
       const headers = new Headers();
       headers.set('Location', '/login');
       headers.append(
         'Set-Cookie',
-        `gate_q=${nextIndex}; HttpOnly; SameSite=Strict; Path=/; Max-Age=3600${secureFlag}`
+        `gate_q=${nextIndex}; HttpOnly; SameSite=Strict; Path=/; Max-Age=3600${secureFlag}`,
       );
       return new Response(null, { status: 302, headers });
     }
 
-    // Show next question
     const headers = new Headers();
     headers.set('Location', '/gate');
     headers.append(
       'Set-Cookie',
-      `gate_q=${nextIndex}; HttpOnly; SameSite=Strict; Path=/; Max-Age=3600${secureFlag}`
+      `gate_q=${nextIndex}; HttpOnly; SameSite=Strict; Path=/; Max-Age=3600${secureFlag}`,
     );
     return new Response(null, { status: 302, headers });
   },
 };
 
 export default function GatePage({ data }: PageProps<GateData>) {
-  const { questionIndex, question, gateToken, error } = data;
+  const { questionIndex, question, gateToken, htmlLang, langMode } = data;
+  const placeholder = langMode === 'spanish-only'
+    ? 'Respira y escribe con calma...'
+    : langMode === 'tamil-only' || langMode === 'tamil-translit' || langMode === 'all'
+    ? 'மெதுவாக எண்ணி எழுதுங்கள்...'
+    : 'Take your time and write slowly...';
 
   return (
-    <html lang="en">
-      <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>a formulation of truth</title>
-        <meta name="description" content="An apparatus for attention. Self-inquiry through the Proust Questionnaire." />
-        <link rel="stylesheet" href="/css/main.css" />
-      </head>
-      <body>
-        <nav>
-          <a href="/" class="logo">A4T</a>
-          <div class="nav-links">
-            <a href="/about.html">About</a>
-            <a href="/contact.html">Contact</a>
-          </div>
-        </nav>
+    <JourneyLayout
+      currentMode={langMode}
+      htmlLang={htmlLang}
+      pageTitle='a formulation of truth'
+      description='The first gate into the questionnaire.'
+      stage={`Gate ${questionIndex + 1} / ${GATE_QUESTIONS.length}`}
+      title={
+        <LocalizedText
+          as='span'
+          tamil='வாயில்'
+          transliteration='Vāyil'
+          english='the gate'
+          spanish='el umbral'
+        />
+      }
+      lead={
+        <LocalizedText
+          as='span'
+          tamil='மரியாதைக்குரிய பதில் வேண்டாம். உண்மையைத் தொடும் பதில் மட்டும் போதும்.'
+          transliteration='Mariyātaikkuriya patil vēṇṭām. Uṇmaiyait toṭum patil maṭṭum pōtum.'
+          english='Do not answer politely. Answer closely enough that the water moves around your feet.'
+          spanish='No respondas con cortesía. Responde lo bastante cerca de la verdad como para sentir el agua en los pies.'
+        />
+      }
+    >
+      <LocalizedText
+        as='p'
+        className='journey-copy'
+        tamil='ஒவ்வொரு கேள்வியும் உன்னை அடுத்த அறைக்குக் கொண்டு செல்கிறது.'
+        transliteration='Ovvoru kēḷviyum uṉṉai aṭutta aṟaikkuk koṇṭu celkiṟatu.'
+        english='Each answer clears the next room.'
+        spanish='Cada respuesta despeja la siguiente habitación.'
+      />
 
-        <main>
-          <section class="section gate-section" style="min-height: 100vh; display: flex; align-items: center;">
-            <div class="gate-content">
-              <div class="gate-icon">?</div>
+      <form method='POST' action='/gate' class='journey-form'>
+        <input type='hidden' name='gate_token' value={gateToken} />
+        <input type='hidden' name='question_index' value={questionIndex} />
 
-              <p class="gate-progress">
-                question {questionIndex + 1} of {GATE_QUESTIONS.length}
-              </p>
+        <div class='journey-field'>
+          <LocalizedText
+            as='label'
+            htmlFor='answer'
+            tamil={question.tamil}
+            transliteration={question.transliteration}
+            english={question.english}
+            spanish={question.spanish}
+          />
+          <textarea
+            id='answer'
+            name='answer'
+            placeholder={placeholder}
+            aria-describedby='journey-note'
+          >
+          </textarea>
+        </div>
 
-              {/* Trilingual question display: Tamil, transliteration, English */}
-              <h2 class="gate-title">
-                <span class="tamil-text">{question.tamil}</span>
-              </h2>
-              <p class="gate-transliteration">{question.transliteration}</p>
-              <p class="gate-english">{question.english}</p>
+        <div class='journey-actions'>
+          <button
+            type='submit'
+            name='action'
+            value='continue'
+            class='journey-button journey-button--primary'
+          >
+            {langMode === 'spanish-only'
+              ? 'Continuar'
+              : langMode === 'tamil-only' || langMode === 'tamil-translit' || langMode === 'all'
+              ? 'தொடர்'
+              : 'Continue'}
+          </button>
+          <button
+            type='submit'
+            name='action'
+            value='skip'
+            class='journey-button journey-button--secondary'
+          >
+            {langMode === 'spanish-only'
+              ? 'Omitir'
+              : langMode === 'tamil-only' || langMode === 'tamil-translit' || langMode === 'all'
+              ? 'விட்டு செல்'
+              : 'Skip'}
+          </button>
+        </div>
 
-              <p class="gate-description">
-                These are not polite questions. They are holes in the ice.
-                If you answer them honestly, something cold touches your feet.
-              </p>
-
-              {error && <div class="message message-error">{error}</div>}
-
-              <form method="POST" action="/gate" class="gate-form">
-                <input type="hidden" name="gate_token" value={gateToken} />
-                <input type="hidden" name="question_index" value={questionIndex} />
-
-                <div class="form-group">
-                  <label htmlFor="answer">Your reflection</label>
-                  <div class="textarea-wrapper">
-                    <div class="watermark">truth</div>
-                    <textarea
-                      id="answer"
-                      name="answer"
-                      placeholder="Take your time..."
-                      aria-describedby="accessibility-hint"
-                    ></textarea>
-                  </div>
-                  <p class="accessibility-note" id="accessibility-hint">
-                    For voice input, use <a href="https://github.com/cjpais/Handy" target="_blank" rel="noopener">Handy</a> - free offline speech-to-text
-                  </p>
-                </div>
-
-                <div class="form-actions">
-                  <button type="submit" name="action" value="continue" class="cta cta-primary">
-                    Continue
-                  </button>
-                  <button type="submit" name="action" value="skip" class="cta cta-secondary">
-                    Skip
-                  </button>
-                </div>
-              </form>
-            </div>
-          </section>
-        </main>
-
-        <footer>
-          <div class="footer-inner">
-            <div class="footer-links">
-              <a href="/about.html">About</a>
-              <a href="/contact.html">Contact</a>
-              <a href="/privacy.html">Privacy</a>
-            </div>
-            <p class="footer-copy">
-              Encrypted database hosted in Iceland by <a href="https://fobdongle.com" target="_blank" rel="noopener" style="color: var(--neon-emerald); text-decoration: none;">FlokiNET</a>
-            </p>
-          </div>
-        </footer>
-      </body>
-    </html>
+        <LocalizedText
+          as='p'
+          className='journey-meta'
+          id='journey-note'
+          tamil='வாய்ச் சொற்கள் வேண்டுமெனில் Handy பயன்பாட்டை பயன்படுத்தலாம்.'
+          transliteration='Vāyc coṟkaḷ vēṇṭumeṉil Handy payaṉpāṭṭai payaṉpaṭuttalām.'
+          english='If you prefer voice input, Handy works offline and stays on-device.'
+          spanish='Si prefieres dictar, Handy funciona sin conexión y se queda en tu dispositivo.'
+        />
+      </form>
+    </JourneyLayout>
   );
 }

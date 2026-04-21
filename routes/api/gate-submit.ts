@@ -19,17 +19,23 @@ import { validateEmail } from '../../lib/emailValidator.ts';
 import { withConnection } from '../../lib/db.ts';
 import { createMagicLink } from '../../lib/auth.ts';
 import { hashEmail } from '../../lib/crypto.ts';
-import { createQuestionnaireSession, findActiveSession, deleteSession } from '../../lib/questionnaire-session.ts';
+import {
+  createQuestionnaireSession,
+  deleteSession,
+  findActiveSession,
+} from '../../lib/questionnaire-session.ts';
 import { createQuestionnaireJWT } from '../../lib/jwt.ts';
 import { increment } from '../../lib/metrics.ts';
 import { sendMagicLinkEmail } from '../../lib/email.ts';
 import { storeEncryptedAnswer } from '../../lib/gate-client.ts';
 import { ageEncrypt } from '../../lib/age-encrypt.ts';
+import { sanitizeLanguageMode } from '../../lib/language.ts';
 
 const GateSubmitSchema = z.object({
   email: z.string().min(1),
   answer1: z.string().max(20000).optional().default(''),
   answer2: z.string().max(20000).optional().default(''),
+  langMode: z.string().optional(),
 });
 
 export const handler: Handlers = {
@@ -43,7 +49,7 @@ export const handler: Handlers = {
       increment('errors.4xx');
       return new Response(
         JSON.stringify({ error: 'Invalid JSON body' }),
-        { status: 400, headers: { 'Content-Type': 'application/json' } }
+        { status: 400, headers: { 'Content-Type': 'application/json' } },
       );
     }
 
@@ -52,7 +58,7 @@ export const handler: Handlers = {
       increment('errors.4xx');
       return new Response(
         JSON.stringify({ error: 'Email required' }),
-        { status: 400, headers: { 'Content-Type': 'application/json' } }
+        { status: 400, headers: { 'Content-Type': 'application/json' } },
       );
     }
 
@@ -66,12 +72,13 @@ export const handler: Handlers = {
       }
       return new Response(
         JSON.stringify({ error: 'Please use a valid email address' }),
-        { status: 400, headers: { 'Content-Type': 'application/json' } }
+        { status: 400, headers: { 'Content-Type': 'application/json' } },
       );
     }
 
     const email = emailValidation.normalized;
     const { answer1, answer2 } = parsed.data;
+    const langMode = sanitizeLanguageMode(parsed.data.langMode);
 
     try {
       // Step 1: Generate server-side gate token
@@ -115,7 +122,7 @@ export const handler: Handlers = {
           `INSERT INTO fresh_gate_responses (gate_token, encrypted_email)
            VALUES ($1, $2)
            ON CONFLICT (gate_token) DO UPDATE SET encrypted_email = $2`,
-          [gateToken, encryptedEmail]
+          [gateToken, encryptedEmail],
         );
       });
 
@@ -145,7 +152,13 @@ export const handler: Handlers = {
 
       // Step 7: Build magic link URL
       const baseUrl = Deno.env.get('BASE_URL') || 'http://localhost:8000';
-      const magicLinkUrl = `${baseUrl}/auth/verify?token=${jwt}&resume=${opaqueToken}`;
+      const verifyUrl = new URL('/auth/verify', baseUrl);
+      verifyUrl.searchParams.set('token', jwt);
+      verifyUrl.searchParams.set('resume', opaqueToken);
+      if (langMode) {
+        verifyUrl.searchParams.set('lang', langMode);
+      }
+      const magicLinkUrl = verifyUrl.toString();
 
       // Step 8: Send magic link email
       const emailResult = await sendMagicLinkEmail(email, magicLinkUrl);
@@ -166,7 +179,7 @@ export const handler: Handlers = {
           await withConnection(async (client) => {
             await client.queryObject(
               `DELETE FROM fresh_gate_responses WHERE gate_token = $1`,
-              [gateToken]
+              [gateToken],
             );
           });
           // Cleaned up orphaned gate responses
@@ -176,7 +189,7 @@ export const handler: Handlers = {
 
         return new Response(
           JSON.stringify({ error: 'Failed to send magic link email. Please try again.' }),
-          { status: 500, headers: { 'Content-Type': 'application/json' } }
+          { status: 500, headers: { 'Content-Type': 'application/json' } },
         );
       }
 
@@ -190,7 +203,7 @@ export const handler: Handlers = {
           message: 'Magic link sent',
           expiresAt: expiresAt.toISOString(),
         }),
-        { status: 200, headers: { 'Content-Type': 'application/json' } }
+        { status: 200, headers: { 'Content-Type': 'application/json' } },
       );
     } catch (error) {
       console.error('[gate-submit] Submission failed');
@@ -198,7 +211,7 @@ export const handler: Handlers = {
 
       return new Response(
         JSON.stringify({ error: 'Failed to process submission' }),
-        { status: 500, headers: { 'Content-Type': 'application/json' } }
+        { status: 500, headers: { 'Content-Type': 'application/json' } },
       );
     }
   },

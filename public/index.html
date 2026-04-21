@@ -1,22 +1,37 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
+  <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>a formulation of truth</title>
-    <meta name="description" content="a formulation of truth. Self-inquiry and a Proust Questionnaire.">
+    <meta
+      name="description"
+      content="a formulation of truth. Self-inquiry and a Proust Questionnaire."
+    >
 
     <!-- Open Graph / Twitter -->
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://aformulationoftruth.com/">
     <meta property="og:title" content="a formulation of truth">
-    <meta property="og:description" content="here, a device: the ātmanoptican as a formulation of truth. Self-inquiry and a Proust Questionnaire.">
-    <meta property="og:image" content="https://aformulationoftruth.com/images/dreamMore...always.JPG">
+    <meta
+      property="og:description"
+      content="here, a device: the ātmanoptican as a formulation of truth. Self-inquiry and a Proust Questionnaire."
+    >
+    <meta
+      property="og:image"
+      content="https://aformulationoftruth.com/images/dreamMore...always.JPG"
+    >
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:url" content="https://aformulationoftruth.com/">
     <meta name="twitter:title" content="a formulation of truth: a slow experiment">
-    <meta name="twitter:description" content="here, a device: the ātmanoptican as a formulation of truth.">
-    <meta name="twitter:image" content="https://aformulationoftruth.com/images/dreamMore...always.JPG">
+    <meta
+      name="twitter:description"
+      content="here, a device: the ātmanoptican as a formulation of truth."
+    >
+    <meta
+      name="twitter:image"
+      content="https://aformulationoftruth.com/images/dreamMore...always.JPG"
+    >
 
     <!-- Favicons -->
     <link rel="icon" type="image/png" sizes="32x32" href="/favicons/favicon-simple-32.png">
@@ -27,651 +42,766 @@
 
     <!-- Hierarchical Navigation -->
     <style>
-        /* ═══════════════════════════════════════════
-           NAVIGATION HUB — word-level dropdowns
-           Lives inside gate section, after irendu
-           ═══════════════════════════════════════════ */
-        .site-hub-section {
-            position: sticky;
-            top: 0;
-            z-index: 10;
-            padding: 3rem 2rem;
-            border-top: 1px solid var(--ghost);
-            border-bottom: 1px solid var(--ghost);
-            background: var(--void);
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.4s ease;
-        }
-        .site-hub-section.visible {
-            opacity: 1;
-            pointer-events: auto;
-        }
-        .site-hub {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 0.75rem;
-        }
+      /* ═══════════════════════════════════════════
+         NAVIGATION HUB — word-level dropdowns
+         Lives inside gate section, after irendu
+         ═══════════════════════════════════════════ */
+      .site-hub-section {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        padding: 3rem 2rem;
+        border-top: 1px solid var(--ghost);
+        border-bottom: 1px solid var(--ghost);
+        background: var(--void);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.4s ease;
+      }
+      .site-hub-section.visible {
+        opacity: 1;
+        pointer-events: auto;
+      }
+      .site-hub {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.75rem;
+      }
+      .site-hub__row {
+        display: flex;
+        justify-content: center;
+        align-items: baseline;
+        gap: 2.5rem;
+        flex-wrap: wrap;
+      }
+      .site-hub__item {
+        position: relative;
+      }
+      .site-hub__label {
+        font-family: 'Space Mono', monospace;
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        background: none;
+        border: none;
+        padding: 0.4rem 0;
+        cursor: pointer;
+        position: relative;
+        transition: color 0.25s ease, text-shadow 0.25s ease;
+      }
+      .site-hub__item--questionnaire .site-hub__label {
+        color: var(--gold);
+      }
+      .site-hub__item--messenger .site-hub__label {
+        color: var(--neon-emerald);
+      }
+      .site-hub__item--storefront .site-hub__label {
+        color: var(--neon-orange);
+      }
+      .site-hub__item--library .site-hub__label {
+        color: var(--neon-purple);
+      }
+      .site-hub__item--about .site-hub__label {
+        color: var(--light);
+      }
+      .site-hub__item--contact .site-hub__label {
+        color: var(--neon-pink);
+      }
+      .site-hub__label--link {
+        text-decoration: none;
+        display: inline-block;
+      }
+      .site-hub__label::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        width: 0;
+        height: 1px;
+        transform: translateX(-50%);
+        transition: width 0.25s ease, box-shadow 0.25s ease;
+      }
+      .site-hub__item--questionnaire .site-hub__label::after {
+        background: var(--gold);
+      }
+      .site-hub__item--messenger .site-hub__label::after {
+        background: var(--neon-emerald);
+      }
+      .site-hub__item--storefront .site-hub__label::after {
+        background: var(--neon-orange);
+      }
+      .site-hub__item--library .site-hub__label::after {
+        background: var(--neon-purple);
+      }
+      .site-hub__item--about .site-hub__label::after {
+        background: var(--light);
+      }
+      .site-hub__item--contact .site-hub__label::after {
+        background: var(--neon-pink);
+      }
+      .site-hub__item:hover .site-hub__label::after,
+      .site-hub__item:focus-within .site-hub__label::after {
+        width: 100%;
+      }
+      .site-hub__item--questionnaire:hover .site-hub__label {
+        text-shadow: 0 0 12px rgba(255, 215, 0, 0.5);
+      }
+      .site-hub__item--messenger:hover .site-hub__label {
+        text-shadow: 0 0 12px var(--emerald-glow);
+      }
+      .site-hub__item--storefront:hover .site-hub__label {
+        text-shadow: 0 0 12px var(--orange-glow);
+      }
+      .site-hub__item--library:hover .site-hub__label {
+        text-shadow: 0 0 12px var(--purple-glow);
+      }
+      .site-hub__item--about:hover .site-hub__label {
+        text-shadow: 0 0 12px rgba(255, 255, 255, 0.4);
+      }
+      .site-hub__item--contact:hover .site-hub__label {
+        text-shadow: 0 0 12px var(--pink-glow);
+      }
+      .site-hub__dropdown {
+        position: absolute;
+        top: calc(100% + 0.6rem);
+        left: 50%;
+        transform: translateX(-50%) translateY(4px);
+        min-width: 160px;
+        padding: 0.75rem 1rem;
+        background: var(--obsidian);
+        border: 1px solid var(--ghost);
+        border-radius: 3px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s ease;
+        pointer-events: none;
+        list-style: none;
+        margin: 0;
+        text-align: left;
+      }
+      .site-hub__item:hover .site-hub__dropdown,
+      .site-hub__item:focus-within .site-hub__dropdown {
+        opacity: 1;
+        visibility: visible;
+        transform: translateX(-50%) translateY(0);
+        pointer-events: auto;
+      }
+      .site-hub__dropdown li {
+        margin-bottom: 0.4rem;
+      }
+      .site-hub__dropdown li:last-child {
+        margin-bottom: 0;
+      }
+      .site-hub__dropdown a {
+        font-family: 'Space Mono', monospace;
+        font-size: 0.7rem;
+        color: var(--pearl);
+        text-decoration: none;
+        letter-spacing: 0.04em;
+        white-space: nowrap;
+        transition: color 0.15s ease;
+        display: block;
+        padding: 0.15rem 0;
+      }
+      .site-hub__dropdown a:hover {
+        color: var(--light);
+      }
+      .site-hub__dropdown .coming-soon {
+        font-family: 'Space Mono', monospace;
+        font-size: 0.7rem;
+        color: var(--mist);
+        opacity: 0.45;
+        white-space: nowrap;
+        display: block;
+        padding: 0.15rem 0;
+      }
+      .site-hub__dropdown .coming-soon::after {
+        content: ' \b7 soon';
+        font-size: 0.55rem;
+        letter-spacing: 0.08em;
+      }
+      @media (max-width: 480px) {
         .site-hub__row {
-            display: flex;
-            justify-content: center;
-            align-items: baseline;
-            gap: 2.5rem;
-            flex-wrap: wrap;
-        }
-        /* Each dropdown trigger */
-        .site-hub__item {
-            position: relative;
+          gap: 1.5rem;
         }
         .site-hub__label {
-            font-family: 'Space Mono', monospace;
-            font-size: 0.75rem;
-            font-weight: 700;
-            letter-spacing: 0.15em;
-            text-transform: uppercase;
-            background: none;
-            border: none;
-            padding: 0.4rem 0;
-            cursor: pointer;
-            position: relative;
-            transition: color 0.25s ease, text-shadow 0.25s ease;
+          font-size: 0.7rem;
         }
-        /* Accent colours per word */
-        .site-hub__item--questionnaire .site-hub__label { color: var(--gold); }
-        .site-hub__item--messenger .site-hub__label     { color: var(--neon-emerald); }
-        .site-hub__item--storefront .site-hub__label    { color: var(--neon-orange); }
-        .site-hub__item--library .site-hub__label       { color: var(--neon-purple); }
-        .site-hub__item--about .site-hub__label            { color: var(--light); }
-        .site-hub__item--contact .site-hub__label        { color: var(--neon-pink); }
-        /* Direct-link label (no dropdown) */
-        .site-hub__label--link {
-            text-decoration: none;
-            display: inline-block;
-        }
-        /* Underline that grows on hover */
-        .site-hub__label::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 50%;
-            width: 0;
-            height: 1px;
-            transform: translateX(-50%);
-            transition: width 0.25s ease, box-shadow 0.25s ease;
-        }
-        .site-hub__item--questionnaire .site-hub__label::after { background: var(--gold); }
-        .site-hub__item--messenger .site-hub__label::after     { background: var(--neon-emerald); }
-        .site-hub__item--storefront .site-hub__label::after    { background: var(--neon-orange); }
-        .site-hub__item--library .site-hub__label::after       { background: var(--neon-purple); }
-        .site-hub__item--about .site-hub__label::after          { background: var(--light); }
-        .site-hub__item--contact .site-hub__label::after        { background: var(--neon-pink); }
-        .site-hub__item:hover .site-hub__label::after,
-        .site-hub__item:focus-within .site-hub__label::after {
-            width: 100%;
-        }
-        .site-hub__item--questionnaire:hover .site-hub__label { text-shadow: 0 0 12px rgba(255,215,0,0.5); }
-        .site-hub__item--messenger:hover .site-hub__label     { text-shadow: 0 0 12px var(--emerald-glow); }
-        .site-hub__item--storefront:hover .site-hub__label    { text-shadow: 0 0 12px var(--orange-glow); }
-        .site-hub__item--library:hover .site-hub__label       { text-shadow: 0 0 12px var(--purple-glow); }
-        .site-hub__item--about:hover .site-hub__label          { text-shadow: 0 0 12px rgba(255,255,255,0.4); }
-        .site-hub__item--contact:hover .site-hub__label        { text-shadow: 0 0 12px var(--pink-glow); }
-        /* Dropdown panel */
-        .site-hub__dropdown {
-            position: absolute;
-            top: calc(100% + 0.6rem);
-            left: 50%;
-            transform: translateX(-50%) translateY(4px);
-            min-width: 160px;
-            padding: 0.75rem 1rem;
-            background: var(--obsidian);
-            border: 1px solid var(--ghost);
-            border-radius: 3px;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.6);
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s ease;
-            pointer-events: none;
-            list-style: none;
-            margin: 0;
-            text-align: left;
-        }
-        .site-hub__item:hover .site-hub__dropdown,
-        .site-hub__item:focus-within .site-hub__dropdown {
-            opacity: 1;
-            visibility: visible;
-            transform: translateX(-50%) translateY(0);
-            pointer-events: auto;
-        }
-        .site-hub__dropdown li {
-            margin-bottom: 0.4rem;
-        }
-        .site-hub__dropdown li:last-child {
-            margin-bottom: 0;
-        }
-        .site-hub__dropdown a {
-            font-family: 'Space Mono', monospace;
-            font-size: 0.7rem;
-            color: var(--pearl);
-            text-decoration: none;
-            letter-spacing: 0.04em;
-            white-space: nowrap;
-            transition: color 0.15s ease;
-            display: block;
-            padding: 0.15rem 0;
-        }
-        .site-hub__dropdown a:hover {
-            color: var(--light);
-        }
-        .site-hub__dropdown .coming-soon {
-            font-family: 'Space Mono', monospace;
-            font-size: 0.7rem;
-            color: var(--mist);
-            opacity: 0.45;
-            white-space: nowrap;
-            display: block;
-            padding: 0.15rem 0;
-        }
-        .site-hub__dropdown .coming-soon::after {
-            content: ' \b7 soon';
-            font-size: 0.55rem;
-            letter-spacing: 0.08em;
-        }
-        @media (max-width: 480px) {
-            .site-hub__row { gap: 1.5rem; }
-            .site-hub__label { font-size: 0.7rem; }
-        }
-
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <a href="#begin" class="skip-link">Skip to questionnaire</a>
     <nav>
-       <!-- <a href="/" class="logo">A4T</a> -->
+      <!-- <a href="/" class="logo">A4T</a> -->
     </nav>
 
     <main>
-        <section class="hero">
-            <!-- Indic numeral column - descending from 5 to 2 -->
-            <div class="indic-column" aria-hidden="true">
-                <span class="indic-num kannada-5">೫</span>
-                <span class="indic-num devanagari-4">४</span>
-                <span class="indic-num sharada-3">𑇓</span>
-                <img src="/images/irendu2.png" alt="" class="indic-num irendu-2">
+      <section class="hero">
+        <!-- Indic numeral column - descending from 5 to 2 -->
+        <div class="indic-column" aria-hidden="true">
+          <span class="indic-num kannada-5">೫</span>
+          <span class="indic-num devanagari-4">४</span>
+          <span class="indic-num sharada-3">𑇓</span>
+          <img src="/images/irendu2.png" alt="" class="indic-num irendu-2">
+        </div>
+
+        <!-- Multicoloured neon watermark -->
+        <div class="neon-watermark" aria-hidden="true">
+          <span class="wm-left">a</span>
+          <span class="wm-four">4</span>
+          <span class="wm-right">முலsatyasya</span>
+        </div>
+
+        <div class="hero-content">
+          <h1 class="title">
+            <!-- Background watermark: 4 மூல सत् transitioning green→pink -->
+            <span class="bg-watermark" aria-hidden="true">
+              <span class="bg-four">4</span>
+              <span class="bg-mula">மூல</span>
+              <span class="bg-sat">सत्</span>
+            </span>
+            <span class="title-wrapper">
+              <span class="title-text">a formulation of truth</span>
+              <span class="title-flicker" aria-hidden="true">a formulation of truth</span>
+            </span>
+          </h1>
+
+          <!-- Full-width Buddha glitch video -->
+          <div class="fullwidth-video-container">
+            <video class="fullwidth-video" autoplay muted loop playsinline>
+              <source src="/videos/buddha_glitch.MOV" type="video/quicktime">
+              <source src="/videos/buddha_glitch.MOV" type="video/mp4">
+            </video>
+            <div class="video-scanlines"></div>
+            <div class="fullwidth-scroll">
+              <p class="translation">
+                Destroy afflictions and cause to blossom the lotus in the heart; may awareness, your
+                innate radiance with body fit for purpose, feast upon consciousness cool as
+                moonbeams.* And may your recognition transform this world into a place of eternal
+                remembrance and awakening.
+              </p>
+              <p class="attribution">— Utpaladeva (c. 900–950 CE)</p>
             </div>
-
-            <!-- Multicoloured neon watermark -->
-            <div class="neon-watermark" aria-hidden="true">
-                <span class="wm-left">a</span>
-                <span class="wm-four">4</span>
-                <span class="wm-right">முலsatyasya</span>
+            <!-- Footnote hover on cakora reference -->
+            <div class="trident-hover" style="position: absolute; bottom: 10%; left: 3%">
+              <span class="trident-trigger" title="About the cakora">✦</span>
+              <div class="trident-popup">
+                * The original Sanskrit refers to the <a
+                  href="https://en.wikipedia.org/wiki/Chakora_(mythology)"
+                  target="_blank"
+                  rel="noopener"
+                >cakora</a> (चकोर), a mythical bird in Sanskrit poetry said to fly only at night and
+                subsist entirely on moonbeams. I have omitted the cakora here as the metaphor has
+                lost broader cultural resonance, but wish the reader to know this is an intentional
+                departure from the original. The cakora's longing gaze toward the moon became a
+                beloved trope for yearning after and devotion to the divine. In the 10th century CE,
+                poets like Utpaladeva very likely conceptualized the divine in ways far healthier
+                than we who find ourselves imbricated within the cultural and political contexts of
+                modernity—its corrupt power struggles, its flattened metaphysics, its
+                instrumentalized faith that have defined our age.
+              </div>
             </div>
-
-            <div class="hero-content">
-                <h1 class="title">
-                    <!-- Background watermark: 4 மூல सत् transitioning green→pink -->
-                    <span class="bg-watermark" aria-hidden="true">
-                        <span class="bg-four">4</span>
-                        <span class="bg-mula">மூல</span>
-                        <span class="bg-sat">सत्</span>
-                    </span>
-                    <span class="title-wrapper">
-                        <span class="title-text">a formulation of truth</span>
-                        <span class="title-flicker" aria-hidden="true">a formulation of truth</span>
-                    </span>
-                </h1>
-
-                <!-- Full-width Buddha glitch video -->
-                <div class="fullwidth-video-container">
-                    <video class="fullwidth-video" autoplay muted loop playsinline>
-                        <source src="/videos/buddha_glitch.MOV" type="video/quicktime">
-                        <source src="/videos/buddha_glitch.MOV" type="video/mp4">
-                    </video>
-                    <div class="video-scanlines"></div>
-                    <div class="fullwidth-scroll">
-                        <p class="translation">Destroy afflictions and cause to blossom the lotus in the heart; may awareness, your innate radiance with body fit for purpose, feast upon consciousness cool as moonbeams.* And may your recognition transform this world into a place of eternal remembrance and awakening.</p>
-                        <p class="attribution">— Utpaladeva (c. 900–950 CE)</p>
-                    </div>
-                    <!-- Footnote hover on cakora reference -->
-                    <div class="trident-hover" style="position: absolute; bottom: 10%; left: 3%;">
-                        <span class="trident-trigger" title="About the cakora">✦</span>
-                        <div class="trident-popup">
-                            * The original Sanskrit refers to the <a href="https://en.wikipedia.org/wiki/Chakora_(mythology)" target="_blank" rel="noopener">cakora</a> (चकोर), a mythical bird in Sanskrit poetry said to fly only at night and subsist entirely on moonbeams. I have omitted the cakora here as the metaphor has lost broader cultural resonance, but wish the reader to know this is an intentional departure from the original. The cakora's longing gaze toward the moon became a beloved trope for yearning after and devotion to the divine. In the 10th century CE, poets like Utpaladeva very likely conceptualized the divine in ways far healthier than we who find ourselves imbricated within the cultural and political contexts of modernity—its corrupt power struggles, its flattened metaphysics, its instrumentalized faith that have defined our age.
-                        </div>
-                    </div>
-                </div>
-               <!-- <div class="cta-group">
+          </div>
+          <!-- <div class="cta-group">
                     <a href="#begin" class="cta cta-primary">தொடங்கு<br><span style="font-variant: small-caps; font-size: 0.7em; letter-spacing: 0.1em;">begin</span></a>
                 </div>-->
+        </div>
+        <div class="scroll-indicator">
+          <span></span>
+        </div>
+      </section>
+
+      <!-- Navigation strip — its own home between hero and gate -->
+      <section class="site-hub-section">
+        <nav class="site-hub" aria-label="Site navigation">
+          <div class="site-hub__row">
+            <div class="site-hub__item site-hub__item--questionnaire">
+              <button class="site-hub__label" aria-expanded="false">Questionnaire</button>
+              <ul class="site-hub__dropdown">
+                <li><a href="/questions.html">All Questions</a></li>
+                <li><a href="/proust/">Karuppacami Kelvittaal</a></li>
+              </ul>
             </div>
-            <div class="scroll-indicator">
-                <span></span>
+            <div class="site-hub__item site-hub__item--messenger">
+              <button class="site-hub__label" aria-expanded="false">Messenger</button>
+              <ul class="site-hub__dropdown">
+                <li><span class="coming-soon">Encrypted Messages</span></li>
+              </ul>
             </div>
-        </section>
-
-        <!-- Navigation strip — its own home between hero and gate -->
-        <section class="site-hub-section">
-            <nav class="site-hub" aria-label="Site navigation">
-                <div class="site-hub__row">
-                    <div class="site-hub__item site-hub__item--questionnaire">
-                        <button class="site-hub__label" aria-expanded="false">Questionnaire</button>
-                        <ul class="site-hub__dropdown">
-                            <li><a href="/questions.html">All Questions</a></li>
-                            <li><a href="/proust/">Karuppacami Kelvittaal</a></li>
-                        </ul>
-                    </div>
-                    <div class="site-hub__item site-hub__item--messenger">
-                        <button class="site-hub__label" aria-expanded="false">Messenger</button>
-                        <ul class="site-hub__dropdown">
-                            <li><span class="coming-soon">Encrypted Messages</span></li>
-                        </ul>
-                    </div>
-                    <div class="site-hub__item site-hub__item--storefront">
-                        <button class="site-hub__label" aria-expanded="false">Storefront</button>
-                        <ul class="site-hub__dropdown">
-                            <li><span class="coming-soon">Tip Jar</span></li>
-                            <!-- <li><span class="coming-soon">Crypto Donations</span></li> -->
-                            <li><span class="coming-soon">Lottery</span></li>
-                        </ul>
-                    </div>
-                </div>
-                <div class="site-hub__row">
-                    <div class="site-hub__item site-hub__item--library">
-                        <button class="site-hub__label" aria-expanded="false">Library</button>
-                        <ul class="site-hub__dropdown">
-                            <li><span class="coming-soon">Books &amp; Inspirations</span></li>
-                        </ul>
-                    </div>
-                    <div class="site-hub__item site-hub__item--about">
-                        <a href="/about.html" class="site-hub__label site-hub__label--link">About</a>
-                    </div>
-                    <div class="site-hub__item site-hub__item--contact">
-                        <a href="/contact.html" class="site-hub__label site-hub__label--link">Contact</a>
-                    </div>
-                </div>
-            </nav>
-        </section>
-
-        <section id="begin" class="section gate-section">
-            <div class="gate-content">
-                <img src="/images/irendu2.png" alt="irendu — Tamil for 'two'" class="gate-icon" title="irendu — Tamil for 'two'">
-                <!-- Gate Title: Tamil + English -->
-                <h2 class="gate-title gate-title--tamil">வாயில்</h2>
-                <h2 class="gate-title gate-title--english">here we meet</h2>
-
-                <!-- Replacement content placeholder -->
-
-
-                <!-- Welcome Text: Tamil -->
-                <p class="gate-description gate-welcome--tamil tamil-text">
-                    Proust கேள்வித்தாள்—கருப்பசாமி கேள்வித்தாள் என்ற பெயரில்—உங்களை வரவேற்கிறது
-                </p>
-                <!-- Welcome Text: Transliteration -->
-                <p class="gate-description gate-welcome--translit" style="font-size: 0.7rem; color: var(--mist); font-style: italic; margin-top: -1rem;">
-                    Proust kēḷvittāḷ—Karuppacāmi kēḷvittāḷ eṉṟa peyaril—uṅkaḷai varavēṟkiṟatu
-                </p>
-                <!-- Welcome Text: English -->
-                <p class="gate-description gate-welcome--english">
-                    The Proust Questionnaire—under the name Karuppasami Questionnaire—welcomes you
-                </p>
-                <!-- Welcome Text: Spanish -->
-                <p class="gate-description gate-welcome--spanish">
-                    El Cuestionario de Proust—bajo el nombre Cuestionario Karuppasami—te da la bienvenida
-                </p>
-
-                <!-- Language Display Selector -->
-                <div class="a4m-lang-selector" role="group" aria-label="Question display language">
-                    <span class="a4m-lang-selector__label">மொழி</span>
-                    <div class="a4m-lang-selector__options">
-                        <button type="button" class="a4m-lang-selector__btn" data-lang="all" aria-pressed="true" title="tamil + Transliteration + English">
-                            <span class="a4m-lang-selector__icon">த</span>
-                            <span class="a4m-lang-selector__text">+Tr</span>
-                        </button>
-                        <button type="button" class="a4m-lang-selector__btn" data-lang="tamil-only" aria-pressed="false" title="tamil only">
-                            <span class="a4m-lang-selector__icon">த</span>
-                        </button>
-                        <button type="button" class="a4m-lang-selector__btn" data-lang="tamil-translit" aria-pressed="false" title="tamil + Transliteration">
-                            <span class="a4m-lang-selector__icon">த</span>
-                            <span class="a4m-lang-selector__text">+Aa</span>
-                        </button>
-                        <button type="button" class="a4m-lang-selector__btn" data-lang="english-only" aria-pressed="false" title="English only">
-                            <span class="a4m-lang-selector__icon">En</span>
-                        </button>
-                        <button type="button" class="a4m-lang-selector__btn" data-lang="spanish-only" aria-pressed="false" title="Spanish only">
-                            <span class="a4m-lang-selector__icon">Es</span>
-                        </button>
-                    </div>
-                </div>
-
-                <form class="gate-form" id="gate-form">
-                    <!-- Gate Question 1: Perfect Happiness -->
-                    <div class="form-group">
-                        <label for="answer1" class="trilingual-label">
-                            <span class="question-number">௧</span>
-                            <span class="question-layers">
-                                <!-- Primary: Tamil script -->
-                                <span class="question-tamil" lang="ta">
-                                    முழுமையான மகிழ்ச்சி என்றால் உனக்கு என்ன?
-                                </span>
-                                <!-- Secondary: Transliteration -->
-                                <span class="question-transliteration" lang="ta-Latn">
-                                    Muḻumaiyāṉa makiḻcci eṉṟāl uṉakku eṉṉa?
-                                </span>
-                                <!-- Tertiary: English -->
-                                <span class="question-english">
-                                    What is your idea of perfect happiness?
-                                </span>
-                                <!-- Quaternary: Spanish -->
-                                <span class="question-spanish" lang="es">
-                                    ¿Cuál es tu idea de la felicidad perfecta?
-                                </span>
-                            </span>
-                        </label>
-                        <textarea
-                            id="answer1"
-                            name="answer1"
-                            placeholder="Take your time..."
-                            aria-describedby="accessibility-hint"
-                        ></textarea>
-                    </div>
-
-                    <!-- Gate Question 2: Greatest Fear -->
-                    <div class="form-group">
-                        <label for="answer2" class="trilingual-label">
-                            <span class="question-number">௨</span>
-                            <span class="question-layers">
-                                <!-- Primary: Tamil script -->
-                                <span class="question-tamil" lang="ta">
-                                    உன்னுடைய மிகப்பெரிய அச்சம் யாது?
-                                </span>
-                                <!-- Secondary: Transliteration -->
-                                <span class="question-transliteration" lang="ta-Latn">
-                                    Uṉṉuṭaiya mikapperiya accam yātu?
-                                </span>
-                                <!-- Tertiary: English -->
-                                <span class="question-english">
-                                    What is your greatest fear?
-                                </span>
-                                <!-- Quaternary: Spanish -->
-                                <span class="question-spanish" lang="es">
-                                    ¿Cuál es tu mayor temor?
-                                </span>
-                            </span>
-                        </label>
-                        <textarea
-                            id="answer2"
-                            name="answer2"
-                            placeholder="Or leave unanswered..."
-                        ></textarea>
-                    </div>
-
-                    <div class="form-group email-section">
-                        <label for="email">
-                            <span class="question-english">Enter your email to receive a magic link</span>
-                            <span class="question-spanish" lang="es">Introduce tu correo electrónico para recibir un enlace mágico</span>
-                        </label>
-                        <input
-                            type="email"
-                            id="email"
-                            name="email"
-                            placeholder="your@email.com"
-                            required
-                            autocomplete="email"
-                        >
-                    </div>
-
-                    <div class="form-actions">
-                        <button type="submit" class="submit-btn" id="submit-btn">
-                            Continue to Questionnaire
-                        </button>
-                    </div>
-
-                    <div class="status-message" id="status-message"></div>
-
-                    <p class="accessibility-note" id="accessibility-hint">
-                        For voice input, use <a href="https://github.com/cjpais/Handy" target="_blank" rel="noopener">Handy</a> — free offline speech-to-text
-                    </p>
-
-                    <p class="encryption-note">
-                        Responses encrypted with age (X25519) before storage
-                    </p>
-                </form>
+            <div class="site-hub__item site-hub__item--storefront">
+              <button class="site-hub__label" aria-expanded="false">Storefront</button>
+              <ul class="site-hub__dropdown">
+                <li><span class="coming-soon">Tip Jar</span></li>
+                <!-- <li><span class="coming-soon">Crypto Donations</span></li> -->
+                <li><span class="coming-soon">Lottery</span></li>
+              </ul>
             </div>
-        </section>
+          </div>
+          <div class="site-hub__row">
+            <div class="site-hub__item site-hub__item--library">
+              <button class="site-hub__label" aria-expanded="false">Library</button>
+              <ul class="site-hub__dropdown">
+                <li><span class="coming-soon">Books &amp; Inspirations</span></li>
+              </ul>
+            </div>
+            <div class="site-hub__item site-hub__item--about">
+              <a href="/about.html" class="site-hub__label site-hub__label--link">About</a>
+            </div>
+            <div class="site-hub__item site-hub__item--contact">
+              <a href="/contact.html" class="site-hub__label site-hub__label--link">Contact</a>
+            </div>
+          </div>
+        </nav>
+      </section>
+
+      <section id="begin" class="section gate-section">
+        <div class="gate-content">
+          <img
+            src="/images/irendu2.png"
+            alt="irendu — Tamil for 'two'"
+            class="gate-icon"
+            title="irendu — Tamil for 'two'"
+          >
+          <!-- Gate Title: Tamil + English -->
+          <h2 class="gate-title gate-title--tamil">வாயில்</h2>
+          <h2 class="gate-title gate-title--english">here we meet. at a gate</h2>
+
+          <!-- Replacement content placeholder -->
+
+          <!-- Welcome Text: Tamil -->
+          <p class="gate-description gate-welcome--tamil tamil-text">
+            Proust கேள்வித்தாள்—கருப்பசாமி கேள்வித்தாள் என்ற பெயரில்—உங்களை வரவேற்கிறது
+          </p>
+          <!-- Welcome Text: Transliteration -->
+          <p
+            class="gate-description gate-welcome--translit"
+            style="font-size: 0.7rem; color: var(--mist); font-style: italic; margin-top: -1rem"
+          >
+            Proust kēḷvittāḷ—Karuppacāmi kēḷvittāḷ eṉṟa peyaril—uṅkaḷai varavēṟkiṟatu
+          </p>
+          <!-- Welcome Text: English -->
+          <p class="gate-description gate-welcome--english">
+            The Proust Questionnaire—under the name Karuppasami Questionnaire—welcomes you
+          </p>
+          <!-- Welcome Text: Spanish -->
+          <p class="gate-description gate-welcome--spanish">
+            El Cuestionario de Proust—bajo el nombre Cuestionario Karuppasami—te da la bienvenida
+          </p>
+
+          <!-- Language Display Selector -->
+          <div class="a4m-lang-selector" role="group" aria-label="Question display language">
+            <span class="a4m-lang-selector__label">மொழி</span>
+            <div class="a4m-lang-selector__options">
+              <button
+                type="button"
+                class="a4m-lang-selector__btn"
+                data-lang="all"
+                aria-pressed="true"
+                title="tamil + Transliteration + English"
+              >
+                <span class="a4m-lang-selector__icon">த</span>
+                <span class="a4m-lang-selector__text">+Tr</span>
+              </button>
+              <button
+                type="button"
+                class="a4m-lang-selector__btn"
+                data-lang="tamil-only"
+                aria-pressed="false"
+                title="tamil only"
+              >
+                <span class="a4m-lang-selector__icon">த</span>
+              </button>
+              <button
+                type="button"
+                class="a4m-lang-selector__btn"
+                data-lang="tamil-translit"
+                aria-pressed="false"
+                title="tamil + Transliteration"
+              >
+                <span class="a4m-lang-selector__icon">த</span>
+                <span class="a4m-lang-selector__text">+Aa</span>
+              </button>
+              <button
+                type="button"
+                class="a4m-lang-selector__btn"
+                data-lang="english-only"
+                aria-pressed="false"
+                title="English only"
+              >
+                <span class="a4m-lang-selector__icon">En</span>
+              </button>
+              <button
+                type="button"
+                class="a4m-lang-selector__btn"
+                data-lang="spanish-only"
+                aria-pressed="false"
+                title="Spanish only"
+              >
+                <span class="a4m-lang-selector__icon">Es</span>
+              </button>
+            </div>
+          </div>
+
+          <form class="gate-form" id="gate-form">
+            <!-- Gate Question 1: Perfect Happiness -->
+            <div class="form-group">
+              <label for="answer1" class="trilingual-label">
+                <span class="question-number">௧</span>
+                <span class="question-layers">
+                  <!-- Primary: Tamil script -->
+                  <span class="question-tamil" lang="ta">
+                    முழுமையான மகிழ்ச்சி என்றால் உனக்கு என்ன?
+                  </span>
+                  <!-- Secondary: Transliteration -->
+                  <span class="question-transliteration" lang="ta-Latn">
+                    Muḻumaiyāṉa makiḻcci eṉṟāl uṉakku eṉṉa?
+                  </span>
+                  <!-- Tertiary: English -->
+                  <span class="question-english">
+                    What is your idea of perfect happiness?
+                  </span>
+                  <!-- Quaternary: Spanish -->
+                  <span class="question-spanish" lang="es">
+                    ¿Cuál es tu idea de la felicidad perfecta?
+                  </span>
+                </span>
+              </label>
+              <textarea
+                id="answer1"
+                name="answer1"
+                placeholder="Take your time..."
+                aria-describedby="accessibility-hint"
+              ></textarea>
+            </div>
+
+            <!-- Gate Question 2: Greatest Fear -->
+            <div class="form-group">
+              <label for="answer2" class="trilingual-label">
+                <span class="question-number">௨</span>
+                <span class="question-layers">
+                  <!-- Primary: Tamil script -->
+                  <span class="question-tamil" lang="ta">
+                    உன்னுடைய மிகப்பெரிய அச்சம் யாது?
+                  </span>
+                  <!-- Secondary: Transliteration -->
+                  <span class="question-transliteration" lang="ta-Latn">
+                    Uṉṉuṭaiya mikapperiya accam yātu?
+                  </span>
+                  <!-- Tertiary: English -->
+                  <span class="question-english">
+                    What is your greatest fear?
+                  </span>
+                  <!-- Quaternary: Spanish -->
+                  <span class="question-spanish" lang="es">
+                    ¿Cuál es tu mayor temor?
+                  </span>
+                </span>
+              </label>
+              <textarea
+                id="answer2"
+                name="answer2"
+                placeholder="Or leave unanswered..."
+              ></textarea>
+            </div>
+
+            <div class="form-group email-section">
+              <label for="email">
+                <span class="question-english">Enter your email to receive a magic link</span>
+                <span class="question-spanish" lang="es"
+                >Introduce tu correo electrónico para recibir un enlace mágico</span>
+              </label>
+              <input
+                type="email"
+                id="email"
+                name="email"
+                placeholder="your@email.com"
+                required
+                autocomplete="email"
+              >
+            </div>
+
+            <div class="form-actions">
+              <button type="submit" class="submit-btn" id="submit-btn">
+                Continue to Questionnaire
+              </button>
+            </div>
+
+            <div class="status-message" id="status-message"></div>
+
+            <p class="accessibility-note" id="accessibility-hint">
+              For voice input, use <a
+                href="https://github.com/cjpais/Handy"
+                target="_blank"
+                rel="noopener"
+              >Handy</a> — free offline speech-to-text
+            </p>
+
+            <p class="encryption-note">
+              Responses encrypted with age (X25519) before storage
+            </p>
+          </form>
+        </div>
+      </section>
     </main>
 
     <footer>
-        <div class="footer-inner">
-            <div class="footer-links">
-                <a href="/about.html">About</a>
-                <a href="/contact.html">Contact</a>
-                <a href="/privacy.html">Privacy</a>
-            </div>
-            <p class="footer-copy">
-                Hosted in Reykjav&iacute;k, Iceland by <a href="https://billing.flokinet.is/aff.php?aff=543" target="_blank" rel="noopener" style="color: #4de8ff; text-shadow: 0 0 8px rgba(77,232,255,0.6), 0 0 20px rgba(77,232,255,0.3); text-decoration: none;">FlokiNET</a>
-            </p>
+      <div class="footer-inner">
+        <div class="footer-links">
+          <a href="/about.html">About</a>
+          <a href="/contact.html">Contact</a>
+          <a href="/privacy.html">Privacy</a>
         </div>
+        <p class="footer-copy">
+          Hosted in Reykjav&iacute;k, Iceland by <a
+            href="https://billing.flokinet.is/aff.php?aff=543"
+            target="_blank"
+            rel="noopener"
+            style="color: #4de8ff; text-shadow: 0 0 8px rgba(77, 232, 255, 0.6), 0 0 20px rgba(77, 232, 255, 0.3); text-decoration: none"
+          >FlokiNET</a>
+        </p>
+      </div>
     </footer>
 
     <script>
+      // Navigation hub — aria-expanded toggle for keyboard accessibility
+      document.querySelectorAll('.site-hub__label').forEach((btn) => {
+        btn.addEventListener('mouseenter', () => btn.setAttribute('aria-expanded', 'true'));
+        btn.closest('.site-hub__item').addEventListener(
+          'mouseleave',
+          () => btn.setAttribute('aria-expanded', 'false'),
+        );
+        btn.addEventListener('click', () => {
+          const expanded = btn.getAttribute('aria-expanded') === 'true';
+          btn.setAttribute('aria-expanded', String(!expanded));
+        });
+      });
 
-        // Navigation hub — aria-expanded toggle for keyboard accessibility
-        document.querySelectorAll('.site-hub__label').forEach(btn => {
-            btn.addEventListener('mouseenter', () => btn.setAttribute('aria-expanded', 'true'));
-            btn.closest('.site-hub__item').addEventListener('mouseleave', () => btn.setAttribute('aria-expanded', 'false'));
-            btn.addEventListener('click', () => {
-                const expanded = btn.getAttribute('aria-expanded') === 'true';
-                btn.setAttribute('aria-expanded', String(!expanded));
-            });
+      // Navigation hub — show/hide based on scroll position
+      // Appears just above the scroll-indicator, disappears at the gate
+      (function initNavVisibility() {
+        const hub = document.querySelector('.site-hub-section');
+        const scrollIndicator = document.querySelector('.scroll-indicator');
+        const gateSection = document.querySelector('.gate-section');
+        if (!hub || !scrollIndicator || !gateSection) return;
+
+        let pastIndicator = false;
+        let pastGate = false;
+
+        function updateVisibility() {
+          hub.classList.toggle('visible', pastIndicator && !pastGate);
+        }
+
+        new IntersectionObserver(([entry]) => {
+          pastIndicator = !entry.isIntersecting && entry.boundingClientRect.top < 0;
+          updateVisibility();
+        }, { threshold: 0 }).observe(scrollIndicator);
+
+        new IntersectionObserver(([entry]) => {
+          pastGate = entry.isIntersecting;
+          updateVisibility();
+        }, { threshold: 0.05 }).observe(gateSection);
+      })();
+
+      // Smooth scroll for anchor links
+      document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
+        anchor.addEventListener('click', function (e) {
+          e.preventDefault();
+          const target = document.querySelector(this.getAttribute('href'));
+          if (target) {
+            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        });
+      });
+
+      // ═══════════════════════════════════════════════════════════
+      // A4M Language Selector — மொழி (Moḻi)
+      // Persists preference to localStorage
+      // ═══════════════════════════════════════════════════════════
+      (function initLangSelector() {
+        const STORAGE_KEY = 'a4m-lang-mode';
+        const COOKIE_NAME = 'a4m_lang_mode';
+        const gateContent = document.querySelector('.gate-content');
+        const buttons = document.querySelectorAll('.a4m-lang-selector__btn');
+
+        if (!gateContent || !buttons.length) return;
+
+        const secure = window.location.protocol === 'https:' ? '; Secure' : '';
+
+        // Restore saved preference
+        const savedMode = localStorage.getItem(STORAGE_KEY) ||
+          document.body.dataset.bootLangMode ||
+          'english-only';
+        setLangMode(savedMode);
+
+        // Handle button clicks
+        buttons.forEach((btn) => {
+          btn.addEventListener('click', function () {
+            const mode = this.dataset.lang;
+            setLangMode(mode);
+            localStorage.setItem(STORAGE_KEY, mode);
+            document.cookie = COOKIE_NAME + '=' + encodeURIComponent(mode) +
+              '; Path=/; Max-Age=31536000; SameSite=Lax' + secure;
+          });
         });
 
-        // Navigation hub — show/hide based on scroll position
-        // Appears just above the scroll-indicator, disappears at the gate
-        (function initNavVisibility() {
-            const hub = document.querySelector('.site-hub-section');
-            const scrollIndicator = document.querySelector('.scroll-indicator');
-            const gateSection = document.querySelector('.gate-section');
-            if (!hub || !scrollIndicator || !gateSection) return;
+        function setLangMode(mode) {
+          // Update data attribute on gate-content (CSS uses this for visibility)
+          gateContent.dataset.langMode = mode;
+          document.body.dataset.langMode = mode;
 
-            let pastIndicator = false;
-            let pastGate = false;
+          // Update aria-pressed states
+          buttons.forEach((btn) => {
+            btn.setAttribute('aria-pressed', btn.dataset.lang === mode);
+          });
+        }
+      })();
 
-            function updateVisibility() {
-                hub.classList.toggle('visible', pastIndicator && !pastGate);
-            }
+      // Form handling
+      const form = document.getElementById('gate-form');
+      const submitBtn = document.getElementById('submit-btn');
+      const statusMessage = document.getElementById('status-message');
 
-            // Show when the scroll indicator leaves the viewport (scrolled past it)
-            new IntersectionObserver(([entry]) => {
-                pastIndicator = !entry.isIntersecting && entry.boundingClientRect.top < 0;
-                updateVisibility();
-            }, { threshold: 0 }).observe(scrollIndicator);
+      function showStatus(message, type) {
+        statusMessage.textContent = message;
+        statusMessage.className = `status-message visible ${type}`;
+      }
 
-            // Hide when the gate section enters the viewport
-            new IntersectionObserver(([entry]) => {
-                pastGate = entry.isIntersecting;
-                updateVisibility();
-            }, { threshold: 0.05 }).observe(gateSection);
-        })();
+      function hideStatus() {
+        statusMessage.className = 'status-message';
+      }
 
-        // Smooth scroll for anchor links
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function(e) {
-                e.preventDefault();
-                const target = document.querySelector(this.getAttribute('href'));
-                if (target) {
-                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }
-            });
-        });
+      function setButtonState(state, text) {
+        submitBtn.textContent = text;
+        submitBtn.className = `submit-btn ${state}`;
+        submitBtn.disabled = state === 'loading';
+      }
 
-        // ═══════════════════════════════════════════════════════════
-        // A4M Language Selector — மொழி (Moḻi)
-        // Persists preference to localStorage
-        // ═══════════════════════════════════════════════════════════
-        (function initLangSelector() {
-            const STORAGE_KEY = 'a4m-lang-mode';
-            const gateContent = document.querySelector('.gate-content');
-            const buttons = document.querySelectorAll('.a4m-lang-selector__btn');
+      form.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        hideStatus();
 
-            if (!gateContent || !buttons.length) return;
+        const email = document.getElementById('email').value.trim();
+        const answer1 = document.getElementById('answer1').value.trim();
+        const answer2 = document.getElementById('answer2').value.trim();
 
-            // Restore saved preference
-            const savedMode = localStorage.getItem(STORAGE_KEY) || 'all';
-            setLangMode(savedMode);
-
-            // Handle button clicks
-            buttons.forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const mode = this.dataset.lang;
-                    setLangMode(mode);
-                    localStorage.setItem(STORAGE_KEY, mode);
-                });
-            });
-
-            function setLangMode(mode) {
-                // Update data attribute on gate-content (CSS uses this for visibility)
-                gateContent.dataset.langMode = mode;
-
-                // Update aria-pressed states
-                buttons.forEach(btn => {
-                    btn.setAttribute('aria-pressed', btn.dataset.lang === mode);
-                });
-            }
-        })();
-
-        // Form handling
-        const form = document.getElementById('gate-form');
-        const submitBtn = document.getElementById('submit-btn');
-        const statusMessage = document.getElementById('status-message');
-
-        function showStatus(message, type) {
-            statusMessage.textContent = message;
-            statusMessage.className = `status-message visible ${type}`;
+        // Validate email
+        if (!email) {
+          showStatus('Please enter your email address', 'error');
+          return;
         }
 
-        function hideStatus() {
-            statusMessage.className = 'status-message';
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+          showStatus('Please enter a valid email address', 'error');
+          return;
         }
 
-        function setButtonState(state, text) {
-            submitBtn.textContent = text;
-            submitBtn.className = `submit-btn ${state}`;
-            submitBtn.disabled = state === 'loading';
+        // Build gate answers array
+        const gateAnswers = [];
+        if (answer1) {
+          gateAnswers.push({
+            question: 'What is your idea of perfect happiness?',
+            answer: answer1,
+          });
+        }
+        if (answer2) {
+          gateAnswers.push({
+            question: 'What is your greatest fear?',
+            answer: answer2,
+          });
         }
 
-        form.addEventListener('submit', async function(e) {
-            e.preventDefault();
-            hideStatus();
+        // Update UI - encrypting
+        setButtonState('loading', 'Encrypting...');
+        showStatus('Securing your responses...', 'info');
 
-            const email = document.getElementById('email').value.trim();
-            const answer1 = document.getElementById('answer1').value.trim();
-            const answer2 = document.getElementById('answer2').value.trim();
+        // Update UI - sending
+        setButtonState('loading', 'Sending magic link...');
+        showStatus('Requesting magic link...', 'info');
 
-            // Validate email
-            if (!email) {
-                showStatus('Please enter your email address', 'error');
-                return;
-            }
+        try {
+          const response = await fetch('/api/gate-submit', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              email,
+              answer1,
+              answer2,
+              langMode: localStorage.getItem('a4m-lang-mode') ||
+                document.body.dataset.langMode || 'english-only',
+            }),
+          });
 
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (!emailRegex.test(email)) {
-                showStatus('Please enter a valid email address', 'error');
-                return;
-            }
-
-            // Build gate answers array
-            const gateAnswers = [];
-            if (answer1) {
-                gateAnswers.push({
-                    question: 'What is your idea of perfect happiness?',
-                    answer: answer1
-                });
-            }
-            if (answer2) {
-                gateAnswers.push({
-                    question: 'What is your greatest fear?',
-                    answer: answer2
-                });
-            }
-
-            // Update UI - encrypting
-            setButtonState('loading', 'Encrypting...');
-            showStatus('Securing your responses...', 'info');
-
-            // Update UI - sending
-            setButtonState('loading', 'Sending magic link...');
-            showStatus('Requesting magic link...', 'info');
-
+          // Safely parse JSON - handle empty responses
+          let data = {};
+          const text = await response.text();
+          if (text) {
             try {
-                const response = await fetch('/api/gate-submit', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ email, answer1, answer2 })
-                });
-
-                // Safely parse JSON - handle empty responses
-                let data = {};
-                const text = await response.text();
-                if (text) {
-                    try {
-                        data = JSON.parse(text);
-                    } catch (parseError) {
-                        console.error('Failed to parse response:', text);
-                    }
-                }
-
-                if (response.ok) {
-                    setButtonState('success', 'Magic link sent!');
-                    showStatus('Check your inbox for your magic link to continue the questionnaire.', 'success');
-
-                    // Clear form but keep answers in sessionStorage
-                    form.reset();
-
-                    // Reset button after delay
-                    setTimeout(() => {
-                        setButtonState('', 'Continue to Questionnaire');
-                    }, 5000);
-                } else {
-                    // Clear stored answers on error
-                    sessionStorage.removeItem('pendingGateAnswers');
-                    throw new Error(data.error || 'Failed to send magic link');
-                }
-            } catch (error) {
-                console.error('Submission error:', error);
-                sessionStorage.removeItem('pendingGateAnswers');
-                setButtonState('', 'Continue to Questionnaire');
-                showStatus(error.message || 'Something went wrong. Please try again.', 'error');
+              data = JSON.parse(text);
+            } catch (parseError) {
+              console.error('Failed to parse response:', text);
             }
+          }
+
+          if (response.ok) {
+            setButtonState('success', 'Magic link sent!');
+            showStatus(
+              'Check your inbox for your magic link to continue the questionnaire.',
+              'success',
+            );
+
+            // Clear form but keep answers in sessionStorage
+            form.reset();
+
+            // Reset button after delay
+            setTimeout(() => {
+              setButtonState('', 'Continue to Questionnaire');
+            }, 5000);
+          } else {
+            // Clear stored answers on error
+            sessionStorage.removeItem('pendingGateAnswers');
+            throw new Error(data.error || 'Failed to send magic link');
+          }
+        } catch (error) {
+          console.error('Submission error:', error);
+          sessionStorage.removeItem('pendingGateAnswers');
+          setButtonState('', 'Continue to Questionnaire');
+          showStatus(error.message || 'Something went wrong. Please try again.', 'error');
+        }
+      });
+
+      // Intersection Observer for scroll animations
+      const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px',
+      };
+
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.style.opacity = '1';
+            entry.target.style.transform = 'translateY(0)';
+          }
         });
+      }, observerOptions);
 
-        // Intersection Observer for scroll animations
-        const observerOptions = {
-            threshold: 0.1,
-            rootMargin: '0px 0px -50px 0px'
-        };
+      // Observe sections for fade-in
+      document.querySelectorAll('.section-inner, .gate-content').forEach((el) => {
+        el.style.opacity = '0';
+        el.style.transform = 'translateY(30px)';
+        el.style.transition = 'opacity 0.8s ease, transform 0.8s ease';
+        observer.observe(el);
+      });
 
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.style.opacity = '1';
-                    entry.target.style.transform = 'translateY(0)';
-                }
-            });
-        }, observerOptions);
-
-        // Observe sections for fade-in
-        document.querySelectorAll('.section-inner, .gate-content').forEach(el => {
-            el.style.opacity = '0';
-            el.style.transform = 'translateY(30px)';
-            el.style.transition = 'opacity 0.8s ease, transform 0.8s ease';
-            observer.observe(el);
-        });
-
-        // DISABLED: Play poem audio on first mouse movement (bypasses autoplay restrictions)
-        // Plays once, pauses 10s, plays once more, then stops
-        /*
+      // DISABLED: Play poem audio on first mouse movement (bypasses autoplay restrictions)
+      // Plays once, pauses 10s, plays once more, then stops
+      /*
         const poemAudio = document.getElementById('poem-audio');
         let audioStarted = false;
         let playCount = 0;
@@ -717,166 +847,170 @@
         */
     </script>
 
-<script>
-(function () {
-  "use strict";
+    <script>
+      (function () {
+        'use strict';
 
-  function initBuddhaGlitch() {
-    const video = document.querySelector("video.fullwidth-video");
-    if (!video) return;
+        function initBuddhaGlitch() {
+          const video = document.querySelector('video.fullwidth-video');
+          if (!video) return;
 
-    // ── Configuration ──────────────────────────────────────────
-    const CONFIG = {
-      opacityMin: 0.2,
-      opacityMax: 0.8,
-      freezeDuration: 5000,       // ms
-      freezePoints: [
-        { time: 4.0,  opacity: 0.25 },
-        { time: 9.5,  opacity: 0.55 },
-        { time: 13.0, opacity: 0.15 },
-      ],
-      freezeTolerance: 0.15,      // seconds
-    };
+          // ── Configuration ──────────────────────────────────────────
+          const CONFIG = {
+            opacityMin: 0.2,
+            opacityMax: 0.8,
+            freezeDuration: 5000, // ms
+            freezePoints: [
+              { time: 4.0, opacity: 0.25 },
+              { time: 9.5, opacity: 0.55 },
+              { time: 13.0, opacity: 0.15 },
+            ],
+            freezeTolerance: 0.15, // seconds
+          };
 
-    // ── State ──────────────────────────────────────────────────
-    let isFrozen = false;
-    let currentFreezeOpacity = 0.4;
-    let freezeTimer = null;
-    let lastFreezeTime = -1;
+          // ── State ──────────────────────────────────────────────────
+          let isFrozen = false;
+          let currentFreezeOpacity = 0.4;
+          let freezeTimer = null;
+          let lastFreezeTime = -1;
 
-    // ── Opacity breathing ──────────────────────────────────────
-    function updateOpacity() {
-      if (isFrozen) {
-        const cur = parseFloat(video.style.opacity) || 0.5;
-        video.style.opacity = cur + (currentFreezeOpacity - cur) * 0.1;
-      } else {
-        const t = Date.now() / 3000;
-        const n = (Math.sin(t * Math.PI) + 1) / 2;
-        video.style.opacity = CONFIG.opacityMin + n * (CONFIG.opacityMax - CONFIG.opacityMin);
-      }
-      requestAnimationFrame(updateOpacity);
-    }
+          // ── Opacity breathing ──────────────────────────────────────
+          function updateOpacity() {
+            if (isFrozen) {
+              const cur = parseFloat(video.style.opacity) || 0.5;
+              video.style.opacity = cur + (currentFreezeOpacity - cur) * 0.1;
+            } else {
+              const t = Date.now() / 3000;
+              const n = (Math.sin(t * Math.PI) + 1) / 2;
+              video.style.opacity = CONFIG.opacityMin +
+                n * (CONFIG.opacityMax - CONFIG.opacityMin);
+            }
+            requestAnimationFrame(updateOpacity);
+          }
 
-    // ── Freeze-frame logic ─────────────────────────────────────
-    function onTimeUpdate() {
-      if (isFrozen) return;
-      const ct = video.currentTime;
+          // ── Freeze-frame logic ─────────────────────────────────────
+          function onTimeUpdate() {
+            if (isFrozen) return;
+            const ct = video.currentTime;
 
-      for (const fp of CONFIG.freezePoints) {
-        if (Math.abs(ct - fp.time) < CONFIG.freezeTolerance && lastFreezeTime !== fp.time) {
-          lastFreezeTime = fp.time;
-          currentFreezeOpacity = fp.opacity;
-          isFrozen = true;
-          video.pause();
+            for (const fp of CONFIG.freezePoints) {
+              if (
+                Math.abs(ct - fp.time) < CONFIG.freezeTolerance &&
+                lastFreezeTime !== fp.time
+              ) {
+                lastFreezeTime = fp.time;
+                currentFreezeOpacity = fp.opacity;
+                isFrozen = true;
+                video.pause();
 
-          freezeTimer = setTimeout(function () {
-            isFrozen = false;
-            video.play();
-            setTimeout(function () {
-              if (lastFreezeTime === fp.time) lastFreezeTime = -1;
-            }, 2000);
-          }, CONFIG.freezeDuration);
+                freezeTimer = setTimeout(function () {
+                  isFrozen = false;
+                  video.play();
+                  setTimeout(function () {
+                    if (lastFreezeTime === fp.time) lastFreezeTime = -1;
+                  }, 2000);
+                }, CONFIG.freezeDuration);
 
-          break;
+                break;
+              }
+            }
+          }
+
+          function onSeeked() {
+            if (video.currentTime < 1) lastFreezeTime = -1;
+          }
+
+          video.style.transition = 'opacity 0.3s ease';
+          video.addEventListener('timeupdate', onTimeUpdate);
+          video.addEventListener('seeked', onSeeked);
+          requestAnimationFrame(updateOpacity);
         }
-      }
-    }
 
-    function onSeeked() {
-      if (video.currentTime < 1) lastFreezeTime = -1;
-    }
+        // ══════════════════════════════════════════════════════════════
+        // Z-Layer Multiplication — floating forward / backward
+        // Clones z-indexed elements above and beneath with varying
+        // vertical offsets and Z-depths, creating a breathing parallax
+        // ══════════════════════════════════════════════════════════════
+        function initZLayerFloat() {
+          var targets = [
+            '.neon-watermark',
+            '.bg-watermark',
+            '.title-wrapper',
+            '.scroll-indicator',
+            '.trident-hover',
+          ];
 
-    video.style.transition = "opacity 0.3s ease";
-    video.addEventListener("timeupdate", onTimeUpdate);
-    video.addEventListener("seeked", onSeeked);
-    requestAnimationFrame(updateOpacity);
-  }
+          var styleEl = document.createElement('style');
+          styleEl.textContent = '@keyframes zFloatA {' +
+            '0%   { transform: translateZ(0px)   translateY(0);     opacity: var(--zf-op); }' +
+            '35%  { transform: translateZ(60px)  translateY(-18px); opacity: calc(var(--zf-op) * 0.5); }' +
+            '65%  { transform: translateZ(25px)  translateY(-8px);  opacity: calc(var(--zf-op) * 0.7); }' +
+            '100% { transform: translateZ(0px)   translateY(0);     opacity: var(--zf-op); }' +
+            '}' +
+            '@keyframes zFloatB {' +
+            '0%   { transform: translateZ(0px)    translateY(0);    opacity: var(--zf-op); }' +
+            '40%  { transform: translateZ(-45px)  translateY(22px); opacity: calc(var(--zf-op) * 0.4); }' +
+            '70%  { transform: translateZ(-15px)  translateY(10px); opacity: calc(var(--zf-op) * 0.65); }' +
+            '100% { transform: translateZ(0px)    translateY(0);    opacity: var(--zf-op); }' +
+            '}' +
+            '@keyframes zFloatC {' +
+            '0%   { transform: translateZ(0px)   translateY(0);     opacity: var(--zf-op); }' +
+            '30%  { transform: translateZ(80px)  translateY(-30px); opacity: calc(var(--zf-op) * 0.3); }' +
+            '60%  { transform: translateZ(35px)  translateY(-12px); opacity: calc(var(--zf-op) * 0.6); }' +
+            '100% { transform: translateZ(0px)   translateY(0);     opacity: var(--zf-op); }' +
+            '}' +
+            '.z-float-clone { will-change: transform, opacity; }';
+          document.head.appendChild(styleEl);
 
-  // ══════════════════════════════════════════════════════════════
-  // Z-Layer Multiplication — floating forward / backward
-  // Clones z-indexed elements above and beneath with varying
-  // vertical offsets and Z-depths, creating a breathing parallax
-  // ══════════════════════════════════════════════════════════════
-  function initZLayerFloat() {
-    var targets = [
-      ".neon-watermark",
-      ".bg-watermark",
-      ".title-wrapper",
-      ".scroll-indicator",
-      ".trident-hover",
-    ];
+          var animations = ['zFloatA', 'zFloatB', 'zFloatC'];
+          // Vertical offsets (px) and base opacities for each clone layer
+          var layers = [
+            { yOff: -359, opacity: 0.15, anim: 2 }, // above — far
+            { yOff: -153, opacity: 0.30, anim: 0 }, // above — close
+            { yOff: 295, opacity: 0.25, anim: 1 }, // below — close
+            { yOff: 576, opacity: 0.10, anim: 2 }, // below — far
+          ];
 
-    var styleEl = document.createElement("style");
-    styleEl.textContent =
-      "@keyframes zFloatA {" +
-        "0%   { transform: translateZ(0px)   translateY(0);     opacity: var(--zf-op); }" +
-        "35%  { transform: translateZ(60px)  translateY(-18px); opacity: calc(var(--zf-op) * 0.5); }" +
-        "65%  { transform: translateZ(25px)  translateY(-8px);  opacity: calc(var(--zf-op) * 0.7); }" +
-        "100% { transform: translateZ(0px)   translateY(0);     opacity: var(--zf-op); }" +
-      "}" +
-      "@keyframes zFloatB {" +
-        "0%   { transform: translateZ(0px)    translateY(0);    opacity: var(--zf-op); }" +
-        "40%  { transform: translateZ(-45px)  translateY(22px); opacity: calc(var(--zf-op) * 0.4); }" +
-        "70%  { transform: translateZ(-15px)  translateY(10px); opacity: calc(var(--zf-op) * 0.65); }" +
-        "100% { transform: translateZ(0px)    translateY(0);    opacity: var(--zf-op); }" +
-      "}" +
-      "@keyframes zFloatC {" +
-        "0%   { transform: translateZ(0px)   translateY(0);     opacity: var(--zf-op); }" +
-        "30%  { transform: translateZ(80px)  translateY(-30px); opacity: calc(var(--zf-op) * 0.3); }" +
-        "60%  { transform: translateZ(35px)  translateY(-12px); opacity: calc(var(--zf-op) * 0.6); }" +
-        "100% { transform: translateZ(0px)   translateY(0);     opacity: var(--zf-op); }" +
-      "}" +
-      ".z-float-clone { will-change: transform, opacity; }";
-    document.head.appendChild(styleEl);
+          targets.forEach(function (sel) {
+            var els = document.querySelectorAll(sel);
+            els.forEach(function (el) {
+              var parent = el.parentElement;
+              if (!parent) return;
 
-    var animations = ["zFloatA", "zFloatB", "zFloatC"];
-    // Vertical offsets (px) and base opacities for each clone layer
-    var layers = [
-      { yOff: -359, opacity: 0.15, anim: 2 },  // above — far
-      { yOff: -153, opacity: 0.30, anim: 0 },  // above — close
-      { yOff:  295, opacity: 0.25, anim: 1 },  // below — close
-      { yOff:  576, opacity: 0.10, anim: 2 },  // below — far
-    ];
+              parent.style.perspective = '800px';
+              parent.style.perspectiveOrigin = 'center center';
 
-    targets.forEach(function (sel) {
-      var els = document.querySelectorAll(sel);
-      els.forEach(function (el) {
-        var parent = el.parentElement;
-        if (!parent) return;
+              layers.forEach(function (layer) {
+                var clone = el.cloneNode(true);
+                clone.setAttribute('aria-hidden', 'true');
+                clone.style.position = 'absolute';
+                clone.style.top = (el.offsetTop + layer.yOff) + 'px';
+                clone.style.left = el.offsetLeft + 'px';
+                clone.style.width = el.offsetWidth + 'px';
+                clone.style.pointerEvents = 'none';
+                clone.style.setProperty('--zf-op', String(layer.opacity));
+                clone.style.opacity = String(layer.opacity);
+                var dur = 8 + Math.random() * 7;
+                clone.style.animation = animations[layer.anim] + ' ' + dur +
+                  's ease-in-out infinite';
+                clone.style.animationDelay = (Math.random() * 5) + 's';
+                clone.classList.add('z-float-clone');
+                parent.appendChild(clone);
+              });
+            });
+          });
+        }
 
-        parent.style.perspective = "800px";
-        parent.style.perspectiveOrigin = "center center";
-
-        layers.forEach(function (layer) {
-          var clone = el.cloneNode(true);
-          clone.setAttribute("aria-hidden", "true");
-          clone.style.position = "absolute";
-          clone.style.top = (el.offsetTop + layer.yOff) + "px";
-          clone.style.left = el.offsetLeft + "px";
-          clone.style.width = el.offsetWidth + "px";
-          clone.style.pointerEvents = "none";
-          clone.style.setProperty("--zf-op", String(layer.opacity));
-          clone.style.opacity = String(layer.opacity);
-          var dur = 8 + Math.random() * 7;
-          clone.style.animation = animations[layer.anim] + " " + dur + "s ease-in-out infinite";
-          clone.style.animationDelay = (Math.random() * 5) + "s";
-          clone.classList.add("z-float-clone");
-          parent.appendChild(clone);
-        });
-      });
-    });
-  }
-
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", function () {
-      initBuddhaGlitch();
-      initZLayerFloat();
-    });
-  } else {
-    initBuddhaGlitch();
-    initZLayerFloat();
-  }
-})();
-</script>
-</body>
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', function () {
+            initBuddhaGlitch();
+            initZLayerFloat();
+          });
+        } else {
+          initBuddhaGlitch();
+          initZLayerFloat();
+        }
+      })();
+    </script>
+  </body>
 </html>
