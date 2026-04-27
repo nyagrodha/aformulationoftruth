@@ -124,6 +124,18 @@ export const gateResponses = pgTable("gate_responses", {
   linkedAt: timestamp("linked_at"), // When response was linked to user account
 });
 
+// Cooldown commitments — ZK-compatible rate limiting for questionnaire completions
+// user_hash is HMAC(userId), encrypted_expiry is AES-256-GCM encrypted ISO date
+export const cooldownCommitments = pgTable("cooldown_commitments", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userHash: text("user_hash").notNull(),
+  encryptedExpiry: text("encrypted_expiry").notNull(),
+  iv: text("iv").notNull(),
+  tag: text("tag").notNull(),
+  salt: text("salt").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => [index("idx_cooldown_user_hash").on(table.userHash)]);
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   sessions: many(questionnaireSessions),
@@ -220,3 +232,6 @@ export type InsertNewsletterEmail = z.infer<typeof insertNewsletterEmailSchema>;
 
 export type PaymentCode = typeof paymentCodes.$inferSelect;
 export type InsertPaymentCode = z.infer<typeof insertPaymentCodeSchema>;
+
+export type CooldownCommitment = typeof cooldownCommitments.$inferSelect;
+export type InsertCooldownCommitment = typeof cooldownCommitments.$inferInsert;

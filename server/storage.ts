@@ -6,6 +6,7 @@ import {
   newsletterEmails,
   paymentCodes,
   gateResponses,
+  cooldownCommitments,
   type User,
   type InsertUser,
   type UpsertUser,
@@ -20,7 +21,9 @@ import {
   type PaymentCode,
   type InsertPaymentCode,
   type GateResponse,
-  type InsertGateResponse
+  type InsertGateResponse,
+  type CooldownCommitment,
+  type InsertCooldownCommitment,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, gt, desc, sql } from "drizzle-orm";
@@ -67,6 +70,10 @@ export interface IStorage {
   getGateResponsesBySessionId(sessionId: string): Promise<GateResponse[]>;
   linkGateResponsesToUser(sessionId: string, userId: string): Promise<void>;
   getGateResponsesByUserId(userId: string): Promise<GateResponse[]>;
+
+  // Cooldown operations
+  createCooldownCommitment(commitment: InsertCooldownCommitment): Promise<CooldownCommitment>;
+  getLatestCooldownByUserHash(userHash: string): Promise<CooldownCommitment | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -448,6 +455,26 @@ export class DatabaseStorage implements IStorage {
       .where(eq(gateResponses.userId, userId))
       .orderBy(desc(gateResponses.createdAt));
   }
+
+  // Cooldown operations
+  async createCooldownCommitment(commitment: InsertCooldownCommitment): Promise<CooldownCommitment> {
+    const [result] = await db
+      .insert(cooldownCommitments)
+      .values(commitment)
+      .returning();
+    return result;
+  }
+
+  async getLatestCooldownByUserHash(userHash: string): Promise<CooldownCommitment | undefined> {
+    const [result] = await db
+      .select()
+      .from(cooldownCommitments)
+      .where(eq(cooldownCommitments.userHash, userHash))
+      .orderBy(desc(cooldownCommitments.createdAt))
+      .limit(1);
+    return result || undefined;
+  }
+
 }
 
 export const storage = new DatabaseStorage();

@@ -33,6 +33,7 @@ import { questionService } from "./services/questionService";
 import { vpsStorageService } from "./services/vpsStorageService";
 import { encryptionService } from "./services/encryptionService";
 import { responseEncryptionService } from "./services/responseEncryptionService";
+import { cooldownService } from "./services/cooldownService";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
@@ -220,24 +221,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (nextQuestionIndex < questionOrder.length) {
         await storage.updateSessionProgress(sessionId, nextQuestionIndex);
       } else {
-        // Check if user has completed questionnaire in last 2 months
-        const existingCompletions = await storage.getUserCompletedSessions(userId);
-        const twoMonthsAgo = new Date();
-        twoMonthsAgo.setMonth(twoMonthsAgo.getMonth() - 2);
-        
-        const recentCompletion = existingCompletions.find(session => 
-          session.completedAt && new Date(session.completedAt) > twoMonthsAgo
-        );
-
-        if (recentCompletion) {
-          return res.status(400).json({ 
-            message: 'You may only complete the questionnaire once every 2 months',
-            nextAvailable: new Date(new Date(recentCompletion.completedAt!).getTime() + (2 * 30 * 24 * 60 * 60 * 1000))
-          });
+        // Check cooldown commitment
+        const userHash = cooldownService.getUserHash(userId);
+        const commitment = await storage.getLatestCooldownByUserHash(userHash);
+        if (commitment) {
+          const { onCooldown, daysRemaining } = cooldownService.checkCooldown(commitment);
+          if (onCooldown) {
+            return res.status(400).json({
+              message: 'Unable to complete the inquiry at this time',
+              daysRemaining,
+            });
+          }
         }
 
         // Complete session and generate PDF
         await storage.completeSession(sessionId, false);
+
+        // Create new cooldown commitment (old records kept as encrypted audit trail)
+        const newCommitment = cooldownService.createCommitment(userId);
+        await storage.createCooldownCommitment({
+          userHash: newCommitment.userHash,
+          encryptedExpiry: newCommitment.encryptedExpiry,
+          iv: newCommitment.iv,
+          tag: newCommitment.tag,
+          salt: newCommitment.salt,
+        });
 
         // Get user and all responses for PDF (decrypt before PDF generation)
         const user = await storage.getUser(userId);
@@ -245,7 +253,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const allResponses = responseEncryptionService.decryptResponses(encryptedAllResponses);
 
         if (user?.email) {
-          // Generate and send PDF
           const pdfBuffer = await pdfService.generateFormulationOfTruthPDF(
             allResponses,
             session.questionOrder as number[]
@@ -298,20 +305,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: 'User not authenticated' });
       }
 
-      // Check if user has completed questionnaire recently (silent enforcement)
-      const existingCompletions = await storage.getUserCompletedSessions(userId);
-      const restrictionPeriod = new Date();
-      restrictionPeriod.setTime(restrictionPeriod.getTime() - (5688000 * 1000)); // 5,688,000 seconds ago
-      
-      const recentCompletion = existingCompletions.find(session => 
-        session.completedAt && new Date(session.completedAt) > restrictionPeriod
-      );
-
-      if (recentCompletion) {
-        // Return a generic error without revealing timing information
-        return res.status(400).json({ 
-          message: 'Unable to complete the inquiry at this time'
-        });
+      // Check cooldown commitment
+      const userHash = cooldownService.getUserHash(userId);
+      const existingCommitment = await storage.getLatestCooldownByUserHash(userHash);
+      if (existingCommitment) {
+        const { onCooldown, daysRemaining, cooldownDays } = cooldownService.checkCooldown(existingCommitment);
+        if (onCooldown) {
+          return res.status(400).json({
+            message: 'Unable to complete the inquiry at this time',
+            daysRemaining,
+            cooldownDays,
+          });
+        }
       }
 
       // Verify session belongs to user
@@ -336,6 +341,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Increment user completion count
       const updatedUser = await storage.incrementUserCompletionCount(userId);
 
+      // Create new cooldown commitment (old records kept as encrypted audit trail)
+      const newCommitment = cooldownService.createCommitment(userId);
+      await storage.createCooldownCommitment({
+        userHash,
+        encryptedExpiry: newCommitment.encryptedExpiry,
+        iv: newCommitment.iv,
+        tag: newCommitment.tag,
+        salt: newCommitment.salt,
+      });
+
       // Decrypt responses for PDF generation
       const responses = responseEncryptionService.decryptResponses(encryptedResponses);
 
@@ -351,7 +366,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.error('VPS backup failed:', error)
       );
 
-      const result: any = { message: 'Questionnaire completed successfully' };
+      const result: any = {
+        message: 'Questionnaire completed successfully',
+        cooldown: {
+          days: newCommitment.cooldownDays,
+          nextAvailable: newCommitment.expiryDate.toISOString(),
+        },
+      };
       if (shareId) {
         result.shareLink = `${req.protocol}://${req.hostname}/shared/${shareId}`;
       }
@@ -376,6 +397,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Get completed sessions error:', error);
       res.status(500).json({ message: "Failed to get completed sessions" });
+    }
+  });
+
+  // Get cooldown status for authenticated user
+  app.get("/api/questionnaire/cooldown", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      const userHash = cooldownService.getUserHash(userId);
+      const commitment = await storage.getLatestCooldownByUserHash(userHash);
+
+      if (!commitment) {
+        return res.json({ onCooldown: false });
+      }
+
+      const { onCooldown, daysRemaining, cooldownDays, expiryDate } =
+        cooldownService.checkCooldown(commitment);
+
+      res.json({
+        onCooldown,
+        daysRemaining,
+        cooldownDays,
+        nextAvailable: onCooldown ? expiryDate.toISOString() : null,
+      });
+    } catch (error) {
+      console.error('Cooldown check error:', error);
+      res.status(500).json({ message: "Failed to check cooldown status" });
     }
   });
 
