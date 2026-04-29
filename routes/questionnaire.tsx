@@ -4,8 +4,8 @@
  * GET /questionnaire
  *
  * Serves the Proust-style questionnaire with shuffled questions.
- * Questions 0-1 are gate questions (already served at /gate).
- * Questions 2-34 are shuffled per session and shown here.
+ * If gate questions (0-1) were answered at /gate, session has 33 questions (Q2-34).
+ * If gate was skipped, session has all 35 questions shuffled together.
  *
  * Authentication: JWT token in cookie, session state in DB
  */
@@ -19,10 +19,10 @@ import { storeEncryptedAnswer } from '../lib/gate-client.ts';
 
 // The 35 Proust questionnaire questions
 const QUESTIONS = [
-  // Gate questions (0-1) - already answered
+  // Gate questions (0-1) - may have been answered at /gate
   'What is your idea of perfect happiness?',
   'What is your greatest fear?',
-  // Shuffled questions (2-34)
+  // Main questions (2-34)
   'What is the trait you most deplore in yourself?',
   'What is the trait you most deplore in others?',
   'Which living person do you most admire?',
@@ -111,11 +111,9 @@ export const handler: Handlers<QuestionnaireData> = {
     }
 
     // Parse question order from session
+    // Session already contains the correct order: 33 questions (gate done) or 35 (no gate)
     const questionOrder = parseQuestionOrder(session.questionOrder);
-
-    // Questions 2-34 (33 questions total after gate)
-    const remainingQuestions = questionOrder.slice(2);
-    const totalQuestions = remainingQuestions.length;
+    const totalQuestions = questionOrder.length;
     const currentIndex = session.currentIndex;
 
     // Check if completed
@@ -126,9 +124,9 @@ export const handler: Handlers<QuestionnaireData> = {
       });
     }
 
-    const questionNum = remainingQuestions[currentIndex];
+    const questionNum = questionOrder[currentIndex];
     const currentQuestion = QUESTIONS[questionNum];
-    const overallNum = currentIndex + 3; // +2 for gate questions, +1 for 1-indexing
+    const displayNum = currentIndex + 1;
 
     increment('questionnaire.viewed');
     trackTemporalPattern();
@@ -136,11 +134,11 @@ export const handler: Handlers<QuestionnaireData> = {
     return ctx.render({
       authenticated: true,
       sessionId: session.sessionId,
-      questionOrder: remainingQuestions,
+      questionOrder,
       currentIndex,
       currentQuestion,
-      questionNumber: overallNum,
-      totalQuestions: 35, // Total including gate questions
+      questionNumber: displayNum,
+      totalQuestions,
       isFirstQuestion: currentIndex === 0,
     });
   },
@@ -182,7 +180,6 @@ export const handler: Handlers<QuestionnaireData> = {
     const action = formData.get('action')?.toString() || 'continue';
 
     const questionOrder = parseQuestionOrder(session.questionOrder);
-    const remainingQuestions = questionOrder.slice(2);
     const currentIndex = session.currentIndex;
 
     // Handle "previous" action - go back to prior question
@@ -192,14 +189,13 @@ export const handler: Handlers<QuestionnaireData> = {
         await updateSessionIndex(session.sessionId, prevIndex);
         increment('feature.previous_used');
       }
-      // Redirect back to questionnaire (will show previous question)
       return new Response(null, {
         status: 302,
         headers: { Location: '/questionnaire' },
       });
     }
 
-    const questionNum = remainingQuestions[currentIndex];
+    const questionNum = questionOrder[currentIndex];
 
     // Store the answer
     const skipped = action === 'skip' || answer.trim() === '';
@@ -234,7 +230,7 @@ export const handler: Handlers<QuestionnaireData> = {
     }
 
     // Check if completed
-    if (nextIndex >= remainingQuestions.length) {
+    if (nextIndex >= questionOrder.length) {
       return new Response(null, {
         status: 302,
         headers: { Location: '/completion.html' },
