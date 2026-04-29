@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Your Profile - A Formulation of Truth</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: system-ui, -apple-system, sans-serif; background: #fafafa; padding: 20px; }
+    .container { max-width: 900px; margin: 40px auto; }
+    h1 { color: #333; margin-bottom: 30px; }
+    .profile-section { background: white; padding: 30px; margin: 20px 0; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+    .profile-section h2 { font-size: 20px; margin-bottom: 20px; color: #333; }
+    .form-group { margin: 20px 0; }
+    label { display: block; margin-bottom: 8px; font-weight: bold; color: #333; }
+    input, textarea, select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; font-family: inherit; }
+    textarea { resize: vertical; min-height: 100px; }
+    button { background: #333; color: white; border: none; padding: 12px 24px; border-radius: 4px; cursor: pointer; font-size: 16px; margin-top: 15px; }
+    button:hover { background: #555; }
+    button.danger { background: #dc3545; }
+    button.danger:hover { background: #c82333; }
+    .encryption-info { background: #f0f0f0; padding: 15px; border-left: 4px solid #333; margin: 15px 0; }
+    .encryption-info p { margin: 10px 0; color: #666; }
+    .encryption-info ul { margin-left: 20px; color: #666; }
+    .encryption-info li { margin: 8px 0; }
+    .help-text { font-size: 12px; color: #666; margin-top: 5px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Your Profile</h1>
+
+    <div class="profile-section">
+      <h2>Basic Information</h2>
+      <form method="POST" action="https://gimbal.fobdongle.com/api/profile/update">
+        <input type="hidden" name="user_id" value="1">
+        <div class="form-group">
+          <label>Username (optional):</label>
+          <input type="text" name="username" placeholder="Your display name">
+        </div>
+        <div class="form-group">
+          <label>Bio (optional):</label>
+          <textarea name="bio" placeholder="Tell us about yourself"></textarea>
+        </div>
+        <div class="form-group">
+          <label>Profile Visibility:</label>
+          <select name="visibility">
+            <option value="private">Private (only you can see)</option>
+            <option value="public">Public (visible to others)</option>
+          </select>
+        </div>
+        <button type="submit">Save Profile</button>
+      </form>
+    </div>
+
+    <div class="profile-section">
+      <h2>X25519 Encryption Setup</h2>
+      <p>Paid users can encrypt their questionnaire responses with X25519 encryption.</p>
+      <div class="encryption-info">
+        <p><strong>How it works:</strong></p>
+        <ul>
+          <li>Keys are generated securely on your device</li>
+          <li>Your public key is stored on our server for encryption</li>
+          <li>Questionnaire responses can be encrypted before sending</li>
+          <li>You can share encrypted responses via shareable links</li>
+        </ul>
+      </div>
+      <form method="POST" action="https://gimbal.fobdongle.com/api/profile/setup-encryption">
+        <input type="hidden" name="user_id" value="1">
+        <button type="submit">Generate Encryption Keys</button>
+      </form>
+      <div class="help-text">Your keys will be managed securely. Contact support if you need to reset them.</div>
+    </div>
+
+    <div class="profile-section">
+      <h2>Account Actions</h2>
+      <p class="help-text">⚠️ Warning: This will permanently delete all your data from our servers.</p>
+      <form method="POST" action="https://gimbal.fobdongle.com/api/user/delete">
+        <input type="hidden" name="user_id" value="1">
+        <button type="submit" class="danger">Request Data Deletion</button>
+      </form>
+    </div>
+  </div>
+</body>
+</html>
