@@ -1,0 +1,21 @@
+{
+  "$schema": "https://deno.land/x/deno/cli/schemas/config-file.v1.json",
+  "lock": false,
+  "tasks": {
+    "dev": "deno run --watch --allow-net=0.0.0.0:8394,127.0.0.1:5432,localhost:5432 --allow-env=PORT,DATABASE_URL,PGHOST,PGPORT,PGDATABASE,PGUSER,PGPASSWORD,PGSSLMODE main.ts",
+    "start": "deno run --allow-net --allow-env=PORT,DATABASE_URL,PGHOST,PGPORT,PGDATABASE,PGUSER,PGPASSWORD,PGSSLMODE main.ts",
+    "check": "deno fmt --check && deno lint && deno check main.ts main_test.ts db.ts",
+    "test": "deno test --allow-env"
+  },
+  "imports": {
+    "@std/assert": "jsr:@std/assert@^1.0.14",
+    "hono": "jsr:@hono/hono@^4.10.1",
+    "postgres": "https://deno.land/x/postgres@v0.19.3/mod.ts"
+  },
+  "fmt": {
+    "lineWidth": 100,
+    "indentWidth": 2,
+    "singleQuote": true,
+    "useTabs": false
+  }
+}
