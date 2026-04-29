@@ -52,6 +52,18 @@ export const handler = async (req: Request, ctx: FreshContext) => {
     if (event.type === 'checkout.session.completed') {
       const session = event.data.object as Stripe.Checkout.Session;
 
+      // Verify payment was actually completed
+      if (session.payment_status !== 'paid') {
+        console.warn('[stripe-webhook] Session not paid, skipping upgrade:', {
+          sessionId: session.id,
+          paymentStatus: session.payment_status,
+        });
+        return new Response(JSON.stringify({ success: true, received: true }), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
+
       // Extract user_id from client_reference_id
       const user_id = session.client_reference_id;
       if (!user_id) {
@@ -63,16 +75,25 @@ export const handler = async (req: Request, ctx: FreshContext) => {
       }
 
       // Upgrade user to paid tier
-      const upgraded = await upgradeToPaid(user_id);
-      if (!upgraded) {
-        console.error('[stripe-webhook] Failed to upgrade user:', user_id);
-        return new Response(JSON.stringify({ error: 'Failed to upgrade user' }), {
+      try {
+        const upgraded = await upgradeToPaid(user_id);
+        if (!upgraded) {
+          console.error('[stripe-webhook] Failed to upgrade user:', user_id);
+          // Return 500 so Stripe will retry
+          return new Response(JSON.stringify({ error: 'Failed to upgrade user' }), {
+            status: 500,
+            headers: { 'Content-Type': 'application/json' },
+          });
+        }
+        console.log('[stripe-webhook] User upgraded to paid:', user_id);
+      } catch (error) {
+        console.error('[stripe-webhook] Error upgrading user:', user_id, error);
+        // Return 500 so Stripe will retry
+        return new Response(JSON.stringify({ error: 'Database error during upgrade' }), {
           status: 500,
           headers: { 'Content-Type': 'application/json' },
         });
       }
-
-      console.log('[stripe-webhook] User upgraded to paid:', user_id);
     }
 
     // Always return 200 for valid webhook (Stripe may retry otherwise)

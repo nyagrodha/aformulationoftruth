@@ -11,7 +11,7 @@ export interface User {
   updated_at: string;
 }
 
-export async function getUserById(userId: number): Promise<User | null> {
+export async function getUserById(userId: string): Promise<User | null> {
   const result = await db.queryObject<User>(
     `SELECT id, email, username, profile_tier, public_key, profile_visibility, created_at, updated_at
      FROM users WHERE id = $1`,
