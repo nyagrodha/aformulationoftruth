@@ -75,11 +75,25 @@ export async function createQuestionnaireSession(
   // Step 2: Compute session_id = HMAC-SHA256(opaque_token, secret)
   const sessionId = await hashResumeToken(opaqueToken);
 
-  // Step 3: Generate shuffled question order
-  const questionOrder = generateQuestionOrderString();
+  // Steps 3-5 in a single transaction: check gate, create session, link
+  let questionOrder: string;
 
   await withTransaction(async (client) => {
-    // Check for existing incomplete session
+    // Step 3: Check if user went through the gate flow
+    let hasGateAnswers = false;
+    if (gateToken) {
+      const { rows } = await client.queryObject<{ count: string }>(
+        `SELECT COUNT(*) as count FROM fresh_gate_responses
+         WHERE gate_token = $1`,
+        [gateToken]
+      );
+      hasGateAnswers = Number(rows[0]?.count ?? 0) > 0;
+    }
+
+    // Step 4: Generate shuffled question order
+    questionOrder = generateQuestionOrderString(hasGateAnswers);
+
+    // Step 5: Check for existing incomplete session
     const { rows: existing } = await client.queryObject<{ session_id: string }>(
       `SELECT session_id FROM fresh_questionnaire_sessions
        WHERE email_hash = $1 AND completed_at IS NULL

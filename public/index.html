@@ -28,262 +28,197 @@
     <!-- Hierarchical Navigation -->
     <style>
         /* ═══════════════════════════════════════════
-           NAVIGATION HUB — word-level dropdowns
-           Lives inside gate section, after irendu
+           HAMBURGER — a4மூல< trigger, top-left
            ═══════════════════════════════════════════ */
-        .site-hub-section {
-            position: sticky;
-            top: 0;
-            z-index: 10;
-            padding: 3rem 2rem;
-            border-top: 1px solid var(--ghost);
-            border-bottom: 1px solid var(--ghost);
-            background: var(--void);
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.4s ease;
+        .hamburger {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0.5rem 0.6rem;
+            z-index: 200;
+            position: relative;
+            transition: opacity 0.2s ease;
         }
-        .site-hub-section.visible {
-            opacity: 1;
+        .hamburger:hover { opacity: 1; }
+        .hamburger__brand {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.85rem;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            color: var(--mist);
+            transition: color 0.25s ease, text-shadow 0.25s ease;
+        }
+        .hamburger:hover .hamburger__brand {
+            color: var(--gold);
+            text-shadow: 0 0 12px rgba(255, 215, 0, 0.35);
+        }
+        .hamburger__tamil {
+            font-family: 'SaiIndira', 'Noto Serif Tamil', 'Tamil Sangam MN', serif;
+            font-size: 0.95rem;
+            color: var(--pearl);
+            vertical-align: baseline;
+        }
+        .hamburger:hover .hamburger__tamil {
+            color: var(--gold);
+        }
+        .hamburger__chevron {
+            font-size: 0.75rem;
+            color: var(--mist);
+            margin-left: 0.15rem;
+            display: inline-block;
+            transition: transform 0.3s ease, color 0.25s ease;
+        }
+        .hamburger:hover .hamburger__chevron {
+            color: var(--gold);
+        }
+        .hamburger[aria-expanded="true"] .hamburger__chevron {
+            transform: rotate(180deg) scaleX(-1);
+        }
+
+        /* ═══════════════════════════════════════════
+           NAV DRAWER — slide-in from left
+           ═══════════════════════════════════════════ */
+        .nav-drawer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 150;
+            pointer-events: none;
+        }
+        .nav-drawer.open {
             pointer-events: auto;
         }
-        .site-hub {
+        .nav-drawer__backdrop {
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(2px);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .nav-drawer.open .nav-drawer__backdrop {
+            opacity: 1;
+        }
+        .nav-drawer__panel {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 280px;
+            max-width: 85vw;
+            height: 100%;
+            background: var(--obsidian);
+            border-right: 1px solid var(--ghost);
+            padding: 4.5rem 2rem 2rem;
+            transform: translateX(-100%);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow-y: auto;
+            box-shadow: 4px 0 24px rgba(0, 0, 0, 0.5);
+        }
+        .nav-drawer.open .nav-drawer__panel {
+            transform: translateX(0);
+        }
+        .nav-drawer__close {
+            position: absolute;
+            top: 1.2rem;
+            right: 1.2rem;
+            background: none;
+            border: none;
+            color: var(--mist);
+            font-size: 1.6rem;
+            cursor: pointer;
+            padding: 0.25rem 0.5rem;
+            line-height: 1;
+            transition: color 0.2s ease;
+        }
+        .nav-drawer__close:hover {
+            color: var(--light);
+        }
+        .nav-drawer__links {
             display: flex;
             flex-direction: column;
-            align-items: center;
-            gap: 0.75rem;
+            gap: 0.25rem;
         }
-        .site-hub__row {
+        .nav-drawer__group {
             display: flex;
-            justify-content: center;
-            align-items: baseline;
-            gap: 2.5rem;
-            flex-wrap: wrap;
+            flex-direction: column;
+            margin-bottom: 0.5rem;
         }
-        /* Each dropdown trigger */
-        .site-hub__item {
-            position: relative;
-        }
-        .site-hub__label {
+        .nav-drawer__item {
             font-family: 'Space Mono', monospace;
             font-size: 0.75rem;
             font-weight: 700;
-            letter-spacing: 0.15em;
+            letter-spacing: 0.12em;
             text-transform: uppercase;
-            background: none;
-            border: none;
-            padding: 0.4rem 0;
-            cursor: pointer;
-            position: relative;
-            transition: color 0.25s ease, text-shadow 0.25s ease;
-        }
-        /* Accent colours per word */
-        .site-hub__item--questionnaire .site-hub__label { color: var(--gold); }
-        .site-hub__item--messenger .site-hub__label     { color: var(--neon-emerald); }
-        .site-hub__item--storefront .site-hub__label    { color: var(--neon-orange); }
-        .site-hub__item--library .site-hub__label       { color: var(--neon-purple); }
-        .site-hub__item--about .site-hub__label            { color: var(--light); }
-        .site-hub__item--contact .site-hub__label        { color: var(--neon-pink); }
-        /* Direct-link label (no dropdown) */
-        .site-hub__label--link {
             text-decoration: none;
-            display: inline-block;
+            padding: 0.5rem 0;
+            transition: text-shadow 0.2s ease, color 0.2s ease;
+            display: block;
         }
-        /* Underline that grows on hover */
-        .site-hub__label::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 50%;
-            width: 0;
-            height: 1px;
-            transform: translateX(-50%);
-            transition: width 0.25s ease, box-shadow 0.25s ease;
+        a.nav-drawer__item:hover {
+            text-shadow: 0 0 10px currentColor;
         }
-        .site-hub__item--questionnaire .site-hub__label::after { background: var(--gold); }
-        .site-hub__item--messenger .site-hub__label::after     { background: var(--neon-emerald); }
-        .site-hub__item--storefront .site-hub__label::after    { background: var(--neon-orange); }
-        .site-hub__item--library .site-hub__label::after       { background: var(--neon-purple); }
-        .site-hub__item--about .site-hub__label::after          { background: var(--light); }
-        .site-hub__item--contact .site-hub__label::after        { background: var(--neon-pink); }
-        .site-hub__item:hover .site-hub__label::after,
-        .site-hub__item:focus-within .site-hub__label::after {
-            width: 100%;
-        }
-        .site-hub__item--questionnaire:hover .site-hub__label { text-shadow: 0 0 12px rgba(255,215,0,0.5); }
-        .site-hub__item--messenger:hover .site-hub__label     { text-shadow: 0 0 12px var(--emerald-glow); }
-        .site-hub__item--storefront:hover .site-hub__label    { text-shadow: 0 0 12px var(--orange-glow); }
-        .site-hub__item--library:hover .site-hub__label       { text-shadow: 0 0 12px var(--purple-glow); }
-        .site-hub__item--about:hover .site-hub__label          { text-shadow: 0 0 12px rgba(255,255,255,0.4); }
-        .site-hub__item--contact:hover .site-hub__label        { text-shadow: 0 0 12px var(--pink-glow); }
-        /* Dropdown panel */
-        .site-hub__dropdown {
-            position: absolute;
-            top: calc(100% + 0.6rem);
-            left: 50%;
-            transform: translateX(-50%) translateY(4px);
-            min-width: 160px;
-            padding: 0.75rem 1rem;
-            background: var(--obsidian);
-            border: 1px solid var(--ghost);
-            border-radius: 3px;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.6);
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s ease;
-            pointer-events: none;
-            list-style: none;
-            margin: 0;
-            text-align: left;
-        }
-        .site-hub__item:hover .site-hub__dropdown,
-        .site-hub__item:focus-within .site-hub__dropdown {
-            opacity: 1;
-            visibility: visible;
-            transform: translateX(-50%) translateY(0);
-            pointer-events: auto;
-        }
-        .site-hub__dropdown li {
-            margin-bottom: 0.4rem;
-        }
-        .site-hub__dropdown li:last-child {
-            margin-bottom: 0;
-        }
-        .site-hub__dropdown a {
+        .nav-drawer__item--gold    { color: var(--gold); }
+        .nav-drawer__item--emerald { color: var(--neon-emerald); }
+        .nav-drawer__item--orange  { color: var(--neon-orange); }
+        .nav-drawer__item--purple  { color: var(--neon-purple); }
+        .nav-drawer__item--light   { color: var(--light); }
+        .nav-drawer__item--pink    { color: var(--neon-pink); }
+        .nav-drawer__item--mist    { color: var(--mist); }
+        .nav-drawer__sub {
             font-family: 'Space Mono', monospace;
-            font-size: 0.7rem;
+            font-size: 0.68rem;
             color: var(--pearl);
             text-decoration: none;
-            letter-spacing: 0.04em;
-            white-space: nowrap;
-            transition: color 0.15s ease;
+            padding: 0.2rem 0 0.2rem 1rem;
             display: block;
-            padding: 0.15rem 0;
+            letter-spacing: 0.04em;
+            transition: color 0.15s ease;
         }
-        .site-hub__dropdown a:hover {
+        a.nav-drawer__sub:hover {
             color: var(--light);
         }
-        .site-hub__dropdown .coming-soon {
-            font-family: 'Space Mono', monospace;
-            font-size: 0.7rem;
+        .nav-drawer__sub--soon {
             color: var(--mist);
             opacity: 0.45;
-            white-space: nowrap;
-            display: block;
-            padding: 0.15rem 0;
         }
-        .site-hub__dropdown .coming-soon::after {
+        .nav-drawer__sub--soon::after {
             content: ' \b7 soon';
             font-size: 0.55rem;
             letter-spacing: 0.08em;
         }
-        @media (max-width: 480px) {
-            .site-hub__row { gap: 1.5rem; }
-            .site-hub__label { font-size: 0.7rem; }
+        .nav-drawer__divider {
+            height: 1px;
+            background: var(--ghost);
+            margin: 0.75rem 0;
         }
 
         /* ═══════════════════════════════════════════
-           CSS-DRAWN GATE — scroll-reveal temple gate
-           5 bars, 3 with pointed spire finials
+           THRESHOLD KOLAM — horizontal doorway pattern
+           Draws outward from center on scroll reveal
            ═══════════════════════════════════════════ */
-        .gate-drawing {
-            --gate-gold: #c9a84c;
-            --gate-brown: #8b6914;
-            --gate-shimmer: linear-gradient(
-                135deg,
-                var(--gate-brown) 0%,
-                var(--gate-gold) 35%,
-                #e8d48b 50%,
-                var(--gate-gold) 65%,
-                var(--gate-brown) 100%
-            );
-            position: relative;
+        .threshold-kolam-container {
             width: 100vw;
-            height: 200px;
-            margin: 1.5rem 0 2rem;
+            margin: 2rem 0;
             margin-left: calc(-50vw + 50%);
-            box-sizing: border-box;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+            padding: 0 1rem;
             opacity: 0;
-            transition: opacity 0.8s ease;
+            transition: opacity 0.5s ease;
         }
-        .gate-drawing.visible {
+        .threshold-kolam-container.visible {
             opacity: 1;
         }
-        /* Horizontal rails */
-        .gate-drawing__rail {
+        .threshold-kolam {
             width: 100%;
-            height: 3px;
-            background: var(--gate-shimmer);
-            background-size: 200% 100%;
-            animation: gateShimmer 4s ease-in-out infinite;
-            border-radius: 1px;
-            transform: scaleX(0);
-            transition: transform 0.6s ease 0.3s;
-        }
-        .gate-drawing.visible .gate-drawing__rail {
-            transform: scaleX(1);
-        }
-        .gate-drawing__rail--top { transform-origin: left; }
-        .gate-drawing__rail--bottom { transform-origin: right; }
-        /* Bars container */
-        .gate-drawing__bars {
-            flex: 1;
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-end;
-            width: 100%;
-            padding: 0 3rem;
-        }
-        /* Individual bars */
-        .gate-drawing__bar {
-            width: 4px;
-            height: 0;
-            background: var(--gate-shimmer);
-            background-size: 200% 100%;
-            animation: gateShimmer 4s ease-in-out infinite;
-            border-radius: 1px;
-            position: relative;
-            transition: height 0.8s ease;
-        }
-        .gate-drawing.visible .gate-drawing__bar {
-            height: 100%;
-            transition-delay: var(--d, 0.5s);
-        }
-        /* Pointed spire finial on inner bars */
-        .gate-drawing__bar--spired::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 50%;
-            transform: translateX(-50%) translateY(-100%) scaleY(0);
-            width: 0;
-            height: 0;
-            border-left: 7px solid transparent;
-            border-right: 7px solid transparent;
-            border-bottom: 18px solid var(--gate-gold);
-            filter: drop-shadow(0 0 4px rgba(201, 168, 76, 0.4));
-            transform-origin: bottom;
-            transition: transform 0.5s ease;
-        }
-        .gate-drawing.visible .gate-drawing__bar--spired::before {
-            transform: translateX(-50%) translateY(-100%) scaleY(1);
-            transition-delay: 1.5s;
-        }
-        /* Center spire taller */
-        .gate-drawing__bar--center::before {
-            border-left-width: 8px;
-            border-right-width: 8px;
-            border-bottom-width: 24px;
-        }
-        @keyframes gateShimmer {
-            0%, 100% { background-position: 0% 50%; }
-            50% { background-position: 200% 50%; }
+            max-width: 700px;
+            height: auto;
+            display: block;
+            margin: 0 auto;
+            overflow: visible;
         }
         @media (max-width: 480px) {
-            .gate-drawing { height: 140px; }
+            .threshold-kolam { max-width: 95vw; }
         }
 
         /* ═══════════════════════════════════════════
@@ -332,7 +267,8 @@
             filter: drop-shadow(0 0 2px rgba(201, 168, 76, 0.3));
         }
         .kolam-yantra-container.drawing .kolam-stroke,
-        .side-yantra-container.drawing .kolam-stroke {
+        .side-yantra-container.drawing .kolam-stroke,
+        .threshold-kolam-container.drawing .kolam-stroke {
             animation: kolam-draw var(--dur, 2s) ease forwards;
             animation-delay: var(--del, 0s);
         }
@@ -341,7 +277,8 @@
             opacity: 0;
         }
         .kolam-yantra-container.drawing .kolam-dot,
-        .side-yantra-container.drawing .kolam-dot {
+        .side-yantra-container.drawing .kolam-dot,
+        .threshold-kolam-container.drawing .kolam-dot {
             animation: kolam-dot-pop 0.4s ease forwards;
             animation-delay: var(--del, 3s);
         }
@@ -351,7 +288,8 @@
             filter: drop-shadow(0 0 8px rgba(201, 168, 76, 0.6));
         }
         .kolam-yantra-container.drawing .kolam-bindu,
-        .side-yantra-container.drawing .kolam-bindu {
+        .side-yantra-container.drawing .kolam-bindu,
+        .threshold-kolam-container.drawing .kolam-bindu {
             animation: kolam-bindu-glow 0.6s ease forwards;
             animation-delay: var(--del, 3.5s);
         }
@@ -383,12 +321,173 @@
             .kolam-yantra-container { width: 220px; height: 220px; }
             .side-yantra-container { width: 150px; height: 150px; }
         }
+
+        /* ═══════════════════════════════════════════
+           GATE NAV — colored words, invisible dropdowns
+           ═══════════════════════════════════════════ */
+        .gate-nav {
+            display: flex;
+            justify-content: center;
+            align-items: baseline;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            margin: 2rem auto;
+            max-width: 900px;
+            padding: 1rem 2rem;
+        }
+        .gate-nav__item {
+            position: relative;
+        }
+        .gate-nav__word {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            background: none;
+            border: none;
+            padding: 0.4rem 0;
+            cursor: pointer;
+            position: relative;
+            outline: none;
+            transition: text-shadow 0.25s ease;
+        }
+        /* Direct-link words (no dropdown) */
+        a.gate-nav__word {
+            text-decoration: none;
+            display: inline-block;
+        }
+        /* Underline grows on hover */
+        .gate-nav__word::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            width: 0;
+            height: 1px;
+            transform: translateX(-50%);
+            transition: width 0.25s ease;
+        }
+        .gate-nav__item:hover .gate-nav__word::after {
+            width: 100%;
+        }
+        /* Accent colours */
+        .gate-nav__item--questionnaire .gate-nav__word { color: var(--gold); }
+        .gate-nav__item--questionnaire .gate-nav__word::after { background: var(--gold); }
+        .gate-nav__item--questionnaire:hover .gate-nav__word { text-shadow: 0 0 12px rgba(255,215,0,0.5); }
+        .gate-nav__item--messenger .gate-nav__word { color: var(--neon-emerald); }
+        .gate-nav__item--messenger .gate-nav__word::after { background: var(--neon-emerald); }
+        .gate-nav__item--messenger:hover .gate-nav__word { text-shadow: 0 0 12px var(--emerald-glow); }
+        .gate-nav__item--storefront .gate-nav__word { color: var(--neon-orange); }
+        .gate-nav__item--storefront .gate-nav__word::after { background: var(--neon-orange); }
+        .gate-nav__item--storefront:hover .gate-nav__word { text-shadow: 0 0 12px var(--orange-glow); }
+        .gate-nav__item--library .gate-nav__word { color: var(--neon-purple); }
+        .gate-nav__item--library .gate-nav__word::after { background: var(--neon-purple); }
+        .gate-nav__item--library:hover .gate-nav__word { text-shadow: 0 0 12px var(--purple-glow); }
+        .gate-nav__item--about .gate-nav__word { color: var(--light); }
+        .gate-nav__item--about .gate-nav__word::after { background: var(--light); }
+        .gate-nav__item--about:hover .gate-nav__word { text-shadow: 0 0 12px rgba(255,255,255,0.4); }
+        .gate-nav__item--contact .gate-nav__word { color: var(--neon-pink); }
+        .gate-nav__item--contact .gate-nav__word::after { background: var(--neon-pink); }
+        .gate-nav__item--contact:hover .gate-nav__word { text-shadow: 0 0 12px var(--pink-glow); }
+        /* Dropdown — invisible until hover */
+        .gate-nav__drop {
+            position: absolute;
+            top: calc(100% + 0.5rem);
+            left: 50%;
+            transform: translateX(-50%) translateY(4px);
+            min-width: 160px;
+            padding: 0.6rem 0.8rem;
+            background: var(--obsidian);
+            border: 1px solid var(--ghost);
+            border-radius: 3px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s ease;
+            pointer-events: none;
+            list-style: none;
+            margin: 0;
+            text-align: left;
+            z-index: 20;
+        }
+        .gate-nav__item:hover .gate-nav__drop,
+        .gate-nav__item:focus-within .gate-nav__drop {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(-50%) translateY(0);
+            pointer-events: auto;
+        }
+        .gate-nav__drop li { margin-bottom: 0.35rem; }
+        .gate-nav__drop li:last-child { margin-bottom: 0; }
+        .gate-nav__drop a {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.7rem;
+            color: var(--pearl);
+            text-decoration: none;
+            letter-spacing: 0.04em;
+            white-space: nowrap;
+            transition: color 0.15s ease;
+            display: block;
+            padding: 0.15rem 0;
+        }
+        .gate-nav__drop a:hover { color: var(--light); }
+        .gate-nav__soon {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.7rem;
+            color: var(--mist);
+            opacity: 0.45;
+            white-space: nowrap;
+            display: block;
+            padding: 0.15rem 0;
+        }
+        .gate-nav__soon::after {
+            content: ' \b7 soon';
+            font-size: 0.55rem;
+            letter-spacing: 0.08em;
+        }
+        @media (max-width: 480px) {
+            .gate-nav { gap: 1.5rem; }
+            .gate-nav__word { font-size: 0.65rem; }
+        }
     </style>
 </head>
 <body>
     <a href="#begin" class="skip-link">Skip to questionnaire</a>
     <nav>
-       <!-- <a href="/" class="logo">A4T</a> -->
+        <button class="hamburger" id="hamburger" aria-label="Open navigation menu" aria-expanded="false" aria-controls="nav-drawer">
+            <span class="hamburger__brand">a4<span class="hamburger__tamil">மூல</span><span class="hamburger__chevron">&lt;</span></span>
+        </button>
+        <div class="nav-drawer" id="nav-drawer" aria-hidden="true">
+            <div class="nav-drawer__backdrop" id="nav-backdrop"></div>
+            <div class="nav-drawer__panel">
+                <button class="nav-drawer__close" id="nav-close" aria-label="Close navigation menu">&times;</button>
+                <div class="nav-drawer__links">
+                    <div class="nav-drawer__group">
+                        <a href="#begin" class="nav-drawer__item nav-drawer__item--gold">Questionnaire</a>
+                        <a href="/questions.html" class="nav-drawer__sub">All Questions</a>
+                        <a href="/proust/" class="nav-drawer__sub">Karuppacami Kelvittaal</a>
+                    </div>
+                    <div class="nav-drawer__group">
+                        <span class="nav-drawer__item nav-drawer__item--emerald">Messenger</span>
+                        <span class="nav-drawer__sub nav-drawer__sub--soon">Encrypted Messages</span>
+                    </div>
+                    <div class="nav-drawer__group">
+                        <span class="nav-drawer__item nav-drawer__item--orange">Storefront</span>
+                        <span class="nav-drawer__sub nav-drawer__sub--soon">Tip Jar</span>
+                        <span class="nav-drawer__sub nav-drawer__sub--soon">Lottery</span>
+                    </div>
+                    <div class="nav-drawer__group">
+                        <span class="nav-drawer__item nav-drawer__item--purple">Library</span>
+                        <span class="nav-drawer__sub nav-drawer__sub--soon">Books &amp; Inspirations</span>
+                    </div>
+                    <div class="nav-drawer__divider"></div>
+                    <a href="/about.html" class="nav-drawer__item nav-drawer__item--light">About</a>
+                    <a href="/contact.html" class="nav-drawer__item nav-drawer__item--pink">Contact</a>
+                    <a href="/privacy.html" class="nav-drawer__item nav-drawer__item--mist">Privacy</a>
+                </div>
+            </div>
+        </div>
     </nav>
 
     <main>
@@ -441,6 +540,44 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- Gate-nav commented out for now
+                <nav class="gate-nav" aria-label="Site navigation">
+                    <div class="gate-nav__item gate-nav__item--questionnaire">
+                        <button class="gate-nav__word" aria-expanded="false">Questionnaire</button>
+                        <ul class="gate-nav__drop">
+                            <li><a href="/questions.html">All Questions</a></li>
+                            <li><a href="/proust/">Karuppacami Kelvittaal</a></li>
+                        </ul>
+                    </div>
+                    <div class="gate-nav__item gate-nav__item--messenger">
+                        <button class="gate-nav__word" aria-expanded="false">Messenger</button>
+                        <ul class="gate-nav__drop">
+                            <li><span class="gate-nav__soon">Encrypted Messages</span></li>
+                        </ul>
+                    </div>
+                    <div class="gate-nav__item gate-nav__item--storefront">
+                        <button class="gate-nav__word" aria-expanded="false">Storefront</button>
+                        <ul class="gate-nav__drop">
+                            <li><span class="gate-nav__soon">Tip Jar</span></li>
+                            <li><span class="gate-nav__soon">Lottery</span></li>
+                        </ul>
+                    </div>
+                    <div class="gate-nav__item gate-nav__item--library">
+                        <button class="gate-nav__word" aria-expanded="false">Library</button>
+                        <ul class="gate-nav__drop">
+                            <li><span class="gate-nav__soon">Books &amp; Inspirations</span></li>
+                        </ul>
+                    </div>
+                    <div class="gate-nav__item gate-nav__item--about">
+                        <a href="/about.html" class="gate-nav__word">About</a>
+                    </div>
+                    <div class="gate-nav__item gate-nav__item--contact">
+                        <a href="/contact.html" class="gate-nav__word">Contact</a>
+                    </div>
+                </nav>
+                -->
+
                <!-- <div class="cta-group">
                     <a href="#begin" class="cta cta-primary">தொடங்கு<br><span style="font-variant: small-caps; font-size: 0.7em; letter-spacing: 0.1em;">begin</span></a>
                 </div>-->
@@ -450,49 +587,6 @@
             </div>
         </section>
 
-        <!-- Navigation strip — its own home between hero and gate -->
-        <section class="site-hub-section">
-            <nav class="site-hub" aria-label="Site navigation">
-                <div class="site-hub__row">
-                    <div class="site-hub__item site-hub__item--questionnaire">
-                        <button class="site-hub__label" aria-expanded="false">Questionnaire</button>
-                        <ul class="site-hub__dropdown">
-                            <li><a href="/questions.html">All Questions</a></li>
-                            <li><a href="/proust/">Karuppacami Kelvittaal</a></li>
-                        </ul>
-                    </div>
-                    <div class="site-hub__item site-hub__item--messenger">
-                        <button class="site-hub__label" aria-expanded="false">Messenger</button>
-                        <ul class="site-hub__dropdown">
-                            <li><span class="coming-soon">Encrypted Messages</span></li>
-                        </ul>
-                    </div>
-                    <div class="site-hub__item site-hub__item--storefront">
-                        <button class="site-hub__label" aria-expanded="false">Storefront</button>
-                        <ul class="site-hub__dropdown">
-                            <li><span class="coming-soon">Tip Jar</span></li>
-                            <!-- <li><span class="coming-soon">Crypto Donations</span></li> -->
-                            <li><span class="coming-soon">Lottery</span></li>
-                        </ul>
-                    </div>
-                </div>
-                <div class="site-hub__row">
-                    <div class="site-hub__item site-hub__item--library">
-                        <button class="site-hub__label" aria-expanded="false">Library</button>
-                        <ul class="site-hub__dropdown">
-                            <li><span class="coming-soon">Books &amp; Inspirations</span></li>
-                        </ul>
-                    </div>
-                    <div class="site-hub__item site-hub__item--about">
-                        <a href="/about.html" class="site-hub__label site-hub__label--link">About</a>
-                    </div>
-                    <div class="site-hub__item site-hub__item--contact">
-                        <a href="/contact.html" class="site-hub__label site-hub__label--link">Contact</a>
-                    </div>
-                </div>
-            </nav>
-        </section>
-
         <section id="begin" class="section gate-section">
             <div class="gate-content">
                 <img src="/images/irendu2.png" alt="irendu — Tamil for 'two'" class="gate-icon" title="irendu — Tamil for 'two'">
@@ -500,37 +594,40 @@
                 <h2 class="gate-title gate-title--tamil">வாயில்</h2>
                 <h2 class="gate-title gate-title--english">here we meet</h2>
 
-                <!-- CSS-drawn gate — reveals on scroll -->
-                <div class="gate-drawing" aria-hidden="true">
-                    <div class="gate-drawing__rail gate-drawing__rail--top"></div>
-                    <div class="gate-drawing__bars">
-                        <div class="gate-drawing__bar" style="--d:0.98s"></div>
-                        <div class="gate-drawing__bar" style="--d:0.94s"></div>
-                        <div class="gate-drawing__bar gate-drawing__bar--spired" style="--d:0.90s"></div>
-                        <div class="gate-drawing__bar" style="--d:0.86s"></div>
-                        <div class="gate-drawing__bar" style="--d:0.82s"></div>
-                        <div class="gate-drawing__bar gate-drawing__bar--spired" style="--d:0.78s"></div>
-                        <div class="gate-drawing__bar" style="--d:0.74s"></div>
-                        <div class="gate-drawing__bar" style="--d:0.70s"></div>
-                        <div class="gate-drawing__bar gate-drawing__bar--spired" style="--d:0.66s"></div>
-                        <div class="gate-drawing__bar" style="--d:0.62s"></div>
-                        <div class="gate-drawing__bar" style="--d:0.58s"></div>
-                        <div class="gate-drawing__bar gate-drawing__bar--spired" style="--d:0.54s"></div>
-                        <div class="gate-drawing__bar gate-drawing__bar--spired gate-drawing__bar--center" style="--d:0.5s"></div>
-                        <div class="gate-drawing__bar gate-drawing__bar--spired" style="--d:0.54s"></div>
-                        <div class="gate-drawing__bar" style="--d:0.58s"></div>
-                        <div class="gate-drawing__bar" style="--d:0.62s"></div>
-                        <div class="gate-drawing__bar gate-drawing__bar--spired" style="--d:0.66s"></div>
-                        <div class="gate-drawing__bar" style="--d:0.70s"></div>
-                        <div class="gate-drawing__bar" style="--d:0.74s"></div>
-                        <div class="gate-drawing__bar gate-drawing__bar--spired" style="--d:0.78s"></div>
-                        <div class="gate-drawing__bar" style="--d:0.82s"></div>
-                        <div class="gate-drawing__bar" style="--d:0.86s"></div>
-                        <div class="gate-drawing__bar gate-drawing__bar--spired" style="--d:0.90s"></div>
-                        <div class="gate-drawing__bar" style="--d:0.94s"></div>
-                        <div class="gate-drawing__bar" style="--d:0.98s"></div>
-                    </div>
-                    <div class="gate-drawing__rail gate-drawing__rail--bottom"></div>
+                <!-- Threshold kolam — horizontal doorway pattern, draws on scroll -->
+                <div class="threshold-kolam-container" aria-hidden="true">
+                    <svg class="threshold-kolam" viewBox="0 0 800 80" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
+                        <!-- Central lotus motif -->
+                        <path d="M400,15 C390,25 385,40 400,50 C415,40 410,25 400,15" pathLength="1" class="kolam-stroke" style="--del:0s; --dur:1s; stroke-width:1.5;"/>
+                        <path d="M400,15 C410,25 415,40 400,50 C385,40 390,25 400,15" pathLength="1" class="kolam-stroke" style="--del:0.1s; --dur:1s; stroke-width:1.5;"/>
+                        <!-- Petals left and right of center -->
+                        <path d="M380,32 C372,22 365,32 375,40 C368,48 375,55 383,42" pathLength="1" class="kolam-stroke" style="--del:0.5s; --dur:0.8s;"/>
+                        <path d="M420,32 C428,22 435,32 425,40 C432,48 425,55 417,42" pathLength="1" class="kolam-stroke" style="--del:0.5s; --dur:0.8s;"/>
+                        <!-- Inner scrolling curves — left side -->
+                        <path d="M370,40 C355,28 340,32 340,40 C340,48 355,52 370,40" pathLength="1" class="kolam-stroke" style="--del:0.8s; --dur:0.8s;"/>
+                        <path d="M330,40 C315,28 300,32 300,40 C300,48 315,52 330,40" pathLength="1" class="kolam-stroke" style="--del:1.0s; --dur:0.8s;"/>
+                        <path d="M290,40 C275,28 260,32 260,40 C260,48 275,52 290,40" pathLength="1" class="kolam-stroke" style="--del:1.2s; --dur:0.8s;"/>
+                        <path d="M250,40 C235,28 220,32 220,40 C220,48 235,52 250,40" pathLength="1" class="kolam-stroke" style="--del:1.4s; --dur:0.8s;"/>
+                        <path d="M210,40 C195,28 180,32 180,40 C180,48 195,52 210,40" pathLength="1" class="kolam-stroke" style="--del:1.6s; --dur:0.8s;"/>
+                        <path d="M170,40 C155,28 140,32 140,40 C140,48 155,52 170,40" pathLength="1" class="kolam-stroke" style="--del:1.8s; --dur:0.8s;"/>
+                        <path d="M130,40 C115,28 100,32 100,40 C100,48 115,52 130,40" pathLength="1" class="kolam-stroke" style="--del:2.0s; --dur:0.8s;"/>
+                        <!-- Inner scrolling curves — right side (mirrored) -->
+                        <path d="M430,40 C445,28 460,32 460,40 C460,48 445,52 430,40" pathLength="1" class="kolam-stroke" style="--del:0.8s; --dur:0.8s;"/>
+                        <path d="M470,40 C485,28 500,32 500,40 C500,48 485,52 470,40" pathLength="1" class="kolam-stroke" style="--del:1.0s; --dur:0.8s;"/>
+                        <path d="M510,40 C525,28 540,32 540,40 C540,48 525,52 510,40" pathLength="1" class="kolam-stroke" style="--del:1.2s; --dur:0.8s;"/>
+                        <path d="M550,40 C565,28 580,32 580,40 C580,48 565,52 550,40" pathLength="1" class="kolam-stroke" style="--del:1.4s; --dur:0.8s;"/>
+                        <path d="M590,40 C605,28 620,32 620,40 C620,48 605,52 590,40" pathLength="1" class="kolam-stroke" style="--del:1.6s; --dur:0.8s;"/>
+                        <path d="M630,40 C645,28 660,32 660,40 C660,48 645,52 630,40" pathLength="1" class="kolam-stroke" style="--del:1.8s; --dur:0.8s;"/>
+                        <path d="M670,40 C685,28 700,32 700,40 C700,48 685,52 670,40" pathLength="1" class="kolam-stroke" style="--del:2.0s; --dur:0.8s;"/>
+                        <!-- Outer border lines -->
+                        <line x1="80" y1="10" x2="720" y2="10" pathLength="1" class="kolam-stroke" style="--del:2.2s; --dur:1s; stroke-width:0.8;"/>
+                        <line x1="80" y1="70" x2="720" y2="70" pathLength="1" class="kolam-stroke" style="--del:2.2s; --dur:1s; stroke-width:0.8;"/>
+                        <!-- Endpoint dots -->
+                        <circle cx="80" cy="40" r="3" class="kolam-dot" style="--del:2.5s;"/>
+                        <circle cx="720" cy="40" r="3" class="kolam-dot" style="--del:2.5s;"/>
+                        <!-- Center bindu -->
+                        <circle cx="400" cy="40" r="4" class="kolam-bindu" style="--del:2.8s;"/>
+                    </svg>
                 </div>
 
                 <!-- Twin Yantras — Kālabhairava (left) + Śrī (right) -->
@@ -633,6 +730,7 @@
                     </div>
                 </div>
 
+            <div class="gate-content">
                 <!-- Welcome Text: Tamil -->
                 <p class="gate-description gate-welcome--tamil tamil-text">
                     Proust கேள்வித்தாள்—கருப்பசாமி கேள்வித்தாள் என்ற பெயரில்—உங்களை வரவேற்கிறது
@@ -785,17 +883,60 @@
     </footer>
 
     <script>
-        // Gate drawing — reveal on scroll
-        const gateDrawing = document.querySelector('.gate-drawing');
-        if (gateDrawing) {
-            const gateObserver = new IntersectionObserver((entries) => {
+        // ═══════════════════════════════════════════
+        // NAV DRAWER — a4மூல< hamburger toggle
+        // ═══════════════════════════════════════════
+        (function initNavDrawer() {
+            const hamburger = document.getElementById('hamburger');
+            const drawer = document.getElementById('nav-drawer');
+            const backdrop = document.getElementById('nav-backdrop');
+            const closeBtn = document.getElementById('nav-close');
+            if (!hamburger || !drawer) return;
+
+            function openDrawer() {
+                drawer.classList.add('open');
+                drawer.setAttribute('aria-hidden', 'false');
+                hamburger.setAttribute('aria-expanded', 'true');
+                document.body.style.overflow = 'hidden';
+            }
+            function closeDrawer() {
+                drawer.classList.remove('open');
+                drawer.setAttribute('aria-hidden', 'true');
+                hamburger.setAttribute('aria-expanded', 'false');
+                document.body.style.overflow = '';
+            }
+
+            hamburger.addEventListener('click', () => {
+                const isOpen = drawer.classList.contains('open');
+                isOpen ? closeDrawer() : openDrawer();
+            });
+            if (backdrop) backdrop.addEventListener('click', closeDrawer);
+            if (closeBtn) closeBtn.addEventListener('click', closeDrawer);
+
+            // Close on Escape
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && drawer.classList.contains('open')) closeDrawer();
+            });
+
+            // Close drawer when clicking a link inside it
+            drawer.querySelectorAll('a').forEach(link => {
+                link.addEventListener('click', closeDrawer);
+            });
+        })();
+
+        // Threshold kolam — reveal and draw on scroll
+        const thresholdKolam = document.querySelector('.threshold-kolam-container');
+        if (thresholdKolam) {
+            const kolamObserver = new IntersectionObserver((entries) => {
                 entries.forEach(entry => {
                     if (entry.isIntersecting) {
-                        gateDrawing.classList.add('visible');
+                        thresholdKolam.classList.add('visible');
+                        thresholdKolam.classList.add('drawing');
+                        kolamObserver.unobserve(thresholdKolam);
                     }
                 });
-            }, { threshold: 0.1 });
-            gateObserver.observe(gateDrawing);
+            }, { threshold: 0.2 });
+            kolamObserver.observe(thresholdKolam);
         }
 
         // Kolam Yantra — draw and dissolve
@@ -813,44 +954,6 @@
             }, { threshold: 0.3 });
             kolObs.observe(kolam);
         }
-
-        // Navigation hub — aria-expanded toggle for keyboard accessibility
-        document.querySelectorAll('.site-hub__label').forEach(btn => {
-            btn.addEventListener('mouseenter', () => btn.setAttribute('aria-expanded', 'true'));
-            btn.closest('.site-hub__item').addEventListener('mouseleave', () => btn.setAttribute('aria-expanded', 'false'));
-            btn.addEventListener('click', () => {
-                const expanded = btn.getAttribute('aria-expanded') === 'true';
-                btn.setAttribute('aria-expanded', String(!expanded));
-            });
-        });
-
-        // Navigation hub — show/hide based on scroll position
-        // Appears just above the scroll-indicator, disappears at the gate
-        (function initNavVisibility() {
-            const hub = document.querySelector('.site-hub-section');
-            const scrollIndicator = document.querySelector('.scroll-indicator');
-            const gateSection = document.querySelector('.gate-section');
-            if (!hub || !scrollIndicator || !gateSection) return;
-
-            let pastIndicator = false;
-            let pastGate = false;
-
-            function updateVisibility() {
-                hub.classList.toggle('visible', pastIndicator && !pastGate);
-            }
-
-            // Show when the scroll indicator leaves the viewport (scrolled past it)
-            new IntersectionObserver(([entry]) => {
-                pastIndicator = !entry.isIntersecting && entry.boundingClientRect.top < 0;
-                updateVisibility();
-            }, { threshold: 0 }).observe(scrollIndicator);
-
-            // Hide when the gate section enters the viewport
-            new IntersectionObserver(([entry]) => {
-                pastGate = entry.isIntersecting;
-                updateVisibility();
-            }, { threshold: 0.05 }).observe(gateSection);
-        })();
 
         // Smooth scroll for anchor links
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {

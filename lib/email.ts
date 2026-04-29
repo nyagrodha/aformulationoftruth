@@ -7,6 +7,8 @@
  * - Minimal data in email body
  */
 
+import { createWaitlistToken } from './waitlist.ts';
+
 interface SendEmailOptions {
   to: string;
   subject: string;
@@ -79,7 +81,21 @@ export async function sendEmail(options: SendEmailOptions): Promise<SendGridResp
 /**
  * Send magic link email for questionnaire access
  */
-export async function sendMagicLinkEmail(email: string, magicLinkUrl: string): Promise<SendGridResponse> {
+export async function sendMagicLinkEmail(
+  email: string,
+  magicLinkUrl: string,
+): Promise<SendGridResponse> {
+  const baseUrl = Deno.env.get('BASE_URL') || 'https://aformulationoftruth.com';
+
+  // Generate waitlist token — gracefully degrade if unavailable
+  let waitlistUrl = '';
+  try {
+    const waitlistToken = await createWaitlistToken(email);
+    waitlistUrl = `${baseUrl}/api/newsletter/waitlist?token=${waitlistToken}`;
+  } catch (error) {
+    console.warn('[email] Failed to create waitlist token, sending without waitlist link:', error);
+  }
+
   const subject = 'Your link to a formulation of truth';
 
   const text = `
@@ -91,7 +107,7 @@ ${magicLinkUrl}
 This link expires in 15 minutes and can only be used once.
 
 If you didn't request this, you can safely ignore this email.
-
+${waitlistUrl ? `\nJoin our waitlist: ${waitlistUrl}\n` : ''}
 ---
 a formulation of truth
 https://aformulationoftruth.com
@@ -180,6 +196,11 @@ https://aformulationoftruth.com
 
     <div class="footer">
       <p>If you didn't request this, you can safely ignore this email.</p>
+      ${
+    waitlistUrl
+      ? `<p><a href="${waitlistUrl}" style="color: #888; text-decoration: underline;">Join our waitlist</a></p>`
+      : ''
+  }
       <p><span class="tamil">உண்மை</span> &mdash; truth</p>
     </div>
   </div>
@@ -201,7 +222,7 @@ https://aformulationoftruth.com
 export async function sendNewsletterConfirmationEmail(
   email: string,
   confirmUrl: string,
-  unsubscribeUrl: string
+  unsubscribeUrl: string,
 ): Promise<SendGridResponse> {
   const subject = 'Confirm your subscription to a formulation of truth';
 

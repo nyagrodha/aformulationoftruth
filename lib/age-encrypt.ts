@@ -13,7 +13,7 @@
 import { Encrypter, armor } from '@age/age-encryption';
 
 const AGE_RECIPIENT = Deno.env.get('AGE_RECIPIENT') ||
-  'age1jwpy3l4pdzzswm5jj3q2yax4eduf97t6wjqkyd4g6anjtffn5vrs38ag5q';
+  'age1x060v073jaf6pwz7pw66pdtt4eu7zp7sh9yayj0f4nfpktv3zg2shket77';
 
 /**
  * Encrypt a string with age x25519, returning ASCII-armored ciphertext.
