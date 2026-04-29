@@ -19,6 +19,10 @@
     .method { background: #f9f9f9; padding: 20px; border-radius: 4px; text-align: center; border: 1px solid #eee; }
     .method h4 { color: #333; margin-bottom: 10px; }
     form { margin: 20px 0; }
+    .message { padding: 15px; border-radius: 4px; margin-bottom: 15px; display: none; }
+    .message.success { background: #d4edda; color: #155724; display: block; }
+    .message.error { background: #f8d7da; color: #721c24; display: block; }
+    .auth-required { background: #fff3cd; color: #856404; padding: 15px; border-radius: 4px; margin-bottom: 20px; }
   </style>
 </head>
 <body>
@@ -26,15 +30,27 @@
     <h1>Upgrade to Paid Tier</h1>
     <p>Access encrypted responses, public profiles, and premium features.</p>
 
+    <div id="auth-status" class="auth-required" style="display: none;">
+      You must be authenticated to upgrade. Please click the magic link in your email first.
+    </div>
+
     <h2>Step 1: Generate Payment Code</h2>
-    <p>Enter your user ID to generate a unique payment code:</p>
-    <form method="POST" action="https://gimbal.fobdongle.com/api/profile/upgrade-request">
-      <input type="number" name="user_id" placeholder="Your User ID" min="1" required>
-      <button type="submit">Generate Code</button>
+    <p>Generate your unique payment code:</p>
+    <div id="step1-message" class="message"></div>
+    <form id="upgrade-request-form">
+      <button type="submit">Generate Payment Code</button>
     </form>
+    <div id="upgrade-code-display" style="display: none; margin-top: 20px;">
+      <p><strong>Your Payment Code:</strong></p>
+      <div class="payment-code" id="payment-code"></div>
+    </div>
 
     <h2>Step 2: Pay $3 USD</h2>
     <div class="payment-methods">
+      <div class="method">
+        <h4>💳 Card (via Stripe)</h4>
+        <button id="stripe-checkout-btn" type="button" style="background: #635BFF; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-size: 14px; margin-top: 10px;">Pay with Card</button>
+      </div>
       <div class="method">
         <h4>PayPal</h4>
         <p>support@aformulationoftruth.com</p>
@@ -51,11 +67,110 @@
 
     <h2>Step 3: Activate Your Upgrade</h2>
     <p>Once your payment is verified (within 24 hours), submit your code here:</p>
-    <form method="POST" action="https://gimbal.fobdongle.com/api/profile/upgrade-activate">
-      <input type="number" name="user_id" placeholder="Your User ID" min="1" required>
+    <div id="step3-message" class="message"></div>
+    <form id="upgrade-activate-form">
       <input type="text" name="code" placeholder="A4OT-XXXX-XXXX" pattern="A4OT-[A-Z0-9]{4}-[A-Z0-9]{4}" required>
       <button type="submit">Activate Code</button>
     </form>
   </div>
+
+  <script>
+    // Extract JWT token from URL parameters
+    const params = new URLSearchParams(window.location.search);
+    const jwtToken = params.get('token');
+
+    // Show auth warning if no token
+    if (!jwtToken) {
+      document.getElementById('auth-status').style.display = 'block';
+      document.getElementById('upgrade-request-form').style.display = 'none';
+      document.getElementById('upgrade-activate-form').style.display = 'none';
+    }
+
+    function showMessage(messageDiv, isSuccess, text) {
+      messageDiv.textContent = text;
+      messageDiv.className = 'message ' + (isSuccess ? 'success' : 'error');
+    }
+
+    async function handleFormSubmit(e, formId, messageId, action) {
+      e.preventDefault();
+
+      if (!jwtToken) {
+        showMessage(document.getElementById(messageId), false, 'Not authenticated. Please click the magic link in your email.');
+        return;
+      }
+
+      const form = document.getElementById(formId);
+      const messageDiv = document.getElementById(messageId);
+      const formData = new FormData(form);
+
+      try {
+        const response = await fetch(action, {
+          method: 'POST',
+          headers: {
+            'Authorization': 'Bearer ' + jwtToken,
+          },
+          body: formData,
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+          showMessage(messageDiv, true, data.message || data.payment_code || 'Success!');
+          if (formId === 'upgrade-request-form' && data.payment_code) {
+            document.getElementById('payment-code').textContent = data.payment_code;
+            document.getElementById('upgrade-code-display').style.display = 'block';
+          }
+          form.reset();
+        } else {
+          showMessage(messageDiv, false, data.error || 'An error occurred');
+        }
+      } catch (error) {
+        showMessage(messageDiv, false, 'Network error: ' + error.message);
+      }
+    }
+
+    document.getElementById('upgrade-request-form').addEventListener('submit', (e) =>
+      handleFormSubmit(e, 'upgrade-request-form', 'step1-message', '/api/profile/upgrade-request'));
+    document.getElementById('upgrade-activate-form').addEventListener('submit', (e) =>
+      handleFormSubmit(e, 'upgrade-activate-form', 'step3-message', '/api/profile/upgrade-activate'));
+
+    // Stripe checkout button
+    const stripeBtn = document.getElementById('stripe-checkout-btn');
+    if (stripeBtn) {
+      stripeBtn.addEventListener('click', async () => {
+        if (!jwtToken) {
+          showMessage(document.getElementById('step1-message'), false, 'Not authenticated. Please click the magic link in your email.');
+          return;
+        }
+
+        stripeBtn.disabled = true;
+        stripeBtn.textContent = 'Processing...';
+
+        try {
+          const response = await fetch('/api/stripe/checkout', {
+            method: 'POST',
+            headers: {
+              'Authorization': 'Bearer ' + jwtToken,
+            },
+          });
+
+          const data = await response.json();
+
+          if (response.ok && data.url) {
+            // Redirect to Stripe Checkout
+            window.location.href = data.url;
+          } else {
+            showMessage(document.getElementById('step1-message'), false, data.error || 'Failed to create checkout session');
+            stripeBtn.disabled = false;
+            stripeBtn.textContent = 'Pay with Card';
+          }
+        } catch (error) {
+          showMessage(document.getElementById('step1-message'), false, 'Network error: ' + error.message);
+          stripeBtn.disabled = false;
+          stripeBtn.textContent = 'Pay with Card';
+        }
+      });
+    }
+  </script>
 </body>
 </html>

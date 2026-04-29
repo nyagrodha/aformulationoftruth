@@ -1,9 +1,9 @@
 import { FreshContext } from 'fresh/server.ts';
 import { z } from 'zod/mod.ts';
 import { activatePaymentCode } from '../../../lib/payment-codes.ts';
+import { verifyQuestionnaireJWT } from '../../../lib/jwt.ts';
 
 const requestSchema = z.object({
-  user_id: z.number().positive(),
   code: z.string().regex(/^A4OT-[A-Z0-9]{4}-[A-Z0-9]{4}$/),
 });
 
@@ -16,11 +16,22 @@ export const handler = async (req: Request, ctx: FreshContext) => {
   }
 
   try {
+    // Extract JWT from Authorization header or request body
+    const authHeader = req.headers.get('Authorization');
+    let token: string | null = null;
+
+    if (authHeader?.startsWith('Bearer ')) {
+      token = authHeader.slice(7);
+    }
+
     const formData = await req.formData();
-    const user_id = parseInt(formData.get('user_id') as string);
     const code = formData.get('code') as string;
 
-    const validation = requestSchema.safeParse({ user_id, code });
+    if (!token) {
+      token = formData.get('token') as string | null;
+    }
+
+    const validation = requestSchema.safeParse({ code });
     if (!validation.success) {
       return new Response(JSON.stringify({ error: 'Invalid request' }), {
         status: 400,
@@ -28,14 +39,23 @@ export const handler = async (req: Request, ctx: FreshContext) => {
       });
     }
 
-    // TODO: Extract userId from JWT/session instead of request body
-    if (user_id === 0) {
-      return new Response(JSON.stringify({ error: 'User not authenticated' }), {
+    if (!token) {
+      return new Response(JSON.stringify({ error: 'Missing authentication token' }), {
         status: 401,
         headers: { 'Content-Type': 'application/json' },
       });
     }
 
+    // Verify JWT and extract user_id
+    const payload = await verifyQuestionnaireJWT(token);
+    if (!payload || !payload.user_id) {
+      return new Response(JSON.stringify({ error: 'Invalid or expired token' }), {
+        status: 401,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+    const user_id = payload.user_id;
     const result = await activatePaymentCode(code, user_id);
 
     if (result.success) {

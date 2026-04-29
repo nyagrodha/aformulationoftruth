@@ -21,7 +21,7 @@ function generateSegment(): string {
   return result;
 }
 
-export async function generatePaymentCode(userId: number): Promise<string> {
+export async function generatePaymentCode(userId: string): Promise<string> {
   for (let attempt = 0; attempt < RETRY_LIMIT; attempt++) {
     const segment1 = generateSegment();
     const segment2 = generateSegment();
@@ -64,7 +64,7 @@ export async function validatePaymentCode(code: string): Promise<boolean> {
 
 export async function activatePaymentCode(
   code: string,
-  userId: number
+  userId: string
 ): Promise<{ success: boolean; message: string }> {
   const validation = await validatePaymentCode(code);
   if (!validation) {

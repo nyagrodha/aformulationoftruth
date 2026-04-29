@@ -31,6 +31,7 @@ import { createQuestionnaireSession, findActiveSession, deleteSession } from '..
 import { createQuestionnaireJWT } from '../../../lib/jwt.ts';
 import { increment } from '../../../lib/metrics.ts';
 import { sendMagicLinkEmail } from '../../../lib/email.ts';
+import { getOrCreateUserByEmail } from '../../../lib/users.ts';
 
 const RequestSchema = z.object({
   email: z.string().min(1),
@@ -85,7 +86,11 @@ export const handler: Handlers = {
       // Step 2: Hash email immediately
       const emailHash = await hashEmail(email);
 
-      // Step 3: Create or resume questionnaire session
+      // Step 3: Get or create user
+      const user = await getOrCreateUserByEmail(email);
+      const userId = user?.id;
+
+      // Step 4: Create or resume questionnaire session
       // Check if user has an existing incomplete session
       let sessionResult;
       const existingSession = await findActiveSession(emailHash);
@@ -94,16 +99,16 @@ export const handler: Handlers = {
         // User is resuming - create new opaque token for existing session
         // (Old token is not retrievable, so we create a new session)
         console.log('[auth] User resuming questionnaire, creating new session');
-        sessionResult = await createQuestionnaireSession(emailHash, gateToken);
+        sessionResult = await createQuestionnaireSession(emailHash, gateToken, userId);
       } else {
         // New session
-        sessionResult = await createQuestionnaireSession(emailHash, gateToken);
+        sessionResult = await createQuestionnaireSession(emailHash, gateToken, userId);
       }
 
       const { opaqueToken, sessionId } = sessionResult;
 
-      // Step 4: Create JWT (contains email_hash + session_id)
-      const jwt = await createQuestionnaireJWT(emailHash, sessionId);
+      // Step 5: Create JWT (contains email_hash + session_id + user_id)
+      const jwt = await createQuestionnaireJWT(emailHash, sessionId, userId);
 
       // Step 5: Build magic link URL with JWT + resume token
       // IMPORTANT: NO EMAIL IN URL (gupta-vidya compliant)

@@ -24,16 +24,24 @@
     .encryption-info ul { margin-left: 20px; color: #666; }
     .encryption-info li { margin: 8px 0; }
     .help-text { font-size: 12px; color: #666; margin-top: 5px; }
+    .message { padding: 15px; border-radius: 4px; margin-bottom: 15px; display: none; }
+    .message.success { background: #d4edda; color: #155724; display: block; }
+    .message.error { background: #f8d7da; color: #721c24; display: block; }
+    .auth-required { background: #fff3cd; color: #856404; padding: 15px; border-radius: 4px; margin-bottom: 20px; }
   </style>
 </head>
 <body>
   <div class="container">
     <h1>Your Profile</h1>
 
+    <div id="auth-status" class="auth-required" style="display: none;">
+      You must be authenticated to manage your profile. Please click the magic link in your email first.
+    </div>
+
     <div class="profile-section">
       <h2>Basic Information</h2>
-      <form method="POST" action="https://gimbal.fobdongle.com/api/profile/update">
-        <input type="hidden" name="user_id" value="1">
+      <div id="basic-message" class="message"></div>
+      <form id="profile-update-form">
         <div class="form-group">
           <label>Username (optional):</label>
           <input type="text" name="username" placeholder="Your display name">
@@ -65,8 +73,8 @@
           <li>You can share encrypted responses via shareable links</li>
         </ul>
       </div>
-      <form method="POST" action="https://gimbal.fobdongle.com/api/profile/setup-encryption">
-        <input type="hidden" name="user_id" value="1">
+      <div id="encryption-message" class="message"></div>
+      <form id="encryption-setup-form">
         <button type="submit">Generate Encryption Keys</button>
       </form>
       <div class="help-text">Your keys will be managed securely. Contact support if you need to reset them.</div>
@@ -75,11 +83,69 @@
     <div class="profile-section">
       <h2>Account Actions</h2>
       <p class="help-text">⚠️ Warning: This will permanently delete all your data from our servers.</p>
-      <form method="POST" action="https://gimbal.fobdongle.com/api/user/delete">
-        <input type="hidden" name="user_id" value="1">
+      <div id="delete-message" class="message"></div>
+      <form id="user-delete-form">
         <button type="submit" class="danger">Request Data Deletion</button>
       </form>
     </div>
   </div>
+
+  <script>
+    // Extract JWT token from URL parameters
+    const params = new URLSearchParams(window.location.search);
+    const jwtToken = params.get('token');
+
+    // Show auth warning if no token
+    if (!jwtToken) {
+      document.getElementById('auth-status').style.display = 'block';
+      document.querySelectorAll('form').forEach(form => form.style.display = 'none');
+    }
+
+    function showMessage(messageDiv, isSuccess, text) {
+      messageDiv.textContent = text;
+      messageDiv.className = 'message ' + (isSuccess ? 'success' : 'error');
+    }
+
+    async function handleFormSubmit(e, action, messageId) {
+      e.preventDefault();
+
+      if (!jwtToken) {
+        showMessage(document.getElementById(messageId), false, 'Not authenticated. Please click the magic link in your email.');
+        return;
+      }
+
+      const form = e.target;
+      const messageDiv = document.getElementById(messageId);
+      const formData = new FormData(form);
+
+      try {
+        const response = await fetch(action, {
+          method: 'POST',
+          headers: {
+            'Authorization': 'Bearer ' + jwtToken,
+          },
+          body: formData,
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+          showMessage(messageDiv, true, data.message || 'Success!');
+          form.reset();
+        } else {
+          showMessage(messageDiv, false, data.error || 'An error occurred');
+        }
+      } catch (error) {
+        showMessage(messageDiv, false, 'Network error: ' + error.message);
+      }
+    }
+
+    document.getElementById('profile-update-form').addEventListener('submit', (e) =>
+      handleFormSubmit(e, '/api/profile/update', 'basic-message'));
+    document.getElementById('encryption-setup-form').addEventListener('submit', (e) =>
+      handleFormSubmit(e, '/api/profile/setup-encryption', 'encryption-message'));
+    document.getElementById('user-delete-form').addEventListener('submit', (e) =>
+      handleFormSubmit(e, '/api/user/delete', 'delete-message'));
+  </script>
 </body>
 </html>

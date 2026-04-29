@@ -1,11 +1,12 @@
 /**
  * JWT Utilities for Questionnaire Sessions
  *
- * JWT contains: email_hash, session_id, iat, exp
+ * JWT contains: email_hash, session_id, user_id, iat, exp
  * Used for:
  * 1. Client-side encryption key derivation (email_hash)
  * 2. Session verification (session_id)
- * 3. Preventing token replay (exp)
+ * 3. User authentication (user_id)
+ * 4. Preventing token replay (exp)
  *
  * gupta-vidya compliance:
  * - No plaintext email in JWT
@@ -30,6 +31,7 @@ const JWT_VALIDITY_HOURS = 24;
 export interface JWTPayload {
   email_hash: string;    // For client-side encryption key derivation
   session_id: string;    // HMAC hash of opaque token
+  user_id?: string;      // UUID of authenticated user (optional for backward compatibility)
   iat: number;           // Issued at (Unix timestamp)
   exp: number;           // Expiration (Unix timestamp)
 }
@@ -53,11 +55,13 @@ function getFutureTimestamp(seconds: number): number {
  *
  * @param emailHash - SHA-256 hash of email (for client-side encryption)
  * @param sessionId - HMAC hash of opaque token (session identifier)
+ * @param userId - UUID of authenticated user (optional)
  * @returns JWT token string
  */
 export async function createQuestionnaireJWT(
   emailHash: string,
-  sessionId: string
+  sessionId: string,
+  userId?: string
 ): Promise<string> {
   const secret = getJwtSecret();
 
@@ -77,6 +81,11 @@ export async function createQuestionnaireJWT(
     iat: getCurrentTimestamp(),
     exp: getFutureTimestamp(JWT_VALIDITY_HOURS * 60 * 60),
   };
+
+  // Add user_id if provided
+  if (userId) {
+    payload.user_id = userId;
+  }
 
   // Create JWT header
   const header = {

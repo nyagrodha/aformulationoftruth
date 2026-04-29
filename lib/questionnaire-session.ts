@@ -36,6 +36,7 @@ export interface SessionCreationResult {
   sessionId: string;              // Hash of token (stored in DB)
   emailHash: string;              // For JWT creation
   questionOrder: string;          // For initial state
+  userId?: string;                // UUID of authenticated user
 }
 
 // Database row types for queryObject
@@ -63,11 +64,13 @@ interface StatsRow {
  *
  * @param emailHash - SHA-256 hash of user's email
  * @param gateToken - Optional gate token to link gate responses
+ * @param userId - Optional UUID of authenticated user
  * @returns Opaque token for client + session details
  */
 export async function createQuestionnaireSession(
   emailHash: string,
-  gateToken?: string
+  gateToken?: string,
+  userId?: string
 ): Promise<SessionCreationResult> {
   // Step 1: Generate opaque token (32 bytes = 256 bits)
   const opaqueToken = generateResumeToken();
@@ -112,11 +115,20 @@ export async function createQuestionnaireSession(
     }
 
     // Create new session with session_id as primary key
+    const insertColumns = ['session_id', 'email_hash', 'question_order', 'answered_questions', 'current_index'];
+    const insertValues = [sessionId, emailHash, questionOrder, [], 0];
+    const placeholders = ['$1', '$2', '$3', '$4', '$5'];
+
+    if (userId) {
+      insertColumns.push('user_id');
+      insertValues.push(userId);
+      placeholders.push('$6');
+    }
+
     await client.queryObject(
-      `INSERT INTO fresh_questionnaire_sessions
-       (session_id, email_hash, question_order, answered_questions, current_index)
-       VALUES ($1, $2, $3, $4, $5)`,
-      [sessionId, emailHash, questionOrder, [], 0]
+      `INSERT INTO fresh_questionnaire_sessions (${insertColumns.join(', ')})
+       VALUES (${placeholders.join(', ')})`,
+      insertValues
     );
 
     // Link gate responses if provided
@@ -135,6 +147,7 @@ export async function createQuestionnaireSession(
     sessionId,
     emailHash,
     questionOrder,
+    ...(userId && { userId }),
   };
 }
 

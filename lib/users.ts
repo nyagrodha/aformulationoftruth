@@ -1,7 +1,7 @@
 import { db } from './db.ts';
 
 export interface User {
-  id: number;
+  id: string;
   email: string;
   username: string;
   profile_tier: 'free' | 'paid';
@@ -31,7 +31,7 @@ export async function getUserByEmailHash(emailHash: string): Promise<User | null
   return result.rows[0] || null;
 }
 
-export async function upgradeToPaid(userId: number): Promise<boolean> {
+export async function upgradeToPaid(userId: string): Promise<boolean> {
   const result = await db.queryObject(
     `UPDATE users SET profile_tier = 'paid' WHERE id = $1 RETURNING id`,
     [userId]
@@ -88,11 +88,35 @@ export async function updateProfile(
   return result.rows.length > 0;
 }
 
-export async function deleteUserData(userId: number): Promise<boolean> {
+export async function deleteUserData(userId: string): Promise<boolean> {
   const result = await db.queryObject(
     `DELETE FROM users WHERE id = $1 RETURNING id`,
     [userId]
   );
 
   return result.rows.length > 0;
+}
+
+export async function getOrCreateUserByEmail(email: string): Promise<User | null> {
+  try {
+    // First try to find existing user
+    let user = await getUserByEmailHash(email);
+    if (user) {
+      return user;
+    }
+
+    // Create new user with auto-generated username (email prefix)
+    const username = email.split('@')[0] + '_' + Math.random().toString(36).substring(7);
+    const result = await db.queryObject<User>(
+      `INSERT INTO users (email, username, password_hash, role)
+       VALUES ($1, $2, '', 'user')
+       RETURNING id, email, username, profile_tier, public_key, profile_visibility, created_at, updated_at`,
+      [email, username]
+    );
+
+    return result.rows[0] || null;
+  } catch (error) {
+    console.error('[users] Error getting or creating user:', error);
+    return null;
+  }
 }

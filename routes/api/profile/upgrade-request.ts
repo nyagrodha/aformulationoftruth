@@ -1,10 +1,7 @@
 import { FreshContext } from 'fresh/server.ts';
 import { z } from 'zod/mod.ts';
 import { generatePaymentCode } from '../../../lib/payment-codes.ts';
-
-const requestSchema = z.object({
-  user_id: z.number().positive(),
-});
+import { verifyQuestionnaireJWT } from '../../../lib/jwt.ts';
 
 export const handler = async (req: Request, ctx: FreshContext) => {
   if (req.method !== 'POST') {
@@ -15,25 +12,35 @@ export const handler = async (req: Request, ctx: FreshContext) => {
   }
 
   try {
-    const formData = await req.formData();
-    const user_id = parseInt(formData.get('user_id') as string);
+    // Extract JWT from Authorization header or request body
+    const authHeader = req.headers.get('Authorization');
+    let token: string | null = null;
 
-    const validation = requestSchema.safeParse({ user_id });
-    if (!validation.success) {
-      return new Response(JSON.stringify({ error: 'Invalid user ID' }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' },
-      });
+    if (authHeader?.startsWith('Bearer ')) {
+      token = authHeader.slice(7);
+    } else {
+      // Try to get token from form data for backward compatibility
+      const formData = await req.formData();
+      token = formData.get('token') as string | null;
     }
 
-    // TODO: SECURITY - Replace with authenticated user ID from session/JWT
-    if (user_id === 0) {
-      return new Response(JSON.stringify({ error: 'User not authenticated' }), {
+    if (!token) {
+      return new Response(JSON.stringify({ error: 'Missing authentication token' }), {
         status: 401,
         headers: { 'Content-Type': 'application/json' },
       });
     }
 
+    // Verify JWT and extract user_id
+    const payload = await verifyQuestionnaireJWT(token);
+    if (!payload || !payload.user_id) {
+      return new Response(JSON.stringify({ error: 'Invalid or expired token' }), {
+        status: 401,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+    const user_id = payload.user_id;
     const code = await generatePaymentCode(user_id);
 
     return new Response(

@@ -12,20 +12,73 @@
     .status { margin: 20px 0; padding: 20px; border-radius: 4px; border-left: 4px solid #333; }
     .status.success { background: #d4edda; color: #155724; border-left-color: #28a745; }
     .status.error { background: #f8d7da; color: #721c24; border-left-color: #dc3545; }
+    .status.pending { background: #fff3cd; color: #856404; border-left-color: #ffc107; }
     p { color: #666; line-height: 1.6; margin: 15px 0; }
+    form { margin: 20px 0; }
+    input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; }
+    button { background: #333; color: white; padding: 12px 24px; border-radius: 4px; border: none; cursor: pointer; font-size: 16px; margin-top: 10px; }
+    button:hover { background: #555; }
     .button { display: inline-block; background: #333; color: white; padding: 12px 24px; border-radius: 4px; margin-top: 20px; text-decoration: none; }
     .button:hover { background: #555; }
+    .help-text { font-size: 12px; color: #666; margin-top: 10px; }
   </style>
 </head>
 <body>
   <div class="container">
     <h1>Newsletter Unsubscribe</h1>
-    <div id="status" class="status success">
-      <p><strong>Success!</strong> You have been unsubscribed from our newsletter.</p>
-      <p>You will no longer receive email updates from A Formulation of Truth.</p>
+
+    <div id="status" class="status pending">
+      <p><strong>Processing...</strong> Enter your email to unsubscribe from our newsletter.</p>
     </div>
-    <p>If you have any questions or wish to resubscribe, please contact us at support@aformulationoftruth.com</p>
+
+    <form id="unsubscribe-form">
+      <input type="email" name="email" placeholder="your@email.com" required>
+      <button type="submit">Confirm Unsubscribe</button>
+    </form>
+
+    <p class="help-text">If you have any questions or wish to resubscribe, please contact us at support@aformulationoftruth.com</p>
     <a href="/" class="button">Back to Home</a>
   </div>
+
+  <script>
+    function showStatus(statusType, message) {
+      const statusDiv = document.getElementById('status');
+      statusDiv.textContent = message;
+      statusDiv.className = 'status ' + statusType;
+    }
+
+    async function handleUnsubscribe(e) {
+      e.preventDefault();
+      const form = e.target;
+      const formData = new FormData(form);
+
+      try {
+        const response = await fetch('/api/newsletter/unsubscribe', {
+          method: 'POST',
+          body: formData,
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+          showStatus('success', data.message || 'Success! You have been unsubscribed from our newsletter. You will no longer receive email updates from A Formulation of Truth.');
+          form.style.display = 'none';
+        } else {
+          showStatus('error', data.error || 'An error occurred. Please try again or contact support.');
+        }
+      } catch (error) {
+        showStatus('error', 'Network error: ' + error.message);
+      }
+    }
+
+    // Check for email in URL query parameter (common for email unsubscribe links)
+    const params = new URLSearchParams(window.location.search);
+    const emailParam = params.get('email');
+    if (emailParam) {
+      document.querySelector('input[name="email"]').value = decodeURIComponent(emailParam);
+    }
+
+    document.getElementById('unsubscribe-form').addEventListener('submit', handleUnsubscribe);
+  </script>
 </body>
 </html>
