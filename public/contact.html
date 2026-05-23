@@ -86,6 +86,47 @@
                 </p>
             </section>
 
+            <!-- Secure Messaging Section -->
+            <section class="content-section">
+                <h2 class="section-title">
+                    <span class="sanskrit-label">सन्देशः</span>
+                    send a message
+                </h2>
+
+                <p class="lead">
+                    A direct line, no mail client required. Your note is age-encrypted before it touches disk; tick the box to wrap it in PGP first, end-to-end.
+                </p>
+
+                <form id="secure-contact-form" class="secure-contact-form" novalidate>
+                    <label class="secure-contact-label" for="secure-contact-message">
+                        Your message
+                    </label>
+                    <textarea
+                        id="secure-contact-message"
+                        name="message"
+                        rows="6"
+                        maxlength="10000"
+                        required
+                        aria-describedby="secure-contact-help"
+                    ></textarea>
+                    <p id="secure-contact-help" class="secure-contact-help">
+                        Up to 10,000 characters. The server never sees your message in plaintext for longer than the moment it takes to age-encrypt it.
+                    </p>
+
+                    <label class="secure-contact-checkbox">
+                        <input type="checkbox" id="secure-contact-pgp" name="pgpEncrypted">
+                        <span>
+                            Also encrypt with PGP in my browser (defense in depth — uses the <a href="/contact-pgp.asc" target="_blank" rel="noopener">contact PGP key</a>)
+                        </span>
+                    </label>
+
+                    <button type="submit" id="secure-contact-submit" class="secure-contact-submit">
+                        Send
+                    </button>
+                    <p id="secure-contact-status" class="secure-contact-status" role="status" aria-live="polite"></p>
+                </form>
+            </section>
+
             <!-- Privacy & Transparency Section -->
             <section class="content-section privacy-section">
                 <h2 class="section-title">
@@ -361,5 +402,6 @@
             await submitEmail(email);
         });
     </script>
+    <script type="module" src="/js/contact-form.js"></script>
 </body>
 </html>

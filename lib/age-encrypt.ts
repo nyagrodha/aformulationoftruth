@@ -1,16 +1,20 @@
 /**
- * Age x25519 encryption for email addresses
+ * Age x25519 encryption for short messages and PII fragments.
  *
- * Uses the same public key as the Rust Gate service so that
- * the offline pipeline can decrypt both answers and emails
- * with a single private key.
+ * Default recipient (AGE_RECIPIENT) is the gate's age public key, shared with
+ * the Rust Gate service so the offline pipeline can decrypt gate answers and
+ * gate-submitted emails with one private key.
+ *
+ * Callers that need a *different* recipient (e.g. the contact-form rollout,
+ * which uses CONTACT_AGE_RECIPIENT for key isolation) pass it explicitly as
+ * the second argument.
  *
  * gupta-vidya compliance:
  * - Public key is safe to embed (encryption-only, cannot decrypt)
  * - Produces ASCII-armored ciphertext matching Gate's format
  */
 
-import { Encrypter, armor } from '@age/age-encryption';
+import { armor, Encrypter } from '@age/age-encryption';
 
 const AGE_RECIPIENT = Deno.env.get('AGE_RECIPIENT') ||
   'age1x060v073jaf6pwz7pw66pdtt4eu7zp7sh9yayj0f4nfpktv3zg2shket77';
@@ -18,10 +22,16 @@ const AGE_RECIPIENT = Deno.env.get('AGE_RECIPIENT') ||
 /**
  * Encrypt a string with age x25519, returning ASCII-armored ciphertext.
  * Output format: -----BEGIN AGE ENCRYPTED FILE----- ... -----END AGE ENCRYPTED FILE-----
+ *
+ * @param plaintext  data to encrypt
+ * @param recipient  optional age recipient string (defaults to AGE_RECIPIENT)
  */
-export async function ageEncrypt(plaintext: string): Promise<string> {
+export async function ageEncrypt(
+  plaintext: string,
+  recipient?: string,
+): Promise<string> {
   const e = new Encrypter();
-  e.addRecipient(AGE_RECIPIENT);
+  e.addRecipient(recipient ?? AGE_RECIPIENT);
   const encrypted = await e.encrypt(plaintext);
   return armor.encode(encrypted);
 }
