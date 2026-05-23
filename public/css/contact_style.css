@@ -829,3 +829,119 @@ footer {
         transition-duration: 0.01ms !important;
     }
 }
+
+/*
+ * Secure messaging form
+ */
+.secure-contact-form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+}
+
+.secure-contact-label {
+    color: var(--bone);
+    font-size: 0.9rem;
+    letter-spacing: 0.05em;
+}
+
+.secure-contact-form textarea {
+    width: 100%;
+    background: var(--obsidian);
+    color: var(--bone);
+    border: 1px solid var(--ghost);
+    border-radius: 4px;
+    padding: 0.75rem 1rem;
+    font: inherit;
+    font-size: 1rem;
+    line-height: 1.5;
+    resize: vertical;
+    min-height: 8rem;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.secure-contact-form textarea:focus {
+    outline: none;
+    border-color: var(--contact-accent);
+    box-shadow: 0 0 0 3px var(--contact-glow);
+}
+
+.secure-contact-form textarea[readonly] {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.secure-contact-help {
+    color: var(--mist);
+    font-size: 0.85rem;
+    line-height: 1.4;
+}
+
+.secure-contact-checkbox {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+    color: var(--pearl);
+    font-size: 0.9rem;
+    line-height: 1.4;
+    cursor: pointer;
+}
+
+.secure-contact-checkbox input[type="checkbox"] {
+    margin-top: 0.2rem;
+    accent-color: var(--contact-accent);
+}
+
+.secure-contact-checkbox input[type="checkbox"]:disabled {
+    cursor: not-allowed;
+}
+
+.secure-contact-checkbox input[type="checkbox"]:disabled + span {
+    opacity: 0.55;
+}
+
+.secure-contact-submit {
+    align-self: flex-start;
+    background: var(--contact-accent);
+    color: var(--void);
+    border: none;
+    border-radius: 4px;
+    padding: 0.6rem 1.4rem;
+    font: inherit;
+    font-size: 0.95rem;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.05s ease;
+}
+
+.secure-contact-submit:hover:not(:disabled) {
+    background: var(--neon-cyan);
+}
+
+.secure-contact-submit:active:not(:disabled) {
+    transform: translateY(1px);
+}
+
+.secure-contact-submit:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.secure-contact-status {
+    font-size: 0.9rem;
+    min-height: 1.2em;
+    color: var(--mist);
+}
+
+.secure-contact-status[data-kind="error"] {
+    color: var(--neon-pink);
+}
+
+.secure-contact-status[data-kind="success"] {
+    color: var(--neon-emerald);
+}
+
+.secure-contact-status[data-kind="info"] {
+    color: var(--contact-accent);
+}
