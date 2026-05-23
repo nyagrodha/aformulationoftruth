@@ -90,18 +90,6 @@ export const handler: Handlers = {
     increment('requests.api');
     const headers = corsHeaders(req);
 
-    // Pre-flight: refuse rather than silently fall back to the gate recipient.
-    if (!Deno.env.get('CONTACT_AGE_RECIPIENT')) {
-      increment('errors.5xx');
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: 'Secure contact channel is not configured yet',
-        }),
-        { status: 503, headers },
-      );
-    }
-
     // Rate limit by IP. Done before body parse so flood attempts pay less work.
     const remoteHost =
       (ctx as { remoteAddr?: { hostname?: string } }).remoteAddr?.hostname;

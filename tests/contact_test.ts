@@ -2,11 +2,12 @@
  * Contact Form Secure Messaging Tests
  *
  * HTTP integration test against a running dev server (TEST_BASE_URL).
- * The server must have CONTACT_AGE_RECIPIENT set for the success cases.
+ * The server has a baked-in default CONTACT_AGE_RECIPIENT, so these tests
+ * exercise the live path without any env-var setup.
  *
- * Tests are designed to be tolerant of an in-flight rate-limit bucket from
- * earlier runs: the rate-limit assertion uses its own counter and tolerates a
- * starting count > 0.
+ * Tests tolerate a rate-limit bucket that may carry over from previous runs:
+ * 200/429 are both treated as "passing" for the happy-path cases; the
+ * dedicated rate-limit test specifically drives the limit.
  *
  * Run with: deno task test
  */
@@ -18,15 +19,12 @@ import {
 } from 'https://deno.land/std@0.208.0/assert/mod.ts';
 
 const BASE_URL = Deno.env.get('TEST_BASE_URL') || 'http://localhost:8000';
-const SERVER_HAS_AGE_RECIPIENT =
-  Deno.env.get('CONTACT_AGE_RECIPIENT_SET_ON_SERVER') === 'true';
 
 console.log(`
 ===========================================
 Contact Form Test Suite
 ===========================================
 Target: ${BASE_URL}
-CONTACT_AGE_RECIPIENT on server: ${SERVER_HAS_AGE_RECIPIENT}
 ===========================================
 `);
 
@@ -38,43 +36,19 @@ async function post(body: unknown): Promise<Response> {
   });
 }
 
-Deno.test('Contact - 503 when CONTACT_AGE_RECIPIENT is unset', async () => {
-  if (SERVER_HAS_AGE_RECIPIENT) {
-    console.log('  [skip] server has CONTACT_AGE_RECIPIENT set');
-    return;
-  }
-  const res = await post({ message: 'hello', pgpEncrypted: false });
-  assertEquals(res.status, 503);
-  const data = await res.json();
-  assertEquals(data.success, false);
-  await res.body?.cancel();
-});
-
 Deno.test('Contact - empty message rejected', async () => {
-  if (!SERVER_HAS_AGE_RECIPIENT) {
-    console.log('  [skip] needs CONTACT_AGE_RECIPIENT set on server');
-    return;
-  }
   const res = await post({ message: '', pgpEncrypted: false });
   assertEquals(res.status, 400);
   await res.body?.cancel();
 });
 
 Deno.test('Contact - whitespace-only message rejected', async () => {
-  if (!SERVER_HAS_AGE_RECIPIENT) {
-    console.log('  [skip] needs CONTACT_AGE_RECIPIENT set on server');
-    return;
-  }
   const res = await post({ message: '   \n\t  ', pgpEncrypted: false });
   assertEquals(res.status, 400);
   await res.body?.cancel();
 });
 
 Deno.test('Contact - oversized message rejected', async () => {
-  if (!SERVER_HAS_AGE_RECIPIENT) {
-    console.log('  [skip] needs CONTACT_AGE_RECIPIENT set on server');
-    return;
-  }
   const res = await post({
     message: 'x'.repeat(10_001),
     pgpEncrypted: false,
@@ -84,10 +58,6 @@ Deno.test('Contact - oversized message rejected', async () => {
 });
 
 Deno.test('Contact - pgpEncrypted=true without armor rejected', async () => {
-  if (!SERVER_HAS_AGE_RECIPIENT) {
-    console.log('  [skip] needs CONTACT_AGE_RECIPIENT set on server');
-    return;
-  }
   const res = await post({
     message: 'not a pgp block',
     pgpEncrypted: true,
@@ -98,16 +68,10 @@ Deno.test('Contact - pgpEncrypted=true without armor rejected', async () => {
 });
 
 Deno.test('Contact - plaintext path succeeds and reports success', async () => {
-  if (!SERVER_HAS_AGE_RECIPIENT) {
-    console.log('  [skip] needs CONTACT_AGE_RECIPIENT set on server');
-    return;
-  }
   const res = await post({
     message: `test message ${Date.now()}`,
     pgpEncrypted: false,
   });
-  // If a previous run exhausted the rate limit we get 429; that is acceptable
-  // here — the rate-limit test below covers the limit behaviour explicitly.
   assert(
     res.status === 200 || res.status === 429,
     `unexpected status ${res.status}`,
@@ -123,10 +87,6 @@ Deno.test('Contact - plaintext path succeeds and reports success', async () => {
 });
 
 Deno.test('Contact - PGP path with valid armor succeeds', async () => {
-  if (!SERVER_HAS_AGE_RECIPIENT) {
-    console.log('  [skip] needs CONTACT_AGE_RECIPIENT set on server');
-    return;
-  }
   const fakePgp =
     '-----BEGIN PGP MESSAGE-----\n\nVGVzdCBwYXlsb2FkIGZvciBlbnZlbG9wZSBjaGVjaw==\n-----END PGP MESSAGE-----';
   const res = await post({ message: fakePgp, pgpEncrypted: true });
@@ -143,10 +103,6 @@ Deno.test('Contact - PGP path with valid armor succeeds', async () => {
 });
 
 Deno.test('Contact - rate-limit triggers 429 after the cap', async () => {
-  if (!SERVER_HAS_AGE_RECIPIENT) {
-    console.log('  [skip] needs CONTACT_AGE_RECIPIENT set on server');
-    return;
-  }
   // Fire enough requests in a tight loop to be sure we exceed any reasonable
   // window: the server caps at 5 / hour / IP. Capture the first 429 we see.
   let saw429 = false;

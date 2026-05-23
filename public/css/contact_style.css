@@ -126,11 +126,6 @@ body::before {
     font-family: 'SaiIndira', 'Noto Serif Tamil', 'Tamil Sangam MN', serif;
 }
 
-/* Sanskrit text */
-.sanskrit-text {
-    font-family: 'Noto Sans Devanagari', 'Noto Serif Devanagari', sans-serif;
-}
-
 /*
  * ═══════════════════════════════════════════════════════════════
  * NAVIGATION — Fixed, matches index_style.css
@@ -253,11 +248,6 @@ main {
     letter-spacing: 0.1em;
 }
 
-.contact-header .subtitle .sanskrit-text {
-    color: var(--gold);
-    text-shadow: 0 0 8px var(--gold-glow);
-}
-
 /*
  * ═══════════════════════════════════════════════════════════════
  * CONTENT SECTIONS — Card-like containers
@@ -289,14 +279,6 @@ main {
     padding-bottom: 0.75rem;
     border-bottom: 1px solid var(--ghost);
     text-shadow: 0 0 10px var(--contact-glow);
-}
-
-.section-title .sanskrit-label {
-    font-family: 'Noto Sans Devanagari', sans-serif;
-    font-size: 0.85rem;
-    color: var(--gold);
-    margin-right: 0.75rem;
-    text-shadow: 0 0 6px var(--gold-glow);
 }
 
 /*
@@ -487,24 +469,6 @@ main {
     margin-bottom: 0;
 }
 
-/* Warning/disclosure box */
-.disclosure-box {
-    padding: 1.5rem;
-    background: rgba(255, 140, 66, 0.08);
-    border-left: 3px solid var(--neon-orange);
-    margin: 1.5rem 0;
-    border-radius: 0 4px 4px 0;
-}
-
-.disclosure-box .disclosure-title {
-    font-family: 'Orbitron', sans-serif;
-    font-size: 0.85rem;
-    color: var(--neon-orange);
-    margin-bottom: 1rem;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-}
-
 /* Code/technical references */
 .code-ref {
     font-family: 'Space Mono', monospace;
@@ -513,77 +477,6 @@ main {
     padding: 0.15rem 0.5rem;
     border-radius: 3px;
     color: var(--neon-cyan);
-}
-
-/*
- * ═══════════════════════════════════════════════════════════════
- * JURISDICTION COMPARISON TABLE
- * ═══════════════════════════════════════════════════════════════
- */
-.jurisdiction-comparison {
-    margin: 2rem 0;
-    overflow-x: auto;
-}
-
-.jurisdiction-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 0.85rem;
-}
-
-.jurisdiction-table th,
-.jurisdiction-table td {
-    padding: 1rem;
-    text-align: left;
-    border: 1px solid var(--ghost);
-}
-
-.jurisdiction-table th {
-    background: var(--slate);
-    font-family: 'Orbitron', sans-serif;
-    font-size: 0.75rem;
-    font-weight: 400;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    color: var(--bone);
-}
-
-.jurisdiction-table th.finland {
-    color: var(--neon-cyan);
-    border-bottom-color: var(--neon-cyan);
-}
-
-.jurisdiction-table th.iceland {
-    color: var(--neon-emerald);
-    border-bottom-color: var(--neon-emerald);
-}
-
-.jurisdiction-table td {
-    background: var(--obsidian);
-    color: var(--pearl);
-    vertical-align: top;
-}
-
-.jurisdiction-table tr:hover td {
-    background: var(--slate);
-}
-
-.jurisdiction-table .aspect {
-    font-weight: 600;
-    color: var(--gold);
-    white-space: nowrap;
-}
-
-.jurisdiction-table .good {
-    color: var(--neon-emerald);
-}
-
-.jurisdiction-table .neutral {
-    color: var(--gold);
-}
-
-.jurisdiction-table .concern {
-    color: var(--neon-orange);
 }
 
 /*
@@ -793,15 +686,6 @@ footer {
     .contact-method {
         flex-direction: column;
         text-align: center;
-    }
-
-    .jurisdiction-table {
-        font-size: 0.75rem;
-    }
-
-    .jurisdiction-table th,
-    .jurisdiction-table td {
-        padding: 0.75rem;
     }
 
     .footer-nav {

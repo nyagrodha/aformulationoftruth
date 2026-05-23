@@ -18,14 +18,22 @@
 import { withConnection } from './db.ts';
 import { ageEncrypt } from './age-encrypt.ts';
 
+// Baked-in default: dedicated contact-form age x25519 recipient, distinct
+// from the gate's AGE_RECIPIENT. Safe to embed — age public keys can only
+// encrypt, not decrypt. Override via CONTACT_AGE_RECIPIENT if you need to
+// rotate without redeploying.
+const DEFAULT_CONTACT_AGE_RECIPIENT =
+  'age14c0ul2v80vzs2me3jjg7vhsltnvgsmm3n0dtt5sr28tfn3hftgpqjmfpsm';
+
 export interface StoreContactMessageParams {
   message: string;
   pgpInner: boolean;
 }
 
 /**
- * Thrown when CONTACT_AGE_RECIPIENT is unset/empty. Routes map this to 503.
- * Distinct error type so the route can detect it without string-matching.
+ * Thrown if the contact recipient is explicitly cleared (env set to empty and
+ * the default is somehow gone). Routes map this to 503 as a safety net so we
+ * never silently fall back to a different recipient.
  */
 export class ContactRecipientNotConfiguredError extends Error {
   constructor() {
@@ -35,10 +43,11 @@ export class ContactRecipientNotConfiguredError extends Error {
 }
 
 /**
- * Age-encrypt the message to CONTACT_AGE_RECIPIENT and store the ciphertext.
+ * Age-encrypt the message to the contact recipient and store the ciphertext.
  *
- * Read the env var at call time (not module load) so an operator can flip the
- * key in without restarting the server.
+ * Recipient resolution at call time (not module load) so an operator can flip
+ * the key without restarting: env CONTACT_AGE_RECIPIENT wins; otherwise the
+ * baked-in default above.
  *
  * Returns the inserted row id (for caller-side logging only — never echoed to
  * the client).
@@ -46,7 +55,8 @@ export class ContactRecipientNotConfiguredError extends Error {
 export async function storeContactMessage(
   params: StoreContactMessageParams,
 ): Promise<number> {
-  const recipient = Deno.env.get('CONTACT_AGE_RECIPIENT');
+  const recipient = Deno.env.get('CONTACT_AGE_RECIPIENT') ||
+    DEFAULT_CONTACT_AGE_RECIPIENT;
   if (!recipient) {
     throw new ContactRecipientNotConfiguredError();
   }
