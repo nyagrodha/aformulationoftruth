@@ -17,6 +17,9 @@ const pgpCheckbox = document.getElementById('secure-contact-pgp');
 const submitButton = document.getElementById('secure-contact-submit');
 const statusEl = document.getElementById('secure-contact-status');
 
+let nudgeShown = false;
+const NUDGE_FLASH_MS = 1500;
+
 if (form && messageEl && pgpCheckbox && submitButton && statusEl) {
   init();
 }
@@ -65,6 +68,20 @@ async function submit() {
   }
   if (raw.length > 10000) {
     setStatus('Message is too long (10,000 character max).', 'error');
+    return;
+  }
+
+  // One-shot nudge: if the user is about to send plaintext and PGP is
+  // available, intercept the first Send to offer encryption. A second
+  // Send (still unticked) proceeds. Resets after a successful submit.
+  if (
+    !nudgeShown &&
+    !pgpCheckbox.checked &&
+    pgpCheckbox.dataset.permanentlyDisabled !== 'true'
+  ) {
+    nudgeShown = true;
+    setStatus('You sure you don’t wanna encrypt this message?', 'info');
+    flashPgpCheckbox();
     return;
   }
 
@@ -133,8 +150,19 @@ async function submit() {
 
   messageEl.value = '';
   pgpCheckbox.checked = false;
+  nudgeShown = false;
   setStatus('Sent. Thank you.', 'success');
   setBusy(false);
+}
+
+function flashPgpCheckbox() {
+  const label = pgpCheckbox.closest('label');
+  if (!label) return;
+  label.classList.remove('secure-contact-nudge');
+  // Force a reflow so re-adding the class restarts the animation.
+  void label.offsetWidth;
+  label.classList.add('secure-contact-nudge');
+  setTimeout(() => label.classList.remove('secure-contact-nudge'), NUDGE_FLASH_MS);
 }
 
 async function pgpEncrypt(text) {

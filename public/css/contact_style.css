@@ -829,3 +829,25 @@ footer {
 .secure-contact-status[data-kind="info"] {
     color: var(--contact-accent);
 }
+
+.secure-contact-nudge {
+    border-radius: 4px;
+    animation: secure-contact-nudge-flash 1.2s ease-out 1;
+}
+
+.secure-contact-nudge span {
+    color: var(--contact-accent);
+}
+
+@keyframes secure-contact-nudge-flash {
+    0%   { outline: 2px solid var(--contact-accent); outline-offset: 4px; }
+    100% { outline: 2px solid transparent;            outline-offset: 4px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .secure-contact-nudge {
+        animation: none;
+        outline: 2px solid var(--contact-accent);
+        outline-offset: 4px;
+    }
+}
