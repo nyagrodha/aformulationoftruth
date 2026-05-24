@@ -1,15 +1,15 @@
 /**
- * Contact Messages Service
+ * Messages Service
  *
- * Stores inbound contact-form submissions age-encrypted under the
+ * Stores authenticated user-sent messages, age-encrypted under the
  * 'messages' recipient. Only the offline operator with the matching
- * messages_ private key can read these.
+ * messages_ private key can read the encrypted fields.
  *
- * gupta-vidya compliance:
- * - All user-supplied content is encrypted before insert.
- * - The body is never logged.
- * - If a reply-to email is provided, it is normalized + validated first,
- *   then the canonical form is encrypted (raw input is never persisted).
+ * Sender and recipient identity are stored as plaintext SHA-256 hashes
+ * (same hash already used elsewhere in fresh_*) so the operator can
+ * correlate messages with profiles when triaging offline. A NULL
+ * recipient_email_hash currently means "to the operator" — once per-user
+ * keypairs ship, populated values will route to other users.
  */
 
 import { withConnection } from './db.ts';
@@ -17,6 +17,8 @@ import { ageEncrypt } from './age-encrypt.ts';
 import { validateEmail } from './emailValidator.ts';
 
 export interface StoreMessageInput {
+  senderEmailHash: string;
+  recipientEmailHash?: string;
   name?: string;
   replyTo?: string;
   body: string;
@@ -29,10 +31,22 @@ export type StoreMessageResult =
 const MAX_NAME = 200;
 const MAX_REPLY_TO = 320;
 const MAX_BODY = 20000;
+const HASH_HEX_LEN = 64;
+
+function looksLikeHash(value: string): boolean {
+  return value.length === HASH_HEX_LEN && /^[0-9a-f]+$/.test(value);
+}
 
 export async function storeMessage(
   input: StoreMessageInput,
 ): Promise<StoreMessageResult> {
+  if (!looksLikeHash(input.senderEmailHash)) {
+    return { ok: false, reason: 'invalid_body' };
+  }
+  if (input.recipientEmailHash && !looksLikeHash(input.recipientEmailHash)) {
+    return { ok: false, reason: 'invalid_body' };
+  }
+
   const body = input.body?.trim() ?? '';
   if (!body || body.length > MAX_BODY) {
     return { ok: false, reason: 'invalid_body' };
@@ -63,10 +77,17 @@ export async function storeMessage(
   const row = await withConnection(async (client) => {
     const result = await client.queryObject<{ id: string }>(
       `INSERT INTO contact_messages
-         (encrypted_name, encrypted_reply_to, encrypted_body)
-       VALUES ($1, $2, $3)
+         (sender_email_hash, recipient_email_hash,
+          encrypted_name, encrypted_reply_to, encrypted_body)
+       VALUES ($1, $2, $3, $4, $5)
        RETURNING id`,
-      [encryptedName, encryptedReplyTo, encryptedBody],
+      [
+        input.senderEmailHash,
+        input.recipientEmailHash ?? null,
+        encryptedName,
+        encryptedReplyTo,
+        encryptedBody,
+      ],
     );
     return result.rows[0];
   });
