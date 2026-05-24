@@ -4,6 +4,7 @@
 
 import * as $_404 from './routes/_404.tsx';
 import * as $api_auth_magic_link from './routes/api/auth/magic-link.ts';
+import * as $api_contact from './routes/api/contact.ts';
 import * as $api_gate_submit from './routes/api/gate-submit.ts';
 import * as $api_gate from './routes/api/gate.ts';
 import * as $api_health from './routes/api/health.ts';
@@ -26,6 +27,7 @@ const manifest = {
   routes: {
     './routes/_404.tsx': $_404,
     './routes/api/auth/magic-link.ts': $api_auth_magic_link,
+    './routes/api/contact.ts': $api_contact,
     './routes/api/gate-submit.ts': $api_gate_submit,
     './routes/api/gate.ts': $api_gate,
     './routes/api/health.ts': $api_health,

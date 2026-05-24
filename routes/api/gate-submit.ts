@@ -107,7 +107,7 @@ export const handler: Handlers = {
       }
 
       // Age-encrypt email for offline PDF delivery (only private key holder can recover)
-      const encryptedEmail = await ageEncrypt(email);
+      const encryptedEmail = await ageEncrypt('questionnaire', email);
 
       // Insert linking row with encrypted email (no plaintext stored)
       await withConnection(async (client) => {

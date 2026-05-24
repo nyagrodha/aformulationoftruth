@@ -84,6 +84,25 @@
                 <p>
                     <em>Support:</em> This site operates independently without advertising or data harvesting. If you wish to support its ongoing development, you may consider patronizing <a href="https://billing.flokinet.is/aff.php?aff=543" target="_blank" rel="noopener">Flokinet</a>, the privacy-focused hosting provider.
                 </p>
+
+                <h3 class="subsection-title"><span class="icon">✉</span> Send an encrypted message</h3>
+                <p>
+                    If you prefer not to use PGP, you can send a message through this form. The body, your name, and any reply-to address are <strong>age-encrypted on the server</strong> before storage. Only the offline operator with the matching private key can read them.
+                </p>
+                <form id="contact-form" class="contact-form" novalidate>
+                    <label for="contact-name">Name <span style="opacity: 0.6;">(optional)</span></label>
+                    <input id="contact-name" type="text" maxlength="200" autocomplete="name">
+
+                    <label for="contact-reply-to">Reply-to email <span style="opacity: 0.6;">(optional)</span></label>
+                    <input id="contact-reply-to" type="email" maxlength="320" autocomplete="email">
+
+                    <label for="contact-body">Message</label>
+                    <textarea id="contact-body" rows="6" maxlength="20000" required></textarea>
+
+                    <button type="submit" id="contact-submit">Send</button>
+                </form>
+                <div id="contact-message" class="newsletter-message"></div>
+                <p class="newsletter-note">🔐 Encrypted with age (x25519) before storage</p>
             </section>
 
             <!-- Privacy & Transparency Section -->
@@ -359,6 +378,65 @@
             }
 
             await submitEmail(email);
+        });
+
+        // Contact form handler
+        const contactForm = document.getElementById('contact-form');
+        const contactNameInput = document.getElementById('contact-name');
+        const contactReplyToInput = document.getElementById('contact-reply-to');
+        const contactBodyInput = document.getElementById('contact-body');
+        const contactSubmitButton = document.getElementById('contact-submit');
+        const contactMessageDiv = document.getElementById('contact-message');
+
+        function showContactMessage(text, type) {
+            contactMessageDiv.textContent = text;
+            contactMessageDiv.className = `newsletter-message visible ${type}`;
+            if (type === 'success') {
+                setTimeout(() => {
+                    contactMessageDiv.className = 'newsletter-message';
+                }, 6000);
+            }
+        }
+
+        contactForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const body = contactBodyInput.value.trim();
+            if (!body) {
+                showContactMessage('Please enter a message.', 'error');
+                return;
+            }
+
+            const payload = { body };
+            const name = contactNameInput.value.trim();
+            if (name) payload.name = name;
+            const replyTo = contactReplyToInput.value.trim();
+            if (replyTo) payload.replyTo = replyTo;
+
+            try {
+                contactSubmitButton.disabled = true;
+                contactSubmitButton.textContent = 'Sending...';
+
+                const response = await fetch('/api/contact', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload),
+                });
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    showContactMessage('✓ Message received. Thank you.', 'success');
+                    contactForm.reset();
+                } else {
+                    showContactMessage(`✗ ${data.error || 'Message could not be sent.'}`, 'error');
+                }
+            } catch (error) {
+                console.error('Contact submit error:', error);
+                showContactMessage('✗ Unable to connect. Please try again.', 'error');
+            } finally {
+                contactSubmitButton.disabled = false;
+                contactSubmitButton.textContent = 'Send';
+            }
         });
     </script>
 </body>
