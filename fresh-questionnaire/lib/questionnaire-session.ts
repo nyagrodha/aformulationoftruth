@@ -38,25 +38,6 @@ export interface SessionCreationResult {
   questionOrder: string;          // For initial state
 }
 
-// Database row types for queryObject
-interface SessionRow {
-  session_id: string;
-  email_hash: string;
-  question_order: string;
-  answered_questions: number[] | null;
-  current_index: number | null;
-  created_at: string;
-  updated_at: string;
-  completed_at: string | null;
-}
-
-interface StatsRow {
-  total: string | bigint;
-  active: string | bigint;
-  completed: string | bigint;
-  avg_progress: number | null;
-}
-
 /**
  * Create a new questionnaire session.
  * Generates opaque token and stores only its HMAC hash.
@@ -125,98 +106,6 @@ export async function createQuestionnaireSession(
 }
 
 /**
- * Resume an existing in-progress session.
- *
- * Issues a fresh opaque resume token (and therefore a fresh session_id =
- * HMAC(opaque_token, secret)) while preserving every byte of user
- * progress — question_order, answered_questions, current_index.
- *
- * Rollback-safe: the OLD session row is left untouched. The newly-issued
- * gate-token's linked_session_id is pointed at the new session_id. If the
- * downstream magic-link email fails to send, the caller can simply delete
- * the new session row and the user's progress on the old session remains
- * intact. findActiveSession() picks the most recent row (LIMIT 1) so the
- * temporary two-row overlap is harmless.
- *
- * Cleanup of the now-stale old row happens when the user's NEW session
- * completes — completeSession could fold that in, or a periodic job can
- * sweep `completed_at IS NULL AND created_at < (newest active for this
- * email_hash)`. Out of scope here.
- *
- * @param existing  - The active session located via findActiveSession()
- * @param gateToken - Newly-issued gate token from the current submission
- * @returns Fresh opaque token + new session_id, with progress preserved
- */
-export async function resumeSession(
-  existing: QuestionnaireSession,
-  gateToken?: string,
-): Promise<SessionCreationResult> {
-  const opaqueToken = generateResumeToken();
-  const sessionId = await hashResumeToken(opaqueToken);
-
-  await withTransaction(async (client) => {
-    // 1. Insert the rotated row with all progress copied forward.
-    await client.queryObject(
-      `INSERT INTO fresh_questionnaire_sessions
-        (session_id, email_hash, question_order, answered_questions, current_index)
-       VALUES ($1, $2, $3, $4, $5)`,
-      [
-        sessionId,
-        existing.emailHash,
-        existing.questionOrder,
-        existing.answeredQuestions,
-        existing.currentIndex,
-      ],
-    );
-
-    // 2. Link the brand-new gate submission (if any) to the resumed session.
-    //    NB: we do NOT migrate prior fresh_responses / fresh_gate_responses
-    //    rows — leaving them attached to the old session_id means a failed
-    //    email send can be rolled back by deleting only the new row.
-    if (gateToken) {
-      await client.queryObject(
-        `UPDATE fresh_gate_responses
-         SET linked_session_id = $1
-         WHERE gate_token = $2`,
-        [sessionId, gateToken],
-      );
-    }
-  });
-
-  return {
-    opaqueToken,
-    sessionId,
-    emailHash: existing.emailHash,
-    questionOrder: existing.questionOrder,
-  };
-}
-
-/**
- * Mark every active session for an email_hash *except* the newest as
- * completed. Safe to call only after the new session's magic-link email
- * has actually been sent — otherwise a failed send would leave the user
- * with zero active sessions.
- *
- * Idempotent. Returns the number of rows superseded.
- */
-export async function completeSupersededSessions(
-  emailHash: string,
-  keepSessionId: string,
-): Promise<number> {
-  return await withConnection(async (client) => {
-    const { rowCount } = await client.queryObject(
-      `UPDATE fresh_questionnaire_sessions
-       SET completed_at = NOW(), updated_at = NOW()
-       WHERE email_hash = $1
-         AND session_id <> $2
-         AND completed_at IS NULL`,
-      [emailHash, keepSessionId],
-    );
-    return rowCount ?? 0;
-  });
-}
-
-/**
  * Get session by opaque token.
  * Client sends opaque token, we hash it to find session.
  *
@@ -241,7 +130,7 @@ export async function getSessionById(
   sessionId: string
 ): Promise<QuestionnaireSession | null> {
   return await withConnection(async (client) => {
-    const { rows } = await client.queryObject<SessionRow>(
+    const { rows } = await client.queryObject<any>(
       `SELECT session_id, email_hash, question_order, answered_questions,
               current_index, created_at, updated_at, completed_at
        FROM fresh_questionnaire_sessions
@@ -276,7 +165,7 @@ export async function findActiveSession(
   emailHash: string
 ): Promise<QuestionnaireSession | null> {
   return await withConnection(async (client) => {
-    const { rows } = await client.queryObject<SessionRow>(
+    const { rows } = await client.queryObject<any>(
       `SELECT session_id, email_hash, question_order, answered_questions,
               current_index, created_at, updated_at, completed_at
        FROM fresh_questionnaire_sessions
@@ -363,37 +252,6 @@ export async function completeSession(sessionId: string): Promise<void> {
       [sessionId]
     );
   });
-}
-
-/**
- * Delete a session (for cleanup on failed operations).
- * Also unlinks any gate responses that were linked to this session.
- *
- * @param sessionId - Session identifier to delete
- */
-export async function deleteSession(sessionId: string): Promise<void> {
-  try {
-    await withTransaction(async (client) => {
-      // First, unlink any gate responses
-      await client.queryObject(
-        `UPDATE fresh_gate_responses
-         SET linked_session_id = NULL
-         WHERE linked_session_id = $1`,
-        [sessionId]
-      );
-
-      // Then delete the session
-      await client.queryObject(
-        `DELETE FROM fresh_questionnaire_sessions
-         WHERE session_id = $1`,
-        [sessionId]
-      );
-    });
-    console.log('[session] Deleted session:', sessionId.slice(0, 8) + '...');
-  } catch (error) {
-    // Log but don't throw - cleanup failure shouldn't mask the original error
-    console.error('[session] Failed to delete session:', error);
-  }
 }
 
 /**
@@ -498,7 +356,7 @@ export async function getSessionStats(): Promise<{
   averageProgress: number;
 }> {
   return await withConnection(async (client) => {
-    const { rows } = await client.queryObject<StatsRow>(
+    const { rows } = await client.queryObject<any>(
       `SELECT
          COUNT(*) as total,
          COUNT(*) FILTER (WHERE completed_at IS NULL) as active,

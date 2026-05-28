@@ -1,0 +1,746 @@
+ .claude/agents/email-link-debugger.md              |    43 +
+ .claude/agents/sendgrid-reputation-expert.md       |   114 -
+ .claude/agents/site-refactor-architect.md          |    54 +
+ .env.example                                       |    25 -
+ .env.save                                          |    41 +
+ .github/copilot-instructions.md                    |   132 -
+ .github/workflows/ci.yml                           |   191 -
+ .github/workflows/claude-code.yml                  |    33 -
+ .gitignore                                         |   154 +-
+ ALIAS_QUICK_REFERENCE.txt                          |    93 +
+ Caddyfile                                          |    78 -
+ DEPLOY_QUICK_REF.txt                               |    64 +
+ IMG_2632.jpg                                       |   Bin 0 -> 116757 bytes
+ INFRASTRUCTURE_REPORT.md                           |   800 +
+ backend/.dockerignore                              |    18 +
+ backend/.env.example                               |    27 +
+ backend/.gitignore                                 |    57 +
+ backend/DEPLOYMENT_STATUS.md                       |   211 +
+ backend/Dockerfile                                 |    40 +
+ backend/auth/magic-link.js                         |    34 +
+ backend/bots/README.md                             |   203 +
+ backend/bots/karuppasami-telegram.js               |   517 +
+ backend/config-src/database.ts                     |   227 +
+ backend/config-src/environment.ts                  |   297 +
+ backend/config-src/middleware.ts                   |    75 +
+ backend/config-src/routes.ts                       |    79 +
+ backend/config/database.js                         |   204 +
+ backend/config/env.ts                              |     0
+ backend/config/environment.js                      |   263 +
+ backend/config/middleware.js                       |    65 +
+ backend/config/routes.js                           |    64 +
+ backend/data.db                                    |   Bin 0 -> 16384 bytes
+ backend/jest.config.js                             |     5 +
+ backend/karuppacami.db                             |   Bin 0 -> 28672 bytes
+ backend/magic_links.db                             |   Bin 0 -> 16384 bytes
+ backend/middleware-src/auth.js                     |    82 +
+ backend/middleware-src/errors/AppError.ts          |    78 +
+ backend/middleware-src/errors/errorHandler.ts      |   111 +
+ backend/middleware-src/validators/common.ts        |   149 +
+ backend/middleware/auth.js                         |    73 +
+ backend/middleware/errors/AppError.js              |    66 +
+ backend/middleware/errors/errorHandler.js          |    81 +
+ backend/middleware/validators/common.js            |   116 +
+ backend/migrations/004_create_gate_questions.sql   |    49 +
+ backend/package-lock.json                          | 11215 ++++++++++
+ backend/package.json                               |    51 +
+ backend/public/index.html                          |     1 +
+ backend/public/magic-link-auth.js                  |   575 +
+ backend/routes-src/answers.ts                      |   195 +
+ backend/routes-src/auth.js                         |   235 +
+ backend/routes-src/phone-verification.js           |   263 +
+ backend/routes-src/profile.js                      |   311 +
+ backend/routes-src/questions.js                    |   169 +
+ backend/routes-src/user.js                         |    10 +
+ backend/routes/answers.ts                          |   209 +
+ backend/routes/auth.js                             |   372 +
+ backend/routes/gate.ts                             |   185 +
+ backend/routes/newsletter.ts                       |   221 +
+ backend/routes/phone-verification.js               |   318 +
+ backend/routes/profile.js                          |   311 +
+ backend/routes/questionnaire-completion.js         |   237 +
+ backend/routes/questions.js                        |   176 +
+ backend/routes/user.js                             |    52 +
+ backend/schedulers/tokenCleanup.ts                 |    41 +
+ backend/server-deno.ts                             |    85 +
+ backend/server.ts                                  |   981 +
+ backend/test-database.cjs                          |   318 +
+ backend/tests/answer-encryption.integration.js     |   169 +
+ backend/tests/auth.test.js                         |   239 +
+ backend/tests/database.test.js                     |   157 +
+ backend/tests/jwt-functions.test.js                |   237 +
+ backend/tests/magic-link-auth.test.js              |   229 +
+ backend/tests/proust-responses.test.js             |   381 +
+ backend/tests/questions-routes.test.js             |    78 +
+ backend/tests/rate-limiting.test.js                |   350 +
+ backend/tests/server-basic.test.js                 |   159 +
+ backend/tsconfig.json                              |    20 +
+ backend/utils-src/crypto.ts                        |    92 +
+ backend/utils-src/db-sqlite.js                     |   134 +
+ backend/utils-src/db.js                            |    86 +
+ backend/utils-src/ip-geolocation.ts                |   207 +
+ backend/utils-src/ip-lookup.ts                     |   123 +
+ backend/utils-src/logger.ts                        |    83 +
+ backend/utils-src/mailer.js                        |   476 +
+ backend/utils-src/newsletter-crypto.ts             |   126 +
+ backend/utils-src/pdf-generator.js                 |   355 +
+ backend/utils-src/shared/username.ts               |    87 +
+ backend/utils-src/shared/validation.ts             |   181 +
+ backend/utils-src/sms.js                           |   121 +
+ backend/utils/crypto.js                            |    80 +
+ backend/utils/db-sqlite.js                         |   108 +
+ backend/utils/db.js                                |    59 +
+ backend/utils/fisherYates_shuffle.js               |    87 +
+ backend/utils/ip-geolocation.js                    |   158 +
+ backend/utils/ip-lookup.js                         |    92 +
+ backend/utils/logger.js                            |    63 +
+ backend/utils/mailer.js                            |   476 +
+ backend/utils/newsletter-crypto.js                 |   110 +
+ backend/utils/pdf-generator.js                     |   355 +
+ backend/utils/shared/username.js                   |    67 +
+ backend/utils/shared/validation.js                 |   159 +
+ backend/utils/sms.js                               |   111 +
+ backend/utils/twilio-verify.js                     |   173 +
+ data/karuppacami_onion.db                          |   Bin 0 -> 16384 bytes
+ db/migrations/001_initial_schema.sql               |    41 -
+ db/migrations/002_magic_links.sql                  |    13 -
+ db/migrations/002_opaque_resume_tokens.sql         |    65 -
+ db/schema.sql                                      |    46 -
+ deno.json                                          |    59 +-
+ deploy-auto.sh                                     |   206 +
+ deploy-workflow.sh                                 |   290 +
+ deploy.sh                                          |   116 +
+ docker/docker-compose.yml                          |   157 +
+ docker/pyaz.md                                     |   211 +
+ .../hidden_service.backup-20251129-155255/hostname |     1 +
+ .../hs_ed25519_public_key                          |   Bin 0 -> 64 bytes
+ .../hs_ed25519_secret_key                          |   Bin 0 -> 96 bytes
+ docker/pyaz/hidden_service/hostname                |     1 +
+ docker/pyaz/hidden_service/hs_ed25519_public_key   |   Bin 0 -> 64 bytes
+ docker/pyaz/hidden_service/hs_ed25519_secret_key   |   Bin 0 -> 96 bytes
+ docker/pyaz/torrc                                  |    60 +
+ docker/traefik/certs/acme.json                     |    25 +
+ docker/traefik/dynamic.yml                         |     1 +
+ docker/traefik/traefik.yaml                        |    34 +
+ drizzle.config.ts                                  |    15 +
+ fresh-questionnaire/.env.example                   |     7 +
+ fresh-questionnaire/deno.json                      |    30 +
+ fresh-questionnaire/dev.ts                         |     8 +
+ fresh-questionnaire/fresh.config.ts                |     6 +
+ fresh-questionnaire/fresh.gen.ts                   |    21 +-
+ fresh-questionnaire/islands/GateQuestions.tsx      |   329 -
+ fresh-questionnaire/islands/QuestionnaireForm.tsx  |   103 +
+ fresh-questionnaire/main.ts                        |    13 +
+ fresh-questionnaire/questionnaire.tsx              |   255 +
+ fresh-questionnaire/routes/auth.tsx                |   116 +
+ fresh-questionnaire/routes/begin.tsx               |   225 -
+ fresh-questionnaire/routes/decide.tsx              |   124 +
+ fresh-questionnaire/routes/gate.tsx                |   217 +
+ fresh-questionnaire/routes/index.tsx               |   190 +-
+ fresh-questionnaire/routes/profile-choice.tsx      |   179 +
+ fresh-questionnaire/routes/questionnaire.tsx       |   266 +
+ fresh-questionnaire/shuffle.ts                     |    30 +
+ fresh-questionnaire/tailwind.config.ts             |     7 +
+ fresh-questionnaire/utils/shuffle.ts               |    30 +
+ fresh-questionnaire/validation.ts                  |    12 +
+ frontend/.dockerignore                             |    10 +
+ frontend/.env.development                          |     2 +
+ frontend/.env.example                              |     7 +
+ frontend/.gitignore                                |     4 +
+ frontend/Dockerfile                                |    26 +
+ frontend/README.md                                 |    70 +
+ frontend/api/_lib/cookies.js                       |    25 +
+ frontend/api/_lib/db.js                            |     8 +
+ frontend/api/_lib/jwt.js                           |    13 +
+ frontend/api/auth/login.js                         |    26 +
+ frontend/api/auth/logout.js                        |     8 +
+ frontend/api/db/healthcheck.js                     |    13 +
+ frontend/api/package.json                          |     3 +
+ frontend/api/user/me.js                            |    14 +
+ frontend/app.html                                  |    44 +
+ frontend/build/asset-manifest.json                 |    13 +
+ frontend/build/favicon.ico                         |   Bin 0 -> 3870 bytes
+ frontend/build/favicons/android-chrome-192x192.png |   Bin 0 -> 68844 bytes
+ frontend/build/favicons/android-chrome-512x512.png |   Bin 0 -> 368507 bytes
+ frontend/build/favicons/apple-touch-icon.png       |   Bin 0 -> 61011 bytes
+ frontend/build/favicons/favicon-128x128.png        |   Bin 0 -> 32364 bytes
+ frontend/build/favicons/favicon-16x16.png          |   Bin 0 -> 843 bytes
+ frontend/build/favicons/favicon-32x32.png          |   Bin 0 -> 2680 bytes
+ frontend/build/favicons/favicon-48x48.png          |   Bin 0 -> 5538 bytes
+ frontend/build/favicons/favicon-64x64.png          |   Bin 0 -> 9397 bytes
+ frontend/build/favicons/favicon-simple-16.png      |   Bin 0 -> 191 bytes
+ frontend/build/favicons/favicon-simple-32.png      |   Bin 0 -> 398 bytes
+ frontend/build/favicons/mstile-150x150.png         |   Bin 0 -> 43266 bytes
+ frontend/build/index.html                          |     1 +
+ frontend/build/manifest.json                       |    25 +
+ frontend/build/robots.txt                          |     3 +
+ public/styles.css.save => frontend/build/style.css |    13 +-
+ frontend/package-lock.json                         | 21366 +++++++++++++++++++
+ frontend/package.json                              |    42 +
+ frontend/public/about.html                         |   235 +
+ frontend/public/asset-manifest.json                |    13 +
+ frontend/public/assets/README.md                   |    78 +
+ frontend/public/assets/background.JPG              |   Bin 0 -> 1768102 bytes
+ frontend/public/assets/opticalProust.jpg           |   Bin 0 -> 1478311 bytes
+ frontend/public/assets/thereisnogod.JPG            |   Bin 0 -> 306972 bytes
+ frontend/public/begin.html                         |   285 +
+ frontend/public/contact.html                       |   778 +
+ frontend/public/favicon.ico                        |   Bin 0 -> 3870 bytes
+ frontend/public/favicons/a4mula4canthi Small.png   |   Bin 0 -> 202932 bytes
+ frontend/public/favicons/a4mula4canthi.jpg         |   Bin 0 -> 142515 bytes
+ .../public/favicons/android-chrome-192x192.png     |   Bin 0 -> 68844 bytes
+ .../public/favicons/android-chrome-512x512.png     |   Bin 0 -> 368507 bytes
+ frontend/public/favicons/apple-touch-icon.png      |   Bin 0 -> 61011 bytes
+ frontend/public/favicons/favicon-128x128.png       |   Bin 0 -> 32364 bytes
+ frontend/public/favicons/favicon-16x16.png         |   Bin 0 -> 843 bytes
+ frontend/public/favicons/favicon-32x32.png         |   Bin 0 -> 2680 bytes
+ frontend/public/favicons/favicon-48x48.png         |   Bin 0 -> 5538 bytes
+ frontend/public/favicons/favicon-64x64.png         |   Bin 0 -> 9397 bytes
+ frontend/public/favicons/favicon-simple-16.png     |   Bin 0 -> 191 bytes
+ frontend/public/favicons/favicon-simple-32.png     |   Bin 0 -> 398 bytes
+ frontend/public/favicons/logo192.png               |   Bin 0 -> 5347 bytes
+ frontend/public/favicons/logo512.png               |   Bin 0 -> 9664 bytes
+ frontend/public/favicons/mstile-150x150.png        |   Bin 0 -> 43266 bytes
+ frontend/public/index.html                         |    21 +
+ frontend/public/manifest.json                      |    25 +
+ {public => frontend/public}/questionnaire.html     |    35 +-
+ frontend/public/robots.txt                         |     3 +
+ frontend/public/style.css                          |    39 +
+ frontend/questionnaire.png                         |   Bin 0 -> 111941 bytes
+ frontend/showcase.html                             |    38 +
+ frontend/src/App.css                               |    38 +
+ frontend/src/App.test.tsx                          |    32 +
+ frontend/src/App.tsx                               |    21 +
+ frontend/src/Questionnaire.e2e.test.tsx            |    65 +
+ frontend/src/api/api.ts                            |    57 +
+ frontend/src/assets/img/a4mula4canthi Small.png    |   Bin 0 -> 202932 bytes
+ frontend/src/assets/img/a4mula4canthi.jpg          |   Bin 0 -> 142515 bytes
+ frontend/src/assets/img/favicon.ico                |   Bin 0 -> 2680 bytes
+ frontend/src/assets/img/opticalProust.jpg          |   Bin 0 -> 1478311 bytes
+ frontend/src/components/Bhairava.js                |   312 +
+ frontend/src/components/Callback.tsx               |   208 +
+ frontend/src/components/Login.tsx                  |   393 +
+ frontend/src/components/LongScrollShowcase.tsx     |   475 +
+ frontend/src/components/Navbar.js                  |    15 +
+ frontend/src/components/Question.tsx               |    39 +
+ frontend/src/components/Questionnaire.tsx          |   135 +
+ frontend/src/components/SessionIndicator.tsx       |   140 +
+ frontend/src/index.css                             |   281 +
+ frontend/src/index.html                            |    50 +
+ frontend/src/index.tsx                             |    85 +
+ frontend/src/logo.svg                              |     1 +
+ frontend/src/reportWebVitals.js                    |    13 +
+ frontend/src/server.js                             |     4 +
+ frontend/src/setupTests.js                         |     5 +
+ frontend/src/styles/main.css                       |   260 +
+ frontend/src/utils/tokenUtils.ts                   |   131 +
+ frontend/tsconfig.json                             |    21 +
+ frontend/vercel.json                               |    11 +
+ health-monitor.sh                                  |   406 +
+ karuppacami.db                                     |     0
+ lib/crypto.ts                                      |   238 -
+ lib/jwt.ts                                         |   266 -
+ lib/questionnaire-session.ts                       |   377 -
+ markDown/12_HOUR_AUTH_IMPLEMENTATION.md            |   322 +
+ markDown/ABOUT_PAGE_IMPLEMENTATION.md              |   191 +
+ markDown/ALIASES_REFERENCE.md                      |   622 +
+ markDown/ASSETS_ORGANIZATION.md                    |   194 +
+ markDown/DATABASE_FLOW.md                          |   271 +
+ markDown/DENO_MIGRATION_SUMMARY.md                 |   152 +
+ markDown/DEPLOYMENT_GUIDE.md                       |   301 +
+ markDown/DEPLOYMENT_SUMMARY.md                     |   258 +
+ markDown/DUAL_EMAIL_FINAL_REPORT.md                |   529 +
+ markDown/DUAL_EMAIL_SETUP.md                       |   242 +
+ markDown/DUAL_EMAIL_SUCCESS.md                     |   294 +
+ markDown/EMAIL_SYSTEM_SUMMARY.md                   |   154 +
+ markDown/FIXES_SUMMARY.md                          |   231 +
+ markDown/GIMBAL_SETUP_INSTRUCTIONS.md              |   503 +
+ markDown/IMPLEMENTATION_SUMMARY.md                 |   296 +
+ markDown/KEYBASE_SETUP.md                          |   215 +
+ markDown/PATTERN_ERROR_INVESTIGATION.md            |   277 +
+ markDown/QUESTIONNAIRE_IMPLEMENTATION_SUMMARY.md   |   366 +
+ markDown/QUESTIONXR.md                             |   164 +
+ markDown/QUICK_START.md                            |   322 +
+ markDown/REFACTORING_COMPLETE.md                   |   435 +
+ markDown/REFACTORING_SUMMARY.md                    |   564 +
+ markDown/SECRET_KEY_REFERENCES.md                  |   142 +
+ markDown/SOCIAL_MEDIA_META_TAGS.md                 |   367 +
+ package-lock.json                                  |  3475 +++
+ package.json                                       |    30 +
+ public/about.html                                  |   245 +-
+ public/app.html                                    |   105 +-
+ public/auth.html                                   |   168 -
+ public/callback.html                               |     8 +-
+ public/completion.html                             |   637 -
+ public/contact.html                                |   439 +-
+ public/continue.html                               |    58 -
+ public/css/contact.css                             |   785 +-
+ public/css/continue.css                            |   248 -
+ public/css/fonts.css                               |   227 -
+ public/css/gate.css                                |   535 -
+ public/css/index_style.css                         |  1659 --
+ public/css/madras-theme.css                        |   675 -
+ public/css/proust.css                              |   436 -
+ public/css/questionnaire.css                       |   201 +
+ public/css/themes.css                              |   625 +
+ public/css/western-theme.css                       |   606 +-
+ public/donate.html                                 |    13 +-
+ public/donations.html                              |   414 +-
+ public/extra/images/IMG_0154.PNG                   |   Bin 0 -> 692907 bytes
+ public/extra/images/IMG_0305.PNG                   |   Bin 0 -> 4069189 bytes
+ public/extra/images/IMG_4047.JPEG                  |   Bin 0 -> 41985 bytes
+ public/extra/images/IMG_4048.JPEG                  |   Bin 0 -> 121149 bytes
+ public/extra/images/IMG_4049.JPEG                  |   Bin 0 -> 52853 bytes
+ public/extra/images/IMG_4051.JPEG                  |   Bin 0 -> 48022 bytes
+ public/extra/images/IMG_4052.JPEG                  |   Bin 0 -> 42733 bytes
+ public/extra/images/IMG_4053.JPEG                  |   Bin 0 -> 77175 bytes
+ public/extra/images/IMG_4055.JPEG                  |   Bin 0 -> 44089 bytes
+ public/extra/images/IMG_4056.JPEG                  |   Bin 0 -> 78817 bytes
+ public/extra/images/IMG_4057.JPEG                  |   Bin 0 -> 60985 bytes
+ public/extra/images/IMG_4058.JPEG                  |   Bin 0 -> 23514 bytes
+ public/extra/images/IMG_4059.JPEG                  |   Bin 0 -> 34789 bytes
+ public/extra/images/IMG_4061.JPEG                  |   Bin 0 -> 51871 bytes
+ public/extra/images/IMG_4062.JPEG                  |   Bin 0 -> 87701 bytes
+ public/extra/images/IMG_4063.JPEG                  |   Bin 0 -> 157393 bytes
+ public/extra/images/IMG_4064.JPEG                  |   Bin 0 -> 59162 bytes
+ public/extra/images/IMG_4065.JPEG                  |   Bin 0 -> 52561 bytes
+ public/extra/images/IMG_4066.JPEG                  |   Bin 0 -> 44505 bytes
+ public/extra/images/IMG_4067.JPEG                  |   Bin 0 -> 39987 bytes
+ public/extra/images/IMG_5283.JPEG                  |   Bin 0 -> 4520874 bytes
+ public/extra/images/IMG_7383.JPEG                  |   Bin 0 -> 480976 bytes
+ public/extra/images/Image 44.JPEG                  |   Bin 0 -> 454511 bytes
+ public/extra/images/download (1).jpeg              |   Bin 0 -> 65513 bytes
+ public/extra/images/download (1).png               |   Bin 0 -> 260200 bytes
+ public/extra/images/download (10).jpeg             |   Bin 0 -> 35733 bytes
+ public/extra/images/download (11).jpeg             |   Bin 0 -> 29381 bytes
+ public/extra/images/download (12).jpeg             |   Bin 0 -> 65961 bytes
+ public/extra/images/download (13).jpeg             |   Bin 0 -> 51852 bytes
+ public/extra/images/download (14).jpeg             |   Bin 0 -> 30823 bytes
+ public/extra/images/download (15).jpeg             |   Bin 0 -> 21839 bytes
+ public/extra/images/download (16).jpeg             |   Bin 0 -> 18340 bytes
+ public/extra/images/download (17).jpeg             |   Bin 0 -> 26988 bytes
+ public/extra/images/download (18).jpeg             |   Bin 0 -> 22495 bytes
+ public/extra/images/download (19).jpeg             |   Bin 0 -> 35922 bytes
+ public/extra/images/download (2).jpeg              |   Bin 0 -> 30098 bytes
+ public/extra/images/download (2).png               |   Bin 0 -> 227907 bytes
+ public/extra/images/download (20).jpeg             |   Bin 0 -> 11918 bytes
+ public/extra/images/download (21).jpeg             |   Bin 0 -> 26292 bytes
+ public/extra/images/download (22).jpeg             |   Bin 0 -> 31117 bytes
+ public/extra/images/download (23).jpeg             |   Bin 0 -> 59999 bytes
+ public/extra/images/download (24).jpeg             |   Bin 0 -> 37069 bytes
+ public/extra/images/download (25).jpeg             |   Bin 0 -> 10225 bytes
+ public/extra/images/download (26).jpeg             |   Bin 0 -> 17132 bytes
+ public/extra/images/download (27).jpeg             |   Bin 0 -> 25422 bytes
+ public/extra/images/download (28).jpeg             |   Bin 0 -> 31399 bytes
+ public/extra/images/download (29).jpeg             |   Bin 0 -> 209970 bytes
+ public/extra/images/download (3).jpeg              |   Bin 0 -> 31406 bytes
+ public/extra/images/download (3).png               |   Bin 0 -> 98495 bytes
+ public/extra/images/download (30).jpeg             |   Bin 0 -> 35683 bytes
+ public/extra/images/download (4).jpeg              |   Bin 0 -> 18927 bytes
+ public/extra/images/download (4).png               |   Bin 0 -> 83496 bytes
+ public/extra/images/download (5).jpeg              |   Bin 0 -> 32328 bytes
+ public/extra/images/download (5).png               |   Bin 0 -> 151430 bytes
+ public/extra/images/download (6).jpeg              |   Bin 0 -> 31993 bytes
+ public/extra/images/download (6).png               |   Bin 0 -> 271724 bytes
+ public/extra/images/download (7).jpeg              |   Bin 0 -> 24291 bytes
+ public/extra/images/download (7).png               |   Bin 0 -> 142061 bytes
+ public/extra/images/download (8).jpeg              |   Bin 0 -> 108529 bytes
+ public/extra/images/download (8).png               |   Bin 0 -> 355293 bytes
+ public/extra/images/download (9).jpeg              |   Bin 0 -> 33970 bytes
+ public/extra/images/download (9).png               |   Bin 0 -> 117290 bytes
+ public/extra/images/download.jpeg                  |   Bin 0 -> 185528 bytes
+ public/extra/images/download.png                   |   Bin 0 -> 88432 bytes
+ public/extra/images/dreamMore...always.JPG         |   Bin 0 -> 1845634 bytes
+ public/extra/images/fastenedLengthwise.jpg         |   Bin 0 -> 4631019 bytes
+ public/extra/images/hammers&nail.png               |   Bin 0 -> 7905001 bytes
+ public/extra/images/ralphish1.0.JPG                |   Bin 0 -> 605457 bytes
+ public/extra/images/sayanasEnglish.jpg             |   Bin 0 -> 4591395 bytes
+ public/extra/images/unShotdeDopamina.JPG           |   Bin 0 -> 448161 bytes
+ public/extra/images/web/1200/1Incarnate-1200.webp  |   Bin 0 -> 89918 bytes
+ public/extra/images/web/1200/1Incarnate.webp       |   Bin 0 -> 87534 bytes
+ public/extra/images/web/1200/2incarnate-1200.webp  |   Bin 0 -> 81532 bytes
+ public/extra/images/web/1200/2incarnate.webp       |   Bin 0 -> 78786 bytes
+ public/extra/images/web/1200/3incarnate-1200.webp  |   Bin 0 -> 92688 bytes
+ public/extra/images/web/1200/3incarnate.webp       |   Bin 0 -> 90440 bytes
+ public/extra/images/web/1200/DOPAMINA-1200.webp    |   Bin 0 -> 123664 bytes
+ public/extra/images/web/1200/DOPAMINA.webp         |   Bin 0 -> 130172 bytes
+ public/extra/images/web/1200/IMG_0154-1200.webp    |   Bin 0 -> 67084 bytes
+ public/extra/images/web/1200/IMG_0305-1200.webp    |   Bin 0 -> 109888 bytes
+ public/extra/images/web/1200/IMG_4047-1200.webp    |   Bin 0 -> 14552 bytes
+ public/extra/images/web/1200/IMG_4048-1200.webp    |   Bin 0 -> 44704 bytes
+ public/extra/images/web/1200/IMG_4049-1200.webp    |   Bin 0 -> 18002 bytes
+ public/extra/images/web/1200/IMG_4051-1200.webp    |   Bin 0 -> 16360 bytes
+ public/extra/images/web/1200/IMG_4052-1200.webp    |   Bin 0 -> 14428 bytes
+ public/extra/images/web/1200/IMG_4053-1200.webp    |   Bin 0 -> 27736 bytes
+ public/extra/images/web/1200/IMG_4055-1200.webp    |   Bin 0 -> 14940 bytes
+ public/extra/images/web/1200/IMG_4056-1200.webp    |   Bin 0 -> 29096 bytes
+ public/extra/images/web/1200/IMG_4057-1200.webp    |   Bin 0 -> 21796 bytes
+ public/extra/images/web/1200/IMG_4058-1200.webp    |   Bin 0 -> 7586 bytes
+ public/extra/images/web/1200/IMG_4059-1200.webp    |   Bin 0 -> 11408 bytes
+ public/extra/images/web/1200/IMG_4061-1200.webp    |   Bin 0 -> 17798 bytes
+ public/extra/images/web/1200/IMG_4062-1200.webp    |   Bin 0 -> 30384 bytes
+ public/extra/images/web/1200/IMG_4063-1200.webp    |   Bin 0 -> 60478 bytes
+ public/extra/images/web/1200/IMG_4064-1200.webp    |   Bin 0 -> 20444 bytes
+ public/extra/images/web/1200/IMG_4065-1200.webp    |   Bin 0 -> 18280 bytes
+ public/extra/images/web/1200/IMG_4066-1200.webp    |   Bin 0 -> 15610 bytes
+ public/extra/images/web/1200/IMG_4067-1200.webp    |   Bin 0 -> 13188 bytes
+ public/extra/images/web/1200/IMG_5283-1200.webp    |   Bin 0 -> 79692 bytes
+ public/extra/images/web/1200/IMG_7383-1200.webp    |   Bin 0 -> 30506 bytes
+ public/extra/images/web/1200/Image 44-1200.webp    |   Bin 0 -> 154230 bytes
+ public/extra/images/web/1200/PQ1-1200.webp         |   Bin 0 -> 26900 bytes
+ public/extra/images/web/1200/PQ1-1200.webp.txt     |     5 +
+ public/extra/images/web/1200/PQ1.webp              |   Bin 0 -> 26178 bytes
+ public/extra/images/web/1200/PQ1.webp.txt          |     5 +
+ public/extra/images/web/1200/PQ10-1200.webp        |   Bin 0 -> 50084 bytes
+ public/extra/images/web/1200/PQ10-1200.webp.txt    |     8 +
+ public/extra/images/web/1200/PQ10.webp             |   Bin 0 -> 48788 bytes
+ public/extra/images/web/1200/PQ10.webp.txt         |     8 +
+ public/extra/images/web/1200/PQ11-1200.webp        |   Bin 0 -> 90318 bytes
+ public/extra/images/web/1200/PQ11-1200.webp.txt    |    14 +
+ public/extra/images/web/1200/PQ11.webp             |   Bin 0 -> 87738 bytes
+ public/extra/images/web/1200/PQ11.webp.txt         |    14 +
+ public/extra/images/web/1200/PQ12-1200.webp        |   Bin 0 -> 33728 bytes
+ public/extra/images/web/1200/PQ12-1200.webp.txt    |     5 +
+ public/extra/images/web/1200/PQ12.webp             |   Bin 0 -> 32766 bytes
+ public/extra/images/web/1200/PQ12.webp.txt         |     5 +
+ public/extra/images/web/1200/PQ13-1200.webp        |   Bin 0 -> 27802 bytes
+ public/extra/images/web/1200/PQ13-1200.webp.txt    |     5 +
+ public/extra/images/web/1200/PQ13.webp             |   Bin 0 -> 27136 bytes
+ public/extra/images/web/1200/PQ13.webp.txt         |     5 +
+ public/extra/images/web/1200/PQ14-1200.webp        |   Bin 0 -> 24286 bytes
+ public/extra/images/web/1200/PQ14-1200.webp.txt    |     4 +
+ public/extra/images/web/1200/PQ14.webp             |   Bin 0 -> 23966 bytes
+ public/extra/images/web/1200/PQ14.webp.txt         |     4 +
+ public/extra/images/web/1200/PQ15-1200.webp        |   Bin 0 -> 21884 bytes
+ public/extra/images/web/1200/PQ15-1200.webp.txt    |     4 +
+ public/extra/images/web/1200/PQ15.webp             |   Bin 0 -> 21372 bytes
+ public/extra/images/web/1200/PQ15.webp.txt         |     4 +
+ public/extra/images/web/1200/PQ17-1200.webp        |   Bin 0 -> 27490 bytes
+ public/extra/images/web/1200/PQ17-1200.webp.txt    |     5 +
+ public/extra/images/web/1200/PQ17.webp             |   Bin 0 -> 26812 bytes
+ public/extra/images/web/1200/PQ17.webp.txt         |     5 +
+ public/extra/images/web/1200/PQ19-1200.webp        |   Bin 0 -> 73224 bytes
+ public/extra/images/web/1200/PQ19-1200.webp.txt    |    12 +
+ public/extra/images/web/1200/PQ19.webp             |   Bin 0 -> 70930 bytes
+ public/extra/images/web/1200/PQ19.webp.txt         |    12 +
+ public/extra/images/web/1200/PQ2-1200.webp         |   Bin 0 -> 24020 bytes
+ public/extra/images/web/1200/PQ2-1200.webp.txt     |     4 +
+ public/extra/images/web/1200/PQ2.webp              |   Bin 0 -> 23404 bytes
+ public/extra/images/web/1200/PQ2.webp.txt          |     4 +
+ public/extra/images/web/1200/PQ20-1200.webp        |   Bin 0 -> 63454 bytes
+ public/extra/images/web/1200/PQ20-1200.webp.txt    |    10 +
+ public/extra/images/web/1200/PQ20.webp             |   Bin 0 -> 61984 bytes
+ public/extra/images/web/1200/PQ20.webp.txt         |    10 +
+ public/extra/images/web/1200/PQ3-1200.webp         |   Bin 0 -> 45580 bytes
+ public/extra/images/web/1200/PQ3-1200.webp.txt     |     7 +
+ public/extra/images/web/1200/PQ3.webp              |   Bin 0 -> 44462 bytes
+ public/extra/images/web/1200/PQ3.webp.txt          |     7 +
+ public/extra/images/web/1200/PQ4-1200.webp         |   Bin 0 -> 24864 bytes
+ public/extra/images/web/1200/PQ4-1200.webp.txt     |     4 +
+ public/extra/images/web/1200/PQ4.webp              |   Bin 0 -> 24208 bytes
+ public/extra/images/web/1200/PQ4.webp.txt          |     4 +
+ public/extra/images/web/1200/PQ5-1200.webp         |   Bin 0 -> 47832 bytes
+ public/extra/images/web/1200/PQ5-1200.webp.txt     |     7 +
+ public/extra/images/web/1200/PQ5.webp              |   Bin 0 -> 46386 bytes
+ public/extra/images/web/1200/PQ5.webp.txt          |     7 +
+ public/extra/images/web/1200/PQ6-1200.webp         |   Bin 0 -> 32740 bytes
+ public/extra/images/web/1200/PQ6-1200.webp.txt     |     5 +
+ public/extra/images/web/1200/PQ6.webp              |   Bin 0 -> 31884 bytes
+ public/extra/images/web/1200/PQ6.webp.txt          |     5 +
+ public/extra/images/web/1200/PQ7-1200.webp         |   Bin 0 -> 12330 bytes
+ public/extra/images/web/1200/PQ7-1200.webp.txt     |     2 +
+ public/extra/images/web/1200/PQ7.webp              |   Bin 0 -> 12052 bytes
+ public/extra/images/web/1200/PQ7.webp.txt          |     2 +
+ public/extra/images/web/1200/PQ8-1200.webp         |   Bin 0 -> 19032 bytes
+ public/extra/images/web/1200/PQ8-1200.webp.txt     |     3 +
+ public/extra/images/web/1200/PQ8.webp              |   Bin 0 -> 18532 bytes
+ public/extra/images/web/1200/PQ8.webp.txt          |     3 +
+ public/extra/images/web/1200/PQ9-1200.webp         |   Bin 0 -> 26966 bytes
+ public/extra/images/web/1200/PQ9-1200.webp.txt     |     4 +
+ public/extra/images/web/1200/PQ9.webp              |   Bin 0 -> 26322 bytes
+ public/extra/images/web/1200/PQ9.webp.txt          |     4 +
+ .../extra/images/web/1200/SANCTIMONIOUS-1200.webp  |   Bin 0 -> 28052 bytes
+ public/extra/images/web/1200/SANCTIMONIOUS.webp    |   Bin 0 -> 28256 bytes
+ public/extra/images/web/1200/aSher-1200.webp       |   Bin 0 -> 91858 bytes
+ public/extra/images/web/1200/aSher.webp            |   Bin 0 -> 90264 bytes
+ .../extra/images/web/1200/aStariIsBorn-1200.webp   |   Bin 0 -> 142706 bytes
+ public/extra/images/web/1200/aStariIsBorn.webp     |   Bin 0 -> 137810 bytes
+ .../images/web/1200/alwaysUncertain-1200.webp      |   Bin 0 -> 27684 bytes
+ public/extra/images/web/1200/alwaysUncertain.webp  |   Bin 0 -> 27568 bytes
+ .../images/web/1200/alwaysUnobvious-1200.webp      |   Bin 0 -> 26572 bytes
+ public/extra/images/web/1200/alwaysUnobvious.webp  |   Bin 0 -> 26556 bytes
+ public/extra/images/web/1200/badBitch-1200.webp    |   Bin 0 -> 38066 bytes
+ public/extra/images/web/1200/badBitch.webp         |   Bin 0 -> 37346 bytes
+ public/extra/images/web/1200/banyan-1200.webp      |   Bin 0 -> 60510 bytes
+ public/extra/images/web/1200/banyan.webp           |   Bin 0 -> 59292 bytes
+ .../images/web/1200/callMeRubHerDucky-1200.webp    |   Bin 0 -> 55922 bytes
+ .../extra/images/web/1200/callMeRubHerDucky.webp   |   Bin 0 -> 55026 bytes
+ public/extra/images/web/1200/doubt-1200.webp       |   Bin 0 -> 60288 bytes
+ public/extra/images/web/1200/doubt.webp            |   Bin 0 -> 59820 bytes
+ .../extra/images/web/1200/download (1)-1200.webp   |   Bin 0 -> 93942 bytes
+ .../extra/images/web/1200/download (10)-1200.webp  |   Bin 0 -> 23916 bytes
+ .../extra/images/web/1200/download (11)-1200.webp  |   Bin 0 -> 18594 bytes
+ .../extra/images/web/1200/download (12)-1200.webp  |   Bin 0 -> 25972 bytes
+ .../extra/images/web/1200/download (13)-1200.webp  |   Bin 0 -> 37914 bytes
+ .../extra/images/web/1200/download (14)-1200.webp  |   Bin 0 -> 21026 bytes
+ .../extra/images/web/1200/download (15)-1200.webp  |   Bin 0 -> 12566 bytes
+ .../extra/images/web/1200/download (16)-1200.webp  |   Bin 0 -> 9220 bytes
+ .../extra/images/web/1200/download (17)-1200.webp  |   Bin 0 -> 17094 bytes
+ .../extra/images/web/1200/download (18)-1200.webp  |   Bin 0 -> 13684 bytes
+ .../extra/images/web/1200/download (19)-1200.webp  |   Bin 0 -> 26096 bytes
+ .../extra/images/web/1200/download (2)-1200.webp   |   Bin 0 -> 77226 bytes
+ .../extra/images/web/1200/download (20)-1200.webp  |   Bin 0 -> 7422 bytes
+ .../extra/images/web/1200/download (21)-1200.webp  |   Bin 0 -> 14442 bytes
+ .../extra/images/web/1200/download (22)-1200.webp  |   Bin 0 -> 18550 bytes
+ .../extra/images/web/1200/download (23)-1200.webp  |   Bin 0 -> 36150 bytes
+ .../extra/images/web/1200/download (24)-1200.webp  |   Bin 0 -> 21998 bytes
+ .../extra/images/web/1200/download (25)-1200.webp  |   Bin 0 -> 5326 bytes
+ .../extra/images/web/1200/download (26)-1200.webp  |   Bin 0 -> 8604 bytes
+ .../extra/images/web/1200/download (27)-1200.webp  |   Bin 0 -> 15040 bytes
+ .../extra/images/web/1200/download (28)-1200.webp  |   Bin 0 -> 56892 bytes
+ .../extra/images/web/1200/download (29)-1200.webp  |   Bin 0 -> 122750 bytes
+ .../extra/images/web/1200/download (3)-1200.webp   |   Bin 0 -> 30008 bytes
+ .../extra/images/web/1200/download (30)-1200.webp  |   Bin 0 -> 20774 bytes
+ .../extra/images/web/1200/download (4)-1200.webp   |   Bin 0 -> 9890 bytes
+ .../extra/images/web/1200/download (5)-1200.webp   |   Bin 0 -> 22034 bytes
+ .../extra/images/web/1200/download (6)-1200.webp   |   Bin 0 -> 103114 bytes
+ .../extra/images/web/1200/download (7)-1200.webp   |   Bin 0 -> 48524 bytes
+ .../extra/images/web/1200/download (8)-1200.webp   |   Bin 0 -> 62188 bytes
+ .../extra/images/web/1200/download (9)-1200.webp   |   Bin 0 -> 20322 bytes
+ public/extra/images/web/1200/download-1200.webp    |   Bin 0 -> 114896 bytes
+ .../images/web/1200/dreamMore...always-1200.webp   |   Bin 0 -> 88332 bytes
+ .../extra/images/web/1200/equalJustice-1200.webp   |   Bin 0 -> 72230 bytes
+ public/extra/images/web/1200/equalJustice.webp     |   Bin 0 -> 71334 bytes
+ .../images/web/1200/fastenedLengthwise-1200.webp   |   Bin 0 -> 204534 bytes
+ .../extra/images/web/1200/favoriteEver-1200.webp   |   Bin 0 -> 54432 bytes
+ public/extra/images/web/1200/favoriteEver.webp     |   Bin 0 -> 53820 bytes
+ .../extra/images/web/1200/hammers&nail-1200.webp   |   Bin 0 -> 257492 bytes
+ public/extra/images/web/1200/home-1200.webp        |   Bin 0 -> 91680 bytes
+ public/extra/images/web/1200/home.webp             |   Bin 0 -> 88530 bytes
+ .../extra/images/web/1200/hopkinsOnFish-1200.webp  |   Bin 0 -> 72820 bytes
+ public/extra/images/web/1200/hopkinsOnFish.webp    |   Bin 0 -> 73586 bytes
+ public/extra/images/web/1200/kindaCoool-1200.webp  |   Bin 0 -> 170474 bytes
+ public/extra/images/web/1200/kindaCoool.webp       |   Bin 0 -> 167746 bytes
+ .../images/web/1200/korsgaardonvacuuming-1200.webp |   Bin 0 -> 112268 bytes
+ .../images/web/1200/korsgaardonvacuuming.webp      |   Bin 0 -> 112478 bytes
+ .../images/web/1200/kuvempuPoetMind-1200.webp      |   Bin 0 -> 57088 bytes
+ public/extra/images/web/1200/kuvempuPoetMind.webp  |   Bin 0 -> 57376 bytes
+ .../images/web/1200/lengthweisePleasure-1200.webp  |   Bin 0 -> 20790 bytes
+ .../extra/images/web/1200/lengthweisePleasure.webp |   Bin 0 -> 20586 bytes
+ .../extra/images/web/1200/miamiCushhion-1200.webp  |   Bin 0 -> 85300 bytes
+ public/extra/images/web/1200/miamiCushhion.webp    |   Bin 0 -> 82454 bytes
+ .../extra/images/web/1200/murderisuponus-1200.webp |   Bin 0 -> 23810 bytes
+ public/extra/images/web/1200/murderisuponus.webp   |   Bin 0 -> 23546 bytes
+ public/extra/images/web/1200/painting-1200.webp    |   Bin 0 -> 150920 bytes
+ public/extra/images/web/1200/painting.webp         |   Bin 0 -> 144570 bytes
+ ...entalesParaquevolveraVivirmeunPocoMas-1200.webp |   Bin 0 -> 34996 bytes
+ ...ceseMentalesParaquevolveraVivirmeunPocoMas.webp |   Bin 0 -> 35342 bytes
+ public/extra/images/web/1200/perecSpace-1200.webp  |   Bin 0 -> 58124 bytes
+ public/extra/images/web/1200/perecSpace.webp       |   Bin 0 -> 60132 bytes
+ public/extra/images/web/1200/periyar-1200.webp     |   Bin 0 -> 95710 bytes
+ public/extra/images/web/1200/periyar.webp          |   Bin 0 -> 96198 bytes
+ .../extra/images/web/1200/proustOptics-1200.webp   |   Bin 0 -> 50234 bytes
+ public/extra/images/web/1200/proustOptics.webp     |   Bin 0 -> 48474 bytes
+ public/extra/images/web/1200/proust_quotes_all.txt |   216 +
+ public/extra/images/web/1200/ralphish1.0-1200.webp |   Bin 0 -> 108750 bytes
+ public/extra/images/web/1200/remember?-1200.webp   |   Bin 0 -> 56176 bytes
+ public/extra/images/web/1200/remember?.webp        |   Bin 0 -> 57140 bytes
+ .../images/web/1200/saayanamisattributed-1200.webp |   Bin 0 -> 39386 bytes
+ .../images/web/1200/saayanamisattributed.webp      |   Bin 0 -> 37668 bytes
+ .../extra/images/web/1200/santorumMagic-1200.webp  |   Bin 0 -> 55522 bytes
+ public/extra/images/web/1200/santorumMagic.webp    |   Bin 0 -> 55096 bytes
+ .../extra/images/web/1200/sayanasEnglish-1200.webp |   Bin 0 -> 206974 bytes
+ public/extra/images/web/1200/seerseeher-1200.webp  |   Bin 0 -> 43770 bytes
+ public/extra/images/web/1200/seerseeher.webp       |   Bin 0 -> 43806 bytes
+ .../images/web/1200/unShotdeDopamina-1200.webp     |   Bin 0 -> 130230 bytes
+ .../images/web/1200/whatImLookinFor-1200.webp      |   Bin 0 -> 43790 bytes
+ public/extra/images/web/1200/whatImLookinFor.webp  |   Bin 0 -> 44030 bytes
+ .../web/1200/worsethingsBetterfolks-1200.webp      |   Bin 0 -> 82124 bytes
+ .../images/web/1200/worsethingsBetterfolks.webp    |   Bin 0 -> 79126 bytes
+ public/extra/images/web/2000/1Incarnate-2000.webp  |   Bin 0 -> 89918 bytes
+ public/extra/images/web/2000/2incarnate-2000.webp  |   Bin 0 -> 81532 bytes
+ public/extra/images/web/2000/3incarnate-2000.webp  |   Bin 0 -> 92688 bytes
+ public/extra/images/web/2000/DOPAMINA-2000.webp    |   Bin 0 -> 123664 bytes
+ public/extra/images/web/2000/IMG_0154-2000.webp    |   Bin 0 -> 98558 bytes
+ public/extra/images/web/2000/IMG_0305-2000.webp    |   Bin 0 -> 178120 bytes
+ public/extra/images/web/2000/IMG_4047-2000.webp    |   Bin 0 -> 35412 bytes
+ public/extra/images/web/2000/IMG_4048-2000.webp    |   Bin 0 -> 106574 bytes
+ public/extra/images/web/2000/IMG_4049-2000.webp    |   Bin 0 -> 42622 bytes
+ public/extra/images/web/2000/IMG_4051-2000.webp    |   Bin 0 -> 41878 bytes
+ public/extra/images/web/2000/IMG_4052-2000.webp    |   Bin 0 -> 37818 bytes
+ public/extra/images/web/2000/IMG_4053-2000.webp    |   Bin 0 -> 67946 bytes
+ public/extra/images/web/2000/IMG_4055-2000.webp    |   Bin 0 -> 38862 bytes
+ public/extra/images/web/2000/IMG_4056-2000.webp    |   Bin 0 -> 69772 bytes
+ public/extra/images/web/2000/IMG_4057-2000.webp    |   Bin 0 -> 50284 bytes
+ public/extra/images/web/2000/IMG_4058-2000.webp    |   Bin 0 -> 20884 bytes
+ public/extra/images/web/2000/IMG_4059-2000.webp    |   Bin 0 -> 30792 bytes
+ public/extra/images/web/2000/IMG_4061-2000.webp    |   Bin 0 -> 42258 bytes
+ public/extra/images/web/2000/IMG_4062-2000.webp    |   Bin 0 -> 75040 bytes
+ public/extra/images/web/2000/IMG_4063-2000.webp    |   Bin 0 -> 128906 bytes
+ public/extra/images/web/2000/IMG_4064-2000.webp    |   Bin 0 -> 51548 bytes
+ public/extra/images/web/2000/IMG_4065-2000.webp    |   Bin 0 -> 42974 bytes
+ public/extra/images/web/2000/IMG_4066-2000.webp    |   Bin 0 -> 37596 bytes
+ public/extra/images/web/2000/IMG_4067-2000.webp    |   Bin 0 -> 34582 bytes
+ public/extra/images/web/2000/IMG_5283-2000.webp    |   Bin 0 -> 213394 bytes
+ public/extra/images/web/2000/IMG_7383-2000.webp    |   Bin 0 -> 45330 bytes
+ public/extra/images/web/2000/Image 44-2000.webp    |   Bin 0 -> 240876 bytes
+ public/extra/images/web/2000/PQ1-2000.webp         |   Bin 0 -> 26900 bytes
+ public/extra/images/web/2000/PQ10-2000.webp        |   Bin 0 -> 50084 bytes
+ public/extra/images/web/2000/PQ11-2000.webp        |   Bin 0 -> 90318 bytes
+ public/extra/images/web/2000/PQ12-2000.webp        |   Bin 0 -> 33728 bytes
+ public/extra/images/web/2000/PQ13-2000.webp        |   Bin 0 -> 27802 bytes
+ public/extra/images/web/2000/PQ14-2000.webp        |   Bin 0 -> 24286 bytes
+ public/extra/images/web/2000/PQ15-2000.webp        |   Bin 0 -> 21884 bytes
+ public/extra/images/web/2000/PQ17-2000.webp        |   Bin 0 -> 27490 bytes
+ public/extra/images/web/2000/PQ19-2000.webp        |   Bin 0 -> 73224 bytes
+ public/extra/images/web/2000/PQ2-2000.webp         |   Bin 0 -> 24020 bytes
+ public/extra/images/web/2000/PQ20-2000.webp        |   Bin 0 -> 63454 bytes
+ public/extra/images/web/2000/PQ3-2000.webp         |   Bin 0 -> 45580 bytes
+ public/extra/images/web/2000/PQ4-2000.webp         |   Bin 0 -> 24864 bytes
+ public/extra/images/web/2000/PQ5-2000.webp         |   Bin 0 -> 47832 bytes
+ public/extra/images/web/2000/PQ6-2000.webp         |   Bin 0 -> 32740 bytes
+ public/extra/images/web/2000/PQ7-2000.webp         |   Bin 0 -> 12330 bytes
+ public/extra/images/web/2000/PQ8-2000.webp         |   Bin 0 -> 19032 bytes
+ public/extra/images/web/2000/PQ9-2000.webp         |   Bin 0 -> 26966 bytes
+ .../extra/images/web/2000/SANCTIMONIOUS-2000.webp  |   Bin 0 -> 28052 bytes
+ public/extra/images/web/2000/aSher-2000.webp       |   Bin 0 -> 91858 bytes
+ .../extra/images/web/2000/aStariIsBorn-2000.webp   |   Bin 0 -> 142706 bytes
+ .../images/web/2000/alwaysUncertain-2000.webp      |   Bin 0 -> 27684 bytes
+ .../images/web/2000/alwaysUnobvious-2000.webp      |   Bin 0 -> 26572 bytes
+ public/extra/images/web/2000/badBitch-2000.webp    |   Bin 0 -> 38066 bytes
+ public/extra/images/web/2000/banyan-2000.webp      |   Bin 0 -> 60510 bytes
+ .../images/web/2000/callMeRubHerDucky-2000.webp    |   Bin 0 -> 55922 bytes
+ public/extra/images/web/2000/doubt-2000.webp       |   Bin 0 -> 60288 bytes
+ .../extra/images/web/2000/download (1)-2000.webp   |   Bin 0 -> 242804 bytes
+ .../extra/images/web/2000/download (10)-2000.webp  |   Bin 0 -> 128672 bytes
+ .../extra/images/web/2000/download (11)-2000.webp  |   Bin 0 -> 99796 bytes
+ .../extra/images/web/2000/download (13)-2000.webp  |   Bin 0 -> 261348 bytes
+ .../extra/images/web/2000/download (14)-2000.webp  |   Bin 0 -> 107238 bytes
+ .../extra/images/web/2000/download (15)-2000.webp  |   Bin 0 -> 61426 bytes
+ .../extra/images/web/2000/download (16)-2000.webp  |   Bin 0 -> 52710 bytes
+ .../extra/images/web/2000/download (17)-2000.webp  |   Bin 0 -> 85000 bytes
+ .../extra/images/web/2000/download (18)-2000.webp  |   Bin 0 -> 67946 bytes
+ .../extra/images/web/2000/download (19)-2000.webp  |   Bin 0 -> 145444 bytes
+ .../extra/images/web/2000/download (20)-2000.webp  |   Bin 0 -> 35344 bytes
+ .../extra/images/web/2000/download (21)-2000.webp  |   Bin 0 -> 100984 bytes
+ .../extra/images/web/2000/download (22)-2000.webp  |   Bin 0 -> 147514 bytes
+ .../extra/images/web/2000/download (23)-2000.webp  |   Bin 0 -> 104270 bytes
+ .../extra/images/web/2000/download (24)-2000.webp  |   Bin 0 -> 161542 bytes
+ .../extra/images/web/2000/download (25)-2000.webp  |   Bin 0 -> 46058 bytes
+ .../extra/images/web/2000/download (26)-2000.webp  |   Bin 0 -> 71798 bytes
+ .../extra/images/web/2000/download (27)-2000.webp  |   Bin 0 -> 111156 bytes
+ .../extra/images/web/2000/download (28)-2000.webp  |   Bin 0 -> 100640 bytes
+ .../extra/images/web/2000/download (29)-2000.webp  |   Bin 0 -> 282172 bytes
+ .../extra/images/web/2000/download (3)-2000.webp   |   Bin 0 -> 100146 bytes
+ .../extra/images/web/2000/download (30)-2000.webp  |   Bin 0 -> 158922 bytes
+ .../extra/images/web/2000/download (4)-2000.webp   |   Bin 0 -> 82530 bytes
+ .../extra/images/web/2000/download (5)-2000.webp   |   Bin 0 -> 157024 bytes
+ .../extra/images/web/2000/download (6)-2000.webp   |   Bin 0 -> 145398 bytes
+ .../extra/images/web/2000/download (7)-2000.webp   |   Bin 0 -> 77736 bytes
+ .../extra/images/web/2000/download (8)-2000.webp   |   Bin 0 -> 160070 bytes
+ .../extra/images/web/2000/download (9)-2000.webp   |   Bin 0 -> 108474 bytes
+ public/extra/images/web/2000/download-2000.webp    |   Bin 0 -> 206474 bytes
+ .../images/web/2000/dreamMore...always-2000.webp   |   Bin 0 -> 154332 bytes
+ .../extra/images/web/2000/equalJustice-2000.webp   |   Bin 0 -> 72230 bytes
+ .../images/web/2000/fastenedLengthwise-2000.webp   |   Bin 0 -> 589930 bytes
+ .../extra/images/web/2000/favoriteEver-2000.webp   |   Bin 0 -> 54432 bytes
+ .../extra/images/web/2000/hammers&nail-2000.webp   |   Bin 0 -> 498046 bytes
+ public/extra/images/web/2000/home-2000.webp        |   Bin 0 -> 91680 bytes
+ .../extra/images/web/2000/hopkinsOnFish-2000.webp  |   Bin 0 -> 72820 bytes
+ public/extra/images/web/2000/kindaCoool-2000.webp  |   Bin 0 -> 170474 bytes
+ .../images/web/2000/korsgaardonvacuuming-2000.webp |   Bin 0 -> 112268 bytes
+ .../images/web/2000/kuvempuPoetMind-2000.webp      |   Bin 0 -> 57088 bytes
+ .../images/web/2000/lengthweisePleasure-2000.webp  |   Bin 0 -> 20790 bytes
+ .../extra/images/web/2000/miamiCushhion-2000.webp  |   Bin 0 -> 85300 bytes
+ .../extra/images/web/2000/murderisuponus-2000.webp |   Bin 0 -> 23810 bytes
+ public/extra/images/web/2000/painting-2000.webp    |   Bin 0 -> 150920 bytes
+ ...entalesParaquevolveraVivirmeunPocoMas-2000.webp |   Bin 0 -> 34996 bytes
+ public/extra/images/web/2000/perecSpace-2000.webp  |   Bin 0 -> 58124 bytes
+ public/extra/images/web/2000/periyar-2000.webp     |   Bin 0 -> 95710 bytes
+ .../extra/images/web/2000/proustOptics-2000.webp   |   Bin 0 -> 50234 bytes
+ public/extra/images/web/2000/ralphish1.0-2000.webp |   Bin 0 -> 193846 bytes
+ public/extra/images/web/2000/remember?-2000.webp   |   Bin 0 -> 56176 bytes
+ .../images/web/2000/saayanamisattributed-2000.webp |   Bin 0 -> 39386 bytes
+ .../extra/images/web/2000/santorumMagic-2000.webp  |   Bin 0 -> 55522 bytes
+ .../extra/images/web/2000/sayanasEnglish-2000.webp |   Bin 0 -> 803740 bytes
+ public/extra/images/web/2000/seerseeher-2000.webp  |   Bin 0 -> 43770 bytes
+ .../images/web/2000/unShotdeDopamina-2000.webp     |   Bin 0 -> 239808 bytes
+ .../images/web/2000/whatImLookinFor-2000.webp      |   Bin 0 -> 43790 bytes
+ .../web/2000/worsethingsBetterfolks-2000.webp      |   Bin 0 -> 82124 bytes
+ public/extra/images/web/optocombobulator.sh        |    77 +
+ public/extra/optocombobulator.sh                   |    77 +
+ public/fonts/GoudyStM-Italic-webfont.ttf           |   Bin 46108 -> 0 bytes
+ public/fonts/GoudyStM-Italic-webfont.woff          |   Bin 31428 -> 0 bytes
+ public/fonts/GoudyStM-webfont.ttf                  |   Bin 45152 -> 0 bytes
+ public/fonts/GoudyStM-webfont.woff                 |   Bin 30996 -> 0 bytes
+ public/fonts/LeagueSpartan-SemiBold.ttf            |   Bin 69736 -> 0 bytes
+ public/fonts/LeagueSpartan-VF.woff2                |   Bin 43512 -> 0 bytes
+ public/fonts/NotoSansSharada-Regular.ttf           |   Bin 121912 -> 0 bytes
+ public/fonts/NotoSerif-Bold.ttf                    |   Bin 747144 -> 0 bytes
+ public/fonts/NotoSerif-BoldItalic.ttf              |   Bin 779236 -> 0 bytes
+ public/fonts/NotoSerif-Italic.ttf                  |   Bin 756796 -> 0 bytes
+ public/fonts/NotoSerif-Regular.ttf                 |   Bin 712444 -> 0 bytes
+ public/fonts/blackout_midnight-webfont.ttf         |   Bin 18828 -> 0 bytes
+ public/fonts/blackout_midnight-webfont.woff        |   Bin 9760 -> 0 bytes
+ public/fonts/blackout_sunrise-webfont.ttf          |   Bin 33712 -> 0 bytes
+ public/fonts/blackout_sunrise-webfont.woff         |   Bin 16520 -> 0 bytes
+ public/fonts/blackout_two_am-webfont.ttf           |   Bin 20816 -> 0 bytes
+ public/fonts/blackout_two_am-webfont.woff          |   Bin 9624 -> 0 bytes
+ public/fonts/orbitron-black-webfont.ttf            |   Bin 18452 -> 0 bytes
+ public/fonts/orbitron-black-webfont.woff           |   Bin 10828 -> 0 bytes
+ public/fonts/orbitron-bold-webfont.ttf             |   Bin 19120 -> 0 bytes
+ public/fonts/orbitron-bold-webfont.woff            |   Bin 10864 -> 0 bytes
+ public/fonts/orbitron-light-webfont.ttf            |   Bin 19632 -> 0 bytes
+ public/fonts/orbitron-light-webfont.woff           |   Bin 11052 -> 0 bytes
+ public/fonts/orbitron-medium-webfont.ttf           |   Bin 19472 -> 0 bytes
+ public/fonts/orbitron-medium-webfont.woff          |   Bin 10704 -> 0 bytes
+ public/fonts/rye-latin-400-normal.woff             |   Bin 28720 -> 0 bytes
+ public/fonts/rye-latin-400-normal.woff2            |   Bin 41416 -> 0 bytes
+ public/fonts/rye-latin-ext-400-normal.woff         |   Bin 5432 -> 0 bytes
+ public/fonts/rye-latin-ext-400-normal.woff2        |   Bin 8944 -> 0 bytes
+ public/fonts/sancreek-latin-400-normal.woff        |   Bin 23792 -> 0 bytes
+ public/fonts/sancreek-latin-400-normal.woff2       |   Bin 20172 -> 0 bytes
+ public/fonts/sancreek-latin-ext-400-normal.woff    |   Bin 11944 -> 0 bytes
+ public/fonts/sancreek-latin-ext-400-normal.woff2   |   Bin 10080 -> 0 bytes
+ public/fonts/special-elite-latin-400-normal.woff   |   Bin 63412 -> 0 bytes
+ public/fonts/special-elite-latin-400-normal.woff2  |   Bin 53296 -> 0 bytes
+ .../fonts/special-elite-latin-ext-400-normal.woff  |   Bin 29992 -> 0 bytes
+ .../fonts/special-elite-latin-ext-400-normal.woff2 |   Bin 25196 -> 0 bytes
+ public/images/AusrbachianPassion.JPG               |   Bin 1813185 -> 0 bytes
+ public/images/TamilNeon.jpg                        |   Bin 53539 -> 0 bytes
+ public/images/anexamplePage.webp                   |   Bin 54804 -> 0 bytes
+ public/images/bluePink.jpg                         |   Bin 4818 -> 0 bytes
+ public/images/floki_logo.svg                       |     1 +
+ public/images/irendu2.png                          |   Bin 0 -> 2191330 bytes
+ public/images/itendu2.PNG                          |   Bin 525519 -> 0 bytes
+ public/images/qr-code.png                          |   Bin 56181 -> 0 bytes
+ public/images/tam2.jpeg.jpg                        |   Bin 74053 -> 0 bytes
+ public/images/tamilTwo.jpg                         |   Bin 632703 -> 0 bytes
+ public/index.html                                  |  1002 +-
+ public/index.html.backup-20251218-082347           |   581 -
+ public/js/gate.js                                  |   414 -
+ public/landing.html                                |   197 +-
+ public/maintenance.html                            |     2 +-
+ public/proust-landing-index.html                   |   284 +-
+ public/proust/index.html                           |   413 +-
+ public/questions.html                              |   522 -
+ public/style.css                                   |    95 +-
+ public/styles.css                                  |   182 +-
+ public/videos/buddha_glitch.MOV                    |   Bin 4174572 -> 0 bytes
+ routes/api/auth/magic-link.ts                      |   129 -
+ routes/api/questions/answer.ts                     |   334 -
+ routes/api/questions/next.ts                       |   216 -
+ routes/auth/verify.tsx                             |   205 -
+ server/api/weather.ts                              |    64 +
+ server/middleware/security.ts                      |   126 +
+ server/services/emailService.ts                    |   137 +
+ server/services/encryptionService.ts               |   139 +
+ server/services/paymentCodeService.ts              |    31 +
+ server/services/pdfService.ts                      |   162 +
+ server/services/questionService.ts                 |   130 +
+ server/services/reminderService.ts                 |   120 +
+ server/services/vpsStorageService.ts               |   236 +
+ server/utils/env.ts                                |    19 +
+ shared/schema.ts                                   |   234 +
+ verify_implementation.sh                           |    74 +
+ 745 files changed, 73124 insertions(+), 11118 deletions(-)

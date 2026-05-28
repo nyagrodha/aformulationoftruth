@@ -1,0 +1,32 @@
+[Unit]
+Description=a formulation of truth — gate encryption service
+After=network.target
+Wants=network.target
+
+[Service]
+Type=simple
+User=wthami
+Group=wthami
+WorkingDirectory=/home/wthami/aformulationoftruth/rust-server
+EnvironmentFile=/home/wthami/aformulationoftruth/rust-server/.env
+ExecStart=/home/wthami/aformulationoftruth/rust-server/target/release/aformulationoftruth-gate
+Restart=on-failure
+RestartSec=3
+
+# Hardening
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/var/lib/a4t-gate
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+LockPersonality=true
+MemoryDenyWriteExecute=true
+SystemCallFilter=@system-service
+SystemCallErrorNumber=EPERM
+
+[Install]
+WantedBy=multi-user.target

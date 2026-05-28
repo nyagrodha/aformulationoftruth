@@ -1,32 +1,78 @@
 /**
- * Index Route - Landing Page
+ * Index Route — Landing Page
  *
  * GET /
  *
- * Full landing page with hero, philosophy section, and gate preview.
+ * Gathers the two gate answers + the user's email in a single POST to
+ * /api/gate-submit. That endpoint age-encrypts each answer via the Rust
+ * gate service (port 8787), age-encrypts the email, and mails a magic
+ * link. The magic link lands on /auth/verify, which launches the Deno
+ * Fresh questionnaire at /questionnaire.
+ *
+ * No external font CDNs — every face is loaded locally via /css/main.css.
  */
 
-import { Handlers } from '$fresh/server.ts';
+import { Handlers, PageProps } from '$fresh/server.ts';
 
-export const handler: Handlers = {
-  GET(_req, ctx) {
-    return ctx.render();
+interface IndexData {
+  error?: string;
+}
+
+const ERROR_MESSAGES: Record<string, string> = {
+  bad_body: 'We could not read your submission. Please try again.',
+  missing_email: 'Please enter your email address.',
+  bad_email: 'That email address does not look valid. Please try again.',
+  no_answer: 'Please answer at least one of the two questions before continuing.',
+  email_failed:
+    'We could not deliver your link right now. Please try again in a moment.',
+  server: 'Something went wrong on our end. Please try again.',
+};
+
+export const handler: Handlers<IndexData> = {
+  GET(req, ctx) {
+    const code = new URL(req.url).searchParams.get('error') || undefined;
+    const error = code && ERROR_MESSAGES[code] ? ERROR_MESSAGES[code] : undefined;
+    return ctx.render({ error });
   },
 };
 
-export default function Home() {
+export default function Home({ data }: PageProps<IndexData>) {
+  const { error } = data;
   return (
     <html lang="en">
       <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>a formulation of truth</title>
-        <meta name="description" content="An apparatus for attention. Self-inquiry through the Proust Questionnaire." />
+        <meta
+          name="description"
+          content="A practice in self-inquiry. These questions invite upon users reflective states of awareness, revealing something interior that vivifies oneself as a formulation of truth."
+        />
+
+        <meta property="og:type" content="website" />
+        <meta property="og:site_name" content="a formulation of truth" />
+        <meta property="og:title" content="a formulation of truth" />
+        <meta
+          property="og:description"
+          content="A practice in self-inquiry. These questions invite upon users reflective states of awareness, revealing something interior that vivifies oneself as a formulation of truth."
+        />
+        <meta property="og:image" content="https://aformulationoftruth.com/callbackground.png" />
+        <meta property="og:url" content="https://aformulationoftruth.com" />
+
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="a formulation of truth" />
+        <meta
+          name="twitter:description"
+          content="A practice in self-inquiry. These questions invite upon users reflective states of awareness, revealing something interior that vivifies oneself as a formulation of truth."
+        />
+        <meta name="twitter:image" content="https://aformulationoftruth.com/callbackground.png" />
+
         <link rel="stylesheet" href="/css/main.css" />
+        <link rel="stylesheet" href="/css/landing.css" />
       </head>
-      <body>
+      <body class="landing">
         <nav>
-          <a href="/" class="logo">A4T</a>
+          <a href="/" class="logo" aria-current="page">A4T</a>
           <div class="nav-links">
             <a href="/about.html">About</a>
             <a href="/contact.html">Contact</a>
@@ -34,21 +80,21 @@ export default function Home() {
         </nav>
 
         <main>
-          <section class="hero">
+          <section class="hero landing-hero">
             <div class="hero-content">
-              <p class="tagline">An apparatus for attention</p>
+              <div class="tamil-glyph" aria-hidden="true">௨</div>
+              <p class="tagline tagline-big">
+                <span class="tagline-pink">each moment</span>,{' '}
+                <span class="tagline-orange">every day</span>
+                <br />
+                <span class="tagline-staticline">you are</span>
+              </p>
+              <div class="at-symbol" aria-hidden="true">@</div>
               <h1 class="title">
                 a formulation
-                <span>of truth</span>
+                <span class="title-truth">of truth</span>
               </h1>
-              <p class="subtitle">
-                You are not one self. This is not a tragedy.
-                It is more like the weather.
-              </p>
-              <div class="cta-group">
-                <a href="/gate" class="cta cta-primary">Begin Inquiry</a>
-                <a href="/about.html" class="cta">Learn More</a>
-              </div>
+              <p class="icelandic-subtitle">orðun sannleikans</p>
             </div>
             <div class="scroll-indicator">
               <span></span>
@@ -60,57 +106,171 @@ export default function Home() {
               <span class="section-label">Philosophy</span>
               <h2 class="section-title">The questionnaire as mirror</h2>
               <p class="section-text">
-                The Proust Questionnaire is not a test and not a profile.
-                It is a mechanic for making the past legible in the present.
-                <em>A selfie taken from within.</em>
-              </p>
-              <p class="section-text">
-                Answer. Forget your responses. Wait. The site enforces waiting.
-                We'll notify with an email or a telegram message if you'd prefer.
-                The mechanic works to the degree we don't perform but as
-                subtly powerful users of language translate the memory any one question may conjure.
-                Delight therein or maybe struggle a bit to capture wisely with word this artifact.
-                Truth resides in the reconstruction those events without precedent in our world,
-                where nothing ever repeats itself exactly.
+                A practice in{' '}
+                <a
+                  href="https://www.davidgodman.org/the-practice-of-self-enquiry/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="quote-link"
+                >
+                  self-inquiry
+                </a>
+                , these questions invite upon users reflective states of awareness;
+                the unguarded but thoughtful response reveals that something interior (
+                <a
+                  href="https://en.wikipedia.org/wiki/Akam_(poetry)"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="quote-link"
+                  lang="ta"
+                >
+                  அகம்
+                </a>
+                ) that vivifies oneself a subject, a person, as such the grammatical
+                {' '}<em>I</em> and a formulation of truth.
               </p>
 
               <div class="quote-block">
                 <p>
-                  "We say that the hour of death cannot be forecast, but when we say this
-                  we imagine that hour as placed in an obscure and distant future."
+                  "We say that the hour of death cannot be forecast, but when we say
+                  this we imagine that hour as placed in an obscure and distant future."
                 </p>
                 <cite>Marcel Proust</cite>
               </div>
             </div>
           </section>
 
+          <section class="site-hub-section">
+            <nav class="site-hub" aria-label="Site navigation">
+              <div class="site-hub__row">
+                <div class="site-hub__item site-hub__item--questionnaire">
+                  <button class="site-hub__label" aria-expanded="false">Questionnaire</button>
+                  <ul class="site-hub__dropdown">
+                    <li><a href="/questions.html">All Questions</a></li>
+                    <li><a href="/proust/">Karuppacami Kelvittaal</a></li>
+                  </ul>
+                </div>
+                <div class="site-hub__item site-hub__item--messenger">
+                  <button class="site-hub__label" aria-expanded="false">Messenger</button>
+                  <ul class="site-hub__dropdown">
+                    <li><span class="coming-soon">Encrypted Messages</span></li>
+                  </ul>
+                </div>
+                <div class="site-hub__item site-hub__item--storefront">
+                  <button class="site-hub__label" aria-expanded="false">Storefront</button>
+                  <ul class="site-hub__dropdown">
+                    <li><span class="coming-soon">Tip Jar</span></li>
+                    <li><span class="coming-soon">Lottery</span></li>
+                  </ul>
+                </div>
+              </div>
+              <div class="site-hub__row">
+                <div class="site-hub__item site-hub__item--library">
+                  <button class="site-hub__label" aria-expanded="false">Library</button>
+                  <ul class="site-hub__dropdown">
+                    <li><span class="coming-soon">Books &amp; Inspirations</span></li>
+                  </ul>
+                </div>
+                <div class="site-hub__item site-hub__item--about">
+                  <a href="/about.html" class="site-hub__label site-hub__label--link">About</a>
+                </div>
+                <div class="site-hub__item site-hub__item--contact">
+                  <a href="/contact.html" class="site-hub__label site-hub__label--link">Contact</a>
+                </div>
+              </div>
+            </nav>
+          </section>
+
           <section id="begin" class="section gate-section">
             <div class="gate-content">
-              <div class="gate-icon">?</div>
-              <h2 class="gate-title">What is your idea of perfect happiness?</h2>
+              <div class="gate-icon" aria-hidden="true">?</div>
+              <h2 class="gate-title">Two questions to start</h2>
               <p class="gate-description">
                 These are not polite questions. They are holes in the ice.
                 If you answer them honestly, something cold touches your feet.
               </p>
 
-              <form action="/gate" method="GET" class="gate-form">
+              {error && (
+                <div
+                  class="status-message error show"
+                  role="alert"
+                  style="margin-bottom: 1.25rem;"
+                >
+                  {error}
+                </div>
+              )}
+
+              <form
+                id="gate-form"
+                class="gate-form"
+                method="POST"
+                action="/api/gate-submit"
+                enctype="application/x-www-form-urlencoded"
+                autocomplete="off"
+              >
                 <div class="form-group">
-                  <label for="answer">Your reflection</label>
+                  <label for="answer1">What is your idea of perfect happiness?</label>
                   <div class="textarea-wrapper">
-                    <div class="watermark">truth</div>
                     <textarea
-                      id="answer"
-                      name="preview"
-                      placeholder="Take your time..."
+                      id="answer1"
+                      name="answer1"
+                      rows={4}
+                      maxLength={20000}
+                      placeholder="Take your time…"
+                      aria-describedby="accessibility-hint"
+                    ></textarea>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label for="answer2">What is your greatest fear?</label>
+                  <div class="textarea-wrapper">
+                    <textarea
+                      id="answer2"
+                      name="answer2"
+                      rows={4}
+                      maxLength={20000}
+                      placeholder="Take your time…"
                       aria-describedby="accessibility-hint"
                     ></textarea>
                   </div>
                   <p class="accessibility-note" id="accessibility-hint">
-                    For voice input, use <a href="https://github.com/cjpais/Handy" target="_blank" rel="noopener">Handy</a> - free offline speech-to-text
+                    For voice input, use{' '}
+                    <a
+                      href="https://github.com/cjpais/Handy"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      Handy
+                    </a>
+                    {' '}— free offline speech-to-text.
                   </p>
                 </div>
-                <button type="submit" class="cta cta-primary" style="width: 100%;">
-                  Continue
+
+                <div class="form-group">
+                  <label for="email">Email (used once, to send your continuation link)</label>
+                  <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    autocomplete="email"
+                    required
+                    placeholder="your.email@example.com"
+                  />
+                  <p class="privacy-notice">
+                    Your answers are age-encrypted before storage. Your email is used
+                    once to deliver a single-use magic link, then hashed. No tracking,
+                    no profiling, no analytics, no third-party sharing.
+                  </p>
+                </div>
+
+                <button
+                  type="submit"
+                  id="gate-submit-btn"
+                  class="cta cta-primary"
+                  style="width: 100%;"
+                >
+                  Begin
                 </button>
               </form>
             </div>
@@ -125,45 +285,107 @@ export default function Home() {
               <a href="/privacy.html">Privacy</a>
             </div>
             <p class="footer-copy">
-              Encrypted database hosted in Iceland by <a href="https://fobdongle.com" target="_blank" rel="noopener" style="color: var(--neon-emerald); text-decoration: none;">FlokiNET</a>
+              Encrypted database hosted in Iceland by{' '}
+              <a
+                href="https://fobdongle.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                style="color: var(--neon-emerald); text-decoration: none;"
+              >
+                FlokiNET
+              </a>
+            </p>
+            <p class="footer-copy">
+              Onion mirror:{' '}
+              <a
+                href="http://a4mulasy36kk6s4liqbqkqs4fx4i6nmtyp73r2vv42mgechry2u47wad.onion/"
+                rel="noopener noreferrer"
+                style="color: var(--neon-emerald); text-decoration: none;"
+              >
+                a4mulasy36kk6s4liqbqkqs4fx4i6nmtyp73r2vv42mgechry2u47wad.onion
+              </a>
             </p>
           </div>
         </footer>
 
         <script>{`
-          // Smooth scroll for anchor links
-          document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function(e) {
-              e.preventDefault();
-              const target = document.querySelector(this.getAttribute('href'));
-              if (target) {
-                target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-              }
+          // Tiny progressive-enhancement JS only — the form works without
+          // this. Submission is a native POST handled server-side by
+          // /api/gate-submit (which 303-redirects to /check-email).
+          (function () {
+            // Smooth-scroll anchor links
+            document.querySelectorAll('a[href^="#"]').forEach(function (anchor) {
+              anchor.addEventListener('click', function (e) {
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                  e.preventDefault();
+                  target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+              });
             });
-          });
 
-          // Intersection Observer for scroll animations
-          const observerOptions = {
-            threshold: 0.1,
-            rootMargin: '0px 0px -50px 0px'
-          };
-
-          const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-              if (entry.isIntersecting) {
-                entry.target.style.opacity = '1';
-                entry.target.style.transform = 'translateY(0)';
+            document.querySelectorAll('.site-hub__label').forEach(function (btn) {
+              btn.addEventListener('mouseenter', function () {
+                btn.setAttribute('aria-expanded', 'true');
+              });
+              const item = btn.closest('.site-hub__item');
+              if (item) {
+                item.addEventListener('mouseleave', function () {
+                  btn.setAttribute('aria-expanded', 'false');
+                });
               }
+              btn.addEventListener('click', function () {
+                const expanded = btn.getAttribute('aria-expanded') === 'true';
+                btn.setAttribute('aria-expanded', String(!expanded));
+              });
             });
-          }, observerOptions);
 
-          // Observe sections
-          document.querySelectorAll('.section-inner, .gate-content').forEach(el => {
-            el.style.opacity = '0';
-            el.style.transform = 'translateY(30px)';
-            el.style.transition = 'opacity 0.8s ease, transform 0.8s ease';
-            observer.observe(el);
-          });
+            (function initNavVisibility() {
+              const hub = document.querySelector('.site-hub-section');
+              const scrollIndicator = document.querySelector('.scroll-indicator');
+              const gateSection = document.querySelector('.gate-section');
+              if (!hub || !scrollIndicator || !gateSection) return;
+
+              let pastIndicator = false;
+              let pastGate = false;
+
+              function updateVisibility() {
+                hub.classList.toggle('visible', pastIndicator && !pastGate);
+              }
+
+              new IntersectionObserver(function (entries) {
+                const entry = entries[0];
+                if (!entry) return;
+                pastIndicator = !entry.isIntersecting && entry.boundingClientRect.top < 0;
+                updateVisibility();
+              }, { threshold: 0 }).observe(scrollIndicator);
+
+              new IntersectionObserver(function (entries) {
+                const entry = entries[0];
+                if (!entry) return;
+                pastGate = entry.isIntersecting;
+                updateVisibility();
+              }, { threshold: 0.15 }).observe(gateSection);
+            })();
+
+            const io = new IntersectionObserver(
+              function (entries) {
+                entries.forEach(function (entry) {
+                  if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                  }
+                });
+              },
+              { threshold: 0.1, rootMargin: '0px 0px -50px 0px' }
+            );
+            document.querySelectorAll('.section-inner, .gate-content').forEach(function (el) {
+              el.style.opacity = '0';
+              el.style.transform = 'translateY(30px)';
+              el.style.transition = 'opacity 0.8s ease, transform 0.8s ease';
+              io.observe(el);
+            });
+          })();
         `}</script>
       </body>
     </html>

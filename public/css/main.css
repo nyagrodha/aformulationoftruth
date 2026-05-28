@@ -69,11 +69,13 @@
     --pearl: #cccccc;
     --bone: #e8e8e8;
     --light: #ffffff;
+    --gold: #ffd700;
 
     /* Neon palette */
     --neon-pink: #ff69b4;
     --neon-orange: #ff8c42;
     --neon-emerald: #00ff88;
+    --neon-purple: #9f5fff;
     --pink-glow: rgba(255, 105, 180, 0.4);
     --orange-glow: rgba(255, 140, 66, 0.4);
     --emerald-glow: rgba(0, 255, 136, 0.4);
@@ -250,6 +252,17 @@ nav {
     line-height: 1.9;
     opacity: 0;
     animation: fadeSlideUp 1s ease 0.6s forwards;
+}
+
+.icelandic-subtitle {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.8rem;
+    letter-spacing: 0.18em;
+    text-transform: lowercase;
+    color: var(--mist);
+    margin: -0.75rem 0 1.75rem;
+    opacity: 0;
+    animation: fadeSlideUp 1s ease 0.5s forwards;
 }
 
 .cta-group {

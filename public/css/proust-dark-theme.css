@@ -4,7 +4,7 @@
 /* Neon pink accents, Orbitron typography */
 /* ============================================ */
 
-@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&display=swap');
+/* Orbitron is loaded as local @font-face from /css/main.css — no external font CDN. */
 
 /* ============================================ */
 /* COLOR PALETTE - BASE */

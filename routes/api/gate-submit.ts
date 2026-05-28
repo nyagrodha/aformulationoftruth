@@ -19,7 +19,38 @@ import { validateEmail } from '../../lib/emailValidator.ts';
 import { withConnection } from '../../lib/db.ts';
 import { createMagicLink } from '../../lib/auth.ts';
 import { hashEmail } from '../../lib/crypto.ts';
-import { createQuestionnaireSession, findActiveSession, deleteSession } from '../../lib/questionnaire-session.ts';
+import {
+  completeSupersededSessions,
+  createQuestionnaireSession,
+  deleteSession,
+  findActiveSession,
+  resumeSession,
+} from '../../lib/questionnaire-session.ts';
+
+/**
+ * Detect whether the caller wants HTML (form POST/Redirect/GET — zero-JS)
+ * or JSON (legacy/AJAX). We treat anything that explicitly accepts text/html
+ * or sends form-urlencoded as the HTML path; everything else as JSON.
+ */
+function wantsHtml(req: Request): boolean {
+  const ct = req.headers.get('content-type') || '';
+  if (ct.includes('application/x-www-form-urlencoded') || ct.includes('multipart/form-data')) {
+    return true;
+  }
+  const accept = req.headers.get('accept') || '';
+  return accept.includes('text/html') && !accept.includes('application/json');
+}
+
+function htmlRedirect(path: string): Response {
+  return new Response(null, { status: 303, headers: { Location: path } });
+}
+
+function jsonError(status: number, message: string): Response {
+  return new Response(
+    JSON.stringify({ error: message }),
+    { status, headers: { 'Content-Type': 'application/json' } },
+  );
+}
 import { createQuestionnaireJWT } from '../../lib/jwt.ts';
 import { increment } from '../../lib/metrics.ts';
 import { sendMagicLinkEmail } from '../../lib/email.ts';
@@ -36,24 +67,35 @@ export const handler: Handlers = {
   async POST(req, _ctx) {
     increment('requests.api');
 
-    let body: unknown;
+    const html = wantsHtml(req);
+
+    // Parse JSON or form-encoded body. Either way we end up with the same
+    // {email, answer1, answer2} object the rest of this handler expects.
+    let body: Record<string, unknown> = {};
     try {
-      body = await req.json();
+      if (html) {
+        const form = await req.formData();
+        body = {
+          email: (form.get('email') ?? '').toString(),
+          answer1: (form.get('answer1') ?? '').toString(),
+          answer2: (form.get('answer2') ?? '').toString(),
+        };
+      } else {
+        body = await req.json();
+      }
     } catch {
       increment('errors.4xx');
-      return new Response(
-        JSON.stringify({ error: 'Invalid JSON body' }),
-        { status: 400, headers: { 'Content-Type': 'application/json' } }
-      );
+      return html
+        ? htmlRedirect('/?error=bad_body')
+        : jsonError(400, 'Invalid body');
     }
 
     const parsed = GateSubmitSchema.safeParse(body);
     if (!parsed.success) {
       increment('errors.4xx');
-      return new Response(
-        JSON.stringify({ error: 'Email required' }),
-        { status: 400, headers: { 'Content-Type': 'application/json' } }
-      );
+      return html
+        ? htmlRedirect('/?error=missing_email')
+        : jsonError(400, 'Email required');
     }
 
     // Validate and normalize email
@@ -64,14 +106,21 @@ export const handler: Handlers = {
         increment('errors.suspicious_email');
         console.log('[gate-submit] Blocked suspicious email pattern');
       }
-      return new Response(
-        JSON.stringify({ error: 'Please use a valid email address' }),
-        { status: 400, headers: { 'Content-Type': 'application/json' } }
-      );
+      return html
+        ? htmlRedirect('/?error=bad_email')
+        : jsonError(400, 'Please use a valid email address');
     }
 
     const email = emailValidation.normalized;
     const { answer1, answer2 } = parsed.data;
+
+    // Require at least one non-empty answer
+    if (!answer1.trim() && !answer2.trim()) {
+      increment('errors.4xx');
+      return html
+        ? htmlRedirect('/?error=no_answer')
+        : jsonError(400, 'Please answer at least one question');
+    }
 
     try {
       // Step 1: Generate server-side gate token
@@ -127,15 +176,22 @@ export const handler: Handlers = {
       // Step 4: Hash email immediately
       const emailHash = await hashEmail(email);
 
-      // Step 5: Create or resume questionnaire session with gateToken
-      let sessionResult;
+      // Step 5: Create or resume questionnaire session with gateToken.
+      // For returning users we MUST preserve progress — rotate the opaque
+      // token (and therefore the derived session_id) but copy
+      // question_order / answered_questions / current_index forward.
       const existingSession = await findActiveSession(emailHash);
-
+      const sessionResult = existingSession
+        ? await resumeSession(existingSession, gateToken)
+        : await createQuestionnaireSession(emailHash, gateToken);
       if (existingSession) {
-        console.log('[gate-submit] User resuming questionnaire');
-        sessionResult = await createQuestionnaireSession(emailHash, gateToken);
-      } else {
-        sessionResult = await createQuestionnaireSession(emailHash, gateToken);
+        console.log(
+          '[gate-submit] Returning user — resumed session at index',
+          existingSession.currentIndex,
+          'of',
+          existingSession.answeredQuestions.length,
+          'answered',
+        );
       }
 
       const { opaqueToken, sessionId } = sessionResult;
@@ -158,7 +214,9 @@ export const handler: Handlers = {
         // 1. Clean up magic link
         await cleanupMagicLink();
 
-        // 2. Delete the questionnaire session (this also unlinks gate responses)
+        // 2. Delete the questionnaire session (this also unlinks gate responses).
+        //    On the resume path the OLD session row is NOT touched by
+        //    resumeSession(), so deleting the new row here fully reverts.
         await deleteSession(sessionId);
 
         // 3. Delete the gate responses that were just inserted
@@ -174,10 +232,18 @@ export const handler: Handlers = {
           console.error('[gate-submit] Failed to clean up gate responses:', cleanupError);
         }
 
-        return new Response(
-          JSON.stringify({ error: 'Failed to send magic link email. Please try again.' }),
-          { status: 500, headers: { 'Content-Type': 'application/json' } }
-        );
+        return html
+          ? htmlRedirect('/?error=email_failed')
+          : jsonError(500, 'Failed to send magic link email. Please try again.');
+      }
+
+      // Email accepted by the SMTP relay — now safe to mark older active
+      // sessions for this user as superseded. Doing this BEFORE the email
+      // succeeds would orphan the user if the send failed (they'd have no
+      // active session to roll back to).
+      const supersededCount = await completeSupersededSessions(emailHash, sessionId);
+      if (supersededCount > 0) {
+        console.log('[gate-submit] Superseded', supersededCount, 'stale active session(s)');
       }
 
       increment('auth.magiclink.sent');
@@ -185,6 +251,9 @@ export const handler: Handlers = {
 
       console.log('[gate-submit] Magic link sent, expires:', expiresAt.toISOString());
 
+      if (html) {
+        return htmlRedirect('/check-email');
+      }
       return new Response(
         JSON.stringify({
           message: 'Magic link sent',
@@ -196,10 +265,9 @@ export const handler: Handlers = {
       console.error('[gate-submit] Failed:', error);
       increment('errors.5xx');
 
-      return new Response(
-        JSON.stringify({ error: 'Failed to process submission' }),
-        { status: 500, headers: { 'Content-Type': 'application/json' } }
-      );
+      return html
+        ? htmlRedirect('/?error=server')
+        : jsonError(500, 'Failed to process submission');
     }
   },
 };

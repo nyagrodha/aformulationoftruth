@@ -1,11 +1,17 @@
 /**
- * Email Utilities - SendGrid Integration
+ * Email Utilities — iCloud SMTP (Custom Email Domain alias).
+ *
+ * Sends via Apple's SMTP relay (`smtp.mail.me.com:587`, STARTTLS) using an
+ * app-specific password. The From address must be a Custom Email Domain
+ * alias verified under the SMTP_USER Apple ID.
  *
  * gupta-vidya compliance:
- * - Email addresses used only for delivery
- * - No email content logged or stored
- * - Minimal data in email body
+ * - Recipient addresses are used only for delivery (never logged in clear).
+ * - Email content is not persisted server-side.
+ * - SMTP credentials live in .env (0600), never in the database.
  */
+
+import { SMTPClient } from 'denomailer';
 
 interface SendEmailOptions {
   to: string;
@@ -14,72 +20,79 @@ interface SendEmailOptions {
   html: string;
 }
 
-interface SendGridResponse {
+interface SendResult {
   success: boolean;
   statusCode?: number;
   error?: string;
 }
 
-/**
- * Send email via SendGrid Web API v3
- */
-export async function sendEmail(options: SendEmailOptions): Promise<SendGridResponse> {
-  const apiKey = Deno.env.get('SENDGRID_API_KEY');
-  const fromEmail = Deno.env.get('SENDGRID_FROM_EMAIL') || 'noreply@aformulationoftruth.com';
-  const fromName = Deno.env.get('SENDGRID_FROM_NAME') || 'a formulation of truth';
-  const replyTo = Deno.env.get('SENDGRID_REPLY_TO');
+function maskAddr(addr: string): string {
+  return addr.replace(/(.{2}).*(@.*)/, '$1***$2');
+}
 
-  if (!apiKey) {
-    console.error('[email] SENDGRID_API_KEY not configured');
+/**
+ * Send one email through iCloud SMTP. A fresh SMTPClient is created per
+ * send and closed afterwards — cheap, predictable, no shared state.
+ */
+export async function sendEmail(options: SendEmailOptions): Promise<SendResult> {
+  const host = Deno.env.get('SMTP_HOST') || 'smtp.mail.me.com';
+  const port = Number(Deno.env.get('SMTP_PORT') || '587');
+  const user = Deno.env.get('SMTP_USER');
+  const pass = Deno.env.get('SMTP_PASS');
+  const fromEmail =
+    Deno.env.get('EMAIL_FROM_EMAIL') ||
+    'formitselfisemptiness@aformulationoftruth.com';
+  const fromName =
+    Deno.env.get('EMAIL_FROM_NAME') ||
+    'a formulation of truth';
+
+  if (!user || !pass) {
+    console.error('[email] SMTP_USER/SMTP_PASS not configured');
     return { success: false, error: 'Email service not configured' };
   }
 
-  const payload = {
-    personalizations: [
-      {
-        to: [{ email: options.to }],
-      },
-    ],
-    from: {
-      email: fromEmail,
-      name: fromName,
+  // Use implicit TLS on 465 (denomailer's STARTTLS path on 587 has a
+  // BadResource bug against iCloud — port 465 SMTPS avoids it). If you set
+  // SMTP_PORT to 587, we'll fall back to STARTTLS.
+  const useImplicitTls = port === 465;
+  const client = new SMTPClient({
+    connection: {
+      hostname: host,
+      port,
+      tls: useImplicitTls,
+      auth: { username: user, password: pass },
     },
-    ...(replyTo && { reply_to: { email: replyTo } }),
-    subject: options.subject,
-    content: [
-      { type: 'text/plain', value: options.text },
-      { type: 'text/html', value: options.html },
-    ],
-  };
+  });
 
   try {
-    const response = await fetch('https://api.sendgrid.com/v3/mail/send', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(payload),
+    await client.send({
+      from: `${fromName} <${fromEmail}>`,
+      to: options.to,
+      subject: options.subject,
+      content: options.text,
+      html: options.html,
     });
-
-    if (response.status === 202) {
-      console.log('[email] Sent successfully to:', options.to.replace(/(.{2}).*(@.*)/, '$1***$2'));
-      return { success: true, statusCode: 202 };
-    }
-
-    const errorText = await response.text();
-    console.error('[email] SendGrid error:', response.status, errorText);
-    return { success: false, statusCode: response.status, error: errorText };
+    console.log('[email] Sent successfully to:', maskAddr(options.to));
+    return { success: true, statusCode: 250 };
   } catch (error) {
-    console.error('[email] Network error:', error);
+    console.error('[email] iCloud SMTP error:', error);
     return { success: false, error: String(error) };
+  } finally {
+    try {
+      await client.close();
+    } catch (_) {
+      // best-effort
+    }
   }
 }
 
 /**
- * Send magic link email for questionnaire access
+ * Send magic link email for questionnaire access.
  */
-export async function sendMagicLinkEmail(email: string, magicLinkUrl: string): Promise<SendGridResponse> {
+export async function sendMagicLinkEmail(
+  email: string,
+  magicLinkUrl: string,
+): Promise<SendResult> {
   const subject = 'Your link to a formulation of truth';
 
   const text = `
@@ -196,13 +209,13 @@ https://aformulationoftruth.com
 }
 
 /**
- * Send newsletter confirmation email (double opt-in)
+ * Send newsletter confirmation email (double opt-in).
  */
 export async function sendNewsletterConfirmationEmail(
   email: string,
   confirmUrl: string,
-  unsubscribeUrl: string
-): Promise<SendGridResponse> {
+  unsubscribeUrl: string,
+): Promise<SendResult> {
   const subject = 'Confirm your subscription to a formulation of truth';
 
   const text = `
