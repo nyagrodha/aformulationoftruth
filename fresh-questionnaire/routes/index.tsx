@@ -8,7 +8,7 @@ interface IndexData {
 }
 
 export const handler: Handlers<IndexData> = {
-  async GET(req, ctx) {
+  GET(_req, ctx) {
     return ctx.render({});
   },
 
@@ -62,10 +62,25 @@ export default function IndexPage({ data }: PageProps<IndexData>) {
       <Head>
         <title>begin the questionnaire - a formulation of truth</title>
         <link rel="icon" type="image/x-icon" href="/favicon.ico" />
-        <link rel="icon" type="image/png" sizes="32x32" href="/favicons/favicon-32x32.png" />
-        <link rel="icon" type="image/png" sizes="16x16" href="/favicons/favicon-16x16.png" />
-        <link rel="apple-touch-icon" sizes="180x180" href="/favicons/apple-touch-icon.png" />
-        <style>{`
+        <link
+          rel="icon"
+          type="image/png"
+          sizes="32x32"
+          href="/favicons/favicon-32x32.png"
+        />
+        <link
+          rel="icon"
+          type="image/png"
+          sizes="16x16"
+          href="/favicons/favicon-16x16.png"
+        />
+        <link
+          rel="apple-touch-icon"
+          sizes="180x180"
+          href="/favicons/apple-touch-icon.png"
+        />
+        <style>
+          {`
           * {
             margin: 0;
             padding: 0;
@@ -206,6 +221,42 @@ export default function IndexPage({ data }: PageProps<IndexData>) {
             text-decoration: underline;
           }
 
+          .tool-links {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1rem;
+            margin-top: 2rem;
+          }
+
+          .tool-card {
+            display: block;
+            border: 2px solid #d4a574;
+            border-radius: 10px;
+            padding: 1rem;
+            color: #4a3728;
+            text-decoration: none;
+            background: rgba(255, 248, 236, 0.85);
+            transition: all 0.3s ease;
+          }
+
+          .tool-card:hover {
+            border-color: #8b4513;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(139, 69, 19, 0.2);
+          }
+
+          .tool-card strong {
+            display: block;
+            color: #8b4513;
+            margin-bottom: 0.35rem;
+          }
+
+          .tool-card span {
+            display: block;
+            font-size: 0.9rem;
+            line-height: 1.45;
+          }
+
           @media (max-width: 640px) {
             .container {
               padding: 2rem;
@@ -219,55 +270,74 @@ export default function IndexPage({ data }: PageProps<IndexData>) {
               font-size: 1rem;
             }
           }
-        `}</style>
+        `}
+        </style>
       </Head>
 
       <div class="container">
-        {data.success ? (
-          <div class="success">
-            <div class="success-icon">✉️</div>
-            <p>{data.message}</p>
-            <p style="margin-top: 1rem; font-size: 0.95rem; font-style: italic;">
-              Click the link in your email to begin the questionnaire.
-            </p>
-          </div>
-        ) : (
-          <>
-            <h1>தொடங்கு</h1>
-            <p class="subtitle">Begin the questionnaire</p>
-
-            <div class="intro">
-              <p>
-                Enter your email to receive a magic link. No password needed—just
-                click the link we send you to begin answering the thirty-five questions.
+        {data.success
+          ? (
+            <div class="success">
+              <div class="success-icon">✉️</div>
+              <p>{data.message}</p>
+              <p style="margin-top: 1rem; font-size: 0.95rem; font-style: italic;">
+                Click the link in your email to begin the questionnaire.
               </p>
             </div>
+          )
+          : (
+            <>
+              <h1>தொடங்கு</h1>
+              <p class="subtitle">Begin the questionnaire</p>
 
-            {data.error && (
-              <div class="error">
-                {data.error}
-              </div>
-            )}
-
-            <form method="POST">
-              <div class="form-group">
-                <label for="email">Email Address</label>
-                <input
-                  type="email"
-                  id="email"
-                  name="email"
-                  placeholder="your@email.com"
-                  required
-                  autofocus
-                />
+              <div class="intro">
+                <p>
+                  Enter your email to receive a magic link. No password
+                  needed—just click the link we send you to begin answering the
+                  thirty-five questions.
+                </p>
               </div>
 
-              <button type="submit">
-                Send Magic Link
-              </button>
-            </form>
-          </>
-        )}
+              {data.error && (
+                <div class="error">
+                  {data.error}
+                </div>
+              )}
+
+              <div class="tool-links" aria-label="public privacy tools">
+                <a class="tool-card" href="/lotto">
+                  <strong>zk lotto</strong>
+                  <span>
+                    Commitment-only drawing with Merkle proof verification.
+                  </span>
+                </a>
+                <a class="tool-card" href="/messenger">
+                  <strong>encrypted messenger</strong>
+                  <span>
+                    Seal and open passphrase-protected notes in your browser.
+                  </span>
+                </a>
+              </div>
+
+              <form method="POST">
+                <div class="form-group">
+                  <label for="email">Email Address</label>
+                  <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    placeholder="your@email.com"
+                    required
+                    autofocus
+                  />
+                </div>
+
+                <button type="submit">
+                  Send Magic Link
+                </button>
+              </form>
+            </>
+          )}
 
         <a href="/" class="home-link">← Return to homepage</a>
       </div>

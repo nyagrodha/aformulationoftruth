@@ -2,16 +2,30 @@
 // This file SHOULD be checked into source version control.
 // This file is automatically updated during development when running `dev.ts`.
 
+import * as $api_lotto_close from "./routes/api/lotto/close.ts";
+import * as $api_lotto_commit from "./routes/api/lotto/commit.ts";
+import * as $api_lotto_draw from "./routes/api/lotto/draw.ts";
+import * as $api_lotto_verify from "./routes/api/lotto/verify.ts";
 import * as $auth from "./routes/auth.tsx";
+import * as $encrypted_messenger from "./routes/encrypted-messenger.tsx";
 import * as $index from "./routes/index.tsx";
+import * as $lotto from "./routes/lotto.tsx";
+import * as $messenger from "./routes/messenger.tsx";
 import * as $questionnaire from "./routes/questionnaire.tsx";
 import * as $QuestionnaireForm from "./islands/QuestionnaireForm.tsx";
 import type { Manifest } from "$fresh/server.ts";
 
 const manifest = {
   routes: {
+    "./routes/api/lotto/close.ts": $api_lotto_close,
+    "./routes/api/lotto/commit.ts": $api_lotto_commit,
+    "./routes/api/lotto/draw.ts": $api_lotto_draw,
+    "./routes/api/lotto/verify.ts": $api_lotto_verify,
     "./routes/auth.tsx": $auth,
+    "./routes/encrypted-messenger.tsx": $encrypted_messenger,
     "./routes/index.tsx": $index,
+    "./routes/lotto.tsx": $lotto,
+    "./routes/messenger.tsx": $messenger,
     "./routes/questionnaire.tsx": $questionnaire,
   },
   islands: {
