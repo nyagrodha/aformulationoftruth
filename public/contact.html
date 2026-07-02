@@ -493,6 +493,20 @@
                 <em>Support & Donations:</em> This site operates independently without advertising or data harvesting. If you wish to support its ongoing development and hosting costs, inquiries about donations are welcome. You may also consider patronizing <a href="https://billing.flokinet.is/aff.php?aff=543" target="_blank" rel="noopener">Flokinet</a>, the privacy-focused hosting provider that makes this site possible.
             </p>
 
+            <!-- Monero tip address widget -->
+            <div class="newsletter-section" id="monero-tip-section">
+                <div class="newsletter-title">◈ Tip in Monero ◈</div>
+                <p class="newsletter-description">
+                    Prefer to tip privately? Request a one-time Monero address below. Each address is
+                    generated fresh for you alone, so your tip stays unlinkable to anyone else's.
+                </p>
+                <button type="button" class="subscribe-button" id="monero-tip-button">
+                    Generate Tip Address
+                </button>
+                <div class="message" id="monero-tip-message" style="display: none;"></div>
+                <div id="monero-tip-address" style="display: none; margin-top: 1rem; padding: 0.75rem; border: 1px dashed var(--border-color); border-radius: 8px; font-family: monospace; font-size: 0.85rem; word-break: break-all; cursor: pointer;" title="Click to copy"></div>
+            </div>
+
             <div class="ornament" aria-hidden="true">
                 <svg viewBox="0 0 120 14" xmlns="http://www.w3.org/2000/svg" role="img" aria-hidden="true">
                     <path d="M6 7 C24 1, 36 13, 54 7 C72 1, 84 13, 102 7" stroke-linecap="round" stroke-linejoin="round"/>
@@ -662,7 +676,6 @@
     </div>
 
     <!-- Scripts -->
-HEAD
     <script src="/js/api-failover.js"></script>
     <script>
         // Newsletter subscription handler
@@ -722,6 +735,51 @@ HEAD
                 submitButton.textContent = 'Subscribe';
             }
         }
+
+        // Monero tip address handler
+        const tipButton = document.getElementById('monero-tip-button');
+        const tipMessage = document.getElementById('monero-tip-message');
+        const tipAddressDiv = document.getElementById('monero-tip-address');
+
+        function showTipMessage(text, type) {
+            tipMessage.textContent = text;
+            tipMessage.className = `message ${type}`;
+            tipMessage.style.display = 'block';
+        }
+
+        tipButton.addEventListener('click', async () => {
+            try {
+                tipButton.disabled = true;
+                tipButton.textContent = 'Generating...';
+                tipAddressDiv.style.display = 'none';
+
+                const response = await apiGet('/api/tips/monero/address', { timeout: 15000 });
+                const data = await response.json();
+
+                if (response.ok && data.address) {
+                    tipAddressDiv.textContent = data.address;
+                    tipAddressDiv.style.display = 'block';
+                    showTipMessage('✓ Fresh address generated — click it to copy. Thank you!', 'success');
+                } else {
+                    showTipMessage(`✗ ${data.message || 'Unable to generate an address right now'}`, 'error');
+                }
+            } catch (error) {
+                console.error('Tip address error:', error);
+                showTipMessage('✗ Could not reach the wallet — please try again later', 'error');
+            } finally {
+                tipButton.disabled = false;
+                tipButton.textContent = 'Generate Tip Address';
+            }
+        });
+
+        tipAddressDiv.addEventListener('click', async () => {
+            try {
+                await navigator.clipboard.writeText(tipAddressDiv.textContent);
+                showTipMessage('✓ Address copied to clipboard', 'success');
+            } catch (error) {
+                showTipMessage('Copy failed — please select and copy the address manually', 'info');
+            }
+        });
 
         form.addEventListener('submit', async (e) => {
             e.preventDefault();

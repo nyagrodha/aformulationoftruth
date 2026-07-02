@@ -31,6 +31,8 @@ import { emailService } from "./services/emailService";
 import { pdfService } from "./services/pdfService";
 import { questionService } from "./services/questionService";
 import { vpsStorageService } from "./services/vpsStorageService";
+import { moneroWalletService } from "./services/moneroWalletService";
+import rateLimit from "express-rate-limit";
 import { encryptionService } from "./services/encryptionService";
 import { responseEncryptionService } from "./services/responseEncryptionService";
 
@@ -550,6 +552,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/newsletter/signup", handleNewsletterSignup);
   app.post("/api/newsletter/subscribe", handleNewsletterSignup);
+
+  // Monero tip address generation — each visitor gets a fresh subaddress
+  // from the wallet-rpc instance configured via MONERO_WALLET_RPC_URL.
+  // Stricter limit than the global one since each call creates wallet state.
+  const tipAddressLimiter = rateLimit({
+    windowMs: 60 * 1000,
+    max: 5,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { message: "Too many address requests, please wait a moment" },
+  });
+
+  app.get("/api/tips/monero/address", tipAddressLimiter, async (req, res) => {
+    try {
+      if (!moneroWalletService.isConfigured) {
+        return res.status(503).json({ message: "Monero tips are not configured" });
+      }
+
+      const tip = await moneroWalletService.createTipAddress(
+        `tip:${new Date().toISOString()}`
+      );
+
+      res.json({ address: tip.address, addressIndex: tip.addressIndex });
+    } catch (error) {
+      console.error("Monero tip address error:", error);
+      res.status(502).json({ message: "Unable to generate tip address right now" });
+    }
+  });
+
+  app.get("/api/tips/monero/health", isAdmin, async (req, res) => {
+    if (!moneroWalletService.isConfigured) {
+      return res.json({ configured: false, healthy: false });
+    }
+    const healthy = await moneroWalletService.healthCheck();
+    res.json({ configured: true, healthy });
+  });
 
   // Admin routes (temporarily disabled - storage methods need implementation)
   /*
