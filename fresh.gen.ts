@@ -13,11 +13,18 @@ import * as $api_newsletter_subscribe from './routes/api/newsletter/subscribe.ts
 import * as $api_newsletter_unsubscribe from './routes/api/newsletter/unsubscribe.ts';
 import * as $api_questions_answer from './routes/api/questions/answer.ts';
 import * as $api_questions_next from './routes/api/questions/next.ts';
+import * as $api_lotto_close from './routes/api/lotto/close.ts';
+import * as $api_lotto_commit from './routes/api/lotto/commit.ts';
+import * as $api_lotto_draw from './routes/api/lotto/draw.ts';
+import * as $api_lotto_verify from './routes/api/lotto/verify.ts';
 import * as $api_responses from './routes/api/responses.ts';
 import * as $auth_verify from './routes/auth/verify.tsx';
+import * as $encrypted_messenger from './routes/encrypted-messenger.tsx';
 import * as $gate from './routes/gate.tsx';
 import * as $index from './routes/index.tsx';
 import * as $login from './routes/login.tsx';
+import * as $lotto from './routes/lotto.tsx';
+import * as $messenger from './routes/messenger.tsx';
 import * as $questionnaire from './routes/questionnaire.tsx';
 import * as $GateQuestionnaire from './islands/GateQuestionnaire.tsx';
 import type { Manifest } from '$fresh/server.ts';
@@ -35,11 +42,18 @@ const manifest = {
     './routes/api/newsletter/unsubscribe.ts': $api_newsletter_unsubscribe,
     './routes/api/questions/answer.ts': $api_questions_answer,
     './routes/api/questions/next.ts': $api_questions_next,
+    './routes/api/lotto/close.ts': $api_lotto_close,
+    './routes/api/lotto/commit.ts': $api_lotto_commit,
+    './routes/api/lotto/draw.ts': $api_lotto_draw,
+    './routes/api/lotto/verify.ts': $api_lotto_verify,
     './routes/api/responses.ts': $api_responses,
     './routes/auth/verify.tsx': $auth_verify,
+    './routes/encrypted-messenger.tsx': $encrypted_messenger,
     './routes/gate.tsx': $gate,
     './routes/index.tsx': $index,
     './routes/login.tsx': $login,
+    './routes/lotto.tsx': $lotto,
+    './routes/messenger.tsx': $messenger,
     './routes/questionnaire.tsx': $questionnaire,
   },
   islands: {
