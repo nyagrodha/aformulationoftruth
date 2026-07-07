@@ -51,7 +51,10 @@ export default function CompletionPage() {
                 the interior landscape of a person.
               </p>
 
-              <a href="/" class="cta cta-primary">Return to the beginning</a>
+              <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 1rem;">
+                <a href="/profile-choice" class="cta cta-primary">Create a profile</a>
+                <a href="/" class="cta">Return to the beginning</a>
+              </div>
             </div>
           </section>
         </main>

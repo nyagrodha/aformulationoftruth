@@ -6,7 +6,46 @@
  * Explains the optional public profile path after questionnaire completion.
  */
 
+import { Handlers } from '$fresh/server.ts';
 import LogoMenu from '../components/LogoMenu.tsx';
+import { verifyQuestionnaireJWT } from '../lib/jwt.ts';
+import { getSessionById } from '../lib/questionnaire-session.ts';
+import { increment } from '../lib/metrics.ts';
+
+function getCookie(cookieHeader: string | null, name: string): string | null {
+  if (!cookieHeader) return null;
+  const match = cookieHeader.match(new RegExp(`(?:^|;\\s*)${name}=([^;]*)`));
+  return match ? decodeURIComponent(match[1]) : null;
+}
+
+/**
+ * Gate the profile pages behind the same magic-link session the
+ * questionnaire uses: a valid `jwt` cookie whose session_id resolves to
+ * an active session. Any failure redirects to the gate at `/`, matching
+ * routes/questionnaire.tsx. No PII is read or logged.
+ */
+export const handler: Handlers = {
+  async GET(req, ctx) {
+    increment('requests.api');
+
+    const jwtToken = getCookie(req.headers.get('Cookie'), 'jwt');
+    if (!jwtToken) {
+      return new Response(null, { status: 302, headers: { Location: '/' } });
+    }
+
+    const jwtPayload = await verifyQuestionnaireJWT(jwtToken);
+    if (!jwtPayload) {
+      return new Response(null, { status: 302, headers: { Location: '/' } });
+    }
+
+    const session = await getSessionById(jwtPayload.session_id);
+    if (!session) {
+      return new Response(null, { status: 302, headers: { Location: '/' } });
+    }
+
+    return ctx.render();
+  },
+};
 
 export default function ProfileChoicePage() {
   return (
