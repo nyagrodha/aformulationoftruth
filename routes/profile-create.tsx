@@ -213,12 +213,7 @@ export default function ProfileCreatePage() {
       </head>
       <body>
         <nav>
-          <LogoMenu />
-          <div class='nav-links'>
-            <a href='/about.html'>about</a>
-            <a href='/contact.html'>contact</a>
-          </div>
-        </nav>
+          <LogoMenu />        </nav>
 
         <main>
           <section class='profile-create-wrap'>

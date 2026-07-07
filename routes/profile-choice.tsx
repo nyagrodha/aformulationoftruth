@@ -62,12 +62,7 @@ export default function ProfileChoicePage() {
       </head>
       <body>
         <nav>
-          <LogoMenu />
-          <div class='nav-links'>
-            <a href='/about.html'>about</a>
-            <a href='/contact.html'>contact</a>
-          </div>
-        </nav>
+          <LogoMenu />        </nav>
 
         <main>
           <section class='section gate-section' style='min-height: 100vh; display: flex; align-items: center;'>
