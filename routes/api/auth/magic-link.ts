@@ -29,6 +29,7 @@ import { hashEmail } from '../../../lib/crypto.ts';
 import { createQuestionnaireSession, findActiveSession } from '../../../lib/questionnaire-session.ts';
 import { createQuestionnaireJWT } from '../../../lib/jwt.ts';
 import { increment } from '../../../lib/metrics.ts';
+import { sendMagicLinkEmail } from '../../../lib/email.ts';
 
 const RequestSchema = z.object({
   email: z.string().email(),
@@ -93,9 +94,16 @@ export const handler: Handlers = {
       const baseUrl = Deno.env.get('BASE_URL') || 'http://localhost:8000';
       const magicLinkUrl = `${baseUrl}/auth/verify?token=${jwt}&resume=${opaqueToken}`;
 
-      // In production, send email here
-      // TODO: Integrate with SendGrid/nodemailer
-      // await sendMagicLinkEmail(email, magicLinkUrl);
+      // Step 6: Deliver the magic link over SMTP (same path as /api/gate-submit).
+      const emailResult = await sendMagicLinkEmail(email, magicLinkUrl);
+      if (!emailResult.success) {
+        console.error('[auth] Email delivery failed');
+        increment('errors.email');
+        return new Response(
+          JSON.stringify({ error: 'Failed to send magic link' }),
+          { status: 500, headers: { 'Content-Type': 'application/json' } }
+        );
+      }
 
       increment('auth.magiclink.sent');
 
@@ -116,8 +124,8 @@ export const handler: Handlers = {
         }),
         { status: 200, headers: { 'Content-Type': 'application/json' } }
       );
-    } catch (error) {
-      console.error('[auth] Failed to create magic link:', error);
+    } catch (_error) {
+      console.error('[auth] Failed to create magic link');
       increment('errors.5xx');
 
       return new Response(
