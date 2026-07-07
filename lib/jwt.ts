@@ -16,9 +16,21 @@
 const encoder = new TextEncoder();
 const decoder = new TextDecoder();
 
-const JWT_SECRET = Deno.env.get('JWT_SECRET');
-if (!JWT_SECRET) {
-  console.warn('[jwt] JWT_SECRET not configured - JWT functions will fail');
+/**
+ * Read the JWT secret lazily, on each use.
+ *
+ * It must NOT be captured at module-eval time: main.ts loads .env AFTER the
+ * route manifest (and therefore this module) is imported, so a top-level read
+ * would always observe `undefined` and every signing/verification call would
+ * throw "JWT_SECRET not configured" at request time. Reading on demand
+ * guarantees the value is present once the server is handling requests.
+ */
+function getJwtSecret(): string {
+  const secret = Deno.env.get('JWT_SECRET');
+  if (!secret) {
+    throw new Error('JWT_SECRET not configured');
+  }
+  return secret;
 }
 
 const JWT_VALIDITY_HOURS = 24;
@@ -55,14 +67,12 @@ export async function createQuestionnaireJWT(
   emailHash: string,
   sessionId: string
 ): Promise<string> {
-  if (!JWT_SECRET) {
-    throw new Error('JWT_SECRET not configured');
-  }
+  const secret = getJwtSecret();
 
   // Import secret key for HMAC signing
   const key = await crypto.subtle.importKey(
     'raw',
-    encoder.encode(JWT_SECRET),
+    encoder.encode(secret),
     { name: 'HMAC', hash: 'SHA-256' },
     false,
     ['sign']
@@ -108,9 +118,7 @@ export async function createQuestionnaireJWT(
 export async function verifyQuestionnaireJWT(
   token: string
 ): Promise<JWTPayload | null> {
-  if (!JWT_SECRET) {
-    throw new Error('JWT_SECRET not configured');
-  }
+  const secret = getJwtSecret();
 
   try {
     // Split JWT into parts
@@ -125,7 +133,7 @@ export async function verifyQuestionnaireJWT(
     // Import secret key for HMAC verification
     const key = await crypto.subtle.importKey(
       'raw',
-      encoder.encode(JWT_SECRET),
+      encoder.encode(secret),
       { name: 'HMAC', hash: 'SHA-256' },
       false,
       ['verify']
