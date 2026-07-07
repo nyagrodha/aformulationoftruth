@@ -27,6 +27,11 @@
   --bg-secondary: var(--sandalwood);
   --text-primary: #1A1613;
   --text-secondary: var(--monsoon-gray);
+  /* Fixed dark ink for text on the always-cream .about-content card.
+     The theme toggle flips --text-primary to a pale colour for its dark
+     page backgrounds, which is illegible on the cream card; --ink is
+     never overridden, so card body text stays readable in every theme. */
+  --ink: #1A1613;
   --accent-1: var(--temple-red);
   --accent-2: var(--saffron);
   --accent-3: var(--peacock-blue);
@@ -261,15 +266,15 @@ body::after {
 
 .about-content p {
   margin: 0 0 1.5rem;
-  font-size: 1.05rem;
+  font-size: 1.1rem;
   text-align: left;
-  color: var(--text-primary);
-  line-height: 1.8;
+  color: var(--ink);
+  line-height: 1.85;
 }
 
 .about-content p.lead {
-  font-size: 1.15rem;
-  color: var(--text-primary);
+  font-size: 1.25rem;
+  color: var(--ink);
   line-height: 1.9;
   font-weight: 500;
 }
