@@ -297,9 +297,10 @@ export default function ProfileCreatePage() {
                     </fieldset>
 
                     <div class='profile-create-actions'>
-                      <button type='button' class='cta cta-primary'>save this profile</button>
+                      <button type='button' id='profile-save-btn' class='cta cta-primary'>save this profile</button>
                       <a href='/completion' class='cta'>not tonight</a>
                     </div>
+                    <p id='profile-save-status' class='profile-create-note' role='status' aria-live='polite'></p>
                   </form>
                 </div>
 
@@ -345,6 +346,67 @@ export default function ProfileCreatePage() {
             </p>
           </div>
         </footer>
+
+        <script>{`
+          // Progressive enhancement: POST the profile metadata to /api/profile.
+          // Per-answer publishing (the "public answers" fieldset) is deferred,
+          // so only visibility, nameplate, and anonymous-mail are sent here.
+          (function () {
+            var btn = document.getElementById('profile-save-btn');
+            if (!btn) return;
+            var status = document.getElementById('profile-save-status');
+            function val(id) { var el = document.getElementById(id); return el ? el.value.trim() : ''; }
+            function radio(name) {
+              var el = document.querySelector('input[name="' + name + '"]:checked');
+              return el ? el.value : '';
+            }
+            function say(msg) { if (status) { status.textContent = msg; } }
+
+            btn.addEventListener('click', async function () {
+              var vis = radio('visibility');
+              // Map the form's visibility choice onto the profile schema.
+              var visibility = vis === 'selected' ? 'public' : 'private';
+              var acceptsAnonymousMail = vis === 'anonymous-mail';
+              var handle = val('profile-handle').toLowerCase();
+
+              if (visibility === 'public' && !handle) {
+                say('A public profile needs a handle.');
+                return;
+              }
+
+              var original = btn.textContent;
+              btn.disabled = true;
+              btn.textContent = 'saving…';
+              say('');
+
+              try {
+                var res = await fetch('/api/profile', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    visibility: visibility,
+                    acceptsAnonymousMail: acceptsAnonymousMail,
+                    displayName: val('profile-name'),
+                    bio: val('profile-note'),
+                    handle: handle,
+                  }),
+                });
+                var data = await res.json().catch(function () { return {}; });
+                if (res.ok) {
+                  window.location.href = '/completion';
+                } else {
+                  say(data.error || 'Could not save your profile.');
+                  btn.disabled = false;
+                  btn.textContent = original;
+                }
+              } catch (e) {
+                say('Network error. Please try again.');
+                btn.disabled = false;
+                btn.textContent = original;
+              }
+            });
+          })();
+        `}</script>
       </body>
     </html>
   );

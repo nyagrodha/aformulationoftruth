@@ -8,6 +8,7 @@ import * as $api_gate_submit from './routes/api/gate-submit.ts';
 import * as $api_gate from './routes/api/gate.ts';
 import * as $api_health from './routes/api/health.ts';
 import * as $api_metrics from './routes/api/metrics.ts';
+import * as $api_profile from './routes/api/profile.ts';
 import * as $api_questions_answer from './routes/api/questions/answer.ts';
 import * as $api_questions_next from './routes/api/questions/next.ts';
 import * as $api_responses from './routes/api/responses.ts';
@@ -33,6 +34,7 @@ const manifest = {
     './routes/api/gate.ts': $api_gate,
     './routes/api/health.ts': $api_health,
     './routes/api/metrics.ts': $api_metrics,
+    './routes/api/profile.ts': $api_profile,
     './routes/api/questions/answer.ts': $api_questions_answer,
     './routes/api/questions/next.ts': $api_questions_next,
     './routes/api/responses.ts': $api_responses,
