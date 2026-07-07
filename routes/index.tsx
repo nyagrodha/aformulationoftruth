@@ -85,7 +85,7 @@ export default function Home({ data }: PageProps<IndexData>) {
             <div class="hero-content">
               <div class="tamil-glyph" aria-hidden="true">௨</div>
               <p class="tagline tagline-big">
-                <span class="tagline-pink">each moment</span>,{' '}
+                <span class="tagline-pink">each moment,</span>{' '}
                 <span class="tagline-orange">every day</span>
                 <br />
                 <span class="tagline-staticline">you are</span>
