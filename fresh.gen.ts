@@ -19,7 +19,9 @@ import * as $gate from './routes/gate.tsx';
 import * as $index from './routes/index.tsx';
 import * as $login from './routes/login.tsx';
 import * as $questionnaire from './routes/questionnaire.tsx';
+import * as $questions from './routes/questions.tsx';
 import * as $GateQuestionnaire from './islands/GateQuestionnaire.tsx';
+import * as $QuaternarySpheroid from './islands/QuaternarySpheroid.tsx';
 import type { Manifest } from '$fresh/server.ts';
 
 const manifest = {
@@ -41,9 +43,11 @@ const manifest = {
     './routes/index.tsx': $index,
     './routes/login.tsx': $login,
     './routes/questionnaire.tsx': $questionnaire,
+    './routes/questions.tsx': $questions,
   },
   islands: {
     './islands/GateQuestionnaire.tsx': $GateQuestionnaire,
+    './islands/QuaternarySpheroid.tsx': $QuaternarySpheroid,
   },
   baseUrl: import.meta.url,
 } satisfies Manifest;
