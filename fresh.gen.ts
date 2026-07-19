@@ -2,6 +2,7 @@
 // This file SHOULD be checked into source version control.
 // This file is automatically updated during development when running `dev.ts`.
 
+import * as $_4m from './routes/4m.tsx';
 import * as $_404 from './routes/_404.tsx';
 import * as $api_auth_magic_link from './routes/api/auth/magic-link.ts';
 import * as $api_gate_submit from './routes/api/gate-submit.ts';
@@ -24,10 +25,12 @@ import * as $profile_create from './routes/profile-create.tsx';
 import * as $questionnaire from './routes/questionnaire.tsx';
 import * as $GateQuestionnaire from './islands/GateQuestionnaire.tsx';
 import * as $ScrollAnimations from './islands/ScrollAnimations.tsx';
+import * as $Spheroid from './islands/Spheroid.tsx';
 import type { Manifest } from '$fresh/server.ts';
 
 const manifest = {
   routes: {
+    './routes/4m.tsx': $_4m,
     './routes/_404.tsx': $_404,
     './routes/api/auth/magic-link.ts': $api_auth_magic_link,
     './routes/api/gate-submit.ts': $api_gate_submit,
@@ -52,6 +55,7 @@ const manifest = {
   islands: {
     './islands/GateQuestionnaire.tsx': $GateQuestionnaire,
     './islands/ScrollAnimations.tsx': $ScrollAnimations,
+    './islands/Spheroid.tsx': $Spheroid,
   },
   baseUrl: import.meta.url,
 } satisfies Manifest;

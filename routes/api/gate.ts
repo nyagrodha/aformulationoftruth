@@ -13,6 +13,7 @@ import { Handlers } from '$fresh/server.ts';
 import { z } from 'zod';
 import { withConnection } from '../../lib/db.ts';
 import { increment } from '../../lib/metrics.ts';
+import { GATE_QUESTIONS, storeEncryptedAnswer } from '../../lib/gate_encrypt.ts';
 
 const GateSubmitSchema = z.object({
   gateToken: z.string().min(1).max(128),
@@ -48,32 +49,38 @@ export const handler: Handlers = {
     const { gateToken, questionIndex, answer, skipped } = parsed.data;
 
     try {
+      // Answer text goes to the Rust gate, which age-encrypts it. It is never
+      // written to Postgres in the clear — q0_answer/q1_answer stay NULL.
+      // Fails closed: if the gate is down we refuse rather than store plaintext.
+      try {
+        await storeEncryptedAnswer({
+          sessionId: gateToken,
+          questionIndex,
+          questionText: GATE_QUESTIONS[questionIndex] ?? `question ${questionIndex}`,
+          answer: skipped ? '' : answer,
+          skipped,
+        });
+      } catch {
+        console.error('[gate] Gate encryption unavailable; refusing to store');
+        increment('errors.5xx');
+        return new Response(
+          JSON.stringify({ error: 'Unable to securely store your answer right now.' }),
+          { status: 503, headers: { 'Content-Type': 'application/json' } }
+        );
+      }
+
+      // Linkage row only. Carries no answer text.
       await withConnection(async (client) => {
-        // Check if response already exists for this token and question
         const { rows: existing } = await client.queryObject<{ id: number }>(
-          `SELECT id FROM fresh_gate_responses
-           WHERE gate_token = $1`,
+          `SELECT id FROM fresh_gate_responses WHERE gate_token = $1`,
           [gateToken]
         );
 
-        if (existing.length > 0) {
-          // Update existing row
-          const column = questionIndex === 0 ? 'q0_answer' : 'q1_answer';
-          await client.queryObject(
-            `UPDATE fresh_gate_responses
-             SET ${column} = $1
-             WHERE gate_token = $2`,
-            [skipped ? null : answer, gateToken]
-          );
-        } else {
-          // Insert new row
-          const q0 = questionIndex === 0 ? (skipped ? null : answer) : null;
-          const q1 = questionIndex === 1 ? (skipped ? null : answer) : null;
-
+        if (existing.length === 0) {
           await client.queryObject(
             `INSERT INTO fresh_gate_responses (gate_token, q0_answer, q1_answer)
-             VALUES ($1, $2, $3)`,
-            [gateToken, q0, q1]
+             VALUES ($1, NULL, NULL)`,
+            [gateToken]
           );
         }
       });

@@ -22,6 +22,7 @@ import { createQuestionnaireSession, findActiveSession } from '../../lib/questio
 import { createQuestionnaireJWT } from '../../lib/jwt.ts';
 import { increment } from '../../lib/metrics.ts';
 import { sendMagicLinkEmail } from '../../lib/email.ts';
+import { GATE_QUESTIONS, storeEncryptedAnswer } from '../../lib/gate_encrypt.ts';
 
 const GateSubmitSchema = z.object({
   email: z.string().email(),
@@ -29,28 +30,62 @@ const GateSubmitSchema = z.object({
   answer2: z.string().max(20000).optional().default(''),
 });
 
+/**
+ * Read the submission body from either a native HTML form
+ * (application/x-www-form-urlencoded / multipart) or a JSON fetch.
+ * The landing-page gate form posts urlencoded with no JS; SPA/island
+ * clients post JSON. Returns null if the body can't be parsed.
+ */
+async function readBody(req: Request): Promise<Record<string, unknown> | null> {
+  const contentType = req.headers.get('content-type') || '';
+  try {
+    if (contentType.includes('application/json')) {
+      return await req.json();
+    }
+    // form-urlencoded or multipart/form-data
+    const form = await req.formData();
+    const obj: Record<string, unknown> = {};
+    for (const [key, value] of form.entries()) {
+      if (typeof value === 'string') obj[key] = value;
+    }
+    return obj;
+  } catch {
+    return null;
+  }
+}
+
 export const handler: Handlers = {
   async POST(req, _ctx) {
     increment('requests.api');
 
-    let body: unknown;
-    try {
-      body = await req.json();
-    } catch {
+    // Native form posts want an HTML redirect; JSON clients want JSON.
+    const wantsJson = (req.headers.get('content-type') || '').includes('application/json') ||
+      (req.headers.get('accept') || '').includes('application/json');
+
+    const fail = (status: number, error: string, redirectError: string) => {
+      if (wantsJson) {
+        return new Response(
+          JSON.stringify({ error }),
+          { status, headers: { 'Content-Type': 'application/json' } }
+        );
+      }
+      // No-JS form path: bounce back to the gate with an error flag (no PII in URL).
+      return new Response(null, {
+        status: 303,
+        headers: { Location: `/?error=${redirectError}#begin` },
+      });
+    };
+
+    const body = await readBody(req);
+    if (body === null) {
       increment('errors.4xx');
-      return new Response(
-        JSON.stringify({ error: 'Invalid JSON body' }),
-        { status: 400, headers: { 'Content-Type': 'application/json' } }
-      );
+      return fail(400, 'Invalid request body', 'invalid');
     }
 
     const parsed = GateSubmitSchema.safeParse(body);
     if (!parsed.success) {
       increment('errors.4xx');
-      return new Response(
-        JSON.stringify({ error: 'Valid email required' }),
-        { status: 400, headers: { 'Content-Type': 'application/json' } }
-      );
+      return fail(400, 'Valid email required', 'email');
     }
 
     const { email, answer1, answer2 } = parsed.data;
@@ -59,19 +94,49 @@ export const handler: Handlers = {
       // Step 1: Generate server-side gate token
       const gateToken = crypto.randomUUID();
 
-      // Step 2: Store gate answers
-      await withConnection(async (client) => {
-        const q0 = answer1.trim() || null;
-        const q1 = answer2.trim() || null;
+      // Step 2: Age-encrypt each answer via the Rust gate, which holds the only
+      // write path for answer text. The plaintext columns q0_answer/q1_answer
+      // are deliberately left NULL — nothing reads them, and storing plaintext
+      // would break the promise the gate form makes to the visitor.
+      //
+      // This fails closed: if the gate is down, storeEncryptedAnswer throws and
+      // we abort the submission rather than persist anything in the clear.
+      const q0 = answer1.trim();
+      const q1 = answer2.trim();
 
+      try {
+        await storeEncryptedAnswer({
+          sessionId: gateToken,
+          questionIndex: 0,
+          questionText: GATE_QUESTIONS[0],
+          answer: q0,
+          skipped: q0.length === 0,
+        });
+        await storeEncryptedAnswer({
+          sessionId: gateToken,
+          questionIndex: 1,
+          questionText: GATE_QUESTIONS[1],
+          answer: q1,
+          skipped: q1.length === 0,
+        });
+      } catch {
+        // Category only — the thrown error is never logged, it could carry text.
+        console.error('[gate-submit] Gate encryption unavailable; submission refused');
+        increment('errors.5xx');
+        return fail(503, 'Unable to securely store your answers right now. Please try again.', 'server');
+      }
+
+      // The Postgres row exists only for linkage (gate_token -> session). It
+      // carries no answer text.
+      await withConnection(async (client) => {
         await client.queryObject(
           `INSERT INTO fresh_gate_responses (gate_token, q0_answer, q1_answer)
-           VALUES ($1, $2, $3)`,
-          [gateToken, q0, q1]
+           VALUES ($1, NULL, NULL)`,
+          [gateToken]
         );
       });
 
-      console.log('[gate-submit] Gate answers stored, token:', gateToken.slice(0, 8) + '...');
+      console.log('[gate-submit] Gate answers encrypted and stored');
 
       // Step 3: Create magic link
       const { token: magicToken, expiresAt } = await createMagicLink(email);
@@ -103,18 +168,25 @@ export const handler: Handlers = {
       const emailResult = await sendMagicLinkEmail(email, magicLinkUrl);
 
       if (!emailResult.success) {
-        console.error('[gate-submit] Email failed:', emailResult.error);
+        // Status only — the error may carry the recipient address (CLAUDE.md).
+        console.error('[gate-submit] Email delivery failed');
         increment('errors.email');
-        return new Response(
-          JSON.stringify({ error: 'Failed to send magic link email. Please try again.' }),
-          { status: 500, headers: { 'Content-Type': 'application/json' } }
-        );
+        return fail(500, 'Failed to send magic link email. Please try again.', 'send');
       }
 
       increment('auth.magiclink.sent');
       increment('questionnaire.started');
 
       console.log('[gate-submit] Magic link sent, expires:', expiresAt.toISOString());
+
+      // Native form path: 303-redirect to the no-JS success page.
+      // JSON clients get the structured response.
+      if (!wantsJson) {
+        return new Response(null, {
+          status: 303,
+          headers: { Location: '/check-email' },
+        });
+      }
 
       return new Response(
         JSON.stringify({
@@ -123,14 +195,13 @@ export const handler: Handlers = {
         }),
         { status: 200, headers: { 'Content-Type': 'application/json' } }
       );
-    } catch (error) {
-      console.error('[gate-submit] Failed:', error);
+    } catch {
+      // Category only. The error object can carry the submitted answers or the
+      // email address, so it is never logged (CLAUDE.md: zero-logging).
+      console.error('[gate-submit] Submission failed');
       increment('errors.5xx');
 
-      return new Response(
-        JSON.stringify({ error: 'Failed to process submission' }),
-        { status: 500, headers: { 'Content-Type': 'application/json' } }
-      );
+      return fail(500, 'Failed to process submission', 'server');
     }
   },
 };
