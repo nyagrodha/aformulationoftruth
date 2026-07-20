@@ -38,10 +38,10 @@ document.getElementById("verify").onclick = async () => {
     s.trim()
   ).filter(Boolean);
   const body = {
-    commitment: verifyCommitment.value,
+    commitment: document.getElementById("verifyCommitment").value,
     proof,
-    leaf_index: leafIndex.value,
-    merkle_root: root.value,
+    leaf_index: document.getElementById("leafIndex").value,
+    merkle_root: document.getElementById("root").value,
   };
   const res = await fetch("/api/lotto/verify", {
     method: "POST",

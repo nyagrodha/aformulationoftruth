@@ -38,8 +38,7 @@ export default function EncryptedMessengerPage() {
             <textarea
               id="plain"
               placeholder="write what only the holder of the passphrase should read"
-            >
-            </textarea>
+            />
             <label for="passphrase">passphrase</label>
             <input
               id="passphrase"
@@ -56,8 +55,7 @@ export default function EncryptedMessengerPage() {
             <textarea
               id="sealed"
               placeholder='paste {"v":1,"kdf":"PBKDF2-SHA256",...}'
-            >
-            </textarea>
+            />
             <label for="openPassphrase">passphrase</label>
             <input
               id="openPassphrase"

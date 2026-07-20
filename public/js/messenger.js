@@ -1,6 +1,15 @@
 const enc = new TextEncoder();
 const dec = new TextDecoder();
-const b64 = (bytes) => btoa(String.fromCharCode(...new Uint8Array(bytes)));
+const $ = (id) => document.getElementById(id);
+const b64 = (bytes) => {
+  const arr = new Uint8Array(bytes);
+  const CHUNK = 0x8000;
+  let binary = "";
+  for (let i = 0; i < arr.length; i += CHUNK) {
+    binary += String.fromCharCode(...arr.subarray(i, i + CHUNK));
+  }
+  return btoa(binary);
+};
 const unb64 = (text) => Uint8Array.from(atob(text), (c) => c.charCodeAt(0));
 
 async function keyFromPassphrase(passphrase, salt, iterations) {
@@ -20,18 +29,18 @@ async function keyFromPassphrase(passphrase, salt, iterations) {
   );
 }
 
-document.getElementById("encrypt").onclick = async () => {
+$("encrypt").onclick = async () => {
   try {
     const salt = crypto.getRandomValues(new Uint8Array(16));
     const iv = crypto.getRandomValues(new Uint8Array(12));
     const iterations = 250000;
-    const key = await keyFromPassphrase(passphrase.value, salt, iterations);
+    const key = await keyFromPassphrase($("passphrase").value, salt, iterations);
     const data = await crypto.subtle.encrypt(
       { name: "AES-GCM", iv },
       key,
-      enc.encode(plain.value),
+      enc.encode($("plain").value),
     );
-    cipher.textContent = JSON.stringify(
+    $("cipher").textContent = JSON.stringify(
       {
         v: 1,
         kdf: "PBKDF2-SHA256",
@@ -45,15 +54,15 @@ document.getElementById("encrypt").onclick = async () => {
       2,
     );
   } catch (err) {
-    cipher.textContent = `encryption failed: ${err.message}`;
+    $("cipher").textContent = `encryption failed: ${err.message}`;
   }
 };
 
-document.getElementById("decrypt").onclick = async () => {
+$("decrypt").onclick = async () => {
   try {
-    const envelope = JSON.parse(sealed.value);
+    const envelope = JSON.parse($("sealed").value);
     const key = await keyFromPassphrase(
-      openPassphrase.value,
+      $("openPassphrase").value,
       unb64(envelope.salt),
       envelope.iterations || 250000,
     );
@@ -62,8 +71,8 @@ document.getElementById("decrypt").onclick = async () => {
       key,
       unb64(envelope.data),
     );
-    opened.textContent = dec.decode(plaintext);
+    $("opened").textContent = dec.decode(plaintext);
   } catch (err) {
-    opened.textContent = `decryption failed: ${err.message}`;
+    $("opened").textContent = `decryption failed: ${err.message}`;
   }
 };
