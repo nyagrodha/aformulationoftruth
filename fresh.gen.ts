@@ -26,7 +26,9 @@ import * as $login from './routes/login.tsx';
 import * as $lotto from './routes/lotto.tsx';
 import * as $messenger from './routes/messenger.tsx';
 import * as $questionnaire from './routes/questionnaire.tsx';
+import * as $questions from './routes/questions.tsx';
 import * as $GateQuestionnaire from './islands/GateQuestionnaire.tsx';
+import * as $QuaternarySpheroid from './islands/QuaternarySpheroid.tsx';
 import type { Manifest } from '$fresh/server.ts';
 
 const manifest = {
@@ -55,9 +57,11 @@ const manifest = {
     './routes/lotto.tsx': $lotto,
     './routes/messenger.tsx': $messenger,
     './routes/questionnaire.tsx': $questionnaire,
+    './routes/questions.tsx': $questions,
   },
   islands: {
     './islands/GateQuestionnaire.tsx': $GateQuestionnaire,
+    './islands/QuaternarySpheroid.tsx': $QuaternarySpheroid,
   },
   baseUrl: import.meta.url,
 } satisfies Manifest;
