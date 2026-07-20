@@ -75,8 +75,10 @@ export async function createQuestionnaireSession(
   // Step 2: Compute session_id = HMAC-SHA256(opaque_token, secret)
   const sessionId = await hashResumeToken(opaqueToken);
 
-  // Steps 3-5 in a single transaction: check gate, create session, link
-  let questionOrder: string;
+  // Steps 3-5 in a single transaction: check gate, create session, link.
+  // Definitely assigned inside the awaited transaction callback below before
+  // it is read in the return value; the `!` tells TS's flow analysis so.
+  let questionOrder!: string;
 
   await withTransaction(async (client) => {
     // Step 3: Check if user went through the gate flow
