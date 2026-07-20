@@ -30,6 +30,8 @@ const GATE_API_KEY = Deno.env.get('GATE_API_KEY') || '';
  *
  * Throws on network/auth errors. Caller should catch and handle gracefully.
  */
+const GATE_TIMEOUT_MS = 5000;
+
 export async function storeEncryptedAnswer(
   params: StoreAnswerParams
 ): Promise<StoreAnswerResult> {
@@ -37,11 +39,6 @@ export async function storeEncryptedAnswer(
     throw new Error('GATE_API_KEY not configured');
   }
 
-const GATE_TIMEOUT_MS = 5000;
-
-export async function storeEncryptedAnswer(
-  params: StoreAnswerParams
-): Promise<StoreAnswerResult> {
   const res = await fetch(`${GATE_URL}/api/store`, {
     signal: AbortSignal.timeout(GATE_TIMEOUT_MS),
     method: 'POST',
@@ -57,7 +54,6 @@ export async function storeEncryptedAnswer(
       skipped: params.skipped,
     }),
   });
-}
 
   if (!res.ok) {
     const text = await res.text();
