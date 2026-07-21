@@ -15,6 +15,7 @@ import * as $api_newsletter_unsubscribe from './routes/api/newsletter/unsubscrib
 import * as $api_questions_answer from './routes/api/questions/answer.ts';
 import * as $api_questions_next from './routes/api/questions/next.ts';
 import * as $api_responses from './routes/api/responses.ts';
+import * as $api_tip_jar_current from './routes/api/tip-jar/current.ts';
 import * as $auth_magic_link from './routes/auth/magic-link.ts';
 import * as $auth_verify from './routes/auth/verify.tsx';
 import * as $check_email from './routes/check-email.tsx';
@@ -23,7 +24,9 @@ import * as $gate from './routes/gate.tsx';
 import * as $index from './routes/index.tsx';
 import * as $login from './routes/login.tsx';
 import * as $questionnaire from './routes/questionnaire.tsx';
+import * as $tip from './routes/tip.tsx';
 import * as $GateQuestionnaire from './islands/GateQuestionnaire.tsx';
+import * as $ScrollAnimations from './islands/ScrollAnimations.tsx';
 import type { Manifest } from '$fresh/server.ts';
 
 const manifest = {
@@ -41,6 +44,7 @@ const manifest = {
     './routes/api/questions/answer.ts': $api_questions_answer,
     './routes/api/questions/next.ts': $api_questions_next,
     './routes/api/responses.ts': $api_responses,
+    './routes/api/tip-jar/current.ts': $api_tip_jar_current,
     './routes/auth/magic-link.ts': $auth_magic_link,
     './routes/auth/verify.tsx': $auth_verify,
     './routes/check-email.tsx': $check_email,
@@ -49,9 +53,11 @@ const manifest = {
     './routes/index.tsx': $index,
     './routes/login.tsx': $login,
     './routes/questionnaire.tsx': $questionnaire,
+    './routes/tip.tsx': $tip,
   },
   islands: {
     './islands/GateQuestionnaire.tsx': $GateQuestionnaire,
+    './islands/ScrollAnimations.tsx': $ScrollAnimations,
   },
   baseUrl: import.meta.url,
 } satisfies Manifest;

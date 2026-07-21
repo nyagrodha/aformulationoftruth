@@ -19,12 +19,12 @@ interface IndexData {
 }
 
 const ERROR_MESSAGES: Record<string, string> = {
-  bad_body: 'We could not read your submission. Please try again.',
-  missing_email: 'Please enter your email address.',
-  bad_email: 'That email address does not look valid. Please try again.',
-  no_answer: 'Please answer at least one of the two questions before continuing.',
+  bad_body: "We couldn't read your submission. Please try again.",
+  missing_email: 'enter an email address.',
+  bad_email: "The email address entered isn't valid. Kindly try again.",
+  no_answer: 'Kindly reconsider. Answer at least one of the two gate questions before continuing.',
   email_failed:
-    'We could not deliver your link right now. Please try again in a moment.',
+    "We couldn't deliver your authorization link right now. Try again in a moment.",
   server: 'Something went wrong on our end. Please try again.',
 };
 
@@ -74,8 +74,8 @@ export default function Home({ data }: PageProps<IndexData>) {
         <nav>
           <a href="/" class="logo" aria-current="page">A4T</a>
           <div class="nav-links">
-            <a href="/about.html">About</a>
-            <a href="/contact.html">Contact</a>
+            <a href="/about.html">about</a>
+            <a href="/contact.html">contact</a>
           </div>
         </nav>
 
@@ -103,8 +103,7 @@ export default function Home({ data }: PageProps<IndexData>) {
 
           <section class="section">
             <div class="section-inner">
-              <span class="section-label">Philosophy</span>
-              <h2 class="section-title">The questionnaire as mirror</h2>
+              <span class="section-label">prolegomenon:</span>
               <p class="section-text">
                 A practice in{' '}
                 <a
@@ -116,7 +115,7 @@ export default function Home({ data }: PageProps<IndexData>) {
                   self-inquiry
                 </a>
                 , these questions invite upon users reflective states of awareness;
-                the unguarded but thoughtful response reveals that something interior (
+                the unguarded yet thoughtful response reveals something interior (
                 <a
                   href="https://en.wikipedia.org/wiki/Akam_(poetry)"
                   target="_blank"
@@ -132,8 +131,7 @@ export default function Home({ data }: PageProps<IndexData>) {
 
               <div class="quote-block">
                 <p>
-                  "We say that the hour of death cannot be forecast, but when we say
-                  this we imagine that hour as placed in an obscure and distant future."
+                  "We may, indeed, say that the hour of death is uncertain, but when we say so we represent that hour to ourselves as situated in a vague and remote expanse of time, it never occurs to us that it can have any connexion with the day that has already dawned, or may signify that death — or its first assault and partial possession of us, after which it will never leave hold of us again — may occur this very afternoon, so far from uncertain, this afternoon every hour of which has already been allotted to some occupation."
                 </p>
                 <cite>Marcel Proust</cite>
               </div>
@@ -141,41 +139,40 @@ export default function Home({ data }: PageProps<IndexData>) {
           </section>
 
           <section class="site-hub-section">
-            <nav class="site-hub" aria-label="Site navigation">
+            <nav class="site-hub" aria-label="navigation">
               <div class="site-hub__row">
                 <div class="site-hub__item site-hub__item--questionnaire">
-                  <button class="site-hub__label" aria-expanded="false">Questionnaire</button>
+                  <button class="site-hub__label" aria-expanded="false">questionnaire</button>
                   <ul class="site-hub__dropdown">
-                    <li><a href="/questions.html">All Questions</a></li>
-                    <li><a href="/proust/">Karuppacami Kelvittaal</a></li>
+                    <li><a href="/questions.html">the questions</a></li>
                   </ul>
                 </div>
                 <div class="site-hub__item site-hub__item--messenger">
-                  <button class="site-hub__label" aria-expanded="false">Messenger</button>
+                  <button class="site-hub__label" aria-expanded="false">messenger</button>
                   <ul class="site-hub__dropdown">
-                    <li><span class="coming-soon">Encrypted Messages</span></li>
+                    <li><span class="coming-soon">messenger</span></li>
                   </ul>
                 </div>
                 <div class="site-hub__item site-hub__item--storefront">
-                  <button class="site-hub__label" aria-expanded="false">Storefront</button>
+                  <button class="site-hub__label" aria-expanded="false">storefront</button>
                   <ul class="site-hub__dropdown">
-                    <li><span class="coming-soon">Tip Jar</span></li>
-                    <li><span class="coming-soon">Lottery</span></li>
+                    <li><span class="coming-soon">tip me, please!</span></li>
+                    <li><span class="coming-soon">lottery</span></li>
                   </ul>
                 </div>
               </div>
               <div class="site-hub__row">
                 <div class="site-hub__item site-hub__item--library">
-                  <button class="site-hub__label" aria-expanded="false">Library</button>
+                  <button class="site-hub__label" aria-expanded="false">library</button>
                   <ul class="site-hub__dropdown">
-                    <li><span class="coming-soon">Books &amp; Inspirations</span></li>
+                    <li><span class="coming-soon">books &amp; inspirations</span></li>
                   </ul>
                 </div>
                 <div class="site-hub__item site-hub__item--about">
-                  <a href="/about.html" class="site-hub__label site-hub__label--link">About</a>
+                  <a href="/about.html" class="site-hub__label site-hub__label--link">about</a>
                 </div>
                 <div class="site-hub__item site-hub__item--contact">
-                  <a href="/contact.html" class="site-hub__label site-hub__label--link">Contact</a>
+                  <a href="/contact.html" class="site-hub__label site-hub__label--link">contact</a>
                 </div>
               </div>
             </nav>
@@ -184,10 +181,10 @@ export default function Home({ data }: PageProps<IndexData>) {
           <section id="begin" class="section gate-section">
             <div class="gate-content">
               <div class="gate-icon" aria-hidden="true">?</div>
-              <h2 class="gate-title">Two questions to start</h2>
+              <h2 class="gate-title">Here we meet @ a gate:</h2>
               <p class="gate-description">
-                These are not polite questions. They are holes in the ice.
-                If you answer them honestly, something cold touches your feet.
+                What follow are not polite questions. They are holes in the ice.
+                answer them honestly and something cold touches your feet.
               </p>
 
               {error && (
@@ -216,7 +213,7 @@ export default function Home({ data }: PageProps<IndexData>) {
                       name="answer1"
                       rows={4}
                       maxLength={20000}
-                      placeholder="Take your time…"
+                      placeholder="You may complete the questions in one session or over a course of days... Take your time…"
                       aria-describedby="accessibility-hint"
                     ></textarea>
                   </div>
@@ -230,7 +227,7 @@ export default function Home({ data }: PageProps<IndexData>) {
                       name="answer2"
                       rows={4}
                       maxLength={20000}
-                      placeholder="Take your time…"
+                      placeholder="You may only submit one questionnaire per 66 days up to half a year…"
                       aria-describedby="accessibility-hint"
                     ></textarea>
                   </div>
@@ -248,7 +245,7 @@ export default function Home({ data }: PageProps<IndexData>) {
                 </div>
 
                 <div class="form-group">
-                  <label for="email">Email (used once, to send your continuation link)</label>
+                  <label for="email">Email (used once, to send your magic-link authentication token)</label>
                   <input
                     type="email"
                     id="email"
@@ -258,9 +255,9 @@ export default function Home({ data }: PageProps<IndexData>) {
                     placeholder="your.email@example.com"
                   />
                   <p class="privacy-notice">
-                    Your answers are age-encrypted before storage. Your email is used
-                    once to deliver a single-use magic link, then hashed. No tracking,
-                    no profiling, no analytics, no third-party sharing.
+                    All what you type is age-encrypted before storage. The server uses the email supplied
+                    once to deliver a single-use magic link, and then it is hashed. There is no tracking,
+                    no profiling, no analytics, no third-party sharing throughout the whole site.
                   </p>
                 </div>
 
@@ -280,14 +277,14 @@ export default function Home({ data }: PageProps<IndexData>) {
         <footer>
           <div class="footer-inner">
             <div class="footer-links">
-              <a href="/about.html">About</a>
-              <a href="/contact.html">Contact</a>
-              <a href="/privacy.html">Privacy</a>
+              <a href="/about.html">about</a>
+              <a href="/contact.html">contact</a>
+              <a href="/privacy.html">privacy</a>
             </div>
             <p class="footer-copy">
               Encrypted database hosted in Iceland by{' '}
               <a
-                href="https://fobdongle.com"
+                href="https://billing.flokinet.is/aff.php?aff=543"
                 target="_blank"
                 rel="noopener noreferrer"
                 style="color: var(--neon-emerald); text-decoration: none;"
