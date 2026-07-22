@@ -75,6 +75,16 @@ let authLimiter = createRateLimiter({
   prefix: 'rl:auth:',
 });
 
+// Rate limit for the no-auth POST /api/commissions endpoint. Tighter than
+// the general limiter because the endpoint is open to the internet and
+// there is no login wall in front of it.
+export let commissionsLimiter = createRateLimiter({
+  windowMs: 60 * 60 * 1000,
+  max: 5,
+  message: 'Too many commission submissions. Please try again later.',
+  prefix: 'rl:commissions:',
+});
+
 // CORS configuration
 const corsOptions: cors.CorsOptions = {
   origin: function (origin, callback) {
@@ -83,10 +93,13 @@ const corsOptions: cors.CorsOptions = {
     
     const allowedOrigins = [
       'http://localhost:3000',
-      'http://localhost:5000', 
+      'http://localhost:5000',
       'https://aformulationoftruth.com',
       'https://proust.aformulationoftruth.com',
-      /\.aformulationoftruth\.com$/
+      /\.aformulationoftruth\.com$/,
+      // fobdongle.com/commission.html POSTs to /api/commissions cross-origin.
+      'https://fobdongle.com',
+      'https://www.fobdongle.com'
     ];
     
     const isAllowed = allowedOrigins.some(allowedOrigin => {
@@ -173,6 +186,18 @@ export async function setupSecurity(app: Express) {
       store: new RedisStore({
         sendCommand: (...args: string[]) => client.sendCommand(args),
         prefix: 'rl:auth:',
+      }),
+    });
+
+    commissionsLimiter = rateLimit({
+      windowMs: 60 * 60 * 1000,
+      max: 5,
+      message: { error: 'Too many commission submissions. Please try again later.' },
+      standardHeaders: true,
+      legacyHeaders: false,
+      store: new RedisStore({
+        sendCommand: (...args: string[]) => client.sendCommand(args),
+        prefix: 'rl:commissions:',
       }),
     });
 
