@@ -574,13 +574,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/commissions", commissionsCors, commissionsLimiter, async (req, res) => {
     try {
       const parsedResult = insertCommissionSchema.safeParse(req.body);
-      if (
-        !parsedResult.success ||
-        typeof parsedResult.data.algorithm !== "string" ||
-        typeof parsedResult.data.ciphertext !== "string" ||
-        parsedResult.data.algorithm.length === 0 ||
-        parsedResult.data.ciphertext.length === 0
-      ) {
+      if (!parsedResult.success) {
         return res.status(400).json({
           success: false,
           error: "algorithm and ciphertext are required",
@@ -588,6 +582,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const parsed = parsedResult.data;
+      if (
+        typeof parsed.algorithm !== "string" ||
+        typeof parsed.ciphertext !== "string" ||
+        parsed.algorithm.length === 0 ||
+        parsed.ciphertext.length === 0
+      ) {
+        return res.status(400).json({
+          success: false,
+          error: "algorithm and ciphertext are required",
+        });
+      }
       if (parsed.ciphertext.length > 100_000 || parsed.algorithm.length > 64) {
         return res.status(400).json({
           success: false,
