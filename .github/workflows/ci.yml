@@ -15,7 +15,9 @@ jobs:
         image: postgres:15
         env:
           POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
+          # Ephemeral localhost-only CI database: trust auth, no password to
+          # hardcode (avoids committing a credential-looking literal).
+          POSTGRES_HOST_AUTH_METHOD: trust
           POSTGRES_DB: test_db
         ports:
           - 5432:5432
@@ -27,7 +29,7 @@ jobs:
 
     env:
       # Local Postgres service (TLS auto-disabled for localhost in lib/db.ts)
-      DATABASE_URL: postgres://postgres:postgres@localhost:5432/test_db
+      DATABASE_URL: postgres://postgres@localhost:5432/test_db
       PORT: '8393'
       TEST_BASE_URL: http://localhost:8393
       BASE_URL: http://localhost:8393
