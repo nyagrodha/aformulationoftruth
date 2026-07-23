@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import cors from "cors";
 import { storage } from "./storage";
 import { z } from "zod";
-import { insertResponseSchema, insertGateResponseSchema } from "@shared/schema";
+import { insertResponseSchema, insertGateResponseSchema, insertCommissionSchema } from "@shared/schema";
 import { setupAuth, isAuthenticated } from "./auth";
 import { commissionsLimiter } from "./middleware/security";
 
@@ -573,10 +573,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.options("/api/commissions", commissionsCors);
   app.post("/api/commissions", commissionsCors, commissionsLimiter, async (req, res) => {
     try {
-      const parsed = z.object({
-        algorithm: z.string().min(1),
-        ciphertext: z.string().min(1),
-      }).parse(req.body);
+      const parsedResult = insertCommissionSchema.safeParse(req.body);
+      if (
+        !parsedResult.success ||
+        typeof parsedResult.data.algorithm !== "string" ||
+        typeof parsedResult.data.ciphertext !== "string" ||
+        parsedResult.data.algorithm.length === 0 ||
+        parsedResult.data.ciphertext.length === 0
+      ) {
+        return res.status(400).json({
+          success: false,
+          error: "algorithm and ciphertext are required",
+        });
+      }
+
+      const parsed = parsedResult.data;
       if (parsed.ciphertext.length > 100_000 || parsed.algorithm.length > 64) {
         return res.status(400).json({
           success: false,
@@ -588,12 +599,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`[commissions] stored (id=${row.id})`);
       res.json({ success: true, message: "Commission received.", id: row.id });
     } catch (error) {
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({
-          success: false,
-          error: "algorithm and ciphertext are required",
-        });
-      }
       console.error(
         "[commissions] insert failed:",
         error instanceof Error ? error.name : "Unknown"
