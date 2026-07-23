@@ -96,10 +96,7 @@ const corsOptions: cors.CorsOptions = {
       'http://localhost:5000',
       'https://aformulationoftruth.com',
       'https://proust.aformulationoftruth.com',
-      /\.aformulationoftruth\.com$/,
-      // fobdongle.com/commission.html POSTs to /api/commissions cross-origin.
-      'https://fobdongle.com',
-      'https://www.fobdongle.com'
+      /\.aformulationoftruth\.com$/
     ];
     
     const isAllowed = allowedOrigins.some(allowedOrigin => {

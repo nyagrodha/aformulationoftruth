@@ -72,7 +72,7 @@ export interface IStorage {
   getGateResponsesByUserId(userId: string): Promise<GateResponse[]>;
 
   // Commission operations
-  createCommission(commission: InsertCommission): Promise<Commission>;
+  createCommission(commission: InsertCommission): Promise<Pick<Commission, "id">>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -456,11 +456,11 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Commission operations
-  async createCommission(commission: InsertCommission): Promise<Commission> {
+  async createCommission(commission: InsertCommission): Promise<Pick<Commission, "id">> {
     const [row] = await db
       .insert(commissions)
       .values(commission)
-      .returning();
+      .returning({ id: commissions.id });
     return row;
   }
 }
