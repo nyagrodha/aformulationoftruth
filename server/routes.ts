@@ -1,9 +1,11 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
+import cors from "cors";
 import { storage } from "./storage";
 import { z } from "zod";
-import { insertResponseSchema, insertGateResponseSchema } from "@shared/schema";
+import { insertResponseSchema, insertGateResponseSchema, insertCommissionSchema } from "@shared/schema";
 import { setupAuth, isAuthenticated } from "./auth";
+import { commissionsLimiter } from "./middleware/security";
 
 // Admin authentication middleware
 const isAdmin = async (req: any, res: any, next: any) => {
@@ -550,6 +552,68 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/newsletter/signup", handleNewsletterSignup);
   app.post("/api/newsletter/subscribe", handleNewsletterSignup);
+
+  // Commissions - opaque browser-encrypted first-contact messages.
+  //
+  // The sender's browser encrypts client-side (e.g. via
+  // fobdongle.com/commission.html's RSA-OAEP+AES-GCM hybrid). The server
+  // never sees plaintext, never decrypts, and captures no sender identity.
+  // The operator decrypts offline using whatever private key matches the
+  // client-supplied `algorithm` label.
+  //
+  // No auth wall (commissions are first-contact). Access is IP-rate-limited
+  // (see commissionsLimiter in middleware/security.ts).
+  const commissionsCors = cors({
+    origin: ["https://fobdongle.com", "https://www.fobdongle.com"],
+    methods: ["POST", "OPTIONS"],
+    credentials: false,
+    optionsSuccessStatus: 200,
+  });
+
+  app.options("/api/commissions", commissionsCors);
+  app.post("/api/commissions", commissionsCors, commissionsLimiter, async (req, res) => {
+    try {
+      const parsedResult = insertCommissionSchema.safeParse(req.body);
+      if (!parsedResult.success) {
+        return res.status(400).json({
+          success: false,
+          error: "algorithm and ciphertext are required",
+        });
+      }
+
+      const parsed = parsedResult.data;
+      if (
+        typeof parsed.algorithm !== "string" ||
+        typeof parsed.ciphertext !== "string" ||
+        parsed.algorithm.length === 0 ||
+        parsed.ciphertext.length === 0
+      ) {
+        return res.status(400).json({
+          success: false,
+          error: "algorithm and ciphertext are required",
+        });
+      }
+      if (parsed.ciphertext.length > 100_000 || parsed.algorithm.length > 64) {
+        return res.status(400).json({
+          success: false,
+          error: "Payload too large",
+        });
+      }
+
+      const row = await storage.createCommission(parsed);
+      console.log(`[commissions] stored (id=${row.id})`);
+      res.json({ success: true, message: "Commission received.", id: row.id });
+    } catch (error) {
+      console.error(
+        "[commissions] insert failed:",
+        error instanceof Error ? error.name : "Unknown"
+      );
+      res.status(500).json({
+        success: false,
+        error: "Failed to process commission",
+      });
+    }
+  });
 
   // Admin routes (temporarily disabled - storage methods need implementation)
   /*

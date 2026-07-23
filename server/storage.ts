@@ -6,6 +6,7 @@ import {
   newsletterEmails,
   paymentCodes,
   gateResponses,
+  commissions,
   type User,
   type InsertUser,
   type UpsertUser,
@@ -20,7 +21,9 @@ import {
   type PaymentCode,
   type InsertPaymentCode,
   type GateResponse,
-  type InsertGateResponse
+  type InsertGateResponse,
+  type Commission,
+  type InsertCommission
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, gt, desc, sql } from "drizzle-orm";
@@ -67,6 +70,9 @@ export interface IStorage {
   getGateResponsesBySessionId(sessionId: string): Promise<GateResponse[]>;
   linkGateResponsesToUser(sessionId: string, userId: string): Promise<void>;
   getGateResponsesByUserId(userId: string): Promise<GateResponse[]>;
+
+  // Commission operations
+  createCommission(commission: InsertCommission): Promise<Pick<Commission, "id">>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -447,6 +453,15 @@ export class DatabaseStorage implements IStorage {
       .from(gateResponses)
       .where(eq(gateResponses.userId, userId))
       .orderBy(desc(gateResponses.createdAt));
+  }
+
+  // Commission operations
+  async createCommission(commission: InsertCommission): Promise<Pick<Commission, "id">> {
+    const [row] = await db
+      .insert(commissions)
+      .values(commission)
+      .returning({ id: commissions.id });
+    return row;
   }
 }
 

@@ -107,6 +107,19 @@ export const responses = pgTable("responses", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+// Commissions - opaque browser-encrypted first-contact messages.
+// Sender encrypts client-side (e.g. RSA-OAEP+AES-GCM in commission.html),
+// server stores the ciphertext verbatim, operator decrypts offline with
+// whatever private key matches the `algorithm` label.
+// No sender identity is captured server-side (no auth wall, no accounts).
+export const commissions = pgTable("commissions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  algorithm: varchar("algorithm", { length: 64 }).notNull(),
+  ciphertext: text("ciphertext").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  deliveredAt: timestamp("delivered_at"),
+});
+
 // Gate responses - encrypted landing page questionnaire responses
 export const gateResponses = pgTable("gate_responses", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -199,6 +212,11 @@ export const insertPaymentCodeSchema = createInsertSchema(paymentCodes).pick({
   expiresAt: true,
 });
 
+export const insertCommissionSchema = createInsertSchema(commissions).pick({
+  algorithm: true,
+  ciphertext: true,
+});
+
 // Types
 export type User = typeof users.$inferSelect;
 export type GateResponse = typeof gateResponses.$inferSelect;
@@ -220,3 +238,6 @@ export type InsertNewsletterEmail = z.infer<typeof insertNewsletterEmailSchema>;
 
 export type PaymentCode = typeof paymentCodes.$inferSelect;
 export type InsertPaymentCode = z.infer<typeof insertPaymentCodeSchema>;
+
+export type Commission = typeof commissions.$inferSelect;
+export type InsertCommission = z.infer<typeof insertCommissionSchema>;
