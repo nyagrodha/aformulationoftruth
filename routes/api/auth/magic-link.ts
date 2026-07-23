@@ -110,7 +110,7 @@ export const handler: Handlers = {
       const baseUrl = Deno.env.get('BASE_URL') || 'http://localhost:8000';
       const magicLinkUrl = `${baseUrl}/auth/verify?token=${jwt}&resume=${opaqueToken}`;
 
-      // Send the magic link email via SendGrid
+      // Deliver the magic link (email transport removed; see lib/email.ts)
       const emailResult = await sendMagicLinkEmail(email, magicLinkUrl);
       if (!emailResult.success) {
         console.error('[auth] Failed to send magic link email:', emailResult.error);

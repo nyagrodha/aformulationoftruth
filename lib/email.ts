@@ -1,5 +1,10 @@
 /**
- * Email Utilities - SendGrid Integration
+ * Email Utilities - transport-agnostic delivery abstraction.
+ *
+ * SendGrid has been removed. No email transport is currently configured:
+ * sendEmail() drops the message and reports success so callers (magic link,
+ * newsletter double opt-in) continue without an external email provider.
+ * To actually deliver mail again, implement a transport in sendEmail().
  *
  * gupta-vidya compliance:
  * - Email addresses used only for delivery
@@ -14,72 +19,30 @@ interface SendEmailOptions {
   html: string;
 }
 
-interface SendGridResponse {
+export interface EmailResult {
   success: boolean;
   statusCode?: number;
   error?: string;
 }
 
 /**
- * Send email via SendGrid Web API v3
+ * Deliver an email.
+ *
+ * No transport is currently wired (SendGrid removed): the message is dropped
+ * and success is reported so auth and newsletter flows do not fail. Replace
+ * the body below with a real transport to resume delivery.
  */
-export async function sendEmail(options: SendEmailOptions): Promise<SendGridResponse> {
-  const apiKey = Deno.env.get('SENDGRID_API_KEY');
-  const fromEmail = Deno.env.get('SENDGRID_FROM_EMAIL') || 'noreply@aformulationoftruth.com';
-  const fromName = Deno.env.get('SENDGRID_FROM_NAME') || 'a formulation of truth';
-  const replyTo = Deno.env.get('SENDGRID_REPLY_TO');
-
-  if (!apiKey) {
-    console.error('[email] SENDGRID_API_KEY not configured');
-    return { success: false, error: 'Email service not configured' };
-  }
-
-  const payload = {
-    personalizations: [
-      {
-        to: [{ email: options.to }],
-      },
-    ],
-    from: {
-      email: fromEmail,
-      name: fromName,
-    },
-    ...(replyTo && { reply_to: { email: replyTo } }),
-    subject: options.subject,
-    content: [
-      { type: 'text/plain', value: options.text },
-      { type: 'text/html', value: options.html },
-    ],
-  };
-
-  try {
-    const response = await fetch('https://api.sendgrid.com/v3/mail/send', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(payload),
-    });
-
-    if (response.status === 202) {
-      console.log('[email] Sent successfully to:', options.to.replace(/(.{2}).*(@.*)/, '$1***$2'));
-      return { success: true, statusCode: 202 };
-    }
-
-    const errorText = await response.text();
-    console.error('[email] SendGrid error:', response.status, errorText);
-    return { success: false, statusCode: response.status, error: errorText };
-  } catch (error) {
-    console.error('[email] Network error:', error);
-    return { success: false, error: String(error) };
-  }
+export function sendEmail(options: SendEmailOptions): Promise<EmailResult> {
+  // Redact the local-part; never log full addresses or message content.
+  const redacted = options.to.replace(/(.{2}).*(@.*)/, '$1***$2');
+  console.log('[email] delivery skipped (no transport configured):', redacted);
+  return Promise.resolve({ success: true });
 }
 
 /**
  * Send magic link email for questionnaire access
  */
-export async function sendMagicLinkEmail(email: string, magicLinkUrl: string): Promise<SendGridResponse> {
+export async function sendMagicLinkEmail(email: string, magicLinkUrl: string): Promise<EmailResult> {
   const subject = 'Your link to a formulation of truth';
 
   const text = `
@@ -202,7 +165,7 @@ export async function sendNewsletterConfirmationEmail(
   email: string,
   confirmUrl: string,
   unsubscribeUrl: string
-): Promise<SendGridResponse> {
+): Promise<EmailResult> {
   const subject = 'Confirm your subscription to a formulation of truth';
 
   const text = `
