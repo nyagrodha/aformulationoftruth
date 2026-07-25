@@ -114,9 +114,23 @@ badge firmware concept (QR + BLE-signed updates, no LoRa/WiFi) ports:
 | Waveshare ESP32-S3 1.69" touch LCD | 240x280, 262K colors, accelerometer + gyroscope | IMU enables wake-on-motion (screen off in a pocket, on when presented — big battery win); same S3 toolchain as the Heltec |
 | Waveshare ESP32-C6 1.47" LCD | 172x320, 262K colors, RISC-V, WiFi 6 | Lowest-cost option for gifting at scale; RISC-V core means a toolchain port (ESP-IDF/Arduino support exists) |
 
-None carry LoRa — consistent with badge mode's radio cut. QR rendering at
-these resolutions supports higher QR versions and softer aesthetics
-(colored quiet zones, owner theming) than the 128x64 OLED.
+None of the Waveshare boards carry LoRa — consistent with badge mode's
+radio cut. QR rendering at these resolutions supports higher QR versions
+and softer aesthetics (colored quiet zones, owner theming) than the
+128x64 OLED.
+
+If a future variant should stay a roaming mesh node while worn (the
+badge-mode cut reversed), the LoRa-carrying analogues are LILYGO's
+T-Watch line — same ESP32-S3 + SX1262 silicon as the Heltec fleet, so
+the dd-node RadioLib firmware ports with pin-map changes:
+
+| Board | Display | Notes |
+|---|---|---|
+| LILYGO T-Watch Ultra (2026) | 2.06" AMOLED capacitive touch | SX1262 + GNSS + NFC, IP65 watch enclosure; closest LoRa analogue to the round AMOLED; very new — verify stock/915MHz variant |
+| LILYGO T-Watch S3 / S3 Plus | 1.54" 240x240 IPS touch | SX1262 (915 MHz variant), 400 mAh, proven and cheap; analogue to the 1.69" LCD |
+
+(T-Echo is e-paper + SX1262 but nRF52840 — different firmware stack;
+noted and set aside.)
 
 ## Phase 2 (explicit non-goals tonight)
 
