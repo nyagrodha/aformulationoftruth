@@ -8,13 +8,13 @@ Scope: this repo (site) + `heltec-dd-node` (prototype firmware)
 
 A wearable (or coffee-table) object displays a QR code. Scanning it opens an
 invitation page on aformulationoftruth.com associated with the object's
-owner. The scanner may leave an email; they receive a magic link; following
+owner. The scanner is invited to leave an email; they receive a magic link; following
 it begins the questionnaire, with the encounter attributed to the owner's
 object. Respondents keep full sovereignty over what they later divulge.
 
 Prototype hardware: the "Garden Aura" Heltec WiFi LoRa 32 V4 running the
 dd-node QR-billboard firmware (PSK-signed BLE-updatable QR on its OLED),
-on LiPo when worn, USB-powered as the coffee-table variant.
+on LiPo when worn, USB-powered/lipo as the coffee-table variant.
 
 ## Privacy principles (constraints, not aspirations)
 
@@ -29,7 +29,7 @@ on LiPo when worn, USB-powered as the coffee-table variant.
 3. **Owner-defined disclosure.** What the invitation page reveals about the
    owner is the owner's choice per object: a display name / chosen name /
    username, or nothing (`display_name` NULL renders the site's own voice:
-   "You have encountered a bearer of this questionnaire").
+   "You have encountered a bearer of this questionnaire"). The owner may elect that each scanner of their device may read the owner's own responses to the questionnaire upon the respondent's/scanner's completion of the questionnaire. The scanner may still elect not to divulge their own answers despite being able to see the owner's responses upon completion.
 4. **Opaque tokens.** `/w/<token>` names no one. A shared or reposted QR
    URL leaks nothing about the owner.
 5. **No new tracking.** The site remains no-JS; the form POST carries the
@@ -42,6 +42,7 @@ CREATE TABLE wearables (
   token        VARCHAR PRIMARY KEY,          -- URL-safe random, >=16 chars
   owner_user_id VARCHAR NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   display_name TEXT,                          -- NULL = pure mystery
+  share_owner_responses BOOLEAN NOT NULL DEFAULT FALSE,  -- owner's reciprocity election
   label        VARCHAR NOT NULL,              -- e.g. 'garden-aura-proto'
   created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   claimed_at   TIMESTAMPTZ                    -- NULL until gifting flow exists
@@ -65,9 +66,19 @@ label `garden-aura-proto`, display_name per owner's choice at seed time.
 ## Routes (Fresh, server-rendered, no JS)
 
 - `GET /w/:token` — invitation page. Greeting per `display_name` (or the
-  site's voice when NULL). One email input, one submit. A plain-language
-  line: the email is used to send a single link to begin, nothing else.
-  Unknown/invalid token → the site's normal 404 (no oracle).
+  site's voice when NULL). When `share_owner_responses` is TRUE, the page
+  states the reciprocity enticement: upon completing the questionnaire,
+  the scanner will be able to read the owner's own responses. (The scanner
+  remains free to divulge nothing of their own.) One email input, one
+  submit. A plain-language line: the email is used to send a single link
+  to begin, nothing else. Unknown/invalid token → normal 404 (no oracle).
+- Reciprocity fulfillment (must exist before the flag is ever TRUE, so the
+  invitation never over-promises): on questionnaire completion, a user
+  whose encounter came via a share-enabled wearable can view that owner's
+  responses (server-encrypted responses only; if the owner's responses are
+  client-encrypted the flag cannot be enabled). Per-answer granularity of
+  what the owner shares is phase 2 — MVP is all-or-nothing by the owner's
+  flag.
 - `POST /w/:token` — validate email shape, create the magic link via the
   existing flow, insert `encounters` row referencing it, send the email,
   render "your link is on its way" (no redirect chains, no reflection of
@@ -113,24 +124,10 @@ badge firmware concept (QR + BLE-signed updates, no LoRa/WiFi) ports:
 | Waveshare ESP32-S3 1.43" AMOLED round | 466x466 capacitive touch, 16.7M colors | Most wearable-shaped (round, AMOLED contrast for QR); touch enables on-device consent/interaction later |
 | Waveshare ESP32-S3 1.69" touch LCD | 240x280, 262K colors, accelerometer + gyroscope | IMU enables wake-on-motion (screen off in a pocket, on when presented — big battery win); same S3 toolchain as the Heltec |
 | Waveshare ESP32-C6 1.47" LCD | 172x320, 262K colors, RISC-V, WiFi 6 | Lowest-cost option for gifting at scale; RISC-V core means a toolchain port (ESP-IDF/Arduino support exists) |
+| LILYGO T-Watch line (Ultra: 2.06" AMOLED; S3: 1.54" IPS) or e-ink T-Echo | color touch / e-ink | The LoRa-carrying option (SX1262, same silicon as the Heltec fleet) for a future roaming-mesh wearable |
 
-None of the Waveshare boards carry LoRa — consistent with badge mode's
-radio cut. QR rendering at these resolutions supports higher QR versions
-and softer aesthetics (colored quiet zones, owner theming) than the
-128x64 OLED.
-
-If a future variant should stay a roaming mesh node while worn (the
-badge-mode cut reversed), the LoRa-carrying analogues are LILYGO's
-T-Watch line — same ESP32-S3 + SX1262 silicon as the Heltec fleet, so
-the dd-node RadioLib firmware ports with pin-map changes:
-
-| Board | Display | Notes |
-|---|---|---|
-| LILYGO T-Watch Ultra (2026) | 2.06" AMOLED capacitive touch | SX1262 + GNSS + NFC, IP65 watch enclosure; closest LoRa analogue to the round AMOLED; very new — verify stock/915MHz variant |
-| LILYGO T-Watch S3 / S3 Plus | 1.54" 240x240 IPS touch | SX1262 (915 MHz variant), 400 mAh, proven and cheap; analogue to the 1.69" LCD |
-
-(T-Echo is e-paper + SX1262 but nRF52840 — different firmware stack;
-noted and set aside.)
+QR rendering at these resolutions supports higher QR versions and softer
+aesthetics (colored quiet zones, owner theming) than the 128x64 OLED.
 
 ## Phase 2 (explicit non-goals tonight)
 
