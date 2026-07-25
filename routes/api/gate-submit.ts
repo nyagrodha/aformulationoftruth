@@ -79,6 +79,36 @@ export const handler: Handlers = {
       // Step 4: Hash email immediately
       const emailHash = await hashEmail(email);
 
+      // Step 4b: If this entry began at a wearable's QR (/w/:token planted
+      // the cookie), record the encounter -- pseudonymous, hash only.
+      // Silent rate cap per token (no oracle for abusers); failures never
+      // block the gate flow.
+      try {
+        const cookieHeader = req.headers.get('Cookie') || '';
+        const wMatch = cookieHeader.match(/(?:^|;\s*)wearable_token=([A-Za-z0-9_-]{16,64})/);
+        if (wMatch) {
+          const wearableToken = wMatch[1];
+          await withConnection(async (client) => {
+            const cap = await client.queryObject<{ n: bigint }>(
+              `SELECT COUNT(*)::bigint AS n FROM fresh_encounters
+                WHERE wearable_token = $1 AND created_at > NOW() - INTERVAL '1 hour'`,
+              [wearableToken],
+            );
+            if (Number(cap.rows[0]?.n ?? 0) < 20) {
+              await client.queryObject(
+                `INSERT INTO fresh_encounters (wearable_token, scanner_email_hash)
+                 SELECT $1, $2 WHERE EXISTS
+                   (SELECT 1 FROM fresh_wearables WHERE token = $1)`,
+                [wearableToken, emailHash],
+              );
+            }
+          });
+          console.log('[gate-submit] Encounter recorded for wearable:', wearableToken.slice(0, 6) + '...');
+        }
+      } catch (encounterErr) {
+        console.error('[gate-submit] Encounter recording failed (non-fatal):', encounterErr);
+      }
+
       // Step 5: Create or resume questionnaire session with gateToken
       let sessionResult;
       const existingSession = await findActiveSession(emailHash);

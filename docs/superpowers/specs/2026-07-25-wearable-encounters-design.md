@@ -129,6 +129,20 @@ badge firmware concept (QR + BLE-signed updates, no LoRa/WiFi) ports:
 QR rendering at these resolutions supports higher QR versions and softer
 aesthetics (colored quiet zones, owner theming) than the 128x64 OLED.
 
+## Build boundary (what shipped tonight)
+
+Shipped: schema (`fresh_wearables` + `fresh_encounters`), `/w/:token`
+invitation page (both greeting modes + reciprocity enticement text),
+encounter attribution at gate-submit (pseudonymous, hash-only, silent rate
+cap), the seed tool. `share_owner_responses` exists and defaults FALSE.
+
+Deferred to phase 2 (below): the reciprocity **fulfillment view** — a
+completed scanner reading the owner's responses. Until it exists,
+`share_owner_responses` must stay FALSE (enabling it would make the invite
+page promise a reveal that cannot happen). Reading another person's
+responses is consent-sensitive enough to design unhurried rather than ship
+under a time-box.
+
 ## Phase 2 (explicit non-goals tonight)
 
 - Gifting/claiming flow (wearable arrives unclaimed; recipient signs up
