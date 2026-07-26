@@ -143,6 +143,39 @@ page promise a reveal that cannot happen). Reading another person's
 responses is consent-sensitive enough to design unhurried rather than ship
 under a time-box.
 
+## Concept: the brooch twinkles when the magic link opens
+
+When a scanner opens the emailed magic link (their private commitment to
+begin), the LEDs on the owner's brooch twinkle — the wearer feels, in the
+world, that the encounter took. A closed loop: encounter → email → link
+opened → the object responds. The firmware already has the NeoPixel driver
+(`dd_ring`); the "twinkle" is an animation, not new hardware.
+
+The hard part is the signal path back to a worn object, and it decides the
+radio question the badge build otherwise closes:
+
+- **Mesh path (fits the LoRa wearable variant).** `/auth/verify` (link
+  opened) → the site notifies fobdongle (it already POSTs telemetry to the
+  ingest API; this is the reverse edge) → fobdongle emits a signed DD1/DD2
+  addressed to the brooch's sender_id → the brooch, still a mesh node,
+  hears it and twinkles. Reuses the entire existing mesh + PSK trust. Cost:
+  the wearable keeps its SX1262 on (the LILYGO T-Watch / roaming-mesh
+  variant), not pure badge mode. Range is the mesh's range, not the room's.
+- **Owner's-phone relay (fits pure badge mode).** The paired phone (already
+  the BLE QR-update channel) gets a push/poll from the site and forwards a
+  BLE "twinkle" command. Keeps DD_NO_LORA/DD_NO_WIFI, but only twinkles when
+  the owner's phone is present and a companion app/PWA is running.
+- **WiFi path.** Brooch holds a poll/WebSocket to the site; simplest logic,
+  worst battery, only near known APs.
+
+Privacy note: the twinkle must carry NO scanner identity — it is a bare
+"someone you met opened the door" pulse, nothing about who. The mesh packet
+would address the brooch, not name the scanner.
+
+This is the strongest argument yet for the LoRa-carrying wearable (T-Watch
+class): it turns the mesh the fleet already runs into the nervous system of
+the encounter.
+
 ## Phase 2 (explicit non-goals tonight)
 
 - Gifting/claiming flow (wearable arrives unclaimed; recipient signs up
@@ -150,6 +183,8 @@ under a time-box.
 - Per-answer divulgence election (all/some/none) at completion, and the
   owner-facing view of divulged responses. Consent UX designed unhurried.
 - On-device touch interactions (candidate hardware).
+- Brooch twinkle on magic-link open (see the Concept above; signal path
+  TBD — leans toward the mesh/LoRa wearable variant).
 
 ## Deploy
 
