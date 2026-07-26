@@ -95,10 +95,15 @@ export const handler: Handlers = {
               [wearableToken],
             );
             if (Number(cap.rows[0]?.n ?? 0) < 20) {
+              // Plain parameterized VALUES so Postgres infers param types
+              // from the target columns. The wearable_token FK already
+              // rejects an unknown token (and the cookie is only set by
+              // /w/:token, which 404s unknown tokens), so no EXISTS guard
+              // is needed -- and reusing $1 across SELECT+WHERE tripped
+              // "inconsistent types deduced for parameter $1".
               await client.queryObject(
                 `INSERT INTO fresh_encounters (wearable_token, scanner_email_hash)
-                 SELECT $1, $2 WHERE EXISTS
-                   (SELECT 1 FROM fresh_wearables WHERE token = $1)`,
+                 VALUES ($1, $2)`,
                 [wearableToken, emailHash],
               );
             }
