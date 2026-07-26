@@ -71,41 +71,55 @@ export const paymentCodes = pgTable("payment_codes", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-export const questionnaireSessions = pgTable("questionnaire_sessions", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  userId: varchar("user_id").notNull().references(() => users.id),
-  currentQuestionIndex: integer("current_question_index").default(0).notNull(),
-  questionOrder: jsonb("question_order").notNull(),
-  completed: boolean("completed").default(false).notNull(),
-  reviewingDeclined: boolean("reviewing_declined").default(false).notNull(),
-  completedAt: timestamp("completed_at"),
-  wantsReminder: boolean("wants_reminder").default(false).notNull(),
-  isShared: boolean("is_shared").default(false).notNull(),
-  shareId: varchar("share_id").unique(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
+export const questionnaireSessions = pgTable(
+  "questionnaire_sessions",
+  {
+    id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+    userId: varchar("user_id").notNull().references(() => users.id),
+    currentQuestionIndex: integer("current_question_index").default(0).notNull(),
+    questionOrder: jsonb("question_order").notNull(),
+    completed: boolean("completed").default(false).notNull(),
+    reviewingDeclined: boolean("reviewing_declined").default(false).notNull(),
+    completedAt: timestamp("completed_at"),
+    wantsReminder: boolean("wants_reminder").default(false).notNull(),
+    isShared: boolean("is_shared").default(false).notNull(),
+    shareId: varchar("share_id").unique(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("idx_questionnaire_sessions_user_completed_at").on(
+      table.userId,
+      table.completed,
+      table.completedAt,
+    ),
+  ],
+);
 
-export const responses = pgTable("responses", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  sessionId: varchar("session_id").notNull().references(() => questionnaireSessions.id),
-  questionId: integer("question_id").notNull(),
-  // Server-side AES-256-GCM encryption (default for all users)
-  // The 'answer' field stores the encrypted ciphertext (base64)
-  answer: text("answer").notNull(), // Encrypted ciphertext (base64)
-  iv: text("iv"), // Initialization vector for AES-256-GCM (base64)
-  tag: text("tag"), // Authentication tag for AES-256-GCM (base64)
-  salt: text("salt"), // Per-response salt for key derivation (base64)
-  encryptionType: varchar("encryption_type").default("server").notNull(), // 'server' | 'client' | 'plaintext' (legacy)
-  // For client-side encrypted responses (paid users with Model C encryption)
-  encryptedData: text("encrypted_data"), // X25519-encrypted response
-  nonce: text("nonce"), // Nonce for client-side encryption
-  // Version history for paid users
-  version: integer("version").default(1).notNull(),
-  previousVersionId: varchar("previous_version_id"), // Reference to previous version
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
+export const responses = pgTable(
+  "responses",
+  {
+    id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+    sessionId: varchar("session_id").notNull().references(() => questionnaireSessions.id),
+    questionId: integer("question_id").notNull(),
+    // Server-side AES-256-GCM encryption (default for all users)
+    // The 'answer' field stores the encrypted ciphertext (base64)
+    answer: text("answer").notNull(), // Encrypted ciphertext (base64)
+    iv: text("iv"), // Initialization vector (base64)
+    tag: text("tag"), // Authentication tag (base64)
+    salt: text("salt"), // Per-response salt for key derivation (base64)
+    encryptionType: varchar("encryption_type").default("server").notNull(), // 'server' | 'client' | 'plaintext' (legacy)
+    // For client-side encrypted responses (paid users with Model C encryption)
+    encryptedData: text("encrypted_data"), // X25519-encrypted response
+    nonce: text("nonce"), // Nonce for client-side encryption
+    // Version history for paid users
+    version: integer("version").default(1).notNull(),
+    previousVersionId: varchar("previous_version_id"), // Reference to previous version
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (table) => [index("idx_responses_session_question").on(table.sessionId, table.questionId)],
+);
 
 // Commissions - opaque browser-encrypted first-contact messages.
 // Sender encrypts client-side (e.g. RSA-OAEP+AES-GCM in commission.html),

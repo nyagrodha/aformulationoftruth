@@ -37,10 +37,10 @@ interface QuestionData {
     current: number;
     total: number;
   };
-  responses: Array<{
+  response: {
     questionId: number;
     answer: string;
-  }>;
+  } | null;
 }
 
 interface SessionData {
@@ -97,19 +97,16 @@ export default function QuestionnairePage() {
   // Update current answer when question data loads
   useEffect(() => {
     if (questionData?.question) {
-      const existingResponse = questionData.responses.find(
-        r => r.questionId === questionData.question.id
-      );
-      
-      if (existingResponse) {
-        setCurrentAnswer(existingResponse.answer);
-        setHasUnsavedChanges(false);
-      } else {
-        setCurrentAnswer("");
-        setHasUnsavedChanges(false);
-      }
+      setCurrentAnswer(questionData.response?.answer ?? "");
+      setHasUnsavedChanges(false);
     }
   }, [questionData]);
+
+  useEffect(() => {
+    if (session?.completed) {
+      setLocation(`/complete/${session.id}`);
+    }
+  }, [session?.completed, session?.id, setLocation]);
 
   // Handle answer changes
   const handleAnswerChange = (value: string) => {
@@ -223,7 +220,6 @@ export default function QuestionnairePage() {
 
   // Check if questionnaire is completed
   if (session?.completed) {
-    setLocation(`/complete/${session.id}`);
     return null;
   }
 

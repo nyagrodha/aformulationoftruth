@@ -36,6 +36,21 @@ import { vpsStorageService } from "./services/vpsStorageService";
 import { encryptionService } from "./services/encryptionService";
 import { responseEncryptionService } from "./services/responseEncryptionService";
 
+function queueCompletionEmail(email: string, sessionId: string, questionOrder: number[]): void {
+  setImmediate(() => {
+    void (async () => {
+      try {
+        const encryptedResponses = await storage.getResponsesBySessionId(sessionId);
+        const responses = responseEncryptionService.decryptResponses(encryptedResponses);
+        const pdfBuffer = await pdfService.generateFormulationOfTruthPDF(responses, questionOrder);
+        await emailService.sendCompletionEmail(email, pdfBuffer);
+      } catch (error) {
+        console.error("Completion email delivery failed:", error);
+      }
+    })();
+  });
+}
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
   await setupAuth(app);
@@ -143,9 +158,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const currentQuestion = questionService.getCurrentQuestion(session);
-      const encryptedResponses = await storage.getResponsesBySessionId(sessionId);
-      // Decrypt responses before returning to client
-      const responses = responseEncryptionService.decryptResponses(encryptedResponses);
+      const encryptedResponse = currentQuestion
+        ? await storage.getResponseBySessionAndQuestion(sessionId, currentQuestion.id)
+        : undefined;
+      const response = encryptedResponse
+        ? responseEncryptionService.decryptResponses([encryptedResponse])[0]
+        : undefined;
 
       res.json({
         question: currentQuestion,
@@ -153,10 +171,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           current: session.currentQuestionIndex + 1,
           total: (session.questionOrder as number[]).length
         },
-        responses: responses.map(r => ({
-          questionId: r.questionId,
-          answer: r.answer
-        }))
+        response: response
+          ? {
+              questionId: response.questionId,
+              answer: response.answer,
+            }
+          : null,
       });
     } catch (error) {
       console.error('Get current question error:', error);
@@ -222,38 +242,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (nextQuestionIndex < questionOrder.length) {
         await storage.updateSessionProgress(sessionId, nextQuestionIndex);
       } else {
-        // Check if user has completed questionnaire in last 2 months
-        const existingCompletions = await storage.getUserCompletedSessions(userId);
+        // Only the newest completed session can be within the restriction window.
+        const recentCompletion = await storage.getMostRecentCompletedSession(userId);
         const twoMonthsAgo = new Date();
         twoMonthsAgo.setMonth(twoMonthsAgo.getMonth() - 2);
-        
-        const recentCompletion = existingCompletions.find(session => 
-          session.completedAt && new Date(session.completedAt) > twoMonthsAgo
-        );
 
-        if (recentCompletion) {
+        if (recentCompletion?.completedAt && recentCompletion.completedAt > twoMonthsAgo) {
           return res.status(400).json({ 
             message: 'You may only complete the questionnaire once every 2 months',
-            nextAvailable: new Date(new Date(recentCompletion.completedAt!).getTime() + (2 * 30 * 24 * 60 * 60 * 1000))
+            nextAvailable: new Date(recentCompletion.completedAt.getTime() + (2 * 30 * 24 * 60 * 60 * 1000))
           });
         }
 
-        // Complete session and generate PDF
+        // Complete the session, then queue document delivery.
         await storage.completeSession(sessionId, false);
 
-        // Get user and all responses for PDF (decrypt before PDF generation)
+        // Document generation and SMTP delivery are intentionally deferred so the
+        // final answer request is not held open by CPU and network work.
         const user = await storage.getUser(userId);
-        const encryptedAllResponses = await storage.getResponsesBySessionId(sessionId);
-        const allResponses = responseEncryptionService.decryptResponses(encryptedAllResponses);
-
         if (user?.email) {
-          // Generate and send PDF
-          const pdfBuffer = await pdfService.generateFormulationOfTruthPDF(
-            allResponses,
-            session.questionOrder as number[]
-          );
-
-          await emailService.sendCompletionEmail(user.email, pdfBuffer);
+          queueCompletionEmail(user.email, sessionId, session.questionOrder as number[]);
         }
       }
 
@@ -300,16 +308,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: 'User not authenticated' });
       }
 
-      // Check if user has completed questionnaire recently (silent enforcement)
-      const existingCompletions = await storage.getUserCompletedSessions(userId);
+      // Only the newest completed session can be within the restriction window.
+      const recentCompletion = await storage.getMostRecentCompletedSession(userId);
       const restrictionPeriod = new Date();
       restrictionPeriod.setTime(restrictionPeriod.getTime() - (5688000 * 1000)); // 5,688,000 seconds ago
-      
-      const recentCompletion = existingCompletions.find(session => 
-        session.completedAt && new Date(session.completedAt) > restrictionPeriod
-      );
 
-      if (recentCompletion) {
+      if (recentCompletion?.completedAt && recentCompletion.completedAt > restrictionPeriod) {
         // Return a generic error without revealing timing information
         return res.status(400).json({ 
           message: 'Unable to complete the inquiry at this time'
@@ -338,14 +342,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Increment user completion count
       const updatedUser = await storage.incrementUserCompletionCount(userId);
 
-      // Decrypt responses for PDF generation
-      const responses = responseEncryptionService.decryptResponses(encryptedResponses);
-
-      // Generate and send PDF
-      const pdfBuffer = await pdfService.generateFormulationOfTruthPDF(responses, session.questionOrder as number[]);
-      
       if (updatedUser?.email) {
-        await emailService.sendCompletionEmail(updatedUser.email, pdfBuffer);
+        queueCompletionEmail(updatedUser.email, sessionId, session.questionOrder as number[]);
       }
 
       // Securely backup to VPS (non-blocking)

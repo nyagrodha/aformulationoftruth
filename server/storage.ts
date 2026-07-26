@@ -49,6 +49,7 @@ export interface IStorage {
   updateSessionProgress(sessionId: string, questionIndex: number): Promise<void>;
   completeSession(sessionId: string, wantsReminder?: boolean, wantsToShare?: boolean): Promise<string | null>;
   getUserCompletedSessions(userId: string): Promise<QuestionnaireSession[]>;
+  getMostRecentCompletedSession(userId: string): Promise<QuestionnaireSession | undefined>;
 
   // Response operations
   getResponsesBySessionId(sessionId: string): Promise<Response[]>;
@@ -235,6 +236,19 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(questionnaireSessions.completedAt));
   }
 
+  async getMostRecentCompletedSession(userId: string): Promise<QuestionnaireSession | undefined> {
+    const [session] = await db
+      .select()
+      .from(questionnaireSessions)
+      .where(and(
+        eq(questionnaireSessions.userId, userId),
+        eq(questionnaireSessions.completed, true)
+      ))
+      .orderBy(desc(questionnaireSessions.completedAt))
+      .limit(1);
+    return session || undefined;
+  }
+
   async getResponsesBySessionId(sessionId: string): Promise<Response[]> {
     return await db
       .select()
@@ -294,7 +308,8 @@ export class DatabaseStorage implements IStorage {
           eq(responses.sessionId, sessionId),
           eq(responses.questionId, questionId)
         )
-      );
+      )
+      .limit(1);
     return response || undefined;
   }
 

@@ -45,7 +45,7 @@ export default function SharedQuestionnairePage() {
   const questionOrder = session.questionOrder as number[];
 
   // Sort responses according to the display order
-  const sortedResponses = responses.sort((a: any, b: any) => {
+  const sortedResponses = [...responses].sort((a: any, b: any) => {
     const aIndex = questionOrder.indexOf(a.questionId);
     const bIndex = questionOrder.indexOf(b.questionId);
     return aIndex - bIndex;
