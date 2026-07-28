@@ -1,10 +1,24 @@
-import { assertStringIncludes } from '$std/assert/mod.ts';
+import { assert, assertStringIncludes } from '$std/assert/mod.ts';
 import { render } from 'preact-render-to-string';
 import ShopPage from './shop.tsx';
 
 Deno.test('shop page carries a conspicuous affiliate disclosure', () => {
   const html = render(<ShopPage />);
   assertStringIncludes(html, 'affiliate');
+});
+
+Deno.test('affiliate disclosure appears above the catalog, not buried below it', () => {
+  const html = render(<ShopPage />);
+  const disclosureIndex = html.indexOf('affiliate');
+  const catalogIndex = html.indexOf('Swann');
+  assert(disclosureIndex !== -1, 'disclosure text ("affiliate") not found in rendered HTML');
+  assert(catalogIndex !== -1, 'catalog item ("Swann") not found in rendered HTML');
+  assert(
+    disclosureIndex < catalogIndex,
+    `expected the affiliate disclosure (index ${disclosureIndex}) to appear before the ` +
+      `catalog (index ${catalogIndex}), but the catalog came first — the disclosure is no ` +
+      'longer conspicuous/above the fold',
+  );
 });
 
 Deno.test('shop page lists every Proust volume and de Botton', () => {
