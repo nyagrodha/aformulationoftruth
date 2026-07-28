@@ -7,9 +7,15 @@
  * figure — and terminates in the gate. The
  * gate gathers the two answers + the user's email in a single POST to
  * /api/gate-submit. That endpoint age-encrypts each answer via the Rust gate
- * service (port 8787), age-encrypts the email, and mails a magic link. The
- * magic link lands on /auth/verify, which launches the Deno Fresh
- * questionnaire at /questionnaire.
+ * service (port 8787), hashes the email, and mails a magic link. The magic
+ * link lands on /auth/verify, which launches the Deno Fresh questionnaire at
+ * /questionnaire.
+ *
+ * The address itself is never persisted, in any form: hashEmail() takes the
+ * SHA-256 of it and only that hash reaches Postgres. There is no
+ * encrypted_email column anywhere in the schema, and nothing reversible is
+ * kept — the plaintext lives in request memory just long enough to hand to
+ * Apple's SMTP for delivery.
  *
  * No external font CDNs, no third-party requests of any kind — the design is
  * set in system faces (Georgia / Arial) via /css/prolegomenon.css.
@@ -129,23 +135,29 @@ export default function Home({ data }: PageProps<IndexData>) {
               <p class='eyebrow' id='prolegomenon'>PROLEGOMENON:</p>
               <p class='incipit'>
                 <span class='drop-cap' aria-hidden='true'>Y</span>
-                <span class='sr-only'>Y</span>our answers — anyone's answers — may become for another reader just such an ātmanopticon: in our world where nothing ever happens the same way twice, truth resides in the reconstruction of events without precedent. Our very sense--our style and taste for food or music--forms in the association of memories.
+                <span class='sr-only'>Y</span>our answers — anyone's answers — may become for another reader just such an ātmanopticon: in our world where nothing ever happens the same way twice, truth resides in the reconstruction of events without precedent.
               </p>
 
               <div class='hero-prose'>
                 <p>
-                  A practice: the questions invite an unguarded, thoughtful state of awareness. Whatever you write remains yours!
-                  Nothing in stored unencrypted on the server. What the answer discloses is something interior (
-                  <span lang='ta'>அகம்</span>) — a subject, the grammatical <em>I</em>, a formulation of truth.
+                  A practice/<i lang='sa-Latn'>sādhana</i>: the questions invite an unguarded, thoughtful state; and what
+                  the answer at times just astonishes in describing some interior (<span lang='ta'>அகம்</span>) — a
+                  subject, the grammatical <em>I</em>, a formulation of truth.
                 </p>
                 <p>
-                  Return after enough time (and a dose of a species of amnesia) to answer again. The earlier answers may seemingly belong to someone else; the one
-                  answering now is provisional. An other emerges from these memories fecund with friendship, laughter, success (and some failures)--from lived life! The questionnaire is a mechanic rendering the past legible in the present. It records an oh-so-ephemeral ego's predilections during what we hope & pray to be the long cross from birth to death of self.
+                  Return after enough time and (a species) amnesia to respond again. The earlier answers belong to
+                  someone else; the one answering now is provisional too. An other self is emerging. This is not a
+                  tragedy. It’s more like the weather.
                 </p>
                 <p>
-                  This recognition adds no new person. It sees the ones already given — who answered then, who answers
-                  now, who will — as one light regarding itself. Find who sleeps.
+                  The questionnaire keeps their record — so many persons in succession, wearing one name: <em>I</em>.
                 </p>
+                <p>
+                  Insofar as recognition adds nothing new or points out something that hasn’t always been known it can be
+                  captured well by double-dipping ‘I’, ‘I-I’ sees the ones already given — who you were when you answered
+                  then. Who answers now, who will — as one light regarding itself.
+                </p>
+                <p>Find who sleeps.</p>
                 <p>That is what this instrument is for.</p>
               </div>
             </div>
@@ -298,9 +310,7 @@ export default function Home({ data }: PageProps<IndexData>) {
                 </div>
 
                 <div class='form-group'>
-                  <label for='email'>
-                    Email (used just once to send you a magic-link authentication token)
-                  </label>
+                  <label for='email'>Email</label>
                   <input
                     type='email'
                     id='email'
@@ -310,9 +320,10 @@ export default function Home({ data }: PageProps<IndexData>) {
                     placeholder='your.email@example.com'
                   />
                   <p class='privacy-notice'>
-                    All what you type is age-encrypted before storage. The server uses the email supplied once to
-                    deliver a single-use magic link, and then it is hashed. There is no tracking, no profiling, no
-                    analytics, no third-party sharing throughout the whole site.
+                    All what you type is age-encrypted before storage. Your address is used once, to deliver your link
+                    through Apple's mail servers, and is never itself stored — the database keeps only a SHA-256 hash
+                    of it. We don't care to see your email address. There is no tracking, no profiling, no analytics,
+                    and nothing is shared with anyone beyond that delivery.
                   </p>
                 </div>
 
