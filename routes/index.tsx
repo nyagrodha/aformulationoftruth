@@ -366,7 +366,7 @@ export default function Home({ data }: PageProps<IndexData>) {
           </div>
 
           <div class='footer-links' style='justify-content: flex-end;'>
-            <a href='/about.html'>about</a>
+            <a href='/about'>about</a>
             <a href='/contact.html'>contact</a>
             <a href='/privacy.html'>privacy</a>
           </div>

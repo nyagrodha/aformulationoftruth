@@ -28,6 +28,9 @@ https://aformulationoftruth.com, https://www.aformulationoftruth.com, https://ap
 	bind 37.228.129.173 2a06:1700:1:45::435c:c15f
 	import common
 
+	# Legacy static about page moved to the Fresh /about route
+	redir /about.html /about 301
+
 	# API proxy to backend server
 	handle /api/* {
 		reverse_proxy http://localhost:3000
