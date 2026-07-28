@@ -33,9 +33,11 @@ function resolveConfig(): DbConfig | null {
         database: url.pathname.slice(1),
         user: decodeURIComponent(url.username),
         password: decodeURIComponent(url.password),
-        // Disable TLS for localhost connections
+        // Disable TLS for localhost connections. `enforce` is inert when TLS
+        // is off — there is no negotiation to enforce — but the field is
+        // required, so it is stated rather than omitted.
         tls: isLocalhost
-          ? { enabled: false }
+          ? { enabled: false, enforce: false }
           : url.searchParams.get('sslmode') === 'require'
             ? { enabled: true, enforce: false }
             : undefined,

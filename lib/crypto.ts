@@ -13,8 +13,15 @@ const decoder = new TextDecoder();
 
 /**
  * Generate cryptographically secure random bytes
+ *
+ * The `<ArrayBuffer>` here and on the Uint8Array parameters below is load
+ * bearing, not decoration. TypeScript 5.7 made Uint8Array generic over its
+ * backing buffer, and a bare `Uint8Array` now means `Uint8Array<ArrayBufferLike>`
+ * — which admits SharedArrayBuffer and therefore is not assignable to Web
+ * Crypto's BufferSource. Every crypto.subtle call in this file rejects the
+ * unpinned form. Widen these back and the file stops type-checking.
  */
-export function randomBytes(length: number): Uint8Array {
+export function randomBytes(length: number): Uint8Array<ArrayBuffer> {
   return crypto.getRandomValues(new Uint8Array(length));
 }
 
@@ -32,7 +39,7 @@ export function randomToken(byteLength = 32): string {
  * Hash data using SHA-256.
  * Use for: email hashing, token verification, content integrity.
  */
-export async function sha256(data: string | Uint8Array): Promise<string> {
+export async function sha256(data: string | Uint8Array<ArrayBuffer>): Promise<string> {
   const input = typeof data === 'string' ? encoder.encode(data) : data;
   const hashBuffer = await crypto.subtle.digest('SHA-256', input);
   return Array.from(new Uint8Array(hashBuffer))
@@ -58,7 +65,7 @@ export async function hashEmail(email: string): Promise<string> {
  */
 export async function deriveKey(
   password: string,
-  salt: Uint8Array,
+  salt: Uint8Array<ArrayBuffer>,
   iterations = 100000
 ): Promise<CryptoKey> {
   const keyMaterial = await crypto.subtle.importKey(
@@ -132,7 +139,7 @@ export async function decrypt(
  */
 export async function hmacSign(
   data: string,
-  secretKey: Uint8Array
+  secretKey: Uint8Array<ArrayBuffer>
 ): Promise<string> {
   const key = await crypto.subtle.importKey(
     'raw',
@@ -154,7 +161,7 @@ export async function hmacSign(
 export async function hmacVerify(
   data: string,
   signature: string,
-  secretKey: Uint8Array
+  secretKey: Uint8Array<ArrayBuffer>
 ): Promise<boolean> {
   const expectedSignature = await hmacSign(data, secretKey);
 

@@ -219,8 +219,12 @@ function base64urlEncode(input: string | ArrayBuffer): string {
 
 /**
  * Base64url decode to Uint8Array.
+ *
+ * Pinned to `<ArrayBuffer>` for the same reason as lib/crypto.ts: the result
+ * is handed to crypto.subtle.verify as a BufferSource, which the default
+ * `Uint8Array<ArrayBufferLike>` does not satisfy.
  */
-function base64urlDecode(input: string): Uint8Array {
+function base64urlDecode(input: string): Uint8Array<ArrayBuffer> {
   // Convert base64url to base64
   let base64 = input
     .replace(/-/g, '+')
