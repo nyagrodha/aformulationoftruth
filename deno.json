@@ -1,28 +1,24 @@
 {
   "nodeModulesDir": "auto",
   "tasks": {
-    "dev": "deno run --allow-net --allow-read --allow-write --allow-env --watch backend/server-deno.ts",
-    "start": "deno run --allow-net --allow-read --allow-write --allow-env backend/server-deno.ts",
-    "test": "deno test --allow-net --allow-read --allow-write --allow-env"
+    "dev": "deno run -A --watch=public/,routes/,islands/ dev.ts",
+    "start": "deno run --allow-all main.ts",
+    "test": "deno test --allow-net --allow-read --allow-write --allow-env",
+    "hooks": "git config core.hooksPath hooks"
   },
   "imports": {
-    "oak": "https://deno.land/x/oak@v17.1.4/mod.ts",
-    "cors": "https://deno.land/x/cors@v1.2.2/mod.ts",
-    "dotenv": "https://deno.land/std@0.224.0/dotenv/mod.ts",
+    "$fresh/": "https://deno.land/x/fresh@1.7.3/",
+    "preact": "https://esm.sh/preact@10.24.3",
+    "preact/": "https://esm.sh/preact@10.24.3/",
+    "$std/": "https://deno.land/std@0.216.0/",
     "postgres": "https://deno.land/x/postgres@v0.19.3/mod.ts",
-    "bcrypt": "https://deno.land/x/bcrypt@v0.4.1/mod.ts",
-    "djwt": "https://deno.land/x/djwt@v3.0.2/mod.ts",
-    "path": "https://deno.land/std@0.224.0/path/mod.ts",
-    "fs": "https://deno.land/std@0.224.0/fs/mod.ts",
-    "crypto": "https://deno.land/std@0.224.0/crypto/mod.ts",
-    "nodemailer": "npm:nodemailer@^7.0.5",
-    "@sendgrid/mail": "npm:@sendgrid/mail@^8.1.6"
+    "zod": "https://deno.land/x/zod@v3.23.8/mod.ts"
   },
   "compilerOptions": {
-    "allowJs": true,
-    "lib": ["deno.window", "dom"],
-    "strict": true
+    "jsx": "react-jsx",
+    "jsxImportSource": "preact"
   },
+  "exclude": ["**/_fresh/*", "unused-20260612"],
   "lint": {
     "rules": {
       "tags": ["recommended"]

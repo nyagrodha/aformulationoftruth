@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+#
+# Pre-commit hook
+#   1. Zero-Logging Compliance — no PII in logging statements
+#   2. Secret material         — no keys, credentials, or onion keys in the repo
+#
+# Both must pass; either failing aborts the commit.
+#
+# This file is tracked, and git is pointed at it with
+#
+#     git config core.hooksPath hooks     (or: deno task hooks)
+#
+# so the hook travels with the repository instead of living only in one
+# machine's .git/hooks. That distinction is not academic: scripts/check-secrets.sh
+# went untracked for months, and every fresh clone and git worktree inherited a
+# hook that aborted every commit with "No such file or directory".
+#
+# Paths are resolved from the repository root rather than the working directory,
+# because a hook is not guaranteed to be invoked from the top level.
+
+set -uo pipefail
+
+root=$(git rev-parse --show-toplevel) || exit 1
+
+"$root/scripts/check-zero-logging.sh" || exit 1
+"$root/scripts/check-secrets.sh"      || exit 1
