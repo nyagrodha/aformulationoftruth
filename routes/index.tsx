@@ -280,7 +280,7 @@ export default function Home({ data }: PageProps<IndexData>) {
                     name='answer2'
                     rows={4}
                     maxLength={20000}
-                    placeholder='You may only submit one questionnaire. The site enforces a period of waiting between submissions and the application will contact you via email when you're able to submit another set of responses.'
+                    placeholder="You may only submit one questionnaire. The site enforces a period of waiting between submissions and the application will contact you via email when you're able to submit another set of responses."
                     aria-describedby='accessibility-hint'
                   >
                   </textarea>
