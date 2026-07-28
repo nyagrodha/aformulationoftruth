@@ -146,11 +146,12 @@ export default function Home({ data }: PageProps<IndexData>) {
                 </p>
                 <p>
                   Return after enough time and (a species) amnesia to respond again. The earlier answers belong to
-                  someone else; the one answering now is provisional too. An other self is emerging. This is not a
-                  tragedy. It’s more like the weather.
+                  someone else; the one answering now is provisional too. Another self emerges in the collision of the
+                  past in the present from memories we create and their associations. This is not a tragedy. It’s more
+                  like the weather.
                 </p>
                 <p>
-                  The questionnaire keeps their record — so many persons in succession, wearing one name: <em>I</em>.
+                  The questionnaire keeps their record — so many persons in succession, bearing one name: <em>I</em>.
                 </p>
                 <p>
                   Insofar as recognition adds nothing new or points out something that hasn’t always been known it can be
