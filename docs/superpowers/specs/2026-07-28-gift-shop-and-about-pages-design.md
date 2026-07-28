@@ -134,11 +134,29 @@ FTC requires **conspicuous** affiliate disclosure — placed at the top of `/sho
 |---|---|---|---|
 | How Proust Can Change Your Life | Alain de Botton | Vintage (PRH) | 9780679779155 |
 
-### Own items
+### Own items — shipping in this phase
 
-QR wearables from the wearable-encounters work — brooches/badges carrying a token that opens the questionnaire via `/w/:token`. Sold via Stripe Payment Link.
+Not the QR wearables (those don't exist as products yet). The Stripe account already held three live t-shirt products at $35.00 each. Two ship on `/shop`:
 
-**Open:** exact product description, price, and Payment Link URL. Placeholder in `data/shop.ts` until supplied; the item renders behind a flag so the page ships without it.
+| Item | Product | Price | Payment Link |
+|---|---|---|---|
+| Abhinava-Tee | `prod_U52G154jFbfScg` | `price_1T6sBsE0bl8qdZq4N5H8Jo1f` | `https://buy.stripe.com/4gM5kD2iS77L0p67K53ZK00` |
+| Abhinavabsurd… yet funny! | `prod_U52JkzW7noXQMf` | `price_1T6sFJE0bl8qdZq4KyyGgQkb` | `https://buy.stripe.com/bJeaEX8Hg63H5Jqe8t3ZK01` |
+
+*Abhinavabsurd* carries the "REFRIGERATOR on the Blockchain" line and is **dual-listed** — it appears on both `/shop` and the fridge-rs site, as one Stripe product with one Payment Link referenced from two catalogs. Its metadata records `site: aformulationoftruth,fridge-rs`.
+
+**"Nobody knows I'm a fridge"** (`prod_U52IFWVQlsWqrP`) is **excluded** from this site — it belongs to fridge-rs. Its config was corrected alongside the others, but no Payment Link was created for it.
+
+### Stripe configuration applied 2026-07-28
+
+Products (all three, including the fridge tee):
+- `shippable: true`
+- `tax_code: txcd_30011000` (Clothing & Footwear), corrected from `txcd_20030000` (General – Services)
+- `type` remains `service` — immutable after creation, and harmless: shipping collection is governed by the Payment Link, not the product
+
+Prices (all three): `tax_behavior: inclusive` — **$35.00 is the final price the customer pays**, tax absorbed from margin (net ≈ $32–33). This field is **immutable once set**; changing it later requires creating new Price objects and re-pointing every Payment Link.
+
+Payment Links: size dropdown (S/M/L/XL/2XL, required), shipping address collection for US/CA/GB, adjustable quantity 1–10.
 
 ## Essay page content
 
@@ -179,6 +197,28 @@ Beats to cover:
 3. The Caddyfile change needs a Caddy reload, separate from the app restart.
 4. There are two hosts named `fobdongle` — this VPS and the LoRa Pi at `192.168.1.20`. Deploy target is `ssh fob`.
 
+## Phasing
+
+The item list outgrew a single push. `data/shop.ts` holds all of it — later items are array entries, not rewrites.
+
+| Phase | Contents | Blocked on |
+|---|---|---|
+| **This spec** | 8 books + 2 Abhinava tees, `/about` route, 2 essay pages | Nothing |
+| **Next** | QR wearables/brooches, prints/broadsides, further tee designs | Artwork, pricing, fulfillment |
+| **Separate spec** | Coffee-table invitation node | Own brainstorm — see below |
+
+### Coffee-table invitation node (deferred, not designed here)
+
+A physical device for a home or family that hosts *their* invitation: visitors scan its QR, answer the questionnaire, and join the site **through that household's node**. It extends the `/w/:token` attribution graph from individual wearables to a persistent household presence, and connects to existing e-ink/Heltec work and the Garden Aura live-token-QR pattern.
+
+This is hardware plus firmware plus a provisioning flow plus a data-model change. It is deliberately **not** specified here — folding it in would stall the shop indefinitely. It needs its own brainstorm.
+
+## Known gaps after this phase
+
+1. **`automatic_tax` is disabled** on both Payment Links. Combined with `inclusive` pricing, no sales tax is currently computed or remitted. Enabling Stripe Tax requires configuring tax registrations per jurisdiction first — a business/compliance step, not a code change.
+2. **No shipping rates configured** (`shipping_options: []`), so shipping is effectively free and absorbed into the $35. Deliberate for now; revisit if fulfillment cost bites.
+3. **No order-to-size fulfillment pipeline.** Size arrives as a Payment Link custom field visible in the Stripe dashboard; there is no automated route to a fulfillment system.
+
 ## Out of scope
 
 - Refactoring the existing 8 routes onto `PageShell`.
@@ -188,6 +228,7 @@ Beats to cover:
 
 ## Open questions
 
-- [ ] Amazon Associates tag value
-- [ ] Stripe Payment Link URL, price, and product description for the wearable
+- [ ] **Amazon Associates tag value** — account exists; tag string still needed. Only remaining blocker for the affiliate half.
+- [ ] Whether to enable Stripe Tax (requires jurisdiction registrations)
 - [ ] Whether to add Bookshop.org as a third retailer later
+- [ ] PRH/ShareASale registration (user action; links work as plain links until then)
