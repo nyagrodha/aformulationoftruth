@@ -76,7 +76,9 @@ export async function createQuestionnaireSession(
   const sessionId = await hashResumeToken(opaqueToken);
 
   // Steps 3-5 in a single transaction: check gate, create session, link
-  let questionOrder: string;
+  // Assigned inside the transaction callback below, which always runs to
+  // completion before the await resolves; TS cannot see through the closure.
+  let questionOrder!: string;
 
   await withTransaction(async (client) => {
     // Step 3: Check if user went through the gate flow

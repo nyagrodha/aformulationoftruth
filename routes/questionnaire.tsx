@@ -4,8 +4,8 @@
  * GET /questionnaire
  *
  * Serves the Proust-style questionnaire with shuffled questions.
- * If gate questions (0-1) were answered at /gate, session has 33 questions (Q2-34).
- * If gate was skipped, session has all 35 questions shuffled together.
+ * Questions 0-1 are gate questions (already served at /gate).
+ * Questions 2-34 are shuffled per session and shown here.
  *
  * Authentication: JWT token in cookie, session state in DB
  */
@@ -14,15 +14,14 @@ import { Handlers, PageProps } from '$fresh/server.ts';
 import { verifyQuestionnaireJWT } from '../lib/jwt.ts';
 import { getSessionById, updateSessionProgress, updateSessionIndex } from '../lib/questionnaire-session.ts';
 import { parseQuestionOrder } from '../lib/questionnaire.ts';
-import { increment, trackFunnelQuestion, trackTemporalPattern } from '../lib/metrics.ts';
-import { storeEncryptedAnswer } from '../lib/gate-client.ts';
+import { increment } from '../lib/metrics.ts';
 
 // The 35 Proust questionnaire questions
 const QUESTIONS = [
-  // Gate questions (0-1) - may have been answered at /gate
+  // Gate questions (0-1) - already answered
   'What is your idea of perfect happiness?',
   'What is your greatest fear?',
-  // Main questions (2-34)
+  // Shuffled questions (2-34)
   'What is the trait you most deplore in yourself?',
   'What is the trait you most deplore in others?',
   'Which living person do you most admire?',
@@ -52,7 +51,7 @@ const QUESTIONS = [
   'Which historical figure do you most identify with?',
   'Who are your heroes in real life?',
   'What are your favorite names?',
-  'What is it that you most dislike?', // Proust's response: "My own worst qualities. And people who do not feel what is good; who are ignorant the sweetness of sympathy."
+  'What is it that you most dislike?',
   'What is your greatest regret?',
   'How would you like to die?',
   'What is your motto?',
@@ -66,7 +65,6 @@ interface QuestionnaireData {
   currentQuestion: string;
   questionNumber: number;
   totalQuestions: number;
-  isFirstQuestion: boolean;
 }
 
 function getCookie(cookieHeader: string | null, name: string): string | null {
@@ -111,39 +109,39 @@ export const handler: Handlers<QuestionnaireData> = {
     }
 
     // Parse question order from session
-    // Session already contains the correct order: 33 questions (gate done) or 35 (no gate)
     const questionOrder = parseQuestionOrder(session.questionOrder);
-    const totalQuestions = questionOrder.length;
+
+    // Questions 2-34 (33 questions total after gate)
+    const remainingQuestions = questionOrder.slice(2);
+    const totalQuestions = remainingQuestions.length;
     const currentIndex = session.currentIndex;
 
     // Check if completed
     if (currentIndex >= totalQuestions) {
       return new Response(null, {
         status: 302,
-        headers: { Location: '/completion.html' },
+        headers: { Location: '/completion' },
       });
     }
 
-    const questionNum = questionOrder[currentIndex];
+    const questionNum = remainingQuestions[currentIndex];
     const currentQuestion = QUESTIONS[questionNum];
-    const displayNum = currentIndex + 1;
+    const overallNum = currentIndex + 3; // +2 for gate questions, +1 for 1-indexing
 
     increment('questionnaire.viewed');
-    trackTemporalPattern();
 
     return ctx.render({
       authenticated: true,
       sessionId: session.sessionId,
-      questionOrder,
+      questionOrder: remainingQuestions,
       currentIndex,
       currentQuestion,
-      questionNumber: displayNum,
-      totalQuestions,
-      isFirstQuestion: currentIndex === 0,
+      questionNumber: overallNum,
+      totalQuestions: 35, // Total including gate questions
     });
   },
 
-  async POST(req, _ctx) {
+  async POST(req, ctx) {
     increment('requests.api');
 
     const cookies = req.headers.get('Cookie');
@@ -180,43 +178,35 @@ export const handler: Handlers<QuestionnaireData> = {
     const action = formData.get('action')?.toString() || 'continue';
 
     const questionOrder = parseQuestionOrder(session.questionOrder);
+    const remainingQuestions = questionOrder.slice(2);
     const currentIndex = session.currentIndex;
-
-    // Handle "previous" action - go back to prior question
-    if (action === 'previous') {
-      if (currentIndex > 0) {
-        const prevIndex = currentIndex - 1;
-        await updateSessionIndex(session.sessionId, prevIndex);
-        increment('feature.previous_used');
-      }
-      return new Response(null, {
-        status: 302,
-        headers: { Location: '/questionnaire' },
-      });
-    }
-
-    const questionNum = questionOrder[currentIndex];
+    const questionNum = remainingQuestions[currentIndex];
 
     // Store the answer
     const skipped = action === 'skip' || answer.trim() === '';
 
-    // Track funnel progression and feature usage
-    trackFunnelQuestion(questionNum);
-    if (skipped) {
-      increment('feature.skip_used');
-    }
-
     try {
-      // Store answer via Rust Gate (age-encrypted)
-      await storeEncryptedAnswer({
-        sessionId: session.sessionId,
-        questionText: QUESTIONS[questionNum],
-        questionIndex: questionNum,
-        answer: skipped ? '' : answer,
-        skipped,
+      // Store answer via API
+      const baseUrl = new URL(req.url).origin;
+      const storeRes = await fetch(`${baseUrl}/api/questions/answer`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Cookie': `jwt=${jwtToken}`,
+        },
+        body: JSON.stringify({
+          questionIndex: questionNum,
+          answer: skipped ? '' : answer,
+          skipped,
+        }),
       });
-    } catch (error) {
-      console.error('[questionnaire] Error storing encrypted response:', error);
+
+      if (!storeRes.ok) {
+        console.error('[questionnaire] Failed to store response:', await storeRes.text());
+      }
+    } catch {
+      increment('errors.5xx');
+      console.error('[questionnaire] Error storing response');
     }
 
     // Advance to next question
@@ -230,10 +220,10 @@ export const handler: Handlers<QuestionnaireData> = {
     }
 
     // Check if completed
-    if (nextIndex >= questionOrder.length) {
+    if (nextIndex >= remainingQuestions.length) {
       return new Response(null, {
         status: 302,
-        headers: { Location: '/completion.html' },
+        headers: { Location: '/completion' },
       });
     }
 
@@ -246,7 +236,7 @@ export const handler: Handlers<QuestionnaireData> = {
 };
 
 export default function QuestionnairePage({ data }: PageProps<QuestionnaireData>) {
-  const { currentQuestion, questionNumber, totalQuestions, isFirstQuestion } = data;
+  const { currentIndex, currentQuestion, questionNumber, totalQuestions } = data;
 
   return (
     <html lang="en">
@@ -386,17 +376,6 @@ export default function QuestionnairePage({ data }: PageProps<QuestionnaireData>
             border-color: #555;
             color: #999;
           }
-          .btn-prior {
-            background: transparent;
-            border: 1px solid #444;
-            color: #888;
-          }
-          .btn-prior:hover:not(:disabled) {
-            border-color: #c0c0c0;
-            color: #e8e8e8;
-            text-shadow: 0 0 8px rgba(192, 192, 192, 0.6);
-            box-shadow: 0 0 12px rgba(192, 192, 192, 0.3), inset 0 0 8px rgba(192, 192, 192, 0.1);
-          }
           .voice-hint {
             font-size: 0.75rem;
             color: #444;
@@ -432,15 +411,8 @@ export default function QuestionnairePage({ data }: PageProps<QuestionnaireData>
         `}</style>
       </head>
       <body>
-        {/* Commented out per design review - blue circled items
         <nav>
-          <a href="/" class="logo">A4T</a>
-          <div class="nav-links">
-            <a href="/about.html">About</a>
-            <a href="/contact.html">Contact</a>
-          </div>
-        </nav>
-        */}
+          <a href="/" class="logo">A4T</a>        </nav>
 
         <main>
           <div class="questionnaire-container">
@@ -457,11 +429,9 @@ export default function QuestionnairePage({ data }: PageProps<QuestionnaireData>
 
             <h1 class="question-text">{currentQuestion}</h1>
 
-            {/* Commented out per design review - yellow circled item
             <p class="hint">
               Take your time. There are no right answers, only honest ones.
             </p>
-            */}
 
             <form method="POST" action="/questionnaire" class="answer-form">
               <textarea
@@ -471,16 +441,6 @@ export default function QuestionnairePage({ data }: PageProps<QuestionnaireData>
               ></textarea>
 
               <div class="button-group">
-                <button
-                  type="submit"
-                  name="action"
-                  value="previous"
-                  class="btn-prior"
-                  disabled={isFirstQuestion}
-                  style={isFirstQuestion ? { opacity: '0.4', cursor: 'not-allowed' } : {}}
-                >
-                  Prior
-                </button>
                 <button type="submit" name="action" value="continue" class="btn-primary">
                   Continue
                 </button>
@@ -490,11 +450,9 @@ export default function QuestionnairePage({ data }: PageProps<QuestionnaireData>
               </div>
             </form>
 
-            {/* Commented out per design review - blue circled item
             <p class="voice-hint">
               For voice input, use <a href="https://github.com/cjpais/Handy" target="_blank" rel="noopener">Handy</a> — free offline speech-to-text
             </p>
-            */}
           </div>
         </main>
 
@@ -503,10 +461,9 @@ export default function QuestionnairePage({ data }: PageProps<QuestionnaireData>
             <a href="/about.html">About</a>
             <a href="/contact.html">Contact</a>
             <a href="/privacy.html">Privacy</a>
-            <a href="/accessibility.html">Accessibility</a>
           </div>
           <p class="footer-copy">
-            Hosted in Finland by <a href="https://billing.flokinet.is/aff.php?aff=543" target="_blank" rel="noopener" style="color: #666; text-decoration: none;">FlokiNET</a> &middot; Encrypted database in Iceland
+            Encrypted &amp; hosted in Iceland
           </p>
         </footer>
       </body>

@@ -16,7 +16,15 @@
 const encoder = new TextEncoder();
 const decoder = new TextDecoder();
 
-// Lazy-load JWT_SECRET to allow env file loading before first use
+/**
+ * Read the JWT secret lazily, on each use.
+ *
+ * It must NOT be captured at module-eval time: main.ts loads .env AFTER the
+ * route manifest (and therefore this module) is imported, so a top-level read
+ * would always observe `undefined` and every signing/verification call would
+ * throw "JWT_SECRET not configured" at request time. Reading on demand
+ * guarantees the value is present once the server is handling requests.
+ */
 function getJwtSecret(): string {
   const secret = Deno.env.get('JWT_SECRET');
   if (!secret) {
@@ -135,17 +143,10 @@ export async function verifyQuestionnaireJWT(
     const signatureInput = `${headerB64}.${payloadB64}`;
     const signatureBuffer = base64urlDecode(signatureB64);
 
-    // Extract ArrayBuffer slice for crypto.subtle.verify
-    // (Uint8Array.buffer is ArrayBufferLike, but we need ArrayBuffer)
-    const signatureArrayBuffer = (signatureBuffer.buffer as ArrayBuffer).slice(
-      signatureBuffer.byteOffset,
-      signatureBuffer.byteOffset + signatureBuffer.byteLength
-    );
-
     const isValid = await crypto.subtle.verify(
       'HMAC',
       key,
-      signatureArrayBuffer,
+      signatureBuffer,
       encoder.encode(signatureInput)
     );
 
@@ -218,8 +219,12 @@ function base64urlEncode(input: string | ArrayBuffer): string {
 
 /**
  * Base64url decode to Uint8Array.
+ *
+ * Pinned to `<ArrayBuffer>` for the same reason as lib/crypto.ts: the result
+ * is handed to crypto.subtle.verify as a BufferSource, which the default
+ * `Uint8Array<ArrayBufferLike>` does not satisfy.
  */
-function base64urlDecode(input: string): Uint8Array {
+function base64urlDecode(input: string): Uint8Array<ArrayBuffer> {
   // Convert base64url to base64
   let base64 = input
     .replace(/-/g, '+')

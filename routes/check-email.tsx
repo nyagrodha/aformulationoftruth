@@ -1,0 +1,88 @@
+/**
+ * /check-email
+ *
+ * Server-rendered success page reached via 303 redirect from
+ * /api/gate-submit when the magic-link email has been accepted by the
+ * SMTP relay. No JavaScript, no PII in the URL.
+ */
+
+import { Handlers } from '$fresh/server.ts';
+import LogoMenu from '../components/LogoMenu.tsx';
+
+export const handler: Handlers = {
+  GET(_req, ctx) {
+    return ctx.render();
+  },
+};
+
+export default function CheckEmail() {
+  return (
+    <html lang="en">
+      <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="robots" content="noindex, nofollow" />
+        <title>check your email — a formulation of truth</title>
+        <link rel="stylesheet" href="/css/main.css" />
+        <link rel="stylesheet" href="/css/landing.css" />
+      </head>
+      <body class="landing">
+        <nav>
+          <LogoMenu />        </nav>
+
+        <main>
+          <section class="hero landing-hero">
+            <div class="hero-content">
+              <div class="at-symbol" aria-hidden="true">@</div>
+              <h1 class="title">
+                check your inbox
+                <span class="title-truth">to begin</span>
+              </h1>
+              <p class="icelandic-subtitle">
+                Look for a message from{' '}
+                <em>formitselfisemptiness@aformulationoftruth.com</em>.
+              </p>
+            </div>
+          </section>
+
+          <section class="section">
+            <div class="section-inner" style="text-align: center;">
+              <p class="section-text">
+                We've sent you a one-time link. Click it within 15 minutes
+                to launch your questionnaire. The link can be used once.
+              </p>
+              <p class="section-text" style="opacity: 0.7;">
+                Not in your inbox? Check spam, or wait a minute — iCloud
+                sometimes takes a moment.
+              </p>
+              <p style="margin-top: 2rem;">
+                <a href="/" class="cta">Back to start</a>
+              </p>
+            </div>
+          </section>
+        </main>
+
+        <footer>
+          <div class="footer-inner">
+            <div class="footer-links">
+              <a href="/about.html">About</a>
+              <a href="/contact.html">Contact</a>
+              <a href="/privacy.html">Privacy</a>
+            </div>
+            <p class="footer-copy">
+              Encrypted database hosted in Iceland by{' '}
+              <a
+                href="https://fobdongle.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                style="color: var(--neon-emerald); text-decoration: none;"
+              >
+                FlokiNET
+              </a>
+            </p>
+          </div>
+        </footer>
+      </body>
+    </html>
+  );
+}

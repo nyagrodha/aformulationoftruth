@@ -6,20 +6,14 @@
  * gupta-vidya compliance:
  * - No PII stored
  * - Gate token is random, unlinkable
- * - Answers encrypted via Rust Gate (age x25519) before storage
- * - fresh_gate_responses only stores gate_token for session linking (no answer text)
+ * - Answers stored as-is (client can encrypt before sending)
  */
 
 import { Handlers } from '$fresh/server.ts';
 import { z } from 'zod';
 import { withConnection } from '../../lib/db.ts';
 import { increment } from '../../lib/metrics.ts';
-import { storeEncryptedAnswer } from '../../lib/gate-client.ts';
-
-const GATE_QUESTIONS = [
-  'What is your idea of perfect happiness?',
-  'What is your greatest fear?',
-];
+import { GATE_QUESTIONS, storeEncryptedAnswer } from '../../lib/gate_encrypt.ts';
 
 const GateSubmitSchema = z.object({
   gateToken: z.string().min(1).max(128),
@@ -55,23 +49,40 @@ export const handler: Handlers = {
     const { gateToken, questionIndex, answer, skipped } = parsed.data;
 
     try {
-      // Store answer via Rust Gate (age-encrypted into gate_responses)
-      await storeEncryptedAnswer({
-        sessionId: gateToken,
-        questionText: GATE_QUESTIONS[questionIndex],
-        questionIndex,
-        answer: skipped ? '' : answer,
-        skipped,
-      });
+      // Answer text goes to the Rust gate, which age-encrypts it. It is never
+      // written to Postgres in the clear — q0_answer/q1_answer stay NULL.
+      // Fails closed: if the gate is down we refuse rather than store plaintext.
+      try {
+        await storeEncryptedAnswer({
+          sessionId: gateToken,
+          questionIndex,
+          questionText: GATE_QUESTIONS[questionIndex] ?? `question ${questionIndex}`,
+          answer: skipped ? '' : answer,
+          skipped,
+        });
+      } catch {
+        console.error('[gate] Gate encryption unavailable; refusing to store');
+        increment('errors.5xx');
+        return new Response(
+          JSON.stringify({ error: 'Unable to securely store your answer right now.' }),
+          { status: 503, headers: { 'Content-Type': 'application/json' } }
+        );
+      }
 
-      // Upsert fresh_gate_responses as linking table (no answer text)
+      // Linkage row only. Carries no answer text.
       await withConnection(async (client) => {
-        await client.queryObject(
-          `INSERT INTO fresh_gate_responses (gate_token)
-           VALUES ($1)
-           ON CONFLICT (gate_token) DO NOTHING`,
+        const { rows: existing } = await client.queryObject<{ id: number }>(
+          `SELECT id FROM fresh_gate_responses WHERE gate_token = $1`,
           [gateToken]
         );
+
+        if (existing.length === 0) {
+          await client.queryObject(
+            `INSERT INTO fresh_gate_responses (gate_token, q0_answer, q1_answer)
+             VALUES ($1, NULL, NULL)`,
+            [gateToken]
+          );
+        }
       });
 
       increment('questionnaire.started');
@@ -81,7 +92,7 @@ export const handler: Handlers = {
         { status: 200, headers: { 'Content-Type': 'application/json' } }
       );
     } catch (error) {
-      console.error('[gate] Failed to store encrypted response:', error);
+      console.error('[gate] Failed to store response');
       increment('errors.5xx');
 
       return new Response(

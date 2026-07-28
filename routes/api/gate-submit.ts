@@ -15,114 +15,131 @@
 
 import { Handlers } from '$fresh/server.ts';
 import { z } from 'zod';
-import { validateEmail } from '../../lib/emailValidator.ts';
 import { withConnection } from '../../lib/db.ts';
 import { createMagicLink } from '../../lib/auth.ts';
 import { hashEmail } from '../../lib/crypto.ts';
-import { createQuestionnaireSession, findActiveSession, deleteSession } from '../../lib/questionnaire-session.ts';
+import { createQuestionnaireSession, findActiveSession } from '../../lib/questionnaire-session.ts';
 import { createQuestionnaireJWT } from '../../lib/jwt.ts';
 import { increment } from '../../lib/metrics.ts';
 import { sendMagicLinkEmail } from '../../lib/email.ts';
-import { storeEncryptedAnswer } from '../../lib/gate-client.ts';
-import { ageEncrypt } from '../../lib/age-encrypt.ts';
+import { GATE_QUESTIONS, storeEncryptedAnswer } from '../../lib/gate_encrypt.ts';
 
 const GateSubmitSchema = z.object({
-  email: z.string().min(1),
+  email: z.string().email(),
   answer1: z.string().max(20000).optional().default(''),
   answer2: z.string().max(20000).optional().default(''),
 });
+
+/**
+ * Read the submission body from either a native HTML form
+ * (application/x-www-form-urlencoded / multipart) or a JSON fetch.
+ * The landing-page gate form posts urlencoded with no JS; SPA/island
+ * clients post JSON. Returns null if the body can't be parsed.
+ */
+async function readBody(req: Request): Promise<Record<string, unknown> | null> {
+  const contentType = req.headers.get('content-type') || '';
+  try {
+    if (contentType.includes('application/json')) {
+      return await req.json();
+    }
+    // form-urlencoded or multipart/form-data
+    const form = await req.formData();
+    const obj: Record<string, unknown> = {};
+    for (const [key, value] of form.entries()) {
+      if (typeof value === 'string') obj[key] = value;
+    }
+    return obj;
+  } catch {
+    return null;
+  }
+}
 
 export const handler: Handlers = {
   async POST(req, _ctx) {
     increment('requests.api');
 
-    let body: unknown;
-    try {
-      body = await req.json();
-    } catch {
+    // Native form posts want an HTML redirect; JSON clients want JSON.
+    const wantsJson = (req.headers.get('content-type') || '').includes('application/json') ||
+      (req.headers.get('accept') || '').includes('application/json');
+
+    const fail = (status: number, error: string, redirectError: string) => {
+      if (wantsJson) {
+        return new Response(
+          JSON.stringify({ error }),
+          { status, headers: { 'Content-Type': 'application/json' } }
+        );
+      }
+      // No-JS form path: bounce back to the gate with an error flag (no PII in URL).
+      return new Response(null, {
+        status: 303,
+        headers: { Location: `/?error=${redirectError}#begin` },
+      });
+    };
+
+    const body = await readBody(req);
+    if (body === null) {
       increment('errors.4xx');
-      return new Response(
-        JSON.stringify({ error: 'Invalid JSON body' }),
-        { status: 400, headers: { 'Content-Type': 'application/json' } }
-      );
+      return fail(400, 'Invalid request body', 'invalid');
     }
 
     const parsed = GateSubmitSchema.safeParse(body);
     if (!parsed.success) {
       increment('errors.4xx');
-      return new Response(
-        JSON.stringify({ error: 'Email required' }),
-        { status: 400, headers: { 'Content-Type': 'application/json' } }
-      );
+      return fail(400, 'Valid email required', 'email');
     }
 
-    // Validate and normalize email
-    const emailValidation = validateEmail(parsed.data.email);
-    if (!emailValidation.valid) {
-      increment('errors.4xx');
-      if (emailValidation.reason === 'suspicious_pattern') {
-        increment('errors.suspicious_email');
-        console.log('[gate-submit] Blocked suspicious email pattern');
-      }
-      return new Response(
-        JSON.stringify({ error: 'Please use a valid email address' }),
-        { status: 400, headers: { 'Content-Type': 'application/json' } }
-      );
-    }
-
-    const email = emailValidation.normalized;
-    const { answer1, answer2 } = parsed.data;
+    const { email, answer1, answer2 } = parsed.data;
 
     try {
       // Step 1: Generate server-side gate token
       const gateToken = crypto.randomUUID();
 
-      // Step 2: Encrypt gate answers via Rust Gate (age x25519)
-      const GATE_QUESTIONS = [
-        'What is your idea of perfect happiness?',
-        'What is your greatest fear?',
-      ];
-
+      // Step 2: Age-encrypt each answer via the Rust gate, which holds the only
+      // write path for answer text. The plaintext columns q0_answer/q1_answer
+      // are deliberately left NULL — nothing reads them, and storing plaintext
+      // would break the promise the gate form makes to the visitor.
+      //
+      // This fails closed: if the gate is down, storeEncryptedAnswer throws and
+      // we abort the submission rather than persist anything in the clear.
       const q0 = answer1.trim();
       const q1 = answer2.trim();
 
-      if (q0) {
+      try {
         await storeEncryptedAnswer({
           sessionId: gateToken,
-          questionText: GATE_QUESTIONS[0],
           questionIndex: 0,
+          questionText: GATE_QUESTIONS[0],
           answer: q0,
-          skipped: false,
+          skipped: q0.length === 0,
         });
-      }
-
-      if (q1) {
         await storeEncryptedAnswer({
           sessionId: gateToken,
-          questionText: GATE_QUESTIONS[1],
           questionIndex: 1,
+          questionText: GATE_QUESTIONS[1],
           answer: q1,
-          skipped: false,
+          skipped: q1.length === 0,
         });
+      } catch {
+        // Category only — the thrown error is never logged, it could carry text.
+        console.error('[gate-submit] Gate encryption unavailable; submission refused');
+        increment('errors.5xx');
+        return fail(503, 'Unable to securely store your answers right now. Please try again.', 'server');
       }
 
-      // Age-encrypt email for offline PDF delivery (only private key holder can recover)
-      const encryptedEmail = await ageEncrypt(email);
-
-      // Insert linking row with encrypted email (no plaintext stored)
+      // The Postgres row exists only for linkage (gate_token -> session). It
+      // carries no answer text.
       await withConnection(async (client) => {
         await client.queryObject(
-          `INSERT INTO fresh_gate_responses (gate_token, encrypted_email)
-           VALUES ($1, $2)
-           ON CONFLICT (gate_token) DO UPDATE SET encrypted_email = $2`,
-          [gateToken, encryptedEmail]
+          `INSERT INTO fresh_gate_responses (gate_token, q0_answer, q1_answer)
+           VALUES ($1, NULL, NULL)`,
+          [gateToken]
         );
       });
 
-      console.log('[gate-submit] Gate answers encrypted and stored, token:', gateToken.slice(0, 8) + '...');
+      console.log('[gate-submit] Gate answers encrypted and stored');
 
       // Step 3: Create magic link
-      const { expiresAt, cleanup: cleanupMagicLink } = await createMagicLink(email);
+      const { token: magicToken, expiresAt } = await createMagicLink(email);
 
       // Step 4: Hash email immediately
       const emailHash = await hashEmail(email);
@@ -151,39 +168,25 @@ export const handler: Handlers = {
       const emailResult = await sendMagicLinkEmail(email, magicLinkUrl);
 
       if (!emailResult.success) {
-        console.error('[gate-submit] Email failed:', emailResult.error);
+        // Status only — the error may carry the recipient address (CLAUDE.md).
+        console.error('[gate-submit] Email delivery failed');
         increment('errors.email');
-
-        // Clean up orphaned records on email failure
-        // 1. Clean up magic link
-        await cleanupMagicLink();
-
-        // 2. Delete the questionnaire session (this also unlinks gate responses)
-        await deleteSession(sessionId);
-
-        // 3. Delete the gate responses that were just inserted
-        try {
-          await withConnection(async (client) => {
-            await client.queryObject(
-              `DELETE FROM fresh_gate_responses WHERE gate_token = $1`,
-              [gateToken]
-            );
-          });
-          console.log('[gate-submit] Cleaned up gate responses after email failure');
-        } catch (cleanupError) {
-          console.error('[gate-submit] Failed to clean up gate responses:', cleanupError);
-        }
-
-        return new Response(
-          JSON.stringify({ error: 'Failed to send magic link email. Please try again.' }),
-          { status: 500, headers: { 'Content-Type': 'application/json' } }
-        );
+        return fail(500, 'Failed to send magic link email. Please try again.', 'send');
       }
 
       increment('auth.magiclink.sent');
       increment('questionnaire.started');
 
       console.log('[gate-submit] Magic link sent, expires:', expiresAt.toISOString());
+
+      // Native form path: 303-redirect to the no-JS success page.
+      // JSON clients get the structured response.
+      if (!wantsJson) {
+        return new Response(null, {
+          status: 303,
+          headers: { Location: '/check-email' },
+        });
+      }
 
       return new Response(
         JSON.stringify({
@@ -192,14 +195,13 @@ export const handler: Handlers = {
         }),
         { status: 200, headers: { 'Content-Type': 'application/json' } }
       );
-    } catch (error) {
-      console.error('[gate-submit] Failed:', error);
+    } catch {
+      // Category only. The error object can carry the submitted answers or the
+      // email address, so it is never logged (CLAUDE.md: zero-logging).
+      console.error('[gate-submit] Submission failed');
       increment('errors.5xx');
 
-      return new Response(
-        JSON.stringify({ error: 'Failed to process submission' }),
-        { status: 500, headers: { 'Content-Type': 'application/json' } }
-      );
+      return fail(500, 'Failed to process submission', 'server');
     }
   },
 };
