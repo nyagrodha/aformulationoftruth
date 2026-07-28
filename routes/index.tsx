@@ -145,7 +145,7 @@ export default function Home({ data }: PageProps<IndexData>) {
                   subject, the grammatical <em>I</em>, a formulation of truth.
                 </p>
                 <p>
-                  Return after enough time and (a species) amnesia to again respond. The earlier answers belong to
+                  Return after enough time and (a species) amnesia to respond again. The earlier answers belong to
                   someone else; the one answering now is provisional too. An other self is emerging. This is not a
                   tragedy. It’s more like the weather.
                 </p>
