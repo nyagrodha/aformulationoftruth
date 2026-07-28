@@ -7,9 +7,15 @@
  * figure — and terminates in the gate. The
  * gate gathers the two answers + the user's email in a single POST to
  * /api/gate-submit. That endpoint age-encrypts each answer via the Rust gate
- * service (port 8787), age-encrypts the email, and mails a magic link. The
- * magic link lands on /auth/verify, which launches the Deno Fresh
- * questionnaire at /questionnaire.
+ * service (port 8787), hashes the email, and mails a magic link. The magic
+ * link lands on /auth/verify, which launches the Deno Fresh questionnaire at
+ * /questionnaire.
+ *
+ * The address itself is never persisted, in any form: hashEmail() takes the
+ * SHA-256 of it and only that hash reaches Postgres. There is no
+ * encrypted_email column anywhere in the schema, and nothing reversible is
+ * kept — the plaintext lives in request memory just long enough to hand to
+ * Apple's SMTP for delivery.
  *
  * No external font CDNs, no third-party requests of any kind — the design is
  * set in system faces (Georgia / Arial) via /css/prolegomenon.css.
@@ -304,9 +310,7 @@ export default function Home({ data }: PageProps<IndexData>) {
                 </div>
 
                 <div class='form-group'>
-                  <label for='email'>
-                    Email (used just once to send you a magic-link authentication token)
-                  </label>
+                  <label for='email'>Email</label>
                   <input
                     type='email'
                     id='email'
@@ -316,9 +320,10 @@ export default function Home({ data }: PageProps<IndexData>) {
                     placeholder='your.email@example.com'
                   />
                   <p class='privacy-notice'>
-                    All what you type is age-encrypted before storage. The server uses the email supplied once to
-                    deliver a single-use magic link, and then it is hashed. There is no tracking, no profiling, no
-                    analytics, no third-party sharing throughout the whole site.
+                    All what you type is age-encrypted before storage. Your address is used once, to deliver your link
+                    through Apple's mail servers, and is never itself stored — the database keeps only a SHA-256 hash
+                    of it. We don't care to see your email address. There is no tracking, no profiling, no analytics,
+                    and nothing is shared with anyone beyond that delivery.
                   </p>
                 </div>
 
