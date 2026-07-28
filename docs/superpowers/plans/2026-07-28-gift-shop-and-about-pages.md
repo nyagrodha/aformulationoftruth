@@ -445,10 +445,10 @@ function BookEntry({ item }: { item: ShopItem }) {
       <p>{item.blurb}</p>
       <p class='shop-links'>
         {item.links.map((link, i) => (
-          <>
+          <span key={link.retailer}>
             {i > 0 ? ' · ' : ''}
             <a href={link.url} target='_blank' rel='noopener sponsored'>{link.retailer}</a>
-          </>
+          </span>
         ))}
       </p>
     </div>
@@ -506,7 +506,7 @@ export default function ShopPage() {
         </p>
 
         {BOOKS.filter((b) => b.kind === 'affiliate' && b.volume !== undefined).map((item) => (
-          <BookEntry item={item} />
+          <BookEntry key={item.title} item={item} />
         ))}
 
         <Ornament />
@@ -514,14 +514,14 @@ export default function ShopPage() {
         <h2>On Proust</h2>
 
         {BOOKS.filter((b) => b.kind === 'affiliate' && b.volume === undefined).map((item) => (
-          <BookEntry item={item} />
+          <BookEntry key={item.title} item={item} />
         ))}
 
         <Ornament />
 
         <h2 class='subtle'>to wear</h2>
 
-        {OWN_ITEMS.map((item) => <OwnEntry item={item} />)}
+        {OWN_ITEMS.map((item) => <OwnEntry key={item.title} item={item} />)}
       </div>
     </PageShell>
   );
@@ -622,7 +622,7 @@ Create `routes/about.tsx`, porting the body of `public/about.html` verbatim into
         </ul>
 ```
 
-Keep the Zcash copy button working: move the inline `copyZcashAddress()` script into `static/js/zcash-copy.js` and reference it with `<script src='/js/zcash-copy.js'></script>`, since inline handlers are awkward inside JSX.
+Keep the Zcash copy button working: move the inline `copyZcashAddress()` script into `public/js/zcash-copy.js` and reference it with `<script src='/js/zcash-copy.js'></script>`, since inline handlers are awkward inside JSX.
 
 - [ ] **Step 4: Delete the static page and update every inbound link**
 
@@ -649,7 +649,7 @@ Expected: PASS, 4 tests.
 - [ ] **Step 7: Commit**
 
 ```bash
-git add routes/about.tsx routes/about_test.tsx Caddyfile static/js/zcash-copy.js
+git add routes/about.tsx routes/about_test.tsx Caddyfile public/js/zcash-copy.js
 git add -u routes/
 git commit -m "feat(about): promote about to /about route, 301 the old .html"
 ```
