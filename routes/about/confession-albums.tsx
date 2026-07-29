@@ -38,7 +38,7 @@ export default function ConfessionAlbumsPage() {
           These books were everywhere then. They sat in parlours the way air fryers sit in kitchens now. They had names
           like{' '}
           <em>Mental Photographs</em>, which is a beautiful name for a book, and which tells you that people in 1869
-          already understood something about what a question does to a person.
+          already understood something about what an introspective does to a person!
         </p>
 
         <p>
