@@ -33,7 +33,8 @@ export default function RespondentsPage() {
           For fifteen years, from 1975 to 1990, the French broadcaster Bernard Pivot closed episodes{' '}
           of his live literary talk show <em>Apostrophes</em> by putting a version of the old parlour{' '}
           questions to his guest. When that programme ended he carried the habit into its successor,{' '}
-          <em>Bouillon de Culture</em>, which ran on France 2 from 1991 to 2001. Over those decades{' '}
+          <em>Bouillon de Culture</em>, which began on Antenne 2 in 1991 — the channel was renamed France{' '}
+          2 the following year — and ran until 2001. Over those decades{' '}
           Pivot pared the inherited list down into his own compact set — ten pointed questions rather{' '}
           than the sprawling Victorian original — asked, on air, of novelists, philosophers, and{' '}
           politicians, with a national audience listening to what they said back.
@@ -45,7 +46,7 @@ export default function RespondentsPage() {
 
         <p>
           James Lipton had watched Pivot's programmes and, in building his own interview show for{' '}
-          American drama students, asked to use the same closing device.{' '}
+          American drama students, adapted the same closing device.{' '}
           <em>Inside the Actors Studio</em>, which began airing in 1994, ended nearly every episode with Lipton's own
           {' '}
           ten-question descendant of Pivot's list — favorite word, least favorite word, a sound{' '}

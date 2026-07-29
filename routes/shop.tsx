@@ -67,9 +67,9 @@ export default function ShopPage() {
 
         <p class='shop-disclosure'>
           <strong>Disclosure:</strong>{' '}
-          book links are affiliate links. If you buy through them, this site earns a small commission at no additional
-          cost to you. Both retailers are offered for every title so you can choose; neither is preferred on your
-          behalf.
+          book links are affiliate links. Purchases made through them may earn this site a small commission at no
+          additional cost to you. Both retailers are offered for every title so you can choose; neither is preferred
+          on your behalf.
         </p>
 
         <Ornament />
