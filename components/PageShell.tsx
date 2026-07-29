@@ -41,12 +41,6 @@ export function PageShell(
         <link rel='stylesheet' href='/css/madras-theme.css' />
       </head>
       <body>
-        <div class='theme-toggle'>
-          <button class='theme-btn active' data-theme='tamas' aria-label='Tamas theme'>Tamas</button>
-          <button class='theme-btn' data-theme='nila' aria-label='Nīla theme'>Nīla</button>
-          <button class='theme-btn' data-theme='uruvam' aria-label='Uruvam theme'>Uruvam</button>
-        </div>
-
         <div class='about-container'>
           {children}
 
@@ -67,8 +61,6 @@ export function PageShell(
             </div>
           </div>
         </footer>
-
-        <script src='/js/theme-toggle.js'></script>
       </body>
     </html>
   );
