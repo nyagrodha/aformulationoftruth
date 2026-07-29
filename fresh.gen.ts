@@ -4,6 +4,9 @@
 
 import * as $_4m from './routes/4m.tsx';
 import * as $_404 from './routes/_404.tsx';
+import * as $about from './routes/about.tsx';
+import * as $about_confession_albums from './routes/about/confession-albums.tsx';
+import * as $about_respondents from './routes/about/respondents.tsx';
 import * as $api_auth_magic_link from './routes/api/auth/magic-link.ts';
 import * as $api_gate_submit from './routes/api/gate-submit.ts';
 import * as $api_gate from './routes/api/gate.ts';
@@ -13,7 +16,6 @@ import * as $api_profile from './routes/api/profile.ts';
 import * as $api_questions_answer from './routes/api/questions/answer.ts';
 import * as $api_questions_next from './routes/api/questions/next.ts';
 import * as $api_responses from './routes/api/responses.ts';
-import * as $api_tip_jar_current from './routes/api/tip-jar/current.ts';
 import * as $auth_verify from './routes/auth/verify.tsx';
 import * as $check_email from './routes/check-email.tsx';
 import * as $completion from './routes/completion.tsx';
@@ -23,8 +25,9 @@ import * as $login from './routes/login.tsx';
 import * as $profile_choice from './routes/profile-choice.tsx';
 import * as $profile_create from './routes/profile-create.tsx';
 import * as $questionnaire from './routes/questionnaire.tsx';
+import * as $shop from './routes/shop.tsx';
+import * as $w_token_ from './routes/w/[token].tsx';
 import * as $GateQuestionnaire from './islands/GateQuestionnaire.tsx';
-import * as $ScrollAnimations from './islands/ScrollAnimations.tsx';
 import * as $Spheroid from './islands/Spheroid.tsx';
 import type { Manifest } from '$fresh/server.ts';
 
@@ -32,6 +35,9 @@ const manifest = {
   routes: {
     './routes/4m.tsx': $_4m,
     './routes/_404.tsx': $_404,
+    './routes/about.tsx': $about,
+    './routes/about/confession-albums.tsx': $about_confession_albums,
+    './routes/about/respondents.tsx': $about_respondents,
     './routes/api/auth/magic-link.ts': $api_auth_magic_link,
     './routes/api/gate-submit.ts': $api_gate_submit,
     './routes/api/gate.ts': $api_gate,
@@ -41,7 +47,6 @@ const manifest = {
     './routes/api/questions/answer.ts': $api_questions_answer,
     './routes/api/questions/next.ts': $api_questions_next,
     './routes/api/responses.ts': $api_responses,
-    './routes/api/tip-jar/current.ts': $api_tip_jar_current,
     './routes/auth/verify.tsx': $auth_verify,
     './routes/check-email.tsx': $check_email,
     './routes/completion.tsx': $completion,
@@ -51,10 +56,11 @@ const manifest = {
     './routes/profile-choice.tsx': $profile_choice,
     './routes/profile-create.tsx': $profile_create,
     './routes/questionnaire.tsx': $questionnaire,
+    './routes/shop.tsx': $shop,
+    './routes/w/[token].tsx': $w_token_,
   },
   islands: {
     './islands/GateQuestionnaire.tsx': $GateQuestionnaire,
-    './islands/ScrollAnimations.tsx': $ScrollAnimations,
     './islands/Spheroid.tsx': $Spheroid,
   },
   baseUrl: import.meta.url,
