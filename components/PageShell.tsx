@@ -1,28 +1,29 @@
 import type { ComponentChildren } from 'preact';
 
-/** Filigree divider matching the one in the original about.html. */
+/**
+ * Section divider. Uses prolegomenon's own `.section-break`, which the
+ * stylesheet renders in saffron and expects to contain spans.
+ */
 export function Ornament() {
   return (
-    <div class='ornament' aria-hidden='true'>
-      <svg viewBox='0 0 120 14' xmlns='http://www.w3.org/2000/svg' role='img' aria-hidden='true'>
-        <path
-          d='M6 7 C24 1, 36 13, 54 7 C72 1, 84 13, 102 7'
-          stroke-linecap='round'
-          stroke-linejoin='round'
-        />
-        <circle cx='20' cy='7' r='1.2' />
-        <circle cx='100' cy='7' r='1.2' />
-      </svg>
+    <div class='section-break' aria-hidden='true'>
+      <span>❦</span>
     </div>
   );
 }
 
 /**
- * Full-document shell for the madras-themed prose pages.
+ * Full-document shell for the prose pages (/about, /shop, the essays).
  *
- * Deliberately scoped to the four new pages. The existing questionnaire
- * routes use /css/main.css and hand-rolled footers; converting them is a
- * separate change with its own regression risk.
+ * Styled with /css/prolegomenon.css — the same stylesheet as the landing
+ * page — so these pages read as part of the same site. It brings the paper
+ * palette (--paper #e8ddc5 on --ink #171715), Georgia, and crucially the
+ * `.movement p` measure of min(790px, 100%), which is what makes long prose
+ * legible rather than running the full window width.
+ *
+ * Previously this used madras-theme.css and carried a Tamas/Nila/Uruvam theme
+ * switcher, both inherited from a stale public/about.html. The switcher was
+ * retired from the site long ago; see the regression test.
  */
 export function PageShell(
   { title, description, children }: {
@@ -38,27 +39,42 @@ export function PageShell(
         <meta name='viewport' content='width=device-width, initial-scale=1.0' />
         <title>{title}</title>
         <meta name='description' content={description} />
-        <link rel='stylesheet' href='/css/madras-theme.css' />
+        <link rel='stylesheet' href='/css/prolegomenon.css' />
       </head>
       <body>
-        <div class='about-container'>
-          {children}
+        <header class='site-header'>
+          <a class='wordmark' href='/' aria-label='a formulation of truth'>
+            <span class='wordmark-glyphs'>
+              a4<span lang='ta'>முல</span>
+              <span lang='sa'>सत्य</span>sya
+            </span>
+            <span class='wordmark-sub'>a formulation of truth</span>
+          </a>
+          <nav class='site-nav' aria-label='Primary navigation'>
+            <a href='/about'>About</a>
+            <a href='/shop'>Shop</a>
+            <a href='/'>Begin</a>
+          </nav>
+        </header>
 
-          <div style='text-align: center;'>
-            <a href='/' class='btn btn-primary back-link'>திரும்பவும்</a>
-            <a href='/questionnaire' class='btn btn-secondary back-link' style='margin-left: 1rem;'>
-              தொடங்கு
-            </a>
-          </div>
-        </div>
+        <main class='movement'>
+          {children}
+        </main>
 
         <footer>
-          <div class='footer-inner'>
-            <div class='footer-links'>
-              <a href='/about'>About</a>
-              <a href='/contact.html'>Contact</a>
+          <a class='wordmark' href='/'>
+            a4<span lang='ta'>முல</span>
+            <span lang='sa'>सत्य</span>sya
+          </a>
+
+          <div>
+            <p>
+              a questionnaire to become acquainted oneself with a sequence of selves this lifetime.
+            </p>
+            <p style='margin-top: 1rem;'>
+              <a href='/about'>About</a> · <a href='/shop'>Shop</a> · <a href='/contact.html'>Contact</a> ·{' '}
               <a href='/privacy.html'>Privacy</a>
-            </div>
+            </p>
           </div>
         </footer>
       </body>

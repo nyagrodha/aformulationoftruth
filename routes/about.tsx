@@ -19,7 +19,7 @@ export default function AboutPage() {
           class='about-header-image'
         />
         <h1>first and form: the name</h1>
-        <p style='color: var(--text-secondary);'>a bit on the creator's vidyātīrtha</p>
+        <p style='color: var(--muted);'>a bit on the creator's vidyātīrtha</p>
       </div>
 
       <div class='about-content'>

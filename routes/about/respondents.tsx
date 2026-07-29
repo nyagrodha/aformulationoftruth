@@ -16,7 +16,7 @@ export default function RespondentsPage() {
     >
       <div class='about-header'>
         <h1>who has answered</h1>
-        <p style='color: var(--text-secondary);'>
+        <p style='color: var(--muted);'>
           on the questionnaire's move from the parlour album to the broadcast studio to the magazine page
         </p>
       </div>

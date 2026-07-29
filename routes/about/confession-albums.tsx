@@ -15,7 +15,7 @@ export default function ConfessionAlbumsPage() {
     >
       <div class='about-header'>
         <h1>The Confession Album</h1>
-        <p style='color: var(--text-secondary);'>
+        <p style='color: var(--muted);'>
           a book with questions printed in it, and a boy who was fourteen
         </p>
       </div>

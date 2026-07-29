@@ -57,7 +57,7 @@ export default function ShopPage() {
     >
       <div class='about-header'>
         <h1>the gift shop</h1>
-        <p style='color: var(--text-secondary);'>what to read, and what to wear while reading it</p>
+        <p style='color: var(--muted);'>what to read, and what to wear while reading it</p>
       </div>
 
       <div class='about-content'>
