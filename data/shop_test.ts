@@ -1,12 +1,20 @@
 import { assertEquals, assertStringIncludes } from '$std/assert/mod.ts';
 import { AMAZON_TAG, BOOKS, buildAmazonUrl, buildPenguinUrl, OWN_ITEMS, SHOP_ITEMS } from './shop.ts';
 
-Deno.test('buildAmazonUrl omits the tag parameter when AMAZON_TAG is empty', () => {
-  assertEquals(AMAZON_TAG, '');
+Deno.test('buildAmazonUrl appends the configured Associates tag', () => {
+  assertEquals(AMAZON_TAG, 'a4mulasatya-20');
   assertEquals(
     buildAmazonUrl('9780142437964'),
-    'https://www.amazon.com/dp/9780142437964',
+    'https://www.amazon.com/dp/9780142437964?tag=a4mulasatya-20',
   );
+});
+
+Deno.test('every book carries the Associates tag on its Amazon link', () => {
+  for (const item of BOOKS) {
+    if (item.kind !== 'affiliate') continue;
+    const amazon = item.links.find((l) => l.retailer === 'Amazon');
+    assertStringIncludes(amazon!.url, `tag=${AMAZON_TAG}`);
+  }
 });
 
 Deno.test('buildPenguinUrl points at the PRH ISBN lookup', () => {

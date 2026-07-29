@@ -34,7 +34,7 @@ export type ShopItem =
  * Amazon Associates tag. Empty until the account tag is supplied; an empty
  * value yields a valid, un-tagged Amazon URL rather than a broken one.
  */
-export const AMAZON_TAG = '';
+export const AMAZON_TAG = 'a4mulasatya-20';
 
 export function buildAmazonUrl(isbn: string): string {
   const base = `https://www.amazon.com/dp/${isbn}`;
