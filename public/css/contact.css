@@ -672,8 +672,8 @@
     }
 }
 
-/* Donation button - vibrant neon pink Madras weave */
-.btn-donation {
+/* Tip button - vibrant neon pink Madras weave */
+.btn-tip {
     background: linear-gradient(135deg, #ff1493 0%, #ff69b4 100%);
     color: #fff;
     border-left: 4px solid #ff1493;
@@ -691,7 +691,7 @@
     overflow: hidden;
 }
 
-.btn-donation::before {
+.btn-tip::before {
     content: '';
     position: absolute;
     top: 0;
@@ -716,7 +716,7 @@
     pointer-events: none;
 }
 
-.btn-donation:hover {
+.btn-tip:hover {
     box-shadow:
         0 0 30px #ff1493,
         0 0 60px rgba(255, 20, 147, 0.7),

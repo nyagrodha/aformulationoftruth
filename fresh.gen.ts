@@ -23,6 +23,7 @@ import * as $login from './routes/login.tsx';
 import * as $profile_choice from './routes/profile-choice.tsx';
 import * as $profile_create from './routes/profile-create.tsx';
 import * as $questionnaire from './routes/questionnaire.tsx';
+import * as $w_token from './routes/w/[token].tsx';
 import * as $GateQuestionnaire from './islands/GateQuestionnaire.tsx';
 import * as $ScrollAnimations from './islands/ScrollAnimations.tsx';
 import * as $Spheroid from './islands/Spheroid.tsx';
@@ -51,6 +52,7 @@ const manifest = {
     './routes/profile-choice.tsx': $profile_choice,
     './routes/profile-create.tsx': $profile_create,
     './routes/questionnaire.tsx': $questionnaire,
+    './routes/w/[token].tsx': $w_token,
   },
   islands: {
     './islands/GateQuestionnaire.tsx': $GateQuestionnaire,

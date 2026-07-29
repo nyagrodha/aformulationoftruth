@@ -2,17 +2,9 @@
   "name": "aformulationoftruth-server",
   "version": "0.2.0",
   "private": true,
-  "description": "Backend server for A Formulation of Truth - migrating to Deno Fresh",
-  "main": "dist/server.js",
+  "description": "Legacy Node manifest. The live app is Deno Fresh — see deno.json. The Express server (src/, server/), its Drizzle schema (shared/schema.ts), and its seed/migration scripts were removed on 2026-07-14 because they stored plaintext email. Use `deno task start` and `deno run -A migrate.ts`.",
   "type": "module",
-  "scripts": {
-    "build": "tsc -p tsconfig.build.json",
-    "start": "node dist/server.js",
-    "dev": "tsx watch src/server.ts",
-    "test": "node --experimental-vm-modules ./node_modules/jest/bin/jest.js",
-    "db:migrate": "tsx scripts/run-migrations.ts",
-    "db:seed": "tsx scripts/seed.ts"
-  },
+  "scripts": {},
   "engines": {
     "node": ">=20"
   },
@@ -30,7 +22,6 @@
     "pg": "^8.11.5",
     "pino": "^10.1.0",
     "pino-http": "^11.0.0",
-    "twilio": "^5.10.7",
     "uuid": "^9.0.1",
     "zod": "^3.23.8"
   },

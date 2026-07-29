@@ -1,41 +1,26 @@
+-- 001_initial_schema.sql — TOMBSTONE (retired 2026-07-14)
+--
+-- This migration formerly created the Express-era schema: users, password_resets,
+-- questionnaire_responses, and a connect-pg-simple "session" table. Those tables
+-- stored plaintext email in an `email TEXT` column, indexed on LOWER(email).
+--
+-- That violates the zero-PII policy in CLAUDE.md: no plaintext email is stored on
+-- the server. The Express app is retired. The live Fresh app uses the fresh_* tables,
+-- which key off email_hash (SHA-256) and never persist an address.
+--
+-- The CREATE TABLE statements are deliberately NOT preserved. Restoring them would
+-- restore the ability to store plaintext email. This file is destructive-forward: it
+-- drops the legacy tables if a database still has them, so re-running migrations can
+-- never resurrect a plaintext email column.
+
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
-CREATE TABLE IF NOT EXISTS users (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    email TEXT NOT NULL UNIQUE,
-    username TEXT NOT NULL UNIQUE,
-    password_hash TEXT NOT NULL,
-    role TEXT NOT NULL DEFAULT 'user' CHECK (role IN ('user', 'admin')),
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
-
-CREATE TABLE IF NOT EXISTS password_resets (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    token_hash TEXT NOT NULL,
-    expires_at TIMESTAMPTZ NOT NULL,
-    used BOOLEAN NOT NULL DEFAULT FALSE,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
-
-CREATE INDEX IF NOT EXISTS password_resets_user_id_idx ON password_resets (user_id);
-CREATE INDEX IF NOT EXISTS password_resets_expires_at_idx ON password_resets (expires_at);
-
-CREATE TABLE IF NOT EXISTS questionnaire_responses (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    email TEXT NOT NULL,
-    answers JSONB NOT NULL,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
-
-CREATE INDEX IF NOT EXISTS questionnaire_responses_email_idx ON questionnaire_responses (LOWER(email));
-
--- Session store used by connect-pg-simple
-CREATE TABLE IF NOT EXISTS "session" (
-    sid VARCHAR NOT NULL PRIMARY KEY,
-    sess JSON NOT NULL,
-    expire TIMESTAMP(6) NOT NULL
-);
-
-CREATE INDEX IF NOT EXISTS "IDX_session_expire" ON "session" ("expire");
+DROP TABLE IF EXISTS questionnaire_responses CASCADE;
+DROP TABLE IF EXISTS password_resets CASCADE;
+DROP TABLE IF EXISTS "session" CASCADE;
+DROP TABLE IF EXISTS responses CASCADE;
+DROP TABLE IF EXISTS user_answers CASCADE;
+DROP TABLE IF EXISTS user_ip_history CASCADE;
+DROP TABLE IF EXISTS ip_geolocation CASCADE;
+DROP TABLE IF EXISTS questionnaire_sessions CASCADE;
+DROP TABLE IF EXISTS users CASCADE;

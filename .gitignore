@@ -70,6 +70,29 @@ coverage
 keys/
 *.key
 *.pem
+*.p12
+*.pfx
+*.jks
+id_rsa*
+id_ed25519*
+
+# Tor onion service material. The previous onion key was committed and the
+# address had to be abandoned — never let a hidden_service dir into the repo.
+*.onion/
+hidden_service/
+hidden_service*/
+hs_ed25519_secret_key
+hs_ed25519_public_key
+hs_x25519_*
+
+# ACME / TLS state
+acme.json
+certs/
+
+# Anything that smells like a credential dump
+*.env.bak
+secrets.*
+credentials.*
 
 # Uploads and storage
 uploads/
@@ -120,3 +143,5 @@ docker/pyaz/
 # Allow project configuration tracked in this repository
 !package.json
 !package-lock.json
+.playwright-mcp/
+**/.playwright-mcp/

@@ -122,15 +122,36 @@ body::before {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 76px;
+  min-height: 76px;
   margin: 0 2.5vw;
-  padding: 0 0.5vw;
+  padding: 0.6rem 0.5vw;
   border-bottom: 1px solid var(--rule);
 }
 
 .wordmark {
   font-size: clamp(1.35rem, 2vw, 2rem);
   letter-spacing: -0.04em;
+}
+
+.site-header .wordmark {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  font-size: inherit;
+  line-height: 1.05;
+}
+
+.wordmark-glyphs {
+  font-size: clamp(1.35rem, 2vw, 2rem);
+  letter-spacing: -0.04em;
+  white-space: nowrap;
+}
+
+.wordmark-sub {
+  color: var(--saffron);
+  font: 600 clamp(0.52rem, 0.68vw, 0.64rem) / 1 Arial, Helvetica, sans-serif;
+  letter-spacing: 0.2em;
+  text-transform: lowercase;
 }
 
 .site-nav {
@@ -182,9 +203,9 @@ footer .footer-return {
 .hero-title {
   max-width: 760px;
   margin: 0;
-  font-size: clamp(2.45rem, 5vw, 5.5rem);
-  line-height: 0.98;
-  letter-spacing: -0.045em;
+  font-size: clamp(1.5rem, 3vw, 3.1rem);
+  line-height: 1.08;
+  letter-spacing: -0.03em;
   text-wrap: balance;
 }
 
@@ -210,6 +231,21 @@ footer .footer-return {
   font-size: clamp(1.7rem, 2.75vw, 3rem);
   line-height: 1.18;
   letter-spacing: -0.025em;
+}
+
+.hero-prose {
+  max-width: 620px;
+  margin-top: clamp(1.8rem, 3vw, 2.6rem);
+}
+
+.hero-prose p {
+  margin: 0 0 1.1em;
+  font-size: clamp(1rem, 1.15vw, 1.16rem);
+  line-height: 1.62;
+}
+
+.hero-prose p:last-child {
+  margin-bottom: 0;
 }
 
 .drop-cap {
