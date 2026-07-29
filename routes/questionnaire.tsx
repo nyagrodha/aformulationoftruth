@@ -522,7 +522,7 @@ export default function QuestionnairePage({ data }: PageProps<QuestionnaireData>
 
         <footer>
           <div class="footer-links">
-            <a href="/about.html">About</a>
+            <a href="/about">About</a>
             <a href="/contact.html">Contact</a>
             <a href="/privacy.html">Privacy</a>
           </div>
