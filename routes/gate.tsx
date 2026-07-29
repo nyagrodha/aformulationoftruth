@@ -187,7 +187,6 @@ export default function GatePage({ data }: PageProps<GateData>) {
                     <textarea
                       id="answer"
                       name="answer"
-                      placeholder="Take your time..."
                       aria-describedby="accessibility-hint"
                     ></textarea>
                   </div>
