@@ -22,10 +22,11 @@
  */
 
 import { Handlers, PageProps } from '$fresh/server.ts';
+import type { VNode } from 'preact';
 import Spheroid from '../islands/Spheroid.tsx';
 
 interface IndexData {
-  error?: string;
+  error?: VNode;
 }
 
 /*
@@ -34,14 +35,28 @@ interface IndexData {
  * once already, which silently swallowed every error but 'server': the visitor
  * was bounced back to the form with nothing to read. Change one, change both.
  */
-const ERROR_MESSAGES: Record<string, string> = {
-  invalid: "Unfortunately, the server didn't capture your submission. Kindly try again.",
-  email: "The email address you submitted isn't valid. Try a different one — <a href="https://maildrop.cc">maildrop.cc</a>maildrop.cc and <a href="https://cock.li">cockmail</a>both work.",
-  send: "We couldn't deliver your authorization link right meow. Try again in a moment.",
-  server: 'Something went wrong. Please try again and it should resolve itself. Consider taking a brief moment to contact the <a href="mailto:formitselfisemptiness@aformulationoftruth.com">webmaster</a> so I can investigate why.',
+const ERROR_MESSAGES: Record<string, VNode> = {
+  invalid: <>Unfortunately, the server didn't capture your submission. Kindly try again.</>,
+  email: (
+    <>
+      The email address you submitted isn't valid. Try a different one —{' '}
+      <a href='https://maildrop.cc' target='_blank' rel='noopener noreferrer'>maildrop.cc</a> and{' '}
+      <a href='https://cock.li' target='_blank' rel='noopener noreferrer'>cockmail</a> both work.
+    </>
+  ),
+  send: <>We couldn't deliver your authorization link right meow. Try again in a moment.</>,
+  server: (
+    <>
+      Something went wrong. Please try again and it should resolve itself. Consider taking a brief moment to contact the
+      {' '}
+      <a href='mailto:formitselfisemptiness@aformulationoftruth.com'>webmaster</a> so I can investigate why.
+    </>
+  ),
 };
 
-const DESCRIPTION
+const DESCRIPTION = 'Inhibition rules us humans.';
+
+/*
  * Share card. Both og:image and twitter:image point here — X falls back to the
  * og:* tags when a twitter:* twin is absent, but every other scraper (Slack,
  * Discord, iMessage, Signal) reads og:image only, so the pair is stated in full
@@ -62,12 +77,12 @@ export const handler: Handlers<IndexData> = {
 
 export default function Home({ data }: PageProps<IndexData>) {
   const { error } = data;
-	  return (
+  return (
     <html lang='en'>
       <head>
         <meta charset='UTF-8' />
         <meta name='viewport' content='width=device-width, initial-scale=1.0' />
-        <title> a formulation of truth</title>
+        <title>a formulation of truth</title>
         <meta name='description' content={DESCRIPTION} />
 
         <meta property='og:type' content='website' />
@@ -124,21 +139,23 @@ export default function Home({ data }: PageProps<IndexData>) {
           <section class='hero' id='top' aria-labelledby='prolegomenon'>
             <div class='hero-copy'>
               <p class='hero-title'>
-                Every reader find themselves. The writer’s work is merely a kind of optical instrument that
-                makes it possible for the reader to discern what, without this book, readers would perhaps never have seen
-                in themselves.
+                Every reader find themselves. The writer’s work is merely a kind of optical instrument that makes it
+                possible for the reader to discern what, without this book, readers would perhaps never have seen in
+                themselves.
               </p>
 
               <p class='eyebrow' id='prolegomenon'>PROLEGOMENON:</p>
               <p class='incipit'>
                 <span class='drop-cap' aria-hidden='true'>Y</span>
-                <span class='sr-only'>Y</span>our answers — anyone's answers — may become for another reader just such an ātmanopticon: in our world where nothing ever happens the same way twice, truth resides in the reconstruction of events without precedent.
+                <span class='sr-only'>Y</span>our answers — anyone's answers — may become for another reader just such
+                an ātmanopticon: in our world where nothing ever happens the same way twice, truth resides in the
+                reconstruction of events without precedent.
               </p>
 
               <div class='hero-prose'>
                 <p>
-                  A practice/<i lang='sa-Latn'>sādhana</i>: the questions invite an unguarded, thoughtful state; and what
-                  the answer at times just astonishes in describing some interior (<span lang='ta'>அகம்</span>) — a
+                  A practice/<i lang='sa-Latn'>sādhana</i>: the questions invite an unguarded, thoughtful state; and
+                  what the answer at times just astonishes in describing some interior (<span lang='ta'>அகம்</span>) — a
                   subject, the grammatical <em>I</em>, a formulation of truth.
                 </p>
                 <p>
@@ -151,9 +168,9 @@ export default function Home({ data }: PageProps<IndexData>) {
                   The questionnaire keeps their record — so many persons in succession, bearing one name: <em>I</em>.
                 </p>
                 <p>
-                  Insofar as recognition adds nothing new or points out something that hasn’t always been known it can be
-                  captured well by double-dipping ‘I’, ‘I-I’ sees the ones already given — who you were when you answered
-                  then. Who answers now, who will — as one light regarding itself.
+                  Insofar as recognition adds nothing new or points out something that hasn’t always been known it can
+                  be captured well by double-dipping ‘I’, ‘I-I’ sees the ones already given — who you were when you
+                  answered then. Who answers now, who will — as one light regarding itself.
                 </p>
                 <p>Find who sleeps.</p>
                 <p>That is what this instrument is for.</p>
@@ -252,6 +269,24 @@ export default function Home({ data }: PageProps<IndexData>) {
               <p class='gate-eyebrow'>a gate:</p>
               <h2 class='gate-title'>we meet @ this gate:</h2>
               <p class='gate-description'>
+                Often a thought or memory or fantasy floats into awareness only to be censored by merely the
+                anticipation of scolding, punishment, shame, or rejection. Inhibition causes us to shy away from that
+                prohibitive act. Human beings are ruled by inhibition. On measure we like this — I wanted to kill my
+                boyfriend the other night! But I didn’t. Not because homicide is impossible but because inhibition is
+                properly functioning in this fleshy mess.
+              </p>
+              <p class='gate-description'>
+                Lo, the many a spontaneous wish that inner dictator crushes. Merely anticipating punishment, shame, etc.
+                keeps me away from the spontaneous fantasy, thought, etc. Imposed ‘shoulds’ overpower legit desire.
+                Inhibition censors speech, inhibition delays action, making avoidance appear prudent even when no danger
+                is present.
+              </p>
+              <p class='gate-description'>
+                Inhibition rules a human being. For what follows, at least, don’t should on yourself. Compose what first
+                comes to mind. Be it simple something or more complex a memory, privacy and total control of your data
+                here mean to suggest the elephant in the room.
+              </p>
+              <p class='gate-description'>
                 What follow are not intended to be polite questions. Consider this an ice-breaker, and these are holes
                 in the ice. Answer honestly, spontaneously and something cold touches the feet.
               </p>
@@ -319,9 +354,9 @@ export default function Home({ data }: PageProps<IndexData>) {
                   />
                   <p class='privacy-notice'>
                     All what you type is age-encrypted before storage. Your address is used once, to deliver your link
-                    through Apple's mail servers, and is never itself stored — the database keeps only a SHA-256 hash
-                    of it. We don't care to see your email address. There is no tracking, no profiling, no analytics,
-                    and nothing is shared with anyone beyond that delivery.
+                    through Apple's mail servers, and is never itself stored — the database keeps only a SHA-256 hash of
+                    it. We don't care to see your email address. There is no tracking, no profiling, no analytics, and
+                    nothing is shared with anyone beyond that delivery.
                   </p>
                 </div>
 
