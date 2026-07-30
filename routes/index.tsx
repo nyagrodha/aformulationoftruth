@@ -35,16 +35,13 @@ interface IndexData {
  * was bounced back to the form with nothing to read. Change one, change both.
  */
 const ERROR_MESSAGES: Record<string, string> = {
-  invalid: "The server didn't capture your submission. Please try again.",
-  email: "The address you submitted isn't valid. Kindly try a different one — maildrop.cc and cock.li both work.",
-  send: "We couldn't deliver your authorization link right now. Try again in a moment.",
-  server: 'Something went wrong on our end. Please try again.',
+  invalid: "Unfortunately, the server didn't capture your submission. Kindly try again.",
+  email: "The email address you submitted isn't valid. Try a different one — <a href="https://maildrop.cc">maildrop.cc</a>maildrop.cc and <a href="https://cock.li">cockmail</a>both work.",
+  send: "We couldn't deliver your authorization link right meow. Try again in a moment.",
+  server: 'Something went wrong. Please try again and it should resolve itself. Consider taking a brief moment to contact the <a href="mailto:formitselfisemptiness@aformulationoftruth.com">webmaster</a> so I can investigate why.',
 };
 
-const DESCRIPTION =
-  'Prior to the main sequence, a Proust questionnaire, some thoughts. Folks are ruled by inhibition. For the time you spend ansering the following queries, to the extent possible,  we invite reflective states of awareness.';
-
-/*
+const DESCRIPTION
  * Share card. Both og:image and twitter:image point here — X falls back to the
  * og:* tags when a twitter:* twin is absent, but every other scraper (Slack,
  * Discord, iMessage, Signal) reads og:image only, so the pair is stated in full
@@ -53,7 +50,7 @@ const DESCRIPTION =
  */
 const SHARE_IMAGE = 'https://aformulationoftruth.com/images/dreamMore...always-800.jpg';
 const SHARE_IMAGE_ALT =
-  'A collage of quotations and photographs, centred on the line: if a little dreaming is dangerous the cure is not to dream less but to dream more, to dream all the time.';
+  'A collage of quotations, photographs, and a poem, centred on the line: if a little dreaming is dangerous the cure is not to dream less but to dream more, to dream all the time.';
 
 export const handler: Handlers<IndexData> = {
   GET(req, ctx) {
