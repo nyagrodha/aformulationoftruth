@@ -23,7 +23,21 @@
 
 import { Handlers, PageProps } from '$fresh/server.ts';
 import type { VNode } from 'preact';
+import Nav, { type NavItem } from '../islands/Nav.tsx';
 import Spheroid from '../islands/Spheroid.tsx';
+import { WordmarkGlyphs } from '../components/Wordmark.tsx';
+
+/*
+ * The landing page is one long page, so its nav is fragment anchors that scroll
+ * it — #about is the footer, #begin the gate form. The gift shop is the one
+ * item that leaves the page: it is a route, not a section.
+ */
+const LANDING_NAV: NavItem[] = [
+  { label: 'Introduction', href: '#prolegomenon' },
+  { label: 'Gate', href: '#begin' },
+  { label: 'Gift Shop', href: '/shop' },
+  { label: 'About', href: '#about' },
+];
 
 interface IndexData {
   error?: VNode;
@@ -117,22 +131,15 @@ export default function Home({ data }: PageProps<IndexData>) {
         <link rel='manifest' href='/manifest.json' />
 
         <link rel='stylesheet' href='/css/prolegomenon.css' />
+        {/* The toggle is inert without JS, so leave the menu open instead. */}
+        <noscript>
+          <style>{'.nav-list[hidden]{display:flex}.nav-arrow{display:none}'}</style>
+        </noscript>
       </head>
       <body>
         <main>
           <header class='site-header'>
-            <a class='wordmark' href='#top' aria-label='a formulation of truth'>
-              <span class='wordmark-glyphs'>
-                a4<span lang='ta'>முல</span>
-                <span lang='sa'>सत्य</span>sya
-              </span>
-              <span class='wordmark-sub'>a formulation of truth</span>
-            </a>
-            <nav class='site-nav' aria-label='Primary navigation'>
-              <a href='#prolegomenon'>Introduction</a>
-              <a href='#begin'>Gate</a>
-              <a href='#about'>About</a>
-            </nav>
+            <Nav items={LANDING_NAV} />
           </header>
 
           {/* ── hero ────────────────────────────────────────────────────── */}
@@ -369,9 +376,8 @@ export default function Home({ data }: PageProps<IndexData>) {
         </main>
 
         <footer id='about'>
-          <a class='wordmark' href='#top'>
-            a4<span lang='ta'>முல</span>
-            <span lang='sa'>सत्य</span>sya
+          <a class='wordmark' href='#top' aria-label='a formulation of truth'>
+            <WordmarkGlyphs />
           </a>
 
           <div>
@@ -399,6 +405,7 @@ export default function Home({ data }: PageProps<IndexData>) {
 
           <div class='footer-links' style='justify-content: flex-end;'>
             <a href='/about'>about</a>
+            <a href='/shop'>gift shop</a>
             <a href='/contact.html'>contact</a>
             <a href='/privacy.html'>privacy</a>
           </div>

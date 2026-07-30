@@ -91,6 +91,32 @@ sup {
   --ochre: #c17b22;
   --verdigris: #188a82;
   --rule: #17171557;
+
+  /*
+   * Wordmark triad, from the Nav mock: magenta / blue / gold. These are the
+   * paper-header values — darkened from the source #FF3CAC / #3B82F6 / #FFD600,
+   * which were drawn for a dark ground. On --paper the source gold measures
+   * about 1.05:1 against the background and is effectively invisible; the
+   * magenta and blue land near 2.4:1 and 2.7:1, under the 3:1 that display
+   * text needs. These hold the same hues at >= 3.5:1. The footer, which is
+   * ink-backed, restores the source values below.
+   */
+  --wm-magenta: #d4147f;
+  --wm-blue: #2c6fe0;
+  --wm-gold: #8a6d00;
+}
+
+.wm-a,
+.wm-sa {
+  color: var(--wm-magenta);
+}
+
+.wm-num {
+  color: var(--wm-blue);
+}
+
+.wm-ta {
+  color: var(--wm-gold);
 }
 
 body {
@@ -154,9 +180,75 @@ body::before {
   text-transform: lowercase;
 }
 
+/*
+ * The nav is a disclosure whose toggle is the wordmark. `.nav-list` is taken
+ * out of flow so opening it never reflows the header or shoves the hero down
+ * the page.
+ */
 .site-nav {
+  position: relative;
+}
+
+.nav-toggle {
   display: flex;
-  gap: clamp(1.4rem, 3.5vw, 4rem);
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0;
+  border: none;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+}
+
+/*
+ * Only the hydrated toggle is a control. Before that — and always, without JS —
+ * it is a span holding the wordmark, and must not offer a pointer it can't honour.
+ */
+button.nav-toggle {
+  cursor: pointer;
+}
+
+.nav-arrow {
+  display: inline-block;
+  color: var(--muted);
+  font-size: 0.6rem;
+  transition: transform 0.18s ease;
+}
+
+.nav-toggle[aria-expanded='true'] .nav-arrow {
+  transform: rotate(90deg);
+}
+
+.nav-list {
+  position: absolute;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  margin: 0.55rem 0 0;
+  padding: 0.4rem 1.4rem 0.4rem 1.1rem;
+  border-left: 1px solid var(--rule);
+  background: var(--paper);
+  list-style: none;
+}
+
+/*
+ * The [hidden] attribute only carries `display: none` at UA weight, which the
+ * flex above outranks. Restate it, or the closed menu stays on screen.
+ */
+.nav-list[hidden] {
+  display: none;
+}
+
+.nav-list li {
+  margin: 0;
+  padding: 0;
+}
+
+.nav-list a {
+  display: block;
+  padding: 0.34rem 0;
+  white-space: nowrap;
 }
 
 .site-nav a,
@@ -763,6 +855,11 @@ footer {
   padding: 4rem 6vw;
   background: var(--ink);
   color: var(--paper);
+
+  /* Ink ground: the source triad from the Nav mock, undarkened. */
+  --wm-magenta: #ff3cac;
+  --wm-blue: #3b82f6;
+  --wm-gold: #ffd600;
 }
 
 footer p {
@@ -866,10 +963,11 @@ footer .footer-return {
     font-size: 1.2rem;
   }
 
-  .site-nav {
-    display: none;
-  }
-
+  /*
+   * The nav used to be hidden outright here, because a row of four links had
+   * nowhere to go on a phone. It collapses to a single toggle now, so it stays
+   * — and it must, since the wordmark lives inside it.
+   */
   .hero {
     padding: 10vh 7vw 8vh;
   }

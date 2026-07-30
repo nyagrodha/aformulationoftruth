@@ -27,6 +27,7 @@ import * as $profile_create from './routes/profile-create.tsx';
 import * as $questionnaire from './routes/questionnaire.tsx';
 import * as $shop from './routes/shop.tsx';
 import * as $w_token_ from './routes/w/[token].tsx';
+import * as $Nav from './islands/Nav.tsx';
 import * as $Spheroid from './islands/Spheroid.tsx';
 import type { Manifest } from '$fresh/server.ts';
 
@@ -59,6 +60,7 @@ const manifest = {
     './routes/w/[token].tsx': $w_token_,
   },
   islands: {
+    './islands/Nav.tsx': $Nav,
     './islands/Spheroid.tsx': $Spheroid,
   },
   baseUrl: import.meta.url,
