@@ -22,7 +22,21 @@
  */
 
 import { Handlers, PageProps } from '$fresh/server.ts';
+import Nav, { type NavItem } from '../islands/Nav.tsx';
 import Spheroid from '../islands/Spheroid.tsx';
+import { WordmarkGlyphs } from '../components/Wordmark.tsx';
+
+/*
+ * The landing page is one long page, so its nav is fragment anchors that scroll
+ * it — #about is the footer, #begin the gate form. The gift shop is the one
+ * item that leaves the page: it is a route, not a section.
+ */
+const LANDING_NAV: NavItem[] = [
+  { label: 'Introduction', href: '#prolegomenon' },
+  { label: 'Gate', href: '#begin' },
+  { label: 'Gift Shop', href: '/shop' },
+  { label: 'About', href: '#about' },
+];
 
 interface IndexData {
   error?: string;
@@ -65,12 +79,12 @@ export const handler: Handlers<IndexData> = {
 
 export default function Home({ data }: PageProps<IndexData>) {
   const { error } = data;
-	  return (
+  return (
     <html lang='en'>
       <head>
         <meta charset='UTF-8' />
         <meta name='viewport' content='width=device-width, initial-scale=1.0' />
-        <title> a formulation of truth</title>
+        <title>a formulation of truth</title>
         <meta name='description' content={DESCRIPTION} />
 
         <meta property='og:type' content='website' />
@@ -105,43 +119,38 @@ export default function Home({ data }: PageProps<IndexData>) {
         <link rel='manifest' href='/manifest.json' />
 
         <link rel='stylesheet' href='/css/prolegomenon.css' />
+        {/* The toggle is inert without JS, so leave the menu open instead. */}
+        <noscript>
+          <style>{'.nav-list[hidden]{display:flex}.nav-arrow{display:none}'}</style>
+        </noscript>
       </head>
       <body>
         <main>
           <header class='site-header'>
-            <a class='wordmark' href='#top' aria-label='a formulation of truth'>
-              <span class='wordmark-glyphs'>
-                a4<span lang='ta'>முல</span>
-                <span lang='sa'>सत्य</span>sya
-              </span>
-              <span class='wordmark-sub'>a formulation of truth</span>
-            </a>
-            <nav class='site-nav' aria-label='Primary navigation'>
-              <a href='#prolegomenon'>Introduction</a>
-              <a href='#begin'>Gate</a>
-              <a href='#about'>About</a>
-            </nav>
+            <Nav items={LANDING_NAV} />
           </header>
 
           {/* ── hero ────────────────────────────────────────────────────── */}
           <section class='hero' id='top' aria-labelledby='prolegomenon'>
             <div class='hero-copy'>
               <p class='hero-title'>
-                Every reader find themselves. The writer’s work is merely a kind of optical instrument that
-                makes it possible for the reader to discern what, without this book, readers would perhaps never have seen
-                in themselves.
+                Every reader find themselves. The writer’s work is merely a kind of optical instrument that makes it
+                possible for the reader to discern what, without this book, readers would perhaps never have seen in
+                themselves.
               </p>
 
               <p class='eyebrow' id='prolegomenon'>PROLEGOMENON:</p>
               <p class='incipit'>
                 <span class='drop-cap' aria-hidden='true'>Y</span>
-                <span class='sr-only'>Y</span>our answers — anyone's answers — may become for another reader just such an ātmanopticon: in our world where nothing ever happens the same way twice, truth resides in the reconstruction of events without precedent.
+                <span class='sr-only'>Y</span>our answers — anyone's answers — may become for another reader just such
+                an ātmanopticon: in our world where nothing ever happens the same way twice, truth resides in the
+                reconstruction of events without precedent.
               </p>
 
               <div class='hero-prose'>
                 <p>
-                  A practice/<i lang='sa-Latn'>sādhana</i>: the questions invite an unguarded, thoughtful state; and what
-                  the answer at times just astonishes in describing some interior (<span lang='ta'>அகம்</span>) — a
+                  A practice/<i lang='sa-Latn'>sādhana</i>: the questions invite an unguarded, thoughtful state; and
+                  what the answer at times just astonishes in describing some interior (<span lang='ta'>அகம்</span>) — a
                   subject, the grammatical <em>I</em>, a formulation of truth.
                 </p>
                 <p>
@@ -154,9 +163,9 @@ export default function Home({ data }: PageProps<IndexData>) {
                   The questionnaire keeps their record — so many persons in succession, bearing one name: <em>I</em>.
                 </p>
                 <p>
-                  Insofar as recognition adds nothing new or points out something that hasn’t always been known it can be
-                  captured well by double-dipping ‘I’, ‘I-I’ sees the ones already given — who you were when you answered
-                  then. Who answers now, who will — as one light regarding itself.
+                  Insofar as recognition adds nothing new or points out something that hasn’t always been known it can
+                  be captured well by double-dipping ‘I’, ‘I-I’ sees the ones already given — who you were when you
+                  answered then. Who answers now, who will — as one light regarding itself.
                 </p>
                 <p>Find who sleeps.</p>
                 <p>That is what this instrument is for.</p>
@@ -322,9 +331,9 @@ export default function Home({ data }: PageProps<IndexData>) {
                   />
                   <p class='privacy-notice'>
                     All what you type is age-encrypted before storage. Your address is used once, to deliver your link
-                    through Apple's mail servers, and is never itself stored — the database keeps only a SHA-256 hash
-                    of it. We don't care to see your email address. There is no tracking, no profiling, no analytics,
-                    and nothing is shared with anyone beyond that delivery.
+                    through Apple's mail servers, and is never itself stored — the database keeps only a SHA-256 hash of
+                    it. We don't care to see your email address. There is no tracking, no profiling, no analytics, and
+                    nothing is shared with anyone beyond that delivery.
                   </p>
                 </div>
 
@@ -337,9 +346,8 @@ export default function Home({ data }: PageProps<IndexData>) {
         </main>
 
         <footer id='about'>
-          <a class='wordmark' href='#top'>
-            a4<span lang='ta'>முல</span>
-            <span lang='sa'>सत्य</span>sya
+          <a class='wordmark' href='#top' aria-label='a formulation of truth'>
+            <WordmarkGlyphs />
           </a>
 
           <div>
@@ -367,6 +375,7 @@ export default function Home({ data }: PageProps<IndexData>) {
 
           <div class='footer-links' style='justify-content: flex-end;'>
             <a href='/about'>about</a>
+            <a href='/shop'>gift shop</a>
             <a href='/contact.html'>contact</a>
             <a href='/privacy.html'>privacy</a>
           </div>

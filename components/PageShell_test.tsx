@@ -44,6 +44,31 @@ Deno.test('PageShell footer links to about, contact and privacy', () => {
   assertStringIncludes(html, 'href="/privacy.html"');
 });
 
+/*
+ * The shop was reachable only from /about and /shop for a while: the landing
+ * page and this shell had drifted onto separate headers and only one of them
+ * ever carried the link.
+ */
+Deno.test('PageShell nav reaches the gift shop', () => {
+  const html = render(
+    <PageShell title='t' description='d'>
+      <span />
+    </PageShell>,
+  );
+  assertStringIncludes(html, 'href="/shop"');
+  assertStringIncludes(html, 'Gift Shop');
+});
+
+Deno.test('PageShell keeps the menu usable without JS', () => {
+  const html = render(
+    <PageShell title='t' description='d'>
+      <span />
+    </PageShell>,
+  );
+  assertStringIncludes(html, '<noscript>');
+  assertStringIncludes(html, '.nav-list[hidden]{display:flex}');
+});
+
 Deno.test('Ornament renders an aria-hidden section-break divider', () => {
   const html = render(<Ornament />);
   assertStringIncludes(html, 'aria-hidden="true"');

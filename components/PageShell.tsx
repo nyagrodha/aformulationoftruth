@@ -1,4 +1,18 @@
 import type { ComponentChildren } from 'preact';
+import Nav, { type NavItem } from '../islands/Nav.tsx';
+import { WordmarkGlyphs } from './Wordmark.tsx';
+
+/*
+ * The prose pages navigate by route. 'Home' is the landing page — the gate's
+ * own submit button still reads 'Begin', and two things called Begin that went
+ * different places was the confusion worth removing.
+ */
+const PAGE_NAV: NavItem[] = [
+  { label: 'Home', href: '/' },
+  { label: 'About', href: '/about' },
+  { label: 'Contact', href: '/contact.html' },
+  { label: 'Gift Shop', href: '/shop' },
+];
 
 /**
  * Section divider. Uses prolegomenon's own `.section-break`, which the
@@ -40,21 +54,14 @@ export function PageShell(
         <title>{title}</title>
         <meta name='description' content={description} />
         <link rel='stylesheet' href='/css/prolegomenon.css' />
+        {/* The toggle is inert without JS, so leave the menu open instead. */}
+        <noscript>
+          <style>{'.nav-list[hidden]{display:flex}.nav-arrow{display:none}'}</style>
+        </noscript>
       </head>
       <body>
         <header class='site-header'>
-          <a class='wordmark' href='/' aria-label='a formulation of truth'>
-            <span class='wordmark-glyphs'>
-              a4<span lang='ta'>முல</span>
-              <span lang='sa'>सत्य</span>sya
-            </span>
-            <span class='wordmark-sub'>a formulation of truth</span>
-          </a>
-          <nav class='site-nav' aria-label='Primary navigation'>
-            <a href='/about'>About</a>
-            <a href='/shop'>Shop</a>
-            <a href='/'>Begin</a>
-          </nav>
+          <Nav items={PAGE_NAV} />
         </header>
 
         <main class='movement'>
@@ -62,9 +69,8 @@ export function PageShell(
         </main>
 
         <footer>
-          <a class='wordmark' href='/'>
-            a4<span lang='ta'>முல</span>
-            <span lang='sa'>सत्य</span>sya
+          <a class='wordmark' href='/' aria-label='a formulation of truth'>
+            <WordmarkGlyphs />
           </a>
 
           <div>
@@ -72,7 +78,7 @@ export function PageShell(
               a questionnaire to become acquainted oneself with a sequence of selves this lifetime.
             </p>
             <p style='margin-top: 1rem;'>
-              <a href='/about'>About</a> · <a href='/shop'>Shop</a> · <a href='/contact.html'>Contact</a> ·{' '}
+              <a href='/about'>About</a> · <a href='/shop'>Gift Shop</a> · <a href='/contact.html'>Contact</a> ·{' '}
               <a href='/privacy.html'>Privacy</a>
             </p>
           </div>
