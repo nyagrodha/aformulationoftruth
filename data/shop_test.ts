@@ -41,10 +41,14 @@ Deno.test('every book offers Penguin first and Amazon second', () => {
 
 Deno.test('own items carry live Stripe Payment Links', () => {
   assertEquals(OWN_ITEMS.length, 2);
+  const prices = new Map([
+    ['Abhinava-Tee', '$48'],
+    ['Abhinavabsurd… yet funny!', '$49'],
+  ]);
   for (const item of OWN_ITEMS) {
     if (item.kind !== 'own') continue;
     assertStringIncludes(item.paymentLink, 'https://buy.stripe.com/');
-    assertEquals(item.price, '$35');
+    assertEquals(item.price, prices.get(item.title));
   }
 });
 
