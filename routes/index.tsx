@@ -22,6 +22,7 @@
  */
 
 import { Handlers, PageProps } from '$fresh/server.ts';
+import type { VNode } from 'preact';
 import Nav, { type NavItem } from '../islands/Nav.tsx';
 import Spheroid from '../islands/Spheroid.tsx';
 import { WordmarkGlyphs } from '../components/Wordmark.tsx';
@@ -39,7 +40,7 @@ const LANDING_NAV: NavItem[] = [
 ];
 
 interface IndexData {
-  error?: string;
+  error?: VNode;
 }
 
 /*
@@ -48,15 +49,26 @@ interface IndexData {
  * once already, which silently swallowed every error but 'server': the visitor
  * was bounced back to the form with nothing to read. Change one, change both.
  */
-const ERROR_MESSAGES: Record<string, string> = {
-  invalid: "The server didn't capture your submission. Please try again.",
-  email: "The address you submitted isn't valid. Kindly try a different one — maildrop.cc and cock.li both work.",
-  send: "We couldn't deliver your authorization link right now. Try again in a moment.",
-  server: 'Something went wrong on our end. Please try again.',
+const ERROR_MESSAGES: Record<string, VNode> = {
+  invalid: <>Unfortunately, the server didn't capture your submission. Kindly try again.</>,
+  email: (
+    <>
+      The email address you submitted isn't valid. Try a different one —{' '}
+      <a href='https://maildrop.cc' target='_blank' rel='noopener noreferrer'>maildrop.cc</a> and{' '}
+      <a href='https://cock.li' target='_blank' rel='noopener noreferrer'>cockmail</a> both work.
+    </>
+  ),
+  send: <>We couldn't deliver your authorization link right meow. Try again in a moment.</>,
+  server: (
+    <>
+      Something went wrong. Please try again and it should resolve itself. Consider taking a brief moment to contact the
+      {' '}
+      <a href='mailto:formitselfisemptiness@aformulationoftruth.com'>webmaster</a> so I can investigate why.
+    </>
+  ),
 };
 
-const DESCRIPTION =
-  'Prior to the main sequence, a Proust questionnaire, some thoughts. Folks are ruled by inhibition. For the time you spend ansering the following queries, to the extent possible,  we invite reflective states of awareness.';
+const DESCRIPTION = 'Inhibition rules us humans.';
 
 /*
  * Share card. Both og:image and twitter:image point here — X falls back to the
@@ -67,7 +79,7 @@ const DESCRIPTION =
  */
 const SHARE_IMAGE = 'https://aformulationoftruth.com/images/dreamMore...always-800.jpg';
 const SHARE_IMAGE_ALT =
-  'A collage of quotations and photographs, centred on the line: if a little dreaming is dangerous the cure is not to dream less but to dream more, to dream all the time.';
+  'A collage of quotations, photographs, and a poem, centred on the line: if a little dreaming is dangerous the cure is not to dream less but to dream more, to dream all the time.';
 
 export const handler: Handlers<IndexData> = {
   GET(req, ctx) {
@@ -263,6 +275,24 @@ export default function Home({ data }: PageProps<IndexData>) {
             <div class='gate-content'>
               <p class='gate-eyebrow'>a gate:</p>
               <h2 class='gate-title'>we meet @ this gate:</h2>
+              <p class='gate-description'>
+                Often a thought or memory or fantasy floats into awareness only to be censored by merely the
+                anticipation of scolding, punishment, shame, or rejection. Inhibition causes us to shy away from that
+                prohibitive act. Human beings are ruled by inhibition. On measure we like this — I wanted to kill my
+                boyfriend the other night! But I didn’t. Not because homicide is impossible but because inhibition is
+                properly functioning in this fleshy mess.
+              </p>
+              <p class='gate-description'>
+                Lo, the many a spontaneous wish that inner dictator crushes. Merely anticipating punishment, shame, etc.
+                keeps me away from the spontaneous fantasy, thought, etc. Imposed ‘shoulds’ overpower legit desire.
+                Inhibition censors speech, inhibition delays action, making avoidance appear prudent even when no danger
+                is present.
+              </p>
+              <p class='gate-description'>
+                Inhibition rules a human being. For what follows, at least, don’t should on yourself. Compose what first
+                comes to mind. Be it simple something or more complex a memory, privacy and total control of your data
+                here mean to suggest the elephant in the room.
+              </p>
               <p class='gate-description'>
                 What follow are not intended to be polite questions. Consider this an ice-breaker, and these are holes
                 in the ice. Answer honestly, spontaneously and something cold touches the feet.
