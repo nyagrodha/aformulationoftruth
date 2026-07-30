@@ -26,6 +26,18 @@ export interface NavItem {
 export default function Nav({ items }: { items: NavItem[] }) {
   const [open, setOpen] = useState(false);
   const root = useRef<HTMLElement | null>(null);
+  const toggle = useRef<HTMLButtonElement | null>(null);
+
+  /*
+   * False on the server, and false forever if scripting is off. The wordmark is
+   * only a disclosure once there is script to run it: until then it renders as
+   * a plain span, so nothing announces aria-expanded="false" next to the list
+   * the <noscript> rule has already opened. Flipping it after mount also avoids
+   * the flash of an open menu that server-rendering the list visible would give
+   * every scripted visitor.
+   */
+  const [live, setLive] = useState(false);
+  useEffect(() => setLive(true), []);
 
   /*
    * Escape and outside-clicks close the menu. Bound only while open so the
@@ -35,7 +47,10 @@ export default function Nav({ items }: { items: NavItem[] }) {
     if (!open) return;
 
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setOpen(false);
+      if (event.key !== 'Escape') return;
+      setOpen(false);
+      /* Focus may be on a link inside the list we are about to hide. */
+      toggle.current?.focus();
     };
     const onPointerDown = (event: Event) => {
       if (root.current && !root.current.contains(event.target as Node)) setOpen(false);
@@ -49,21 +64,33 @@ export default function Nav({ items }: { items: NavItem[] }) {
     };
   }, [open]);
 
+  /* The wordmark is the label either way; only its element changes. */
+  const brand = (
+    <>
+      <span class='nav-arrow' aria-hidden='true'>▶</span>
+      <span class='wordmark'>
+        <WordmarkGlyphs />
+        <span class='wordmark-sub'>a formulation of truth</span>
+      </span>
+    </>
+  );
+
   return (
     <nav class='site-nav' aria-label='Primary navigation' ref={root}>
-      <button
-        type='button'
-        class='nav-toggle'
-        aria-expanded={open}
-        aria-controls='nav-list'
-        onClick={() => setOpen((v) => !v)}
-      >
-        <span class='nav-arrow' aria-hidden='true'>▶</span>
-        <span class='wordmark'>
-          <WordmarkGlyphs />
-          <span class='wordmark-sub'>a formulation of truth</span>
-        </span>
-      </button>
+      {live
+        ? (
+          <button
+            type='button'
+            class='nav-toggle'
+            ref={toggle}
+            aria-expanded={open}
+            aria-controls='nav-list'
+            onClick={() => setOpen((v) => !v)}
+          >
+            {brand}
+          </button>
+        )
+        : <span class='nav-toggle'>{brand}</span>}
 
       <ul id='nav-list' class='nav-list' hidden={!open}>
         {items.map(({ label, href }) => (

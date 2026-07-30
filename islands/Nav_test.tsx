@@ -35,16 +35,19 @@ Deno.test('Nav marks up each wordmark segment for colouring', () => {
 });
 
 /*
- * Server render is the closed state, and the toggle is a plain button — a
- * submit button here would post any form it ever ends up inside.
+ * The server render carries no disclosure semantics at all. Without JS the
+ * <noscript> rule opens the list, and a toggle still announcing
+ * aria-expanded="false" beside an open list would be a plain lie; the element
+ * only becomes a button once hydration can honour it.
  */
-Deno.test('Nav renders closed, with a typed toggle wired to the list', () => {
+Deno.test('Nav server-renders an inert wordmark, not a collapsed toggle', () => {
   const html = render(<Nav items={ITEMS} />);
-  assertStringIncludes(html, 'type="button"');
-  assertStringIncludes(html, 'aria-expanded="false"');
-  assertStringIncludes(html, 'aria-controls="nav-list"');
+  assertStringIncludes(html, 'class="nav-toggle"');
   assertStringIncludes(html, 'id="nav-list"');
   assertStringIncludes(html, 'hidden');
+  assertEquals(html.includes('<button'), false);
+  assertEquals(html.includes('aria-expanded'), false);
+  assertEquals(html.includes('aria-controls'), false);
 });
 
 Deno.test('Nav renders no items when given none', () => {

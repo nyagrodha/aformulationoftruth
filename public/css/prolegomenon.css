@@ -199,6 +199,13 @@ body::before {
   color: inherit;
   font: inherit;
   text-align: left;
+}
+
+/*
+ * Only the hydrated toggle is a control. Before that — and always, without JS —
+ * it is a span holding the wordmark, and must not offer a pointer it can't honour.
+ */
+button.nav-toggle {
   cursor: pointer;
 }
 
