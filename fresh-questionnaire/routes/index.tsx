@@ -8,7 +8,7 @@ interface IndexData {
 }
 
 export const handler: Handlers<IndexData> = {
-  async GET(req, ctx) {
+  GET(req, ctx) {
     const url = new URL(req.url);
     const gateSessionId = url.searchParams.get("gateSession");
 

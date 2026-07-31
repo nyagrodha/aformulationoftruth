@@ -1,36 +1,60 @@
 {
-  "nodeModulesDir": "auto",
+  "$schema": "https://deno.land/x/deno/cli/schemas/config-file.v1.json",
+  "lock": false,
   "tasks": {
+    "check": "deno fmt --check && deno lint && deno check **/*.ts **/*.tsx",
     "dev": "deno run -A --watch=public/,routes/,islands/ dev.ts",
+    "build": "deno run -A dev.ts build",
+    "preview": "deno run -A main.ts",
     "start": "deno run --allow-all main.ts",
-    "test": "deno test --allow-net --allow-read --allow-write --allow-env",
+    "db:migrate": "deno run --allow-net --allow-env --allow-read=./db/migrations migrate.ts",
+    "test": "deno test --allow-net --allow-read --allow-write --allow-env --ignore=node_modules,dist,trash,trashy,_fresh,public/js,fresh-questionnaire tests/",
+    "test:e2e": "deno test --allow-net --allow-env --allow-read --ignore=node_modules,dist,trash,trashy,_fresh,public/js,fresh-questionnaire tests/questionnaire_e2e_test.ts",
+    "test:integration": "deno test --allow-net --allow-env --allow-read --ignore=node_modules,dist,trash,trashy,_fresh,public/js,fresh-questionnaire tests/integration_test.ts",
     "hooks": "git config core.hooksPath hooks"
   },
   "imports": {
     "$fresh/": "https://deno.land/x/fresh@1.7.3/",
+    "$std/": "https://deno.land/std@0.224.0/",
+    "@age/age-encryption": "jsr:@age/age-encryption@^0.3.0",
     "preact": "https://esm.sh/preact@10.24.3",
     "preact/": "https://esm.sh/preact@10.24.3/",
-    "$std/": "https://deno.land/std@0.216.0/",
+    "@preact/signals": "https://esm.sh/*@preact/signals@1.3.1",
+    "@preact/signals-core": "https://esm.sh/*@preact/signals-core@1.8.0",
     "postgres": "https://deno.land/x/postgres@v0.19.3/mod.ts",
     "zod": "https://deno.land/x/zod@v3.23.8/mod.ts",
+    "grammy": "https://deno.land/x/grammy@v1.21.1/mod.ts",
+    "grammy/": "https://deno.land/x/grammy@v1.21.1/",
     "preact-render-to-string": "https://esm.sh/preact-render-to-string@6.5.11?external=preact"
   },
   "compilerOptions": {
+    "lib": ["dom", "dom.iterable", "dom.asynciterable", "deno.ns"],
     "jsx": "react-jsx",
     "jsxImportSource": "preact"
   },
-  "exclude": ["**/_fresh/*", "unused-20260612"],
-  "lint": {
-    "rules": {
-      "tags": ["recommended"]
-    }
-  },
+  "nodeModulesDir": "none",
   "fmt": {
     "useTabs": false,
-    "lineWidth": 120,
+    "lineWidth": 100,
     "indentWidth": 2,
-    "semiColons": true,
-    "singleQuote": true,
-    "proseWrap": "preserve"
-  }
+    "singleQuote": true
+  },
+  "lint": {
+    "rules": {
+      "tags": ["recommended"],
+      "include": ["no-unused-vars"]
+    }
+  },
+  "exclude": [
+    "**/_fresh/*",
+    "unused-20260612",
+    "node_modules/",
+    "dist/",
+    "trash/",
+    "trashy/",
+    "_fresh/",
+    "public/js/",
+    "fresh-questionnaire/"
+  ]
 }
+

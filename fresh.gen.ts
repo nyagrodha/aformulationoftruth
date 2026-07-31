@@ -12,6 +12,10 @@ import * as $api_gate_submit from './routes/api/gate-submit.ts';
 import * as $api_gate from './routes/api/gate.ts';
 import * as $api_health from './routes/api/health.ts';
 import * as $api_metrics from './routes/api/metrics.ts';
+import * as $api_metrics_increment from './routes/api/metrics/increment.ts';
+import * as $api_newsletter_confirm from './routes/api/newsletter/confirm.ts';
+import * as $api_newsletter_subscribe from './routes/api/newsletter/subscribe.ts';
+import * as $api_newsletter_unsubscribe from './routes/api/newsletter/unsubscribe.ts';
 import * as $api_profile from './routes/api/profile.ts';
 import * as $api_questions_answer from './routes/api/questions/answer.ts';
 import * as $api_questions_next from './routes/api/questions/next.ts';
@@ -26,8 +30,10 @@ import * as $profile_choice from './routes/profile-choice.tsx';
 import * as $profile_create from './routes/profile-create.tsx';
 import * as $questionnaire from './routes/questionnaire.tsx';
 import * as $shop from './routes/shop.tsx';
+import * as $questions from './routes/questions.tsx';
 import * as $w_token_ from './routes/w/[token].tsx';
 import * as $Nav from './islands/Nav.tsx';
+import * as $QuaternarySpheroid from './islands/QuaternarySpheroid.tsx';
 import * as $Spheroid from './islands/Spheroid.tsx';
 import type { Manifest } from '$fresh/server.ts';
 
@@ -43,6 +49,10 @@ const manifest = {
     './routes/api/gate.ts': $api_gate,
     './routes/api/health.ts': $api_health,
     './routes/api/metrics.ts': $api_metrics,
+    './routes/api/metrics/increment.ts': $api_metrics_increment,
+    './routes/api/newsletter/confirm.ts': $api_newsletter_confirm,
+    './routes/api/newsletter/subscribe.ts': $api_newsletter_subscribe,
+    './routes/api/newsletter/unsubscribe.ts': $api_newsletter_unsubscribe,
     './routes/api/profile.ts': $api_profile,
     './routes/api/questions/answer.ts': $api_questions_answer,
     './routes/api/questions/next.ts': $api_questions_next,
@@ -57,10 +67,12 @@ const manifest = {
     './routes/profile-create.tsx': $profile_create,
     './routes/questionnaire.tsx': $questionnaire,
     './routes/shop.tsx': $shop,
+    './routes/questions.tsx': $questions,
     './routes/w/[token].tsx': $w_token_,
   },
   islands: {
     './islands/Nav.tsx': $Nav,
+    './islands/QuaternarySpheroid.tsx': $QuaternarySpheroid,
     './islands/Spheroid.tsx': $Spheroid,
   },
   baseUrl: import.meta.url,

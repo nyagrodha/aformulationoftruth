@@ -20,7 +20,7 @@
  */
 
 import { Handlers } from '$fresh/server.ts';
-import { getSessionById, getSessionByToken, getNextQuestion } from '../../../lib/questionnaire-session.ts';
+import { getSessionByToken } from '../../../lib/questionnaire-session.ts';
 import { parseQuestionOrder } from '../../../lib/questionnaire.ts';
 import { increment } from '../../../lib/metrics.ts';
 

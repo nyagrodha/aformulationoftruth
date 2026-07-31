@@ -1,0 +1,165 @@
+/*
+ * ═══════════════════════════════════════════════════════════════
+ * SITE NAV — shared across all pages
+ * a4 brand fixed top-left, horizontal links top-right
+ * ═══════════════════════════════════════════════════════════════
+ */
+
+/* Font face (duplicated from index for standalone pages) */
+@font-face {
+    font-family: 'SaiIndira';
+    src: url('/fonts/SaiIndira.woff2') format('woff2');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+.site-nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.9rem 2rem;
+    background: rgba(0, 0, 0, 0.92);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+
+/* ── a4 brand — left side ── */
+.site-nav__brand {
+    text-decoration: none;
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0;
+    transition: opacity 0.2s ease;
+}
+
+.site-nav__brand:hover {
+    opacity: 1;
+}
+
+.site-nav__a4 {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    color: #888;
+    transition: color 0.25s ease, text-shadow 0.25s ease;
+}
+
+.site-nav__brand:hover .site-nav__a4 {
+    color: #FFD700;
+    text-shadow: 0 0 12px rgba(255, 215, 0, 0.35);
+}
+
+.site-nav__tamil {
+    font-family: 'SaiIndira', 'Noto Serif Tamil', 'Tamil Sangam MN', serif;
+    font-size: 0.95rem;
+    color: #ccc;
+    transition: color 0.25s ease;
+}
+
+.site-nav__brand:hover .site-nav__tamil {
+    color: #FFD700;
+}
+
+/* ── horizontal links — right side ── */
+.site-nav__links {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+}
+
+.site-nav__link {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    text-decoration: none;
+    color: #888;
+    position: relative;
+    padding: 0.25rem 0;
+    transition: color 0.25s ease, text-shadow 0.25s ease;
+}
+
+.site-nav__link::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    width: 0;
+    height: 1px;
+    transform: translateX(-50%);
+    transition: width 0.25s ease;
+}
+
+.site-nav__link:hover {
+    color: #fff;
+}
+
+.site-nav__link:hover::after {
+    width: 100%;
+}
+
+/* Accent colours per link */
+.site-nav__link--questionnaire       { color: #FFD700; }
+.site-nav__link--questionnaire:hover { text-shadow: 0 0 10px rgba(255, 215, 0, 0.4); }
+.site-nav__link--questionnaire::after { background: #FFD700; }
+
+.site-nav__link--about       { color: #ccc; }
+.site-nav__link--about:hover { color: #fff; text-shadow: 0 0 10px rgba(255, 255, 255, 0.3); }
+.site-nav__link--about::after { background: #fff; }
+
+.site-nav__link--contact       { color: #ff69b4; }
+.site-nav__link--contact:hover { text-shadow: 0 0 10px rgba(255, 105, 180, 0.4); }
+.site-nav__link--contact::after { background: #ff69b4; }
+
+.site-nav__link--privacy       { color: #888; }
+.site-nav__link--privacy:hover { color: #ccc; }
+.site-nav__link--privacy::after { background: #888; }
+
+/* Active page indicator */
+.site-nav__link--active {
+    color: #fff !important;
+}
+
+.site-nav__link--active::after {
+    width: 100%;
+}
+
+/* ── body offset so content isn't hidden under fixed nav ── */
+body.has-site-nav {
+    padding-top: 3rem;
+}
+
+/* ── mobile ── */
+@media (max-width: 600px) {
+    .site-nav {
+        padding: 0.75rem 1rem;
+    }
+
+    .site-nav__links {
+        gap: 1rem;
+    }
+
+    .site-nav__link {
+        font-size: 0.6rem;
+        letter-spacing: 0.08em;
+    }
+}
+
+@media (max-width: 380px) {
+    .site-nav__links {
+        gap: 0.6rem;
+    }
+
+    .site-nav__link {
+        font-size: 0.55rem;
+    }
+}
