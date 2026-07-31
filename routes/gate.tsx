@@ -177,12 +177,7 @@ export default function GatePage({ data }: PageProps<GateData>) {
       </head>
       <body>
         <nav>
-          <a href="/" class="logo">A4T</a>
-          <div class="nav-links">
-            <a href="/about.html">About</a>
-            <a href="/contact.html">Contact</a>
-          </div>
-        </nav>
+          <a href="/" class="logo">A4T</a>        </nav>
 
         <main>
           <section class="section gate-section" style="min-height: 100vh; display: flex; align-items: center;">

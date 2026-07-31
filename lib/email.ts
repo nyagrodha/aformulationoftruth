@@ -1,16 +1,16 @@
 /**
- * Email Utilities - transport-agnostic delivery abstraction.
+ * Email Utilities - Apple iCloud SMTP
  *
- * SendGrid has been removed. No email transport is currently configured:
- * sendEmail() drops the message and reports success so callers (magic link,
- * newsletter double opt-in) continue without an external email provider.
- * To actually deliver mail again, implement a transport in sendEmail().
+ * Delivery goes through smtp.mail.me.com (Apple) via authenticated SMTP.
+ * SendGrid is intentionally not used.
  *
  * gupta-vidya compliance:
  * - Email addresses used only for delivery
- * - No email content logged or stored
+ * - No email address or content is ever logged
  * - Minimal data in email body
  */
+
+import { SMTPClient } from 'https://deno.land/x/denomailer@1.6.0/mod.ts';
 
 interface SendEmailOptions {
   to: string;
@@ -26,24 +26,102 @@ export interface EmailResult {
 }
 
 /**
- * Deliver an email.
+ * Pull the SMTP reply code out of a thrown error, when there is one.
  *
- * No transport is currently wired (SendGrid removed): the message is dropped
- * and success is reported so auth and newsletter flows do not fail. Replace
- * the body below with a real transport to resume delivery.
+ * Only the integer is ever returned — never the surrounding message, which can
+ * echo the envelope and therefore the recipient. The patterns are anchored
+ * deliberately: a bare /\d{3}/ search would happily match digits inside an
+ * address, and three digits of a recipient is still a fingerprint under the
+ * zero-logging policy. Better to report no code than to guess one.
+ *
+ * Transport failures (refused connection, TLS handshake, timeout) carry no
+ * reply code at all — those surface as a kind instead, see smtpFailureKind.
  */
-export function sendEmail(options: SendEmailOptions): Promise<EmailResult> {
-  // Redact the local-part; never log full addresses or message content.
-  const redacted = options.to.replace(/(.{2}).*(@.*)/, '$1***$2');
-  console.log('[email] delivery skipped (no transport configured):', redacted);
-  return Promise.resolve({ success: true });
+function smtpReplyCode(error: unknown): number | undefined {
+  const message = error instanceof Error ? error.message : '';
+  const match = /^\s*([2-5]\d{2})[\s-]/.exec(message) ||
+    /\bgot\s+([2-5]\d{2})\b/i.exec(message) ||
+    /\bcode[:=\s]+([2-5]\d{2})\b/i.exec(message);
+  return match ? Number(match[1]) : undefined;
+}
+
+/**
+ * The error's class name — 'ConnectionRefused', 'TimedOut', 'Error'. A
+ * constructor name carries no user data, so it is safe to log verbatim and
+ * tells transport failures apart from server rejections.
+ */
+function smtpFailureKind(error: unknown): string {
+  return error instanceof Error && error.name ? error.name : 'Unknown';
+}
+
+/**
+ * Send email via Apple iCloud SMTP.
+ *
+ * Reads connection settings from the environment:
+ *   SMTP_HOST, SMTP_PORT, SMTP_SECURE, SMTP_USER, SMTP_PASS, FROM_EMAIL
+ * SMTP_SECURE=true selects implicit TLS (port 465); otherwise STARTTLS is
+ * used (port 587), which is Apple's default submission port.
+ */
+export async function sendEmail(options: SendEmailOptions): Promise<EmailResult> {
+  const hostname = Deno.env.get('SMTP_HOST');
+  const port = parseInt(Deno.env.get('SMTP_PORT') || '587', 10);
+  const implicitTls = Deno.env.get('SMTP_SECURE') === 'true';
+  const username = Deno.env.get('SMTP_USER');
+  const password = Deno.env.get('SMTP_PASS');
+  const fromEmail = Deno.env.get('FROM_EMAIL') || username;
+  const fromName = Deno.env.get('SMTP_FROM_NAME') || 'a formulation of truth';
+
+  if (!hostname || !username || !password || !fromEmail) {
+    console.error('[email] SMTP not configured');
+    return { success: false, error: 'Email service not configured' };
+  }
+
+  const client = new SMTPClient({
+    connection: {
+      hostname,
+      port,
+      tls: implicitTls,
+      auth: { username, password },
+    },
+  });
+
+  try {
+    await client.send({
+      from: `${fromName} <${fromEmail}>`,
+      to: options.to,
+      subject: options.subject,
+      content: options.text,
+      html: options.html,
+    });
+    return { success: true, statusCode: 250 };
+  } catch (error) {
+    // Zero-logging: never surface the recipient or full error (may echo the
+    // envelope). A reply code and an error class name are both PII-free, and
+    // they are the difference between "mail broke" and "Apple threw 421 at us
+    // for sending too fast" — which is the whole of the diagnosis.
+    const statusCode = smtpReplyCode(error);
+    console.error(
+      `[email] SMTP send failed code=${statusCode ?? 'none'} kind=${smtpFailureKind(error)}`,
+    );
+    return {
+      success: false,
+      statusCode,
+      error: error instanceof Error ? error.message : 'SMTP send failed',
+    };
+  } finally {
+    try {
+      await client.close();
+    } catch {
+      // ignore close errors
+    }
+  }
 }
 
 /**
  * Send magic link email for questionnaire access
  */
 export async function sendMagicLinkEmail(email: string, magicLinkUrl: string): Promise<EmailResult> {
-  const subject = 'Your link to a formulation of truth';
+  const subject = Deno.env.get('EMAIL_SUBJECT') || 'Your link to a formulation of truth';
 
   const text = `
 You requested access to a formulation of truth.

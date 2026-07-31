@@ -18,12 +18,7 @@ export default function CompletionPage() {
       </head>
       <body>
         <nav>
-          <a href="/" class="logo">A4T</a>
-          <div class="nav-links">
-            <a href="/about.html">About</a>
-            <a href="/contact.html">Contact</a>
-          </div>
-        </nav>
+          <a href="/" class="logo">A4T</a>        </nav>
 
         <main>
           <section class="section gate-section" style="min-height: 100vh; display: flex; align-items: center;">
@@ -51,7 +46,10 @@ export default function CompletionPage() {
                 the interior landscape of a person.
               </p>
 
-              <a href="/" class="cta cta-primary">Return to the beginning</a>
+              <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 1rem;">
+                <a href="/profile-choice" class="cta cta-primary">Create a profile</a>
+                <a href="/" class="cta">Return to the beginning</a>
+              </div>
             </div>
           </section>
         </main>

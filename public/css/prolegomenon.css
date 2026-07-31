@@ -1,17 +1,83 @@
-@font-face {
-  font-family: "Noto Serif";
-  src: url("/fonts/NotoSerif-Regular.ttf") format("truetype");
-  font-weight: 400;
-  font-display: swap;
+/**
+ * prolegomenon.css — letterpress design for the landing prolegomenon.
+ *
+ * Typography is Georgia (prose) + Arial (labels/rules). No webfonts, no CDNs:
+ * every face here is a system face, so the page ships zero third-party
+ * requests. See the no-external-font rule in routes/index.tsx.
+ *
+ * This stylesheet is self-contained — it does NOT sit on top of main.css or
+ * landing.css (the neon idiom would fight the paper/ink one). It carries its
+ * own reset.
+ */
+
+/* ── reset ─────────────────────────────────────────────────────────────── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  border: 0 solid;
 }
 
-@font-face {
-  font-family: "League Spartan";
-  src: url("/fonts/LeagueSpartan-VF.woff2") format("woff2");
-  font-weight: 500 700;
-  font-display: swap;
+html {
+  -webkit-text-size-adjust: 100%;
+  tab-size: 4;
+  line-height: 1.5;
 }
 
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+h1,
+h2,
+h3 {
+  font-size: inherit;
+  font-weight: inherit;
+}
+
+canvas {
+  display: block;
+  vertical-align: middle;
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+  letter-spacing: inherit;
+  color: inherit;
+  background-color: transparent;
+  border-radius: 0;
+}
+
+textarea {
+  resize: vertical;
+}
+
+sup {
+  position: relative;
+  top: -0.5em;
+  vertical-align: baseline;
+  font-size: 75%;
+  line-height: 0;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
+
+/* ── palette ───────────────────────────────────────────────────────────── */
 :root {
   --paper: #e8ddc5;
   --paper-light: #f3ead8;
@@ -24,218 +90,795 @@
   --olive: #66733d;
   --ochre: #c17b22;
   --verdigris: #188a82;
-  --rule: rgba(23, 23, 21, 0.34);
+  --rule: #17171557;
 }
 
-* { box-sizing: border-box; }
-html { scroll-behavior: smooth; }
 body {
   margin: 0;
   background: var(--paper);
   color: var(--ink);
-  font-family: "Noto Serif", Georgia, "Times New Roman", serif;
+  font-family: Georgia, 'Times New Roman', serif;
 }
+
+/* Paper grain. Purely decorative, sits above everything but eats no clicks. */
 body::before {
-  content: "";
+  content: '';
   position: fixed;
   inset: 0;
-  pointer-events: none;
   z-index: 10;
-  opacity: .18;
-  background-image:
-    repeating-radial-gradient(circle at 30% 40%, transparent 0 2px, rgba(65,48,26,.08) 3px 4px),
-    linear-gradient(90deg, rgba(255,255,255,.12), transparent 42%, rgba(61,42,18,.05));
-  background-size: 7px 7px, 100% 100%;
+  pointer-events: none;
+  opacity: 0.18;
   mix-blend-mode: multiply;
+  background-image:
+    repeating-radial-gradient(circle at 30% 40%, transparent 0 2px, #41301a14 3px 4px),
+    linear-gradient(90deg, #ffffff1f, transparent 42%, #3d2a120d);
+  background-size: 7px 7px, 100% 100%;
 }
-a { color: inherit; text-decoration: none; }
-.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
 
+/* ── header ────────────────────────────────────────────────────────────── */
 .site-header {
-  height: 76px;
+  position: relative;
+  z-index: 2;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  height: 76px;
   margin: 0 2.5vw;
-  padding: 0 .5vw;
+  padding: 0 0.5vw;
   border-bottom: 1px solid var(--rule);
-  position: relative;
-  z-index: 2;
 }
-.wordmark { font-size: clamp(1.35rem, 2vw, 2rem); letter-spacing: -.04em; }
-nav { display: flex; gap: clamp(1.4rem, 3.5vw, 4rem); }
-nav a, .eyebrow, .enter, .folio, .movement-index, footer p, footer > a:last-child {
-  font-family: "League Spartan", Arial, Helvetica, sans-serif;
-  text-transform: uppercase;
-  letter-spacing: .2em;
-}
-nav a { font-size: .69rem; font-weight: 600; }
-nav a:hover, nav a:focus-visible { color: var(--saffron); }
 
+.wordmark {
+  font-size: clamp(1.35rem, 2vw, 2rem);
+  letter-spacing: -0.04em;
+}
+
+.site-nav {
+  display: flex;
+  gap: clamp(1.4rem, 3.5vw, 4rem);
+}
+
+.site-nav a,
+.eyebrow,
+.enter,
+.folio,
+.movement-index,
+.gate-eyebrow,
+footer p,
+footer .footer-return {
+  font-family: Arial, Helvetica, sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+}
+
+.site-nav a {
+  font-size: 0.69rem;
+  font-weight: 600;
+}
+
+.site-nav a:hover,
+.site-nav a:focus-visible {
+  color: var(--saffron);
+}
+
+/* ── hero ──────────────────────────────────────────────────────────────── */
 .hero {
-  min-height: calc(100vh - 76px);
   position: relative;
   display: grid;
-  grid-template-columns: minmax(0, 1.45fr) minmax(300px, .75fr);
+  grid-template-columns: minmax(0, 1.45fr) minmax(300px, 0.75fr);
   align-items: center;
   gap: 6vw;
+  min-height: calc(100vh - 76px);
   padding: 8vh 9vw 10vh 8vw;
-  border-bottom: 1px solid var(--rule);
   overflow: hidden;
+  border-bottom: 1px solid var(--rule);
 }
-.hero-copy { max-width: 790px; animation: rise .75s cubic-bezier(.22,1,.36,1) both; }
+
+.hero-copy {
+  max-width: 790px;
+  animation: rise 0.75s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
 .hero-title {
   max-width: 760px;
   margin: 0;
   font-size: clamp(2.45rem, 5vw, 5.5rem);
-  line-height: .98;
-  letter-spacing: -.045em;
+  line-height: 0.98;
+  letter-spacing: -0.045em;
   text-wrap: balance;
 }
+
 .hero-datestamp {
   max-width: 630px;
   margin: clamp(1.6rem, 3vw, 2.8rem) 0 0;
   color: var(--saffron);
-  font: 600 clamp(.6rem, .78vw, .76rem)/1.7 "League Spartan", Arial, sans-serif;
-  letter-spacing: .16em;
+  font: 600 clamp(0.6rem, 0.78vw, 0.76rem) / 1.7 Arial, Helvetica, sans-serif;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
 }
+
+.eyebrow {
+  margin: clamp(2.5rem, 5vw, 4.5rem) 0 1.2rem;
+  color: var(--saffron);
+  font-size: clamp(0.58rem, 0.72vw, 0.68rem);
+  font-weight: 700;
+}
+
+.incipit {
+  max-width: 680px;
+  margin: 0;
+  font-size: clamp(1.7rem, 2.75vw, 3rem);
+  line-height: 1.18;
+  letter-spacing: -0.025em;
+}
+
+.drop-cap {
+  float: left;
+  margin: 0.1em 0.13em 0 0;
+  padding: 0.08em 0.1em 0.03em;
+  border: 1px solid var(--saffron);
+  box-shadow: inset 0 0 0 4px var(--paper), inset 0 0 0 5px #1717156b;
+  color: var(--ink);
+  font-size: 3.75em;
+  line-height: 0.73;
+  text-shadow: 2px 2px #d965122e;
+}
+
+.enter {
+  display: inline-flex;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 4rem;
+  color: var(--saffron);
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.enter > span {
+  display: block;
+  width: 76px;
+  height: 1px;
+  background: var(--saffron);
+  transition: width 0.25s;
+}
+
+.enter b {
+  font-size: 1.25rem;
+  font-weight: 400;
+}
+
+.enter:hover > span,
+.enter:focus-visible > span {
+  width: 100px;
+}
+
+.enter:focus-visible {
+  outline: 2px solid var(--cyan);
+  outline-offset: 8px;
+}
+
 .mathematical {
   color: var(--rose);
-  font-family: "Noto Serif", Georgia, serif;
+  font-family: Georgia, 'Times New Roman', serif;
   font-size: 1.15em;
   font-style: italic;
   font-weight: 600;
-  letter-spacing: .06em;
+  letter-spacing: 0.06em;
   text-transform: none;
   white-space: nowrap;
 }
-.mathematical sup { font-size: .62em; vertical-align: super; }
-.eyebrow { margin: clamp(2.5rem, 5vw, 4.5rem) 0 1.2rem; font-size: clamp(.58rem, .72vw, .68rem); font-weight: 700; color: var(--saffron); }
-.incipit { max-width: 680px; margin: 0; font-size: clamp(1.7rem, 2.75vw, 3rem); line-height: 1.18; letter-spacing: -.025em; }
-.drop-cap {
-  float: left;
-  color: var(--ink);
-  font-size: 3.75em;
-  line-height: .73;
-  margin: .1em .13em 0 0;
-  padding: .08em .1em .03em;
-  border: 1px solid var(--saffron);
-  box-shadow: inset 0 0 0 4px var(--paper), inset 0 0 0 5px rgba(23,23,21,.42);
-  text-shadow: 2px 2px 0 rgba(217,101,18,.18);
+
+.mathematical sup {
+  vertical-align: super;
+  font-size: 0.62em;
 }
-.enter { display: inline-flex; align-items: center; gap: 1rem; margin-top: 3rem; color: var(--saffron); font-size: .7rem; font-weight: 700; }
-.enter > span { display: block; width: 76px; height: 1px; background: var(--saffron); transition: width .25s ease; }
-.enter b { font-size: 1.25rem; font-weight: 400; }
-.enter:hover > span, .enter:focus-visible > span { width: 100px; }
-.enter:focus-visible { outline: 2px solid var(--cyan); outline-offset: 8px; }
 
-.geometry { position: relative; width: min(27vw, 360px); aspect-ratio: 1 / 1.15; justify-self: end; animation: draw-in 1s .2s both; }
-.axis, .measure, .curve { position: absolute; display: block; }
-.axis-desire { left: 22%; right: 1%; top: 52%; height: 1.5px; background: var(--rose); }
-.axis-habit { top: 5%; bottom: 2%; left: 55%; width: 1.5px; background: var(--indigo); }
-.curve { width: 63%; height: 64%; left: 0; top: 12%; border-right: 1.5px solid var(--olive); border-bottom: 1.5px solid var(--olive); border-radius: 0 0 100% 0; transform: skew(-8deg); }
-.intersection { position: absolute; left: calc(55% - 5px); top: calc(52% - 5px); width: 11px; height: 11px; border: 2px solid var(--cyan); border-radius: 50%; background: var(--paper); box-shadow: 0 0 0 5px rgba(7,143,154,.1); }
-.measure-one { left: 6%; top: 29%; width: 43%; height: 1.5px; background: var(--ochre); }
-.measure-two { left: 34%; right: 4%; top: 76%; height: 1.5px; background: var(--verdigris); }
-.geometry-label { position: absolute; font-family: "League Spartan", Arial, sans-serif; font-size: .63rem; letter-spacing: .16em; font-style: italic; color: var(--muted); background: var(--paper); padding: .25rem .4rem; }
-.geometry-label i { display: inline-block; width: 12px; height: 4px; margin-right: .45rem; border-radius: 999px; vertical-align: .08em; }
-.label-desire { top: calc(52% - 2rem); right: 0; color: var(--rose); }
-.label-desire i { background: var(--rose); }
-.label-habit { top: 5%; left: calc(55% + .5rem); color: var(--indigo); writing-mode: vertical-rl; }
-.label-habit i { width: 4px; height: 12px; margin: 0 0 .45rem; background: var(--indigo); }
+/* ── the figure ────────────────────────────────────────────────────────── */
+/*
+ * desire is a straight line — a linear slope, real-valued over expectation.
+ * f(x) is possibility: convex, unbounded, diverging toward the asymptote it
+ * never reaches (any possible value). They meet exactly once, at habit — the
+ * force-point. Left of habit desire outruns possibility; that gap is misery.
+ */
+.geometry {
+  position: relative;
+  justify-self: end;
+  width: min(27vw, 360px);
+  margin: 0;
+  animation: draw-in 1s 0.2s both;
+}
 
+.geometry svg {
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.fig-axis {
+  stroke: var(--ink);
+  stroke-width: 1.25;
+  fill: var(--ink);
+  opacity: 0.55;
+}
+
+.fig-desire {
+  stroke: var(--rose);
+  stroke-width: 1.75;
+  fill: none;
+}
+
+.fig-possibility {
+  stroke: var(--saffron);
+  stroke-width: 2;
+  fill: none;
+  stroke-linecap: round;
+}
+
+.fig-asymptote {
+  stroke: var(--indigo);
+  stroke-width: 1.25;
+  stroke-dasharray: 3 5;
+  fill: none;
+  opacity: 0.75;
+}
+
+.fig-misery {
+  fill: var(--rose);
+  opacity: 0.09;
+}
+
+.fig-habit {
+  fill: var(--paper);
+  stroke: var(--cyan);
+  stroke-width: 2.25;
+}
+
+.fig-label {
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 11px;
+  font-style: italic;
+  letter-spacing: 0.14em;
+  fill: var(--muted);
+}
+
+.fig-label-real {
+  font-style: normal;
+  font-size: 13px;
+  fill: var(--ink);
+  text-anchor: end;
+}
+
+.fig-label-x {
+  fill: var(--ink);
+  text-anchor: middle;
+}
+
+.fig-label-desire {
+  fill: var(--rose);
+  text-anchor: start;
+}
+
+.fig-label-possibility {
+  fill: var(--saffron);
+  text-anchor: end;
+}
+
+.fig-label-habit {
+  fill: var(--cyan);
+  letter-spacing: 0.18em;
+}
+
+.fig-label-misery {
+  fill: var(--rose);
+  text-anchor: middle;
+  opacity: 0.85;
+}
+
+.fig-label-asymptote {
+  font-size: 9.5px;
+  fill: var(--indigo);
+  text-anchor: middle;
+  opacity: 0.9;
+}
+
+/* ── quaternary spheroid (canvas island) ───────────────────────────────── */
 .quaternary-spheroid {
   position: absolute;
   right: 7.2vw;
   bottom: 3.4vh;
-  width: 178px;
-  height: 178px;
-  opacity: .9;
-  transform: rotate(-8deg);
+  width: 268px;
+  height: 268px;
+  opacity: 1;
   cursor: crosshair;
   touch-action: none;
   will-change: transform;
   filter: saturate(1.12);
-  animation: spheroid-enter 1.15s .55s both;
+  transform: rotate(-8deg);
+  animation: spheroid-enter 1.15s 0.55s both;
 }
-.quaternary-spheroid canvas { display: block; width: 100%; height: 100%; }
-.spheroid-sigil { position: absolute; right: .2rem; bottom: .1rem; font: 600 .55rem/1 "League Spartan", Arial, sans-serif; letter-spacing: .18em; color: var(--rose); text-shadow: 0 0 8px rgba(168,59,91,.28); }
-.folio { position: absolute; right: 2.9vw; top: 6%; bottom: 6%; display: flex; flex-direction: column; align-items: center; justify-content: space-between; padding-left: 1.25rem; border-left: 1px solid var(--rule); font-size: .6rem; }
-.folio > span { writing-mode: vertical-rl; }
-.folio i { width: 5px; height: 5px; border-radius: 50%; background: var(--saffron); }
-.folio b { font-weight: 400; line-height: 2.2; text-align: center; }
 
-.sequence { background: var(--paper-light); }
+.quaternary-spheroid canvas {
+  width: 100%;
+  height: 100%;
+}
+
+/*
+ * The sigil is anchored to the hero, not to the molecule. The molecule drifts
+ * and tumbles beneath it; IV stays fixed and perpendicular to the page.
+ */
+.spheroid-sigil {
+  position: absolute;
+  right: 6.4vw;
+  bottom: 2.2vh;
+  color: var(--cyan);
+  font: 600 0.62rem / 1 Arial, sans-serif;
+  letter-spacing: 0.18em;
+  text-shadow: 0 0 8px #078f9a47;
+}
+
+/* ── folio (vertical page marker) ──────────────────────────────────────── */
+.folio {
+  position: absolute;
+  top: 6%;
+  right: 2.9vw;
+  bottom: 6%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding-left: 1.25rem;
+  border-left: 1px solid var(--rule);
+  font-size: 0.6rem;
+}
+
+.folio > span {
+  writing-mode: vertical-rl;
+}
+
+.folio i {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--saffron);
+}
+
+.folio b {
+  font-weight: 400;
+  line-height: 2.2;
+  text-align: center;
+}
+
+/* ── the sequence ──────────────────────────────────────────────────────── */
+.sequence {
+  background: var(--paper-light);
+}
+
 .epigraph {
   width: min(790px, 84vw);
   margin: 0 auto;
   padding: clamp(5rem, 10vw, 9rem) 0 clamp(1rem, 3vw, 3rem);
   color: #362f28;
 }
-.epigraph h2 { margin: 0 0 clamp(2.5rem, 5vw, 4.5rem); color: var(--ink); font-size: clamp(2.8rem, 6vw, 5.8rem); font-weight: 400; letter-spacing: -.045em; line-height: 1; }
-.epigraph blockquote { margin: 0; }
-.epigraph blockquote p { margin: 0 0 1.5em; font-size: clamp(1.25rem, 2.2vw, 2rem); line-height: 1.6; font-style: italic; }
-.epigraph figcaption { margin-top: 2rem; font: 600 .64rem/1.4 "League Spartan", Arial, sans-serif; letter-spacing: .2em; text-transform: uppercase; color: var(--saffron); }
-.movement { width: min(1040px, 84vw); margin: 0 auto; padding: clamp(5rem, 10vw, 9rem) 0 0; }
-.movement p { width: min(790px, 100%); margin: 0 auto; font-size: clamp(1.3rem, 2.1vw, 1.95rem); line-height: 1.75; text-wrap: pretty; }
-.movement p::first-line { color: #362f28; }
-.prose-paragraph { display: block; }
-.movement-copy { display: contents; }
-.prose-paragraph + .prose-paragraph { margin-top: 1.45em; }
-.first-movement .prose-paragraph:first-child::first-letter { float: left; font-size: 5.7em; line-height: .67; padding: .12em .11em 0 0; color: var(--saffron); }
-.paragraph-break { display: block; height: 1.5em; }
-.question, .answer { display: block; }
-.inline-quotation { font-style: italic; color: #4f473d; }
-.question { font-style: italic; color: var(--muted); }
-.answer { margin-top: .2em; font-size: 1.15em; color: var(--rose); }
-.movement-index { display: flex; align-items: center; gap: 1rem; margin-bottom: 2.2rem; font-size: .62rem; color: var(--muted); }
-.movement-index i { width: 74px; height: 1px; background: var(--rule); }
-.section-break { display: flex; align-items: center; justify-content: center; gap: 1.5rem; padding: clamp(4rem, 8vw, 7rem) 0 0; color: var(--saffron); }
-.section-break i { display: block; width: min(170px, 23vw); height: 1px; background: var(--rule); }
-.section-break span { font-size: .85rem; }
-.movement:last-of-type { padding-bottom: clamp(4rem, 8vw, 7rem); }
 
-.begin-questionnaire { width: min(1040px, 84vw); margin: 0 auto; padding: clamp(4rem, 8vw, 7rem) 0 clamp(6rem, 12vw, 11rem); border-top: 1px solid var(--rule); text-align: center; }
-.begin-questionnaire p { margin: 0 0 1.5rem; color: var(--muted); font-size: 1rem; font-style: italic; }
-.begin-questionnaire a { display: inline-block; padding: 1rem 1.3rem .8rem; border: 1px solid var(--saffron); color: var(--saffron); font: 700 .7rem/1 "League Spartan", Arial, sans-serif; letter-spacing: .18em; text-transform: uppercase; }
-.begin-questionnaire a:hover, .begin-questionnaire a:focus-visible { background: var(--saffron); color: var(--paper-light); }
-
-footer { min-height: 260px; background: var(--ink); color: var(--paper); padding: 4rem 6vw; display: grid; grid-template-columns: 1fr 1fr 1fr; align-items: end; gap: 2rem; }
-footer p { margin: 0; font-size: .58rem; text-align: center; color: #bfb5a4; }
-footer > a:last-child { font-size: .58rem; text-align: right; color: #dca064; }
-
-@keyframes rise { from { opacity: 0; transform: translateY(24px); } }
-@keyframes draw-in { from { opacity: 0; transform: scale(.96); } }
-@keyframes spheroid-enter { from { opacity: 0; transform: translateY(12px) rotate(-8deg) scale(.92); } }
-
-@media (max-width: 900px) {
-  .site-header { height: 68px; }
-  nav a:not(:first-child) { display: none; }
-  .hero { min-height: calc(100svh - 68px); display: block; padding: 13vh 8vw 10vh; }
-  .hero-copy { max-width: 650px; }
-  .geometry { width: 260px; margin: 8vh 0 0 auto; opacity: .82; }
-  .quaternary-spheroid { right: 7vw; bottom: 2.5vh; width: 144px; height: 144px; transform-origin: bottom right; }
-  .folio { display: none; }
-  footer { grid-template-columns: 1fr; align-items: start; }
-  footer p, footer > a:last-child { text-align: left; }
+.epigraph h2 {
+  margin: 0 0 clamp(2.5rem, 5vw, 4.5rem);
+  color: var(--ink);
+  font-size: clamp(2.8rem, 6vw, 5.8rem);
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: -0.045em;
 }
 
-@media (max-width: 580px) {
-  .wordmark { font-size: 1.2rem; }
-  nav { display: none; }
-  .hero { padding: 10vh 7vw 8vh; }
-  .hero-title { font-size: clamp(2.3rem, 12vw, 3.45rem); }
-  .incipit { font-size: clamp(1.65rem, 8vw, 2.5rem); }
-  .drop-cap { font-size: 3em; }
-  .enter { margin-top: 3rem; }
-  .geometry { width: 220px; }
-  .quaternary-spheroid { position: relative; right: auto; bottom: auto; width: 132px; height: 132px; margin: -4.5rem 0 1rem auto; }
-  .movement { width: 86vw; }
-  .movement p { font-size: 1.22rem; line-height: 1.68; }
+.epigraph blockquote {
+  margin: 0;
+}
+
+.epigraph blockquote p {
+  margin: 0 0 1.5em;
+  font-size: clamp(1.25rem, 2.2vw, 2rem);
+  font-style: italic;
+  line-height: 1.6;
+}
+
+.epigraph figcaption {
+  margin-top: 2rem;
+  color: var(--saffron);
+  font: 600 0.64rem / 1.4 Arial, Helvetica, sans-serif;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.movement {
+  width: min(1040px, 84vw);
+  margin: 0 auto;
+  padding: clamp(5rem, 10vw, 9rem) 0 0;
+}
+
+.movement p {
+  width: min(790px, 100%);
+  margin: 0 auto;
+  font-size: clamp(1.3rem, 2.1vw, 1.95rem);
+  line-height: 1.75;
+  text-wrap: pretty;
+}
+
+.movement p::first-line {
+  color: #362f28;
+}
+
+.prose-paragraph {
+  display: block;
+}
+
+.prose-paragraph + .prose-paragraph {
+  margin-top: 1.45em;
+}
+
+.first-movement > .prose-paragraph:first-child::first-letter {
+  float: left;
+  padding: 0.12em 0.11em 0 0;
+  color: var(--saffron);
+  font-size: 5.7em;
+  line-height: 0.67;
+}
+
+.paragraph-break {
+  display: block;
+  height: 1.5em;
+}
+
+.question,
+.answer {
+  display: block;
+}
+
+.question {
+  color: var(--muted);
+  font-style: italic;
+}
+
+.answer {
+  margin-top: 0.2em;
+  color: var(--rose);
+  font-size: 1.15em;
+}
+
+.inline-quotation {
+  color: #4f473d;
+  font-style: italic;
+}
+
+.movement-index {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 2.2rem;
+  color: var(--muted);
+  font-size: 0.62rem;
+}
+
+.movement-index i {
+  width: 74px;
+  height: 1px;
+  background: var(--rule);
+}
+
+.section-break {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  padding: clamp(4rem, 8vw, 7rem) 0 0;
+  color: var(--saffron);
+}
+
+.section-break i {
+  display: block;
+  width: min(170px, 23vw);
+  height: 1px;
+  background: var(--rule);
+}
+
+.section-break span {
+  font-size: 0.85rem;
+}
+
+.movement:last-of-type {
+  padding-bottom: clamp(6rem, 12vw, 11rem);
+}
+
+/* ── the gate — where the prolegomenon terminates ──────────────────────── */
+.gate-section {
+  padding: clamp(5rem, 10vw, 8rem) 0 clamp(6rem, 12vw, 10rem);
+  border-top: 1px solid var(--rule);
+  background: var(--paper);
+}
+
+.gate-content {
+  width: min(790px, 84vw);
+  margin: 0 auto;
+}
+
+.gate-eyebrow {
+  margin-bottom: 1.2rem;
+  color: var(--saffron);
+  font-size: clamp(0.58rem, 0.72vw, 0.68rem);
+  font-weight: 700;
+}
+
+.gate-title {
+  margin: 0 0 1.5rem;
+  font-size: clamp(2.2rem, 4.5vw, 4rem);
+  font-weight: 400;
+  line-height: 1.05;
+  letter-spacing: -0.04em;
+}
+
+.gate-description {
+  margin: 0 0 clamp(3rem, 6vw, 4.5rem);
+  color: #4f473d;
+  font-size: clamp(1.15rem, 1.8vw, 1.5rem);
+  font-style: italic;
+  line-height: 1.65;
+}
+
+.form-group {
+  margin-bottom: clamp(2.5rem, 5vw, 3.5rem);
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 1rem;
+  font-size: clamp(1.2rem, 2vw, 1.7rem);
+  line-height: 1.4;
+  letter-spacing: -0.02em;
+}
+
+.gate-form textarea,
+.gate-form input[type='email'] {
+  display: block;
+  width: 100%;
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--rule);
+  background: var(--paper-light);
+  color: var(--ink);
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 1.05rem;
+  line-height: 1.6;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.gate-form textarea::placeholder,
+.gate-form input[type='email']::placeholder {
+  color: var(--muted);
+  font-style: italic;
+}
+
+.gate-form textarea:focus,
+.gate-form input[type='email']:focus {
+  outline: none;
+  border-color: var(--cyan);
+  box-shadow: 0 0 0 4px #078f9a1a;
+}
+
+.accessibility-note,
+.privacy-notice {
+  margin-top: 0.9rem;
+  color: var(--muted);
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 0.78rem;
+  line-height: 1.65;
+}
+
+.accessibility-note a,
+.privacy-notice a {
+  color: var(--saffron);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.gate-submit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 1.15rem 2rem;
+  border: 1px solid var(--ink);
+  background: var(--ink);
+  color: var(--paper);
+  cursor: pointer;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  transition: background 0.2s, color 0.2s;
+}
+
+.gate-submit:hover {
+  background: var(--saffron);
+  border-color: var(--saffron);
+  color: var(--paper-light);
+}
+
+.gate-submit:focus-visible {
+  outline: 2px solid var(--cyan);
+  outline-offset: 4px;
+}
+
+.gate-error {
+  margin-bottom: 2rem;
+  padding: 1rem 1.2rem;
+  border-left: 3px solid var(--rose);
+  background: #a83b5b12;
+  color: var(--rose);
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 0.85rem;
+  line-height: 1.6;
+}
+
+/* ── footer ────────────────────────────────────────────────────────────── */
+footer {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  align-items: end;
+  gap: 2rem;
+  min-height: 260px;
+  padding: 4rem 6vw;
+  background: var(--ink);
+  color: var(--paper);
+}
+
+footer p {
+  margin: 0;
+  color: #bfb5a4;
+  font-size: 0.58rem;
+  text-align: center;
+}
+
+footer a {
+  color: #dca064;
+}
+
+footer .footer-links {
+  display: flex;
+  gap: 1.5rem;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 0.58rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+footer .footer-return {
+  font-size: 0.58rem;
+  text-align: right;
+}
+
+/* ── motion ────────────────────────────────────────────────────────────── */
+@keyframes rise {
+  0% {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+}
+
+@keyframes draw-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+}
+
+@keyframes spheroid-enter {
+  0% {
+    opacity: 0;
+    transform: translateY(12px) rotate(-8deg) scale(0.92);
+  }
+}
+
+/* ── responsive ────────────────────────────────────────────────────────── */
+@media (width <= 900px) {
+  .site-header {
+    height: 68px;
+  }
+
+  .site-nav a:not(:first-child) {
+    display: none;
+  }
+
+  .hero {
+    display: block;
+    min-height: calc(100svh - 68px);
+    padding: 13vh 8vw 10vh;
+  }
+
+  .hero-copy {
+    max-width: 650px;
+  }
+
+  .geometry {
+    width: 260px;
+    margin: 8vh 0 0 auto;
+    opacity: 0.82;
+  }
+
+  .quaternary-spheroid {
+    right: 7vw;
+    bottom: 2.5vh;
+    width: 190px;
+    height: 190px;
+    transform-origin: 100% 100%;
+  }
+
+  .folio {
+    display: none;
+  }
+
+  footer {
+    grid-template-columns: 1fr;
+    align-items: start;
+  }
+
+  footer p,
+  footer .footer-return {
+    text-align: left;
+  }
+}
+
+@media (width <= 580px) {
+  .wordmark {
+    font-size: 1.2rem;
+  }
+
+  .site-nav {
+    display: none;
+  }
+
+  .hero {
+    padding: 10vh 7vw 8vh;
+  }
+
+  .incipit {
+    font-size: clamp(2rem, 10vw, 3.1rem);
+  }
+
+  .drop-cap {
+    font-size: 3em;
+  }
+
+  .enter {
+    margin-top: 3rem;
+  }
+
+  .geometry {
+    width: 220px;
+  }
+
+  .quaternary-spheroid {
+    position: relative;
+    right: auto;
+    bottom: auto;
+    width: 172px;
+    height: 172px;
+    margin: -4.5rem 0 1rem auto;
+  }
+
+  .movement {
+    width: 86vw;
+  }
+
+  .movement p {
+    font-size: 1.22rem;
+    line-height: 1.68;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  html { scroll-behavior: auto; }
-  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
