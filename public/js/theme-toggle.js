@@ -1,5 +1,5 @@
 /**
- * Theme Toggle Script for A Formulation of Truth
+ * Theme Toggle Script for a formulation of truth
  * Handles switching between tamas, nila, and uruvam themes
  */
 

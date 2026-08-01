@@ -296,7 +296,7 @@ export const handler: Handlers = {
         skipped,
       });
     } catch (error) {
-      console.error(`[answer:${requestId}] Error storing encrypted response:`, error);
+      console.error(`[answer:${requestId}] Error storing encrypted response`);
     }
 
     try {

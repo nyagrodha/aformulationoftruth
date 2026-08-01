@@ -324,7 +324,7 @@ export default function ProfileCreatePage() {
         <footer>
           <div class='footer-inner'>
             <div class='footer-links'>
-              <a href='/about.html'>about</a>
+              <a href='/about'>about</a>
               <a href='/contact.html'>contact</a>
               <a href='/privacy.html'>privacy</a>
             </div>

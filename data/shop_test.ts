@@ -1,0 +1,57 @@
+import { assertEquals, assertStringIncludes } from '$std/assert/mod.ts';
+import { AMAZON_TAG, BOOKS, buildAmazonUrl, buildPenguinUrl, OWN_ITEMS, SHOP_ITEMS } from './shop.ts';
+
+Deno.test('buildAmazonUrl appends the configured Associates tag', () => {
+  assertEquals(AMAZON_TAG, 'a4mulasatya-20');
+  assertEquals(
+    buildAmazonUrl('9780142437964'),
+    'https://www.amazon.com/dp/9780142437964?tag=a4mulasatya-20',
+  );
+});
+
+Deno.test('every book carries the Associates tag on its Amazon link', () => {
+  for (const item of BOOKS) {
+    if (item.kind !== 'affiliate') continue;
+    const amazon = item.links.find((l) => l.retailer === 'Amazon');
+    assertStringIncludes(amazon!.url, `tag=${AMAZON_TAG}`);
+  }
+});
+
+Deno.test('buildPenguinUrl points at the PRH ISBN lookup', () => {
+  assertStringIncludes(buildPenguinUrl('9780142437964'), '9780142437964');
+  assertStringIncludes(
+    buildPenguinUrl('9780142437964'),
+    'penguinrandomhouse.com',
+  );
+});
+
+Deno.test('catalog contains all seven Proust volumes plus de Botton', () => {
+  assertEquals(BOOKS.length, 8);
+  const volumes = BOOKS.filter((b) => b.kind === 'affiliate' && b.volume !== undefined);
+  assertEquals(volumes.length, 7);
+});
+
+Deno.test('every book offers Penguin first and Amazon second', () => {
+  for (const book of BOOKS) {
+    if (book.kind !== 'affiliate') continue;
+    assertEquals(book.links[0].retailer, 'Penguin');
+    assertEquals(book.links[1].retailer, 'Amazon');
+  }
+});
+
+Deno.test('own items carry live Stripe Payment Links', () => {
+  assertEquals(OWN_ITEMS.length, 2);
+  const expectedPrices = new Map([
+    ['Abhinava-Tee', '$48'],
+    ['Abhinavabsurd… yet funny!', '$49'],
+  ]);
+  for (const item of OWN_ITEMS) {
+    if (item.kind !== 'own') continue;
+    assertStringIncludes(item.paymentLink, 'https://buy.stripe.com/');
+    assertEquals(item.price, expectedPrices.get(item.title));
+  }
+});
+
+Deno.test('SHOP_ITEMS is books followed by own items', () => {
+  assertEquals(SHOP_ITEMS.length, 10);
+});

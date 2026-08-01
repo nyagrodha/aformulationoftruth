@@ -344,9 +344,57 @@
         padding: 1.5rem;
     }
 
-    .contact-method {
-        flex-direction: column;
-        text-align: center;
-        gap: 0.75rem;
-    }
+/* Tip button - vibrant neon pink Madras weave */
+.btn-tip {
+    background: linear-gradient(135deg, #ff1493 0%, #ff69b4 100%);
+    color: #fff;
+    border-left: 4px solid #ff1493;
+    border-right: 4px solid #ff69b4;
+    border-top: 3px solid #ffb6c1;
+    border-bottom: 3px solid #ff1493;
+    box-shadow:
+        0 0 20px #ff1493,
+        0 0 40px rgba(255, 20, 147, 0.5),
+        inset 0 0 0 2px rgba(255, 255, 255, 0.2);
+    text-shadow:
+        0 0 10px rgba(255, 255, 255, 0.8),
+        0 0 20px rgba(255, 20, 147, 0.6);
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-tip::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background:
+        repeating-linear-gradient(
+            90deg,
+            transparent,
+            transparent 12px,
+            rgba(255, 255, 255, 0.1) 12px,
+            rgba(255, 255, 255, 0.1) 13px
+        ),
+        repeating-linear-gradient(
+            0deg,
+            transparent,
+            transparent 12px,
+            rgba(255, 105, 180, 0.2) 12px,
+            rgba(255, 105, 180, 0.2) 13px
+        );
+    pointer-events: none;
+}
+
+.btn-tip:hover {
+    box-shadow:
+        0 0 30px #ff1493,
+        0 0 60px rgba(255, 20, 147, 0.7),
+        0 0 80px rgba(255, 20, 147, 0.4),
+        inset 0 0 0 2px rgba(255, 255, 255, 0.3);
+    transform: translateY(-2px) scale(1.02);
+    border-top-color: #ff1493;
+    border-bottom-color: #ff69b4;
 }

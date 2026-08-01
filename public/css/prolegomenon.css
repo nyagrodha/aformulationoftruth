@@ -91,6 +91,32 @@ sup {
   --ochre: #c17b22;
   --verdigris: #188a82;
   --rule: #17171557;
+
+  /*
+   * Wordmark triad, from the Nav mock: magenta / blue / gold. These are the
+   * paper-header values — darkened from the source #FF3CAC / #3B82F6 / #FFD600,
+   * which were drawn for a dark ground. On --paper the source gold measures
+   * about 1.05:1 against the background and is effectively invisible; the
+   * magenta and blue land near 2.4:1 and 2.7:1, under the 3:1 that display
+   * text needs. These hold the same hues at >= 3.5:1. The footer, which is
+   * ink-backed, restores the source values below.
+   */
+  --wm-magenta: #d4147f;
+  --wm-blue: #2c6fe0;
+  --wm-gold: #8a6d00;
+}
+
+.wm-a,
+.wm-sa {
+  color: var(--wm-magenta);
+}
+
+.wm-num {
+  color: var(--wm-blue);
+}
+
+.wm-ta {
+  color: var(--wm-gold);
 }
 
 body {
@@ -122,9 +148,9 @@ body::before {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 76px;
+  min-height: 76px;
   margin: 0 2.5vw;
-  padding: 0 0.5vw;
+  padding: 0.6rem 0.5vw;
   border-bottom: 1px solid var(--rule);
 }
 
@@ -133,9 +159,96 @@ body::before {
   letter-spacing: -0.04em;
 }
 
-.site-nav {
+.site-header .wordmark {
   display: flex;
-  gap: clamp(1.4rem, 3.5vw, 4rem);
+  flex-direction: column;
+  gap: 0.2rem;
+  font-size: inherit;
+  line-height: 1.05;
+}
+
+.wordmark-glyphs {
+  font-size: clamp(1.35rem, 2vw, 2rem);
+  letter-spacing: -0.04em;
+  white-space: nowrap;
+}
+
+.wordmark-sub {
+  color: var(--saffron);
+  font: 600 clamp(0.52rem, 0.68vw, 0.64rem) / 1 Arial, Helvetica, sans-serif;
+  letter-spacing: 0.2em;
+  text-transform: lowercase;
+}
+
+/*
+ * The nav is a disclosure whose toggle is the wordmark. `.nav-list` is taken
+ * out of flow so opening it never reflows the header or shoves the hero down
+ * the page.
+ */
+.site-nav {
+  position: relative;
+}
+
+.nav-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0;
+  border: none;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+}
+
+/*
+ * Only the hydrated toggle is a control. Before that — and always, without JS —
+ * it is a span holding the wordmark, and must not offer a pointer it can't honour.
+ */
+button.nav-toggle {
+  cursor: pointer;
+}
+
+.nav-arrow {
+  display: inline-block;
+  color: var(--muted);
+  font-size: 0.6rem;
+  transition: transform 0.18s ease;
+}
+
+.nav-toggle[aria-expanded='true'] .nav-arrow {
+  transform: rotate(90deg);
+}
+
+.nav-list {
+  position: absolute;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  margin: 0.55rem 0 0;
+  padding: 0.4rem 1.4rem 0.4rem 1.1rem;
+  border-left: 1px solid var(--rule);
+  background: var(--paper);
+  list-style: none;
+}
+
+/*
+ * The [hidden] attribute only carries `display: none` at UA weight, which the
+ * flex above outranks. Restate it, or the closed menu stays on screen.
+ */
+.nav-list[hidden] {
+  display: none;
+}
+
+.nav-list li {
+  margin: 0;
+  padding: 0;
+}
+
+.nav-list a {
+  display: block;
+  padding: 0.34rem 0;
+  white-space: nowrap;
 }
 
 .site-nav a,
@@ -182,9 +295,9 @@ footer .footer-return {
 .hero-title {
   max-width: 760px;
   margin: 0;
-  font-size: clamp(2.45rem, 5vw, 5.5rem);
-  line-height: 0.98;
-  letter-spacing: -0.045em;
+  font-size: clamp(1.5rem, 3vw, 3.1rem);
+  line-height: 1.08;
+  letter-spacing: -0.03em;
   text-wrap: balance;
 }
 
@@ -210,6 +323,21 @@ footer .footer-return {
   font-size: clamp(1.7rem, 2.75vw, 3rem);
   line-height: 1.18;
   letter-spacing: -0.025em;
+}
+
+.hero-prose {
+  max-width: 620px;
+  margin-top: clamp(1.8rem, 3vw, 2.6rem);
+}
+
+.hero-prose p {
+  margin: 0 0 1.1em;
+  font-size: clamp(1rem, 1.15vw, 1.16rem);
+  line-height: 1.62;
+}
+
+.hero-prose p:last-child {
+  margin-bottom: 0;
 }
 
 .drop-cap {
@@ -727,6 +855,11 @@ footer {
   padding: 4rem 6vw;
   background: var(--ink);
   color: var(--paper);
+
+  /* Ink ground: the source triad from the Nav mock, undarkened. */
+  --wm-magenta: #ff3cac;
+  --wm-blue: #3b82f6;
+  --wm-gold: #ffd600;
 }
 
 footer p {
@@ -830,10 +963,11 @@ footer .footer-return {
     font-size: 1.2rem;
   }
 
-  .site-nav {
-    display: none;
-  }
-
+  /*
+   * The nav used to be hidden outright here, because a row of four links had
+   * nowhere to go on a phone. It collapses to a single toggle now, so it stays
+   * — and it must, since the wordmark lives inside it.
+   */
   .hero {
     padding: 10vh 7vw 8vh;
   }
@@ -881,4 +1015,318 @@ footer .footer-return {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+/* ---------------------------------------------------------------------------
+   Prose pages (/about, /shop, /about/*) — rendered via components/PageShell.tsx
+   inside .movement, so paragraph measure and typography are already inherited.
+   These rules only cover structures the landing page has no equivalent for.
+   All colour comes from the tokens above so the pages stay in the same palette.
+   --------------------------------------------------------------------------- */
+
+.about-header {
+  width: min(790px, 100%);
+  margin: 0 auto clamp(2rem, 5vw, 3.5rem);
+}
+
+.about-header h1 {
+  margin-bottom: 0.35em;
+}
+
+.about-header p {
+  color: var(--muted);
+  font-style: italic;
+}
+
+.about-content .lead {
+  font-size: 1.18em;
+  line-height: 1.55;
+  color: var(--ink);
+}
+
+.about-content h2.subtle {
+  color: var(--muted);
+}
+
+.about-links {
+  width: min(790px, 100%);
+  margin: 0 auto;
+  padding-left: 1.15em;
+}
+
+.about-links li + li {
+  margin-top: 0.6em;
+}
+
+/* Gift shop ---------------------------------------------------------------- */
+
+.shop-disclosure {
+  border-left: 2px solid var(--saffron);
+  padding-left: 1em;
+  color: var(--muted);
+  font-size: 0.95em;
+}
+
+.shop-item {
+  width: min(790px, 100%);
+  margin: 0 auto;
+  padding: 1.4em 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+.shop-item h3 {
+  margin: 0 0 0.25em;
+}
+
+/* The mockups are background-removed cutouts, so a garment sits directly on
+   the paper ground — no plate, no frame. Views are laid out two ways:
+
+   one view   → fixed column beside the copy (.shop-item--illustrated)
+   two or more → gallery spanning the measure, copy beneath (--gallery), so
+                 front and back stay large enough to compare.
+
+   Views do not share an aspect ratio, so the row aligns on its top edge and
+   each figure keeps its own height rather than being stretched to match. */
+.shop-item--illustrated {
+  display: flex;
+  gap: 1.5em;
+  align-items: flex-start;
+}
+
+.shop-body {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.shop-figures {
+  display: flex;
+  gap: 1em;
+  align-items: flex-start;
+}
+
+.shop-item--illustrated .shop-figures {
+  flex: 0 0 280px;
+  max-width: 280px;
+}
+
+.shop-item--gallery .shop-figures {
+  margin-bottom: 1.3em;
+}
+
+/* Front and back are shot at different ratios. Containing both in a box of the
+   taller ratio equalises their heights, so the captions share a baseline and
+   the two garments read at one scale. `contain` letterboxes rather than crops,
+   and the slack is transparent against the paper. */
+.shop-item--gallery .shop-figure img {
+  aspect-ratio: 560 / 667;
+  object-fit: contain;
+}
+
+.shop-figure {
+  flex: 1 1 0;
+  min-width: 0;
+  margin: 0;
+  line-height: 0;
+}
+
+.shop-figure img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.shop-figure figcaption {
+  margin-top: 0.5em;
+  color: var(--muted);
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 0.7em;
+  line-height: 1.4;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+@media (max-width: 620px) {
+  .shop-item--illustrated {
+    display: block;
+  }
+
+  .shop-item--illustrated .shop-figures {
+    max-width: min(320px, 100%);
+    margin: 0 auto 1.2em;
+  }
+}
+
+.shop-meta {
+  color: var(--muted);
+  font-size: 0.92em;
+  font-style: italic;
+}
+
+/* Lead time and the state of the artwork — sits between the price and the Buy
+   button so it is read before paying, not after. Quieter than the affiliate
+   disclosure, which is a legal obligation rather than a courtesy. */
+.shop-caveat {
+  width: min(52ch, 100%);
+  margin-top: 0.7em;
+  border-left: 1px solid var(--rule);
+  padding-left: 0.9em;
+  color: var(--muted);
+  font-size: 0.86em;
+  line-height: 1.5;
+}
+
+.shop-links a {
+  color: var(--cyan);
+}
+
+.shop-links a:hover {
+  color: var(--saffron);
+}
+
+/* Support / donation block on /about ---------------------------------------
+   The Zcash unified address is 178 characters; without an explicit wrap and a
+   monospace face it renders as one unbroken line that blows out the layout on
+   every viewport. Everything below is built from the tokens above. */
+
+.about-header-image {
+  display: block;
+  width: min(420px, 100%);
+  height: auto;
+  margin: 0 auto clamp(1.5rem, 4vw, 2.5rem);
+  border: 1px solid var(--rule);
+}
+
+.support-section {
+  width: min(790px, 100%);
+  margin: clamp(3rem, 7vw, 5rem) auto 0;
+  padding: clamp(1.5rem, 4vw, 2.25rem);
+  background: var(--paper-light);
+  border: 1px solid var(--rule);
+}
+
+.support-header h3 {
+  margin: 0 0 0.4em;
+}
+
+.support-header p {
+  margin: 0 0 1.5em;
+  color: var(--muted);
+}
+
+.crypto-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.6rem;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: var(--saffron);
+}
+
+.crypto-icon {
+  font-size: 0.9rem;
+}
+
+.address-container {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.crypto-address {
+  flex: 1 1 22rem;
+  min-width: 0;
+  padding: 0.7em 0.85em;
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.72rem;
+  line-height: 1.5;
+  color: var(--ink);
+  /* the address has no spaces — force it to break rather than overflow */
+  overflow-wrap: anywhere;
+  word-break: break-all;
+}
+
+.copy-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.6em 1em;
+  background: transparent;
+  border: 1px solid var(--saffron);
+  color: var(--saffron);
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.copy-btn:hover,
+.copy-btn:focus-visible {
+  background: var(--saffron);
+  color: var(--paper-light);
+}
+
+@media (max-width: 34rem) {
+  .address-container {
+    flex-direction: column;
+  }
+
+  .copy-btn {
+    align-self: flex-start;
+  }
+}
+
+.crypto-support {
+  margin-top: 1.25rem;
+}
+
+.copy-text {
+  white-space: nowrap;
+}
+
+/* Buttons carried over from the previous stylesheet (the shop's Buy links) */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.65em 1.4em;
+  border: 1px solid var(--saffron);
+  color: var(--saffron);
+  background: transparent;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.btn:hover,
+.btn:focus-visible {
+  background: var(--saffron);
+  color: var(--paper-light);
+}
+
+.btn-primary {
+  background: var(--saffron);
+  color: var(--paper-light);
+}
+
+.btn-primary:hover,
+.btn-primary:focus-visible {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--paper-light);
 }
