@@ -34,14 +34,17 @@ document.getElementById("submit").onclick = async () => {
   );
 };
 document.getElementById("verify").onclick = async () => {
+  const verifyCommitmentEl = document.getElementById("verifyCommitment");
+  const leafIndexEl = document.getElementById("leafIndex");
+  const rootEl = document.getElementById("root");
   const proof = document.getElementById("proof").value.split(/\n+/).map((s) =>
     s.trim()
   ).filter(Boolean);
   const body = {
-    commitment: document.getElementById("verifyCommitment").value,
+    commitment: verifyCommitmentEl.value,
     proof,
-    leaf_index: document.getElementById("leafIndex").value,
-    merkle_root: document.getElementById("root").value,
+    leaf_index: leafIndexEl.value,
+    merkle_root: rootEl.value,
   };
   const res = await fetch("/api/lotto/verify", {
     method: "POST",
