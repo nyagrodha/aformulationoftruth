@@ -664,6 +664,86 @@ body::after {
   }
 }
 
+/* Gift Shop (routes/shop.tsx) & About further-reading list (routes/about.tsx)
+   These sit inside the always-cream .about-content card, whose background
+   (--kolam-white) and text color (--ink) are never touched by the theme
+   toggle (see the --ink comment above). To stay legible across Tamas /
+   Nīla / Uruvam, everything below deliberately uses fixed palette tokens
+   (--monsoon-gray, --temple-red, --saffron, --ink, --sandalwood, ...)
+   rather than --text-secondary / --border-color / --accent-*, which
+   theme-toggle.js overrides at :root to bright, dark-background-only
+   colors that would go low-contrast on this light card. */
+
+.shop-item {
+  margin: 0 0 2.25rem;
+  padding-bottom: 1.75rem;
+  border-bottom: 1px solid var(--sandalwood);
+}
+
+.shop-item:last-child {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.shop-item h3 {
+  font-family: 'Spectral', serif;
+  font-size: 1.3rem;
+  color: var(--temple-red);
+  margin-bottom: 0.4rem;
+}
+
+.shop-meta {
+  color: var(--monsoon-gray);
+  font-size: 0.95rem;
+  font-style: italic;
+  margin: 0 0 0.6rem;
+}
+
+.shop-links {
+  margin: 0.75rem 0 0;
+  font-size: 0.95rem;
+}
+
+.shop-disclosure {
+  margin: 1.5rem 0 2rem;
+  padding: 1rem 1.25rem;
+  border-left: 4px solid var(--saffron);
+  background: rgba(255, 153, 51, 0.08);
+  font-size: 0.95rem;
+  color: var(--ink);
+}
+
+.shop-disclosure strong {
+  color: var(--temple-red);
+}
+
+.about-links {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.about-links li {
+  position: relative;
+  padding-left: 1.5rem;
+  margin-bottom: 1rem;
+  line-height: 1.7;
+}
+
+.about-links li:last-child {
+  margin-bottom: 0;
+}
+
+.about-links li::before {
+  content: '❖';
+  position: absolute;
+  left: 0;
+  top: 0.1em;
+  color: var(--saffron);
+  font-size: 0.85rem;
+}
+
 /* Print Styles */
 @media print {
   body::before,

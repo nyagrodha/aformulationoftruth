@@ -2,84 +2,78 @@
 // This file SHOULD be checked into source version control.
 // This file is automatically updated during development when running `dev.ts`.
 
-import * as $_4m from './routes/4m.tsx';
-import * as $_404 from './routes/_404.tsx';
-import * as $api_auth_magic_link from './routes/api/auth/magic-link.ts';
-import * as $api_gate_submit from './routes/api/gate-submit.ts';
-import * as $api_gate from './routes/api/gate.ts';
-import * as $api_health from './routes/api/health.ts';
-import * as $api_metrics from './routes/api/metrics.ts';
-import * as $api_metrics_increment from './routes/api/metrics/increment.ts';
-import * as $api_newsletter_confirm from './routes/api/newsletter/confirm.ts';
-import * as $api_newsletter_subscribe from './routes/api/newsletter/subscribe.ts';
-import * as $api_newsletter_unsubscribe from './routes/api/newsletter/unsubscribe.ts';
-import * as $api_profile from './routes/api/profile.ts';
-import * as $api_questions_answer from './routes/api/questions/answer.ts';
-import * as $api_questions_next from './routes/api/questions/next.ts';
-import * as $api_lotto_close from './routes/api/lotto/close.ts';
-import * as $api_lotto_commit from './routes/api/lotto/commit.ts';
-import * as $api_lotto_draw from './routes/api/lotto/draw.ts';
-import * as $api_lotto_verify from './routes/api/lotto/verify.ts';
-import * as $api_responses from './routes/api/responses.ts';
-import * as $auth_verify from './routes/auth/verify.tsx';
-import * as $check_email from './routes/check-email.tsx';
-import * as $completion from './routes/completion.tsx';
-import * as $encrypted_messenger from './routes/encrypted-messenger.tsx';
-import * as $gate from './routes/gate.tsx';
-import * as $index from './routes/index.tsx';
-import * as $login from './routes/login.tsx';
-import * as $lotto from './routes/lotto.tsx';
-import * as $messenger from './routes/messenger.tsx';
-import * as $profile_choice from './routes/profile-choice.tsx';
-import * as $profile_create from './routes/profile-create.tsx';
-import * as $questionnaire from './routes/questionnaire.tsx';
-import * as $questions from './routes/questions.tsx';
-import * as $w_token_ from './routes/w/[token].tsx';
-import * as $GateQuestionnaire from './islands/GateQuestionnaire.tsx';
-import * as $QuaternarySpheroid from './islands/QuaternarySpheroid.tsx';
-import * as $Spheroid from './islands/Spheroid.tsx';
-import type { Manifest } from '$fresh/server.ts';
+import * as $_4m from "./routes/4m.tsx";
+import * as $_404 from "./routes/_404.tsx";
+import * as $about from "./routes/about.tsx";
+import * as $about_confession_albums from "./routes/about/confession-albums.tsx";
+import * as $about_respondents from "./routes/about/respondents.tsx";
+import * as $api_auth_magic_link from "./routes/api/auth/magic-link.ts";
+import * as $api_gate_submit from "./routes/api/gate-submit.ts";
+import * as $api_gate from "./routes/api/gate.ts";
+import * as $api_health from "./routes/api/health.ts";
+import * as $api_metrics from "./routes/api/metrics.ts";
+import * as $api_metrics_increment from "./routes/api/metrics/increment.ts";
+import * as $api_newsletter_confirm from "./routes/api/newsletter/confirm.ts";
+import * as $api_newsletter_subscribe from "./routes/api/newsletter/subscribe.ts";
+import * as $api_newsletter_unsubscribe from "./routes/api/newsletter/unsubscribe.ts";
+import * as $api_profile from "./routes/api/profile.ts";
+import * as $api_questions_answer from "./routes/api/questions/answer.ts";
+import * as $api_questions_next from "./routes/api/questions/next.ts";
+import * as $api_responses from "./routes/api/responses.ts";
+import * as $auth_verify from "./routes/auth/verify.tsx";
+import * as $check_email from "./routes/check-email.tsx";
+import * as $completion from "./routes/completion.tsx";
+import * as $gate from "./routes/gate.tsx";
+import * as $index from "./routes/index.tsx";
+import * as $login from "./routes/login.tsx";
+import * as $profile_choice from "./routes/profile-choice.tsx";
+import * as $profile_create from "./routes/profile-create.tsx";
+import * as $questionnaire from "./routes/questionnaire.tsx";
+import * as $questions from "./routes/questions.tsx";
+import * as $shop from "./routes/shop.tsx";
+import * as $w_token_ from "./routes/w/[token].tsx";
+import * as $Nav from "./islands/Nav.tsx";
+import * as $QuaternarySpheroid from "./islands/QuaternarySpheroid.tsx";
+import * as $Spheroid from "./islands/Spheroid.tsx";
+import type { Manifest } from "$fresh/server.ts";
 
 const manifest = {
   routes: {
-    './routes/4m.tsx': $_4m,
-    './routes/_404.tsx': $_404,
-    './routes/api/auth/magic-link.ts': $api_auth_magic_link,
-    './routes/api/gate-submit.ts': $api_gate_submit,
-    './routes/api/gate.ts': $api_gate,
-    './routes/api/health.ts': $api_health,
-    './routes/api/metrics.ts': $api_metrics,
-    './routes/api/metrics/increment.ts': $api_metrics_increment,
-    './routes/api/newsletter/confirm.ts': $api_newsletter_confirm,
-    './routes/api/newsletter/subscribe.ts': $api_newsletter_subscribe,
-    './routes/api/newsletter/unsubscribe.ts': $api_newsletter_unsubscribe,
-    './routes/api/profile.ts': $api_profile,
-    './routes/api/questions/answer.ts': $api_questions_answer,
-    './routes/api/questions/next.ts': $api_questions_next,
-    './routes/api/lotto/close.ts': $api_lotto_close,
-    './routes/api/lotto/commit.ts': $api_lotto_commit,
-    './routes/api/lotto/draw.ts': $api_lotto_draw,
-    './routes/api/lotto/verify.ts': $api_lotto_verify,
-    './routes/api/responses.ts': $api_responses,
-    './routes/auth/verify.tsx': $auth_verify,
-    './routes/check-email.tsx': $check_email,
-    './routes/completion.tsx': $completion,
-    './routes/encrypted-messenger.tsx': $encrypted_messenger,
-    './routes/gate.tsx': $gate,
-    './routes/index.tsx': $index,
-    './routes/login.tsx': $login,
-    './routes/lotto.tsx': $lotto,
-    './routes/messenger.tsx': $messenger,
-    './routes/profile-choice.tsx': $profile_choice,
-    './routes/profile-create.tsx': $profile_create,
-    './routes/questionnaire.tsx': $questionnaire,
-    './routes/questions.tsx': $questions,
-    './routes/w/[token].tsx': $w_token_,
+    "./routes/4m.tsx": $_4m,
+    "./routes/_404.tsx": $_404,
+    "./routes/about.tsx": $about,
+    "./routes/about/confession-albums.tsx": $about_confession_albums,
+    "./routes/about/respondents.tsx": $about_respondents,
+    "./routes/api/auth/magic-link.ts": $api_auth_magic_link,
+    "./routes/api/gate-submit.ts": $api_gate_submit,
+    "./routes/api/gate.ts": $api_gate,
+    "./routes/api/health.ts": $api_health,
+    "./routes/api/metrics.ts": $api_metrics,
+    "./routes/api/metrics/increment.ts": $api_metrics_increment,
+    "./routes/api/newsletter/confirm.ts": $api_newsletter_confirm,
+    "./routes/api/newsletter/subscribe.ts": $api_newsletter_subscribe,
+    "./routes/api/newsletter/unsubscribe.ts": $api_newsletter_unsubscribe,
+    "./routes/api/profile.ts": $api_profile,
+    "./routes/api/questions/answer.ts": $api_questions_answer,
+    "./routes/api/questions/next.ts": $api_questions_next,
+    "./routes/api/responses.ts": $api_responses,
+    "./routes/auth/verify.tsx": $auth_verify,
+    "./routes/check-email.tsx": $check_email,
+    "./routes/completion.tsx": $completion,
+    "./routes/gate.tsx": $gate,
+    "./routes/index.tsx": $index,
+    "./routes/login.tsx": $login,
+    "./routes/profile-choice.tsx": $profile_choice,
+    "./routes/profile-create.tsx": $profile_create,
+    "./routes/questionnaire.tsx": $questionnaire,
+    "./routes/questions.tsx": $questions,
+    "./routes/shop.tsx": $shop,
+    "./routes/w/[token].tsx": $w_token_,
   },
   islands: {
-    './islands/GateQuestionnaire.tsx': $GateQuestionnaire,
-    './islands/QuaternarySpheroid.tsx': $QuaternarySpheroid,
-    './islands/Spheroid.tsx': $Spheroid,
+    "./islands/Nav.tsx": $Nav,
+    "./islands/QuaternarySpheroid.tsx": $QuaternarySpheroid,
+    "./islands/Spheroid.tsx": $Spheroid,
   },
   baseUrl: import.meta.url,
 } satisfies Manifest;

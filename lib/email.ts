@@ -84,25 +84,60 @@ export async function sendEmail(options: SendEmailOptions): Promise<EmailResult>
     return { success: false, error: 'Email service not configured' };
   }
 
-  const client = new SMTPClient({
-    connection: {
-      hostname,
-      port,
-      tls: implicitTls,
-      auth: { username, password },
-    },
-  });
+  // Apple intermittently drops or throttles connections: roughly 1-7 sends a
+  // day failed with kind=TimedOut and no reply code, against a far larger
+  // number that succeeded. A fresh client per attempt with a short backoff
+  // clears it; the failure is transient, not a misconfiguration.
+  const MAX_ATTEMPTS = 3;
+  let lastError: unknown;
 
-  try {
-    await client.send({
-      from: `${fromName} <${fromEmail}>`,
-      to: options.to,
-      subject: options.subject,
-      content: options.text,
-      html: options.html,
+  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+    const client = new SMTPClient({
+      connection: {
+        hostname,
+        port,
+        tls: implicitTls,
+        auth: { username, password },
+      },
     });
-    return { success: true, statusCode: 250 };
-  } catch (error) {
+
+    try {
+      await client.send({
+        from: `${fromName} <${fromEmail}>`,
+        to: options.to,
+        subject: options.subject,
+        content: options.text,
+        html: options.html,
+      });
+      // Log successes too. Without this the journal shows only failures, which
+      // makes "3 failures out of 3" indistinguishable from "3 out of 300" —
+      // and those call for opposite responses. A bare count carries no PII, so
+      // the zero-logging policy never required this silence.
+      console.log(`[email] sent attempt=${attempt}`);
+      return { success: true, statusCode: 250 };
+    } catch (error) {
+      lastError = error;
+      const code = smtpReplyCode(error);
+      const kind = smtpFailureKind(error);
+
+      // A permanent rejection (5xx) will fail identically every time; only
+      // retry transport-level faults and Apple's 4xx "try later" codes.
+      const worthRetrying = code === undefined || code < 500;
+      if (attempt < MAX_ATTEMPTS && worthRetrying) {
+        console.error(`[email] retrying after code=${code ?? 'none'} kind=${kind} attempt=${attempt}`);
+        await new Promise((r) => setTimeout(r, 500 * 2 ** (attempt - 1)));
+        continue;
+      }
+      break;
+    } finally {
+      try {
+        await client.close();
+      } catch { /* already closed */ }
+    }
+  }
+
+  {
+    const error = lastError;
     // Zero-logging: never surface the recipient or full error (may echo the
     // envelope). A reply code and an error class name are both PII-free, and
     // they are the difference between "mail broke" and "Apple threw 421 at us
@@ -116,12 +151,6 @@ export async function sendEmail(options: SendEmailOptions): Promise<EmailResult>
       statusCode,
       error: error instanceof Error ? error.message : 'SMTP send failed',
     };
-  } finally {
-    try {
-      await client.close();
-    } catch {
-      // ignore close errors
-    }
   }
 }
 
@@ -251,7 +280,7 @@ export async function sendNewsletterConfirmationEmail(
   email: string,
   confirmUrl: string,
   unsubscribeUrl: string
-): Promise<EmailResult> {
+): Promise<SendEmailResult> {
   const subject = 'Confirm your subscription to a formulation of truth';
 
   const text = `

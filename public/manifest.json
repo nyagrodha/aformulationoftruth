@@ -1,20 +1,25 @@
 {
-  "short_name": "a4ot",
+  "short_name": "a4mulasatyasya",
   "name": "a formulation of truth",
   "icons": [
     {
-      "src": "/favicons/favicon-simple-16.png",
-      "sizes": "16x16",
-      "type": "image/png"
+      "src": "/favicon.ico",
+      "sizes": "64x64 48x48 32x32 16x16",
+      "type": "image/x-icon"
     },
     {
-      "src": "/favicons/favicon-simple-32.png",
-      "sizes": "32x32",
-      "type": "image/png"
+      "src": "/favicons/android-chrome-192x192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "/favicons/android-chrome-512x512.png",
+      "type": "image/png",
+      "sizes": "512x512"
     }
   ],
   "start_url": "/",
   "display": "standalone",
-  "theme_color": "#000000",
-  "background_color": "#000000"
+  "theme_color": "#0b0410",
+  "background_color": "#0b0410"
 }

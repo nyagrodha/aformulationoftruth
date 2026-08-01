@@ -21,6 +21,7 @@ interface StoreAnswerResult {
 
 const GATE_URL = Deno.env.get('GATE_URL') || 'http://127.0.0.1:8787';
 const GATE_API_KEY = Deno.env.get('GATE_API_KEY') || '';
+const GATE_TIMEOUT_MS = 5000;
 
 /**
  * Store an answer via the Rust Gate service (age-encrypted).

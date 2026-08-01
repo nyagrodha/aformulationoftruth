@@ -8,7 +8,7 @@ export default function LogoMenu() {
         <span class='logo-char logo-la'>ல</span>
       </summary>
       <div class='logo-dropdown'>
-        <a class='logo-link-about' href='/about.html'>about</a>
+        <a class='logo-link-about' href='/about'>about</a>
         <a class='logo-link-contact' href='/contact.html'>contact</a>
         <a class='logo-link-messenger' href='/contact.html'>messenger</a>
         <a class='logo-link-lotto' href='/lotto.html'>zk lotto</a>

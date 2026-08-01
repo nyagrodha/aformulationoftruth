@@ -182,6 +182,18 @@ export const handler: Handlers<QuestionnaireData> = {
     const currentIndex = session.currentIndex;
     const questionNum = remainingQuestions[currentIndex];
 
+    // Back navigation: step to the previous question without storing anything.
+    // Answers are age-encrypted at rest, so the field is not pre-filled —
+    // returning to a question means re-answering it. Guarded at index 0.
+    if (action === 'back') {
+      const prevIndex = Math.max(0, currentIndex - 1);
+      await updateSessionIndex(session.sessionId, prevIndex);
+      return new Response(null, {
+        status: 302,
+        headers: { Location: '/questionnaire' },
+      });
+    }
+
     // Store the answer
     const skipped = action === 'skip' || answer.trim() === '';
 
@@ -237,6 +249,17 @@ export const handler: Handlers<QuestionnaireData> = {
 
 export default function QuestionnairePage({ data }: PageProps<QuestionnaireData>) {
   const { currentIndex, currentQuestion, questionNumber, totalQuestions } = data;
+
+  // Each question is labeled by its numeral in Tamil script — except question 5,
+  // which is rendered in Kannada. Positional conversion through a per-script digit
+  // table (Tamil ௦-௯ / Kannada ೦-೯); device system fonts supply the glyphs.
+  const TA = ['௦', '௧', '௨', '௩', '௪', '௫', '௬', '௭', '௮', '௯'];
+  const KN = ['೦', '೧', '೨', '೩', '೪', '೫', '೬', '೭', '೮', '೯'];
+  const toGlyphs = (n: number, digits: string[]) =>
+    String(n).split('').map((d) => digits[Number(d)]).join('');
+  const isFive = questionNumber === 5;
+  const bigNumeral = toGlyphs(questionNumber, isFive ? KN : TA);
+  const pad2 = (n: number) => String(n).padStart(2, '0');
 
   return (
     <html lang="en">
@@ -301,17 +324,40 @@ export default function QuestionnairePage({ data }: PageProps<QuestionnaireData>
             background: linear-gradient(90deg, #ff69b4, #ff8c42, #00ff88);
             transition: width 0.3s ease;
           }
-          .question-count {
-            font-size: 0.75rem;
-            color: #666;
-            letter-spacing: 0.1em;
-            margin-bottom: 2rem;
+          .q-numeral {
+            margin-bottom: 2.5rem;
+            text-align: center;
           }
+          .q-glyph {
+            font-size: 2.6rem;
+            line-height: 1;
+            color: #7fd4e8;
+          }
+          .q-roman {
+            position: fixed;
+            bottom: 1.4rem;
+            right: 1.6rem;
+            font-size: 0.62rem;
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+            color: #4f7c88;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.55rem;
+            pointer-events: none;
+          }
+          .q-roman::before {
+            content: '';
+            width: 1.6rem;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #3a5a62);
+          }
+          .q-roman-sep { opacity: 0.6; }
           .question-text {
-            font-size: 1.5rem;
-            line-height: 1.6;
+            font-size: 1.6rem;
+            line-height: 1.65;
             color: #fff;
-            margin-bottom: 2rem;
+            margin-bottom: 2.5rem;
           }
           .hint {
             font-size: 0.85rem;
@@ -338,7 +384,8 @@ export default function QuestionnairePage({ data }: PageProps<QuestionnaireData>
           }
           textarea:focus {
             outline: none;
-            border-color: #ff69b4;
+            border-color: #7fd4e8;
+            box-shadow: 0 0 0 1px rgba(127, 212, 232, 0.35);
           }
           textarea::placeholder {
             color: #444;
@@ -359,13 +406,13 @@ export default function QuestionnairePage({ data }: PageProps<QuestionnaireData>
             transition: all 0.2s ease;
           }
           .btn-primary {
-            background: linear-gradient(135deg, #ff69b4, #ff8c42);
-            color: #000;
+            background: #7fd4e8;
+            color: #001014;
             font-weight: bold;
           }
           .btn-primary:hover {
             transform: translateY(-2px);
-            box-shadow: 0 4px 20px rgba(255, 105, 180, 0.3);
+            box-shadow: 0 4px 20px rgba(127, 212, 232, 0.28);
           }
           .btn-secondary {
             background: transparent;
@@ -376,13 +423,22 @@ export default function QuestionnairePage({ data }: PageProps<QuestionnaireData>
             border-color: #555;
             color: #999;
           }
+          .btn-back {
+            background: transparent;
+            border: 1px solid #2a4a52;
+            color: #7fd4e8;
+          }
+          .btn-back:hover {
+            border-color: #7fd4e8;
+            color: #aeeaf6;
+          }
           .voice-hint {
             font-size: 0.75rem;
             color: #444;
             margin-top: 1rem;
           }
           .voice-hint a {
-            color: #00ff88;
+            color: #7fd4e8;
             text-decoration: none;
           }
           .voice-hint a:hover {
@@ -423,24 +479,24 @@ export default function QuestionnairePage({ data }: PageProps<QuestionnaireData>
               ></div>
             </div>
 
-            <p class="question-count">
-              question {questionNumber} of {totalQuestions}
-            </p>
+            <div class="q-numeral" aria-label={`question ${questionNumber} of ${totalQuestions}`}>
+              <span class="q-glyph" lang={isFive ? 'kn' : 'ta'}>{bigNumeral}</span>
+            </div>
 
             <h1 class="question-text">{currentQuestion}</h1>
-
-            <p class="hint">
-              Take your time. There are no right answers, only honest ones.
-            </p>
 
             <form method="POST" action="/questionnaire" class="answer-form">
               <textarea
                 name="answer"
-                placeholder="Take your time..."
                 aria-label="Your answer"
               ></textarea>
 
               <div class="button-group">
+                {currentIndex >= 1 && (
+                  <button type="submit" name="action" value="back" class="btn-back" formNoValidate>
+                    ← Previous
+                  </button>
+                )}
                 <button type="submit" name="action" value="continue" class="btn-primary">
                   Continue
                 </button>
@@ -456,9 +512,13 @@ export default function QuestionnairePage({ data }: PageProps<QuestionnaireData>
           </div>
         </main>
 
+        <span class="q-roman" aria-hidden="true">
+          {pad2(questionNumber)} <span class="q-roman-sep">of</span> {totalQuestions}
+        </span>
+
         <footer>
           <div class="footer-links">
-            <a href="/about.html">About</a>
+            <a href="/about">About</a>
             <a href="/contact.html">Contact</a>
             <a href="/privacy.html">Privacy</a>
           </div>

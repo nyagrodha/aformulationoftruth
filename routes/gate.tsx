@@ -213,7 +213,6 @@ export default function GatePage({ data }: PageProps<GateData>) {
                     <textarea
                       id="answer"
                       name="answer"
-                      placeholder="Take your time..."
                       aria-describedby="accessibility-hint"
                     ></textarea>
                   </div>
@@ -238,7 +237,7 @@ export default function GatePage({ data }: PageProps<GateData>) {
         <footer>
           <div class="footer-inner">
             <div class="footer-links">
-              <a href="/about.html">About</a>
+              <a href="/about">About</a>
               <a href="/contact.html">Contact</a>
               <a href="/privacy.html">Privacy</a>
             </div>
