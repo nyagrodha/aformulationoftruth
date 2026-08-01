@@ -1,6 +1,11 @@
 const enc = new TextEncoder();
 const dec = new TextDecoder();
-const $ = (id) => document.getElementById(id);
+const passphraseEl = document.getElementById("passphrase");
+const plainEl = document.getElementById("plain");
+const cipherEl = document.getElementById("cipher");
+const sealedEl = document.getElementById("sealed");
+const openPassphraseEl = document.getElementById("openPassphrase");
+const openedEl = document.getElementById("opened");
 const b64 = (bytes) => {
   const arr = new Uint8Array(bytes);
   const CHUNK = 0x8000;
@@ -29,18 +34,18 @@ async function keyFromPassphrase(passphrase, salt, iterations) {
   );
 }
 
-$("encrypt").onclick = async () => {
+document.getElementById("encrypt").onclick = async () => {
   try {
     const salt = crypto.getRandomValues(new Uint8Array(16));
     const iv = crypto.getRandomValues(new Uint8Array(12));
     const iterations = 250000;
-    const key = await keyFromPassphrase($("passphrase").value, salt, iterations);
+    const key = await keyFromPassphrase(passphraseEl.value, salt, iterations);
     const data = await crypto.subtle.encrypt(
       { name: "AES-GCM", iv },
       key,
-      enc.encode($("plain").value),
+      enc.encode(plainEl.value),
     );
-    $("cipher").textContent = JSON.stringify(
+    cipherEl.textContent = JSON.stringify(
       {
         v: 1,
         kdf: "PBKDF2-SHA256",
@@ -54,15 +59,15 @@ $("encrypt").onclick = async () => {
       2,
     );
   } catch (err) {
-    $("cipher").textContent = `encryption failed: ${err.message}`;
+    cipherEl.textContent = `encryption failed: ${err.message}`;
   }
 };
 
-$("decrypt").onclick = async () => {
+document.getElementById("decrypt").onclick = async () => {
   try {
-    const envelope = JSON.parse($("sealed").value);
+    const envelope = JSON.parse(sealedEl.value);
     const key = await keyFromPassphrase(
-      $("openPassphrase").value,
+      openPassphraseEl.value,
       unb64(envelope.salt),
       envelope.iterations || 250000,
     );
@@ -71,8 +76,8 @@ $("decrypt").onclick = async () => {
       key,
       unb64(envelope.data),
     );
-    $("opened").textContent = dec.decode(plaintext);
+    openedEl.textContent = dec.decode(plaintext);
   } catch (err) {
-    $("opened").textContent = `decryption failed: ${err.message}`;
+    openedEl.textContent = `decryption failed: ${err.message}`;
   }
 };
