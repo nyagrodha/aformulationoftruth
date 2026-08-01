@@ -19,7 +19,7 @@ interface SendEmailOptions {
   html: string;
 }
 
-interface SendEmailResult {
+export interface EmailResult {
   success: boolean;
   statusCode?: number;
   error?: string;
@@ -62,7 +62,15 @@ function smtpFailureKind(error: unknown): string {
  * SMTP_SECURE=true selects implicit TLS (port 465); otherwise STARTTLS is
  * used (port 587), which is Apple's default submission port.
  */
-export async function sendEmail(options: SendEmailOptions): Promise<SendEmailResult> {
+export async function sendEmail(options: SendEmailOptions): Promise<EmailResult> {
+  // Test-mode bypass: automated CI/e2e runs have no SMTP server, so short-circuit
+  // delivery and report success. This lets end-to-end flows (magic link,
+  // newsletter double opt-in) exercise the endpoints without a real transport.
+  // Production (DENO_ENV != 'test') always takes the real SMTP path below.
+  if (Deno.env.get('DENO_ENV') === 'test') {
+    return { success: true, statusCode: 250 };
+  }
+
   const hostname = Deno.env.get('SMTP_HOST');
   const port = parseInt(Deno.env.get('SMTP_PORT') || '587', 10);
   const implicitTls = Deno.env.get('SMTP_SECURE') === 'true';
@@ -149,7 +157,7 @@ export async function sendEmail(options: SendEmailOptions): Promise<SendEmailRes
 /**
  * Send magic link email for questionnaire access
  */
-export async function sendMagicLinkEmail(email: string, magicLinkUrl: string): Promise<SendEmailResult> {
+export async function sendMagicLinkEmail(email: string, magicLinkUrl: string): Promise<EmailResult> {
   const subject = Deno.env.get('EMAIL_SUBJECT') || 'Your link to a formulation of truth';
 
   const text = `

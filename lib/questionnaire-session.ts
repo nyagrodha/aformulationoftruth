@@ -75,7 +75,7 @@ export async function createQuestionnaireSession(
   // Step 2: Compute session_id = HMAC-SHA256(opaque_token, secret)
   const sessionId = await hashResumeToken(opaqueToken);
 
-  // Steps 3-5 in a single transaction: check gate, create session, link
+  // Steps 3-5 in a single transaction: check gate, create session, link.
   // Assigned inside the transaction callback below, which always runs to
   // completion before the await resolves; TS cannot see through the closure.
   let questionOrder!: string;

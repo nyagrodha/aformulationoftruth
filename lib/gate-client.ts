@@ -31,6 +31,8 @@ const GATE_TIMEOUT_MS = 5000;
  *
  * Throws on network/auth errors. Caller should catch and handle gracefully.
  */
+const GATE_TIMEOUT_MS = 5000;
+
 export async function storeEncryptedAnswer(
   params: StoreAnswerParams
 ): Promise<StoreAnswerResult> {
