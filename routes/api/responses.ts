@@ -80,7 +80,7 @@ export const handler: Handlers = {
         }),
         { status: 201, headers: { 'Content-Type': 'application/json' } }
       );
-    } catch (error) {
+    } catch (_error) {
       console.error('[responses] Submission failed');
       increment('errors.5xx');
 

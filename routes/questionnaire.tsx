@@ -216,8 +216,9 @@ export const handler: Handlers<QuestionnaireData> = {
       if (!storeRes.ok) {
         console.error('[questionnaire] Failed to store response:', await storeRes.text());
       }
-    } catch (error) {
-      console.error('[questionnaire] Error storing response:', error);
+    } catch {
+      increment('errors.5xx');
+      console.error('[questionnaire] Error storing response');
     }
 
     // Advance to next question

@@ -1,0 +1,831 @@
+/*
+ * ═══════════════════════════════════════════════════════════════
+ * CONTACT PAGE — saṁvādaḥ (correspondence)
+ * Harmonious with index_style.css, distinct identity
+ * ═══════════════════════════════════════════════════════════════
+ */
+
+/*
+ * FONT FACES — Self-hosted, no external API calls
+ */
+@font-face {
+    font-family: 'SaiIndira';
+    src: url('/fonts/SaiIndira.woff2') format('woff2');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+:root {
+    /* Shared palette from index_style.css */
+    --void: #000000;
+    --obsidian: #0a0a0a;
+    --slate: #1a1a1a;
+    --ghost: #2a2a2a;
+    --mist: #888888;
+    --pearl: #cccccc;
+    --bone: #e8e8e8;
+    --light: #ffffff;
+
+    /* Accent colors */
+    --gold: #FFD700;
+    --neon-pink: #ff69b4;
+    --neon-orange: #ff8c42;
+    --neon-emerald: #00ff88;
+    --neon-purple: #9f5fff;
+    --neon-cyan: #00d4ff;
+
+    /* Glow effects */
+    --pink-glow: rgba(255, 105, 180, 0.4);
+    --orange-glow: rgba(255, 140, 66, 0.4);
+    --emerald-glow: rgba(0, 255, 136, 0.4);
+    --gold-glow: rgba(255, 215, 0, 0.4);
+    --cyan-glow: rgba(0, 212, 255, 0.4);
+
+    /* Contact page accent — subtle teal/cyan for correspondence theme */
+    --contact-accent: #00b8a9;
+    --contact-glow: rgba(0, 184, 169, 0.4);
+}
+
+/* Reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Global focus indicators for keyboard accessibility */
+a:focus-visible {
+    outline: 2px solid var(--neon-pink);
+    outline-offset: 3px;
+}
+
+button:focus-visible,
+[role="button"]:focus-visible {
+    outline: 2px solid var(--neon-orange);
+    outline-offset: 3px;
+}
+
+input:focus-visible,
+textarea:focus-visible {
+    outline: 2px solid var(--contact-accent);
+    outline-offset: 3px;
+}
+
+/* Skip link for keyboard navigation */
+.skip-link {
+    position: absolute;
+    top: -100px;
+    left: 16px;
+    background: var(--neon-emerald);
+    color: var(--void);
+    padding: 12px 24px;
+    font-weight: bold;
+    text-decoration: none;
+    z-index: 10000;
+    border-radius: 4px;
+    transition: top 0.2s ease;
+}
+
+.skip-link:focus {
+    top: 16px;
+}
+
+html {
+    font-size: 16px;
+    scroll-behavior: smooth;
+}
+
+body {
+    background: var(--void);
+    color: var(--pearl);
+    font-family: 'Space Mono', monospace;
+    line-height: 1.7;
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+
+/* Subtle grid background — matches index */
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image:
+        linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+    background-size: 60px 60px;
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* Tamil text rendering */
+.tamil-text {
+    font-family: 'SaiIndira', 'Noto Serif Tamil', 'Tamil Sangam MN', serif;
+}
+
+/* Sanskrit text */
+.sanskrit-text {
+    font-family: 'Noto Sans Devanagari', 'Noto Serif Devanagari', sans-serif;
+}
+
+/*
+ * ═══════════════════════════════════════════════════════════════
+ * NAVIGATION — Fixed, matches index_style.css
+ * ═══════════════════════════════════════════════════════════════
+ */
+nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    padding: 1.5rem 3rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 100;
+    background: linear-gradient(to bottom, var(--void) 0%, transparent 100%);
+}
+
+.logo {
+    font-family: 'Orbitron', sans-serif;
+    font-weight: 600;
+    font-size: 0.75rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--mist);
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.logo:hover {
+    color: var(--light);
+}
+
+.nav-links {
+    display: flex;
+    gap: 3rem;
+}
+
+.nav-links a {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--mist);
+    text-decoration: none;
+    position: relative;
+    transition: color 0.3s ease;
+}
+
+.nav-links a::after {
+    content: '';
+    position: absolute;
+    bottom: -4px;
+    left: 0;
+    width: 0;
+    height: 1px;
+    background: var(--contact-accent);
+    box-shadow: 0 0 8px var(--contact-glow);
+    transition: width 0.3s ease;
+}
+
+.nav-links a:hover {
+    color: var(--light);
+}
+
+.nav-links a:hover::after {
+    width: 100%;
+}
+
+/* Active page indicator */
+.nav-links a.active {
+    color: var(--contact-accent);
+}
+
+.nav-links a.active::after {
+    width: 100%;
+}
+
+/*
+ * ═══════════════════════════════════════════════════════════════
+ * MAIN CONTENT CONTAINER
+ * ═══════════════════════════════════════════════════════════════
+ */
+main {
+    padding-top: 6rem;
+    position: relative;
+    z-index: 1;
+}
+
+.contact-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 3rem 2rem 6rem;
+}
+
+/*
+ * ═══════════════════════════════════════════════════════════════
+ * PAGE HEADER
+ * ═══════════════════════════════════════════════════════════════
+ */
+.contact-header {
+    text-align: center;
+    margin-bottom: 4rem;
+    animation: fadeSlideUp 0.8s ease forwards;
+}
+
+.contact-header h1 {
+    font-family: 'Orbitron', sans-serif;
+    font-size: clamp(1.8rem, 5vw, 2.5rem);
+    font-weight: 400;
+    letter-spacing: 0.1em;
+    color: var(--light);
+    margin-bottom: 1rem;
+    text-shadow: 0 0 20px var(--contact-glow);
+}
+
+.contact-header .subtitle {
+    font-size: 0.85rem;
+    color: var(--mist);
+    letter-spacing: 0.1em;
+}
+
+.contact-header .subtitle .sanskrit-text {
+    color: var(--gold);
+    text-shadow: 0 0 8px var(--gold-glow);
+}
+
+/*
+ * ═══════════════════════════════════════════════════════════════
+ * CONTENT SECTIONS — Card-like containers
+ * ═══════════════════════════════════════════════════════════════
+ */
+.content-section {
+    background: var(--obsidian);
+    border: 1px solid var(--ghost);
+    border-radius: 4px;
+    padding: 2.5rem;
+    margin-bottom: 3rem;
+    animation: fadeSlideUp 0.8s ease forwards;
+    animation-delay: 0.1s;
+    opacity: 0;
+}
+
+.content-section:nth-child(2) { animation-delay: 0.2s; }
+.content-section:nth-child(3) { animation-delay: 0.3s; }
+.content-section:nth-child(4) { animation-delay: 0.4s; }
+
+.section-title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 400;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--contact-accent);
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--ghost);
+    text-shadow: 0 0 10px var(--contact-glow);
+}
+
+.section-title .sanskrit-label {
+    font-family: 'Noto Sans Devanagari', sans-serif;
+    font-size: 0.85rem;
+    color: var(--gold);
+    margin-right: 0.75rem;
+    text-shadow: 0 0 6px var(--gold-glow);
+}
+
+/*
+ * ═══════════════════════════════════════════════════════════════
+ * TYPOGRAPHY
+ * ═══════════════════════════════════════════════════════════════
+ */
+.content-section p {
+    font-size: 0.95rem;
+    line-height: 1.8;
+    color: var(--pearl);
+    margin-bottom: 1.25rem;
+}
+
+.content-section p:last-child {
+    margin-bottom: 0;
+}
+
+.content-section p.lead {
+    font-size: 1.05rem;
+    color: var(--bone);
+}
+
+.content-section em {
+    color: var(--gold);
+    font-style: italic;
+    text-shadow: 0 0 4px var(--gold-glow);
+}
+
+.content-section strong {
+    color: var(--light);
+    font-weight: 600;
+}
+
+.content-section a {
+    color: var(--contact-accent);
+    text-decoration: none;
+    border-bottom: 1px dotted var(--contact-accent);
+    transition: all 0.3s ease;
+}
+
+.content-section a:hover {
+    color: var(--neon-cyan);
+    border-bottom-color: var(--neon-cyan);
+    text-shadow: 0 0 8px var(--cyan-glow);
+}
+
+/*
+ * ═══════════════════════════════════════════════════════════════
+ * CONTACT METHODS — Interactive cards
+ * ═══════════════════════════════════════════════════════════════
+ */
+.contact-method {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    padding: 1.25rem;
+    background: var(--slate);
+    border: 1px solid var(--ghost);
+    border-radius: 4px;
+    margin: 1.25rem 0;
+    transition: all 0.3s ease;
+}
+
+.contact-method:hover {
+    border-color: var(--contact-accent);
+    box-shadow: 0 0 20px var(--contact-glow);
+    transform: translateX(4px);
+}
+
+.contact-icon {
+    font-size: 1.5rem;
+    color: var(--contact-accent);
+    min-width: 40px;
+    text-align: center;
+    filter: drop-shadow(0 0 4px var(--contact-glow));
+}
+
+.contact-info {
+    flex: 1;
+}
+
+.contact-label {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.7rem;
+    color: var(--mist);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 0.25rem;
+}
+
+.contact-value {
+    font-size: 1rem;
+    color: var(--bone);
+}
+
+.contact-value a {
+    color: var(--contact-accent);
+    text-decoration: none;
+    border-bottom: none;
+}
+
+.contact-value a:hover {
+    color: var(--neon-cyan);
+}
+
+/*
+ * ═══════════════════════════════════════════════════════════════
+ * ORNAMENTAL DIVIDERS
+ * ═══════════════════════════════════════════════════════════════
+ */
+.ornament {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 2rem 0;
+    opacity: 0.5;
+}
+
+.ornament svg {
+    width: 100px;
+    height: 12px;
+    display: block;
+    stroke: var(--contact-accent);
+    fill: var(--gold);
+    stroke-width: 1.5;
+    filter: drop-shadow(0 0 4px var(--contact-glow));
+}
+
+/*
+ * ═══════════════════════════════════════════════════════════════
+ * PRIVACY & LEGAL SECTION
+ * ═══════════════════════════════════════════════════════════════
+ */
+.privacy-section {
+    border-color: var(--neon-emerald);
+    border-width: 1px;
+}
+
+.privacy-section .section-title {
+    color: var(--neon-emerald);
+    text-shadow: 0 0 10px var(--emerald-glow);
+}
+
+.subsection-title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 400;
+    color: var(--gold);
+    margin: 2rem 0 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.subsection-title .icon {
+    font-size: 1.1rem;
+}
+
+.content-section ul {
+    margin: 1rem 0 1.5rem 1.5rem;
+    line-height: 1.9;
+}
+
+.content-section li {
+    margin-bottom: 0.5rem;
+    color: var(--pearl);
+}
+
+.content-section li strong {
+    color: var(--bone);
+}
+
+/* Highlight box for important notices */
+.highlight-box {
+    padding: 1.5rem;
+    background: rgba(0, 255, 136, 0.05);
+    border-left: 3px solid var(--neon-emerald);
+    margin: 1.5rem 0;
+    border-radius: 0 4px 4px 0;
+}
+
+.highlight-box p {
+    margin-bottom: 1rem;
+}
+
+.highlight-box p:last-child {
+    margin-bottom: 0;
+}
+
+/* Warning/disclosure box */
+.disclosure-box {
+    padding: 1.5rem;
+    background: rgba(255, 140, 66, 0.08);
+    border-left: 3px solid var(--neon-orange);
+    margin: 1.5rem 0;
+    border-radius: 0 4px 4px 0;
+}
+
+.disclosure-box .disclosure-title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.85rem;
+    color: var(--neon-orange);
+    margin-bottom: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+
+/* Code/technical references */
+.code-ref {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.85rem;
+    background: var(--slate);
+    padding: 0.15rem 0.5rem;
+    border-radius: 3px;
+    color: var(--neon-cyan);
+}
+
+/*
+ * ═══════════════════════════════════════════════════════════════
+ * JURISDICTION COMPARISON TABLE
+ * ═══════════════════════════════════════════════════════════════
+ */
+.jurisdiction-comparison {
+    margin: 2rem 0;
+    overflow-x: auto;
+}
+
+.jurisdiction-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+}
+
+.jurisdiction-table th,
+.jurisdiction-table td {
+    padding: 1rem;
+    text-align: left;
+    border: 1px solid var(--ghost);
+}
+
+.jurisdiction-table th {
+    background: var(--slate);
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 400;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--bone);
+}
+
+.jurisdiction-table th.finland {
+    color: var(--neon-cyan);
+    border-bottom-color: var(--neon-cyan);
+}
+
+.jurisdiction-table th.iceland {
+    color: var(--neon-emerald);
+    border-bottom-color: var(--neon-emerald);
+}
+
+.jurisdiction-table td {
+    background: var(--obsidian);
+    color: var(--pearl);
+    vertical-align: top;
+}
+
+.jurisdiction-table tr:hover td {
+    background: var(--slate);
+}
+
+.jurisdiction-table .aspect {
+    font-weight: 600;
+    color: var(--gold);
+    white-space: nowrap;
+}
+
+.jurisdiction-table .good {
+    color: var(--neon-emerald);
+}
+
+.jurisdiction-table .neutral {
+    color: var(--gold);
+}
+
+.jurisdiction-table .concern {
+    color: var(--neon-orange);
+}
+
+/*
+ * ═══════════════════════════════════════════════════════════════
+ * FOOTER — Matches index_style.css + Newsletter
+ * ═══════════════════════════════════════════════════════════════
+ */
+footer {
+    padding: 4rem 2rem;
+    border-top: 1px solid var(--ghost);
+    position: relative;
+    z-index: 1;
+    background: var(--obsidian);
+}
+
+.footer-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* Newsletter in footer */
+.footer-newsletter {
+    max-width: 500px;
+    margin: 0 auto 3rem;
+    text-align: center;
+    padding-bottom: 3rem;
+    border-bottom: 1px solid var(--ghost);
+}
+
+.footer-newsletter h3 {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 400;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 0.75rem;
+    text-shadow: 0 0 8px var(--gold-glow);
+}
+
+.footer-newsletter p {
+    font-size: 0.8rem;
+    color: var(--mist);
+    margin-bottom: 1.25rem;
+}
+
+.newsletter-form {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.newsletter-form input[type="email"] {
+    flex: 1;
+    min-width: 200px;
+    max-width: 280px;
+    padding: 0.75rem 1rem;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.85rem;
+    background: var(--void);
+    border: 1px solid var(--ghost);
+    color: var(--light);
+    border-radius: 3px;
+    transition: all 0.3s ease;
+}
+
+.newsletter-form input[type="email"]:focus {
+    border-color: var(--gold);
+    box-shadow: 0 0 15px var(--gold-glow);
+}
+
+.newsletter-form input[type="email"]::placeholder {
+    color: var(--mist);
+}
+
+.newsletter-form button {
+    padding: 0.75rem 1.5rem;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    background: linear-gradient(135deg, var(--gold), var(--neon-orange));
+    color: var(--void);
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.newsletter-form button:hover:not(:disabled) {
+    box-shadow: 0 0 20px var(--gold-glow);
+    transform: translateY(-1px);
+}
+
+.newsletter-form button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.newsletter-message {
+    margin-top: 1rem;
+    font-size: 0.8rem;
+    padding: 0.5rem;
+    border-radius: 3px;
+    display: none;
+}
+
+.newsletter-message.visible {
+    display: block;
+}
+
+.newsletter-message.success {
+    background: rgba(0, 255, 136, 0.1);
+    border: 1px solid var(--neon-emerald);
+    color: var(--neon-emerald);
+}
+
+.newsletter-message.error {
+    background: rgba(255, 105, 180, 0.1);
+    border: 1px solid var(--neon-pink);
+    color: var(--neon-pink);
+}
+
+.newsletter-note {
+    font-size: 0.7rem;
+    color: var(--mist);
+    margin-top: 0.75rem;
+}
+
+/* Footer nav and copy */
+.footer-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 2rem;
+}
+
+.footer-links {
+    display: flex;
+    gap: 2rem;
+}
+
+.footer-links a {
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--mist);
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.footer-links a:hover {
+    color: var(--light);
+}
+
+.footer-copy {
+    font-size: 0.7rem;
+    color: var(--mist);
+    letter-spacing: 0.05em;
+}
+
+/*
+ * ═══════════════════════════════════════════════════════════════
+ * ANIMATIONS
+ * ═══════════════════════════════════════════════════════════════
+ */
+@keyframes fadeSlideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/*
+ * ═══════════════════════════════════════════════════════════════
+ * RESPONSIVE
+ * ═══════════════════════════════════════════════════════════════
+ */
+@media (max-width: 768px) {
+    nav {
+        padding: 1rem 1.5rem;
+    }
+
+    .nav-links {
+        gap: 1.5rem;
+    }
+
+    .nav-links a {
+        font-size: 0.65rem;
+    }
+
+    .contact-container {
+        padding: 2rem 1.5rem 4rem;
+    }
+
+    .content-section {
+        padding: 1.75rem;
+    }
+
+    .contact-method {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .jurisdiction-table {
+        font-size: 0.75rem;
+    }
+
+    .jurisdiction-table th,
+    .jurisdiction-table td {
+        padding: 0.75rem;
+    }
+
+    .footer-nav {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .newsletter-form {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .newsletter-form input[type="email"] {
+        max-width: 100%;
+    }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}

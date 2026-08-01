@@ -117,9 +117,16 @@
   margin-bottom: 1.5rem;
 }
 
-.form-input:focus,
+.form-input:focus {
+  outline: 2px solid var(--neon-emerald, #00ff88);
+  outline-offset: 3px;
+  border-color: var(--accent-1);
+  box-shadow: 0 0 0 3px var(--glow-1);
+}
+
 .form-textarea:focus {
-  outline: none;
+  outline: 2px solid #0af;
+  outline-offset: 3px;
   border-color: var(--accent-1);
   box-shadow: 0 0 0 3px var(--glow-1);
 }

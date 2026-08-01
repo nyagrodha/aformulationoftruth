@@ -1,0 +1,223 @@
+/**
+ * Privacy Page Styles
+ * /public/css/privacy_styles.css
+ *
+ * Fonts used: Rye, Spectral, Special Elite
+ * See /FONTS.md for font inventory
+ */
+
+/* ============================================
+   Font Face Declarations (Self-hosted)
+   ============================================ */
+
+@font-face {
+    font-family: 'Rye';
+    src: url('/fonts/rye-latin-400-normal.woff2') format('woff2'),
+         url('/fonts/rye-latin-400-normal.woff') format('woff');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Special Elite';
+    src: url('/fonts/special-elite-latin-400-normal.woff2') format('woff2'),
+         url('/fonts/special-elite-latin-400-normal.woff') format('woff');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Noto Serif';
+    src: url('/fonts/NotoSerif-Regular.ttf') format('truetype');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Noto Serif';
+    src: url('/fonts/NotoSerif-Italic.ttf') format('truetype');
+    font-weight: 400;
+    font-style: italic;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Noto Serif';
+    src: url('/fonts/NotoSerif-Bold.ttf') format('truetype');
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Noto Serif';
+    src: url('/fonts/NotoSerif-BoldItalic.ttf') format('truetype');
+    font-weight: 700;
+    font-style: italic;
+    font-display: swap;
+}
+
+/* ============================================
+   Base Styles
+   ============================================ */
+
+body {
+    background: linear-gradient(135deg, #D2B48C 0%, #F5DEB3 100%);
+    min-height: 100vh;
+}
+
+/* ============================================
+   Layout
+   ============================================ */
+
+.privacy-container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 3rem 1rem;
+    min-height: 100vh;
+}
+
+/* ============================================
+   Header
+   ============================================ */
+
+.privacy-header {
+    text-align: center;
+    margin-bottom: 3rem;
+    border-bottom: 3px solid rgba(139, 69, 19, 0.3);
+    padding-bottom: 2rem;
+}
+
+.privacy-header h1 {
+    font-family: 'Rye', serif;
+    font-size: 3.5rem;
+    margin-bottom: 1rem;
+    color: #8B4513;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+}
+
+.privacy-header .subtitle {
+    font-family: 'Noto Serif', 'Spectral', serif;
+    font-size: 1.2rem;
+    color: #654321;
+    font-style: italic;
+}
+
+/* ============================================
+   Content Container
+   ============================================ */
+
+.privacy-content {
+    background: rgba(245, 222, 179, 0.95);
+    backdrop-filter: blur(12px);
+    border: 3px solid #8B4513;
+    border-radius: 15px;
+    padding: 3rem 2.5rem;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+    margin-bottom: 2rem;
+    font-family: 'Noto Serif', 'Spectral', serif;
+}
+
+/* ============================================
+   Typography
+   ============================================ */
+
+.privacy-content h2 {
+    font-family: 'Rye', serif;
+    color: #8B4513;
+    margin: 2rem 0 1rem;
+    font-size: 2rem;
+    border-bottom: 2px solid rgba(139, 69, 19, 0.3);
+    padding-bottom: 0.5rem;
+}
+
+.privacy-content h3 {
+    color: #654321;
+    margin: 1.5rem 0 0.8rem;
+    font-size: 1.3rem;
+}
+
+.privacy-content p {
+    line-height: 1.8;
+    margin-bottom: 1.2rem;
+    color: #2C1810;
+}
+
+.privacy-content ul {
+    margin: 1rem 0 1.5rem 2rem;
+    line-height: 1.8;
+}
+
+.privacy-content li {
+    margin-bottom: 0.8rem;
+    color: #2C1810;
+}
+
+.privacy-content code {
+    background: rgba(139, 69, 19, 0.1);
+    padding: 0.2rem 0.5rem;
+    border-radius: 3px;
+    font-family: 'Courier New', monospace;
+    color: #654321;
+}
+
+/* ============================================
+   Components
+   ============================================ */
+
+.highlight-box {
+    background: rgba(139, 69, 19, 0.1);
+    border-left: 4px solid #8B4513;
+    padding: 1.5rem;
+    margin: 1.5rem 0;
+    border-radius: 5px;
+}
+
+/* ============================================
+   Links & Buttons
+   ============================================ */
+
+.back-link {
+    display: inline-block;
+    margin-top: 2rem;
+    padding: 1rem 2rem;
+    background: #8B4513;
+    color: #F5DEB3;
+    text-decoration: none;
+    border-radius: 8px;
+    font-family: 'Special Elite', cursive;
+    transition: all 0.3s ease;
+    border: 2px solid #654321;
+}
+
+.back-link:hover {
+    background: #654321;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+}
+
+.content-link {
+    color: #8B4513;
+    text-decoration: underline;
+}
+
+.content-link:hover {
+    color: #654321;
+}
+
+/* ============================================
+   Utility Classes
+   ============================================ */
+
+.text-center {
+    text-align: center;
+}
+
+.last-updated {
+    margin-top: 2rem;
+    font-style: italic;
+    color: #654321;
+}

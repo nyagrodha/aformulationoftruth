@@ -21,6 +21,11 @@ const SESSION_VALIDITY_MS = 24 * 60 * 60 * 1000;
 export interface MagicLinkResult {
   token: string;
   expiresAt: Date;
+  /**
+   * Call this function to invalidate the magic link if email sending fails.
+   * This prevents orphaned records in the database.
+   */
+  cleanup: () => Promise<void>;
 }
 
 /**
@@ -30,9 +35,12 @@ export interface MagicLinkResult {
  * 1. Hash the email (plaintext immediately discarded)
  * 2. Generate random token
  * 3. Store token hash with email hash
- * 4. Return plaintext token for email delivery
+ * 4. Return plaintext token for email delivery + cleanup function
  *
  * The token itself contains no user information.
+ *
+ * IMPORTANT: If email sending fails after calling this function,
+ * you MUST call the returned cleanup() function to prevent orphaned records.
  */
 export async function createMagicLink(email: string): Promise<MagicLinkResult> {
   // Hash email immediately - plaintext only in this scope
@@ -61,7 +69,23 @@ export async function createMagicLink(email: string): Promise<MagicLinkResult> {
     );
   });
 
-  return { token, expiresAt };
+  // Cleanup function to invalidate the magic link if email sending fails
+  const cleanup = async (): Promise<void> => {
+    try {
+      await withConnection(async (client) => {
+        await client.queryObject(
+          `UPDATE fresh_magic_links SET used_at = NOW() WHERE token_hash = $1`,
+          [tokenHash]
+        );
+      });
+      console.log('[auth] Cleaned up unused magic link after email failure');
+    } catch (cleanupError) {
+      // Log but don't throw - cleanup failure shouldn't mask the original error
+      console.error('[auth] Failed to cleanup magic link:', cleanupError);
+    }
+  };
+
+  return { token, expiresAt, cleanup };
 }
 
 /**

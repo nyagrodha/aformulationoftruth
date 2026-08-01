@@ -269,7 +269,8 @@ body {
 }
 
 .response:focus {
-  outline: none;
+  outline: 2px solid var(--neon-emerald, #00ff88);
+  outline-offset: 3px;
   border-color: var(--green);
 }
 

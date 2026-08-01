@@ -38,6 +38,25 @@ export interface SessionCreationResult {
   questionOrder: string;          // For initial state
 }
 
+// Database row types for queryObject
+interface SessionRow {
+  session_id: string;
+  email_hash: string;
+  question_order: string;
+  answered_questions: number[] | null;
+  current_index: number | null;
+  created_at: string;
+  updated_at: string;
+  completed_at: string | null;
+}
+
+interface StatsRow {
+  total: string | bigint;
+  active: string | bigint;
+  completed: string | bigint;
+  avg_progress: number | null;
+}
+
 /**
  * Create a new questionnaire session.
  * Generates opaque token and stores only its HMAC hash.
@@ -56,11 +75,27 @@ export async function createQuestionnaireSession(
   // Step 2: Compute session_id = HMAC-SHA256(opaque_token, secret)
   const sessionId = await hashResumeToken(opaqueToken);
 
-  // Step 3: Generate shuffled question order
-  const questionOrder = generateQuestionOrderString();
+  // Steps 3-5 in a single transaction: check gate, create session, link
+  // Assigned inside the transaction callback below, which always runs to
+  // completion before the await resolves; TS cannot see through the closure.
+  let questionOrder!: string;
 
   await withTransaction(async (client) => {
-    // Check for existing incomplete session
+    // Step 3: Check if user went through the gate flow
+    let hasGateAnswers = false;
+    if (gateToken) {
+      const { rows } = await client.queryObject<{ count: string }>(
+        `SELECT COUNT(*) as count FROM fresh_gate_responses
+         WHERE gate_token = $1`,
+        [gateToken]
+      );
+      hasGateAnswers = Number(rows[0]?.count ?? 0) > 0;
+    }
+
+    // Step 4: Generate shuffled question order
+    questionOrder = generateQuestionOrderString(hasGateAnswers);
+
+    // Step 5: Check for existing incomplete session
     const { rows: existing } = await client.queryObject<{ session_id: string }>(
       `SELECT session_id FROM fresh_questionnaire_sessions
        WHERE email_hash = $1 AND completed_at IS NULL
@@ -130,7 +165,7 @@ export async function getSessionById(
   sessionId: string
 ): Promise<QuestionnaireSession | null> {
   return await withConnection(async (client) => {
-    const { rows } = await client.queryObject<any>(
+    const { rows } = await client.queryObject<SessionRow>(
       `SELECT session_id, email_hash, question_order, answered_questions,
               current_index, created_at, updated_at, completed_at
        FROM fresh_questionnaire_sessions
@@ -165,7 +200,7 @@ export async function findActiveSession(
   emailHash: string
 ): Promise<QuestionnaireSession | null> {
   return await withConnection(async (client) => {
-    const { rows } = await client.queryObject<any>(
+    const { rows } = await client.queryObject<SessionRow>(
       `SELECT session_id, email_hash, question_order, answered_questions,
               current_index, created_at, updated_at, completed_at
        FROM fresh_questionnaire_sessions
@@ -252,6 +287,37 @@ export async function completeSession(sessionId: string): Promise<void> {
       [sessionId]
     );
   });
+}
+
+/**
+ * Delete a session (for cleanup on failed operations).
+ * Also unlinks any gate responses that were linked to this session.
+ *
+ * @param sessionId - Session identifier to delete
+ */
+export async function deleteSession(sessionId: string): Promise<void> {
+  try {
+    await withTransaction(async (client) => {
+      // First, unlink any gate responses
+      await client.queryObject(
+        `UPDATE fresh_gate_responses
+         SET linked_session_id = NULL
+         WHERE linked_session_id = $1`,
+        [sessionId]
+      );
+
+      // Then delete the session
+      await client.queryObject(
+        `DELETE FROM fresh_questionnaire_sessions
+         WHERE session_id = $1`,
+        [sessionId]
+      );
+    });
+    console.log('[session] Session deleted');
+  } catch {
+    // Log but don't throw - cleanup failure shouldn't mask the original error
+    console.error('[session] Session deletion failed');
+  }
 }
 
 /**
@@ -356,7 +422,7 @@ export async function getSessionStats(): Promise<{
   averageProgress: number;
 }> {
   return await withConnection(async (client) => {
-    const { rows } = await client.queryObject<any>(
+    const { rows } = await client.queryObject<StatsRow>(
       `SELECT
          COUNT(*) as total,
          COUNT(*) FILTER (WHERE completed_at IS NULL) as active,

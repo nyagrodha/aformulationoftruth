@@ -110,11 +110,10 @@ export const handler: Handlers<VerifyData> = {
       // Success! Set cookies and redirect
       increment('auth.magiclink.verified');
 
-      const isProduction = Deno.env.get('DENO_ENV') === 'production';
       const cookieOptions = [
         'HttpOnly',
-        isProduction && 'Secure',
-        'SameSite=Strict',
+        'Secure',
+        'SameSite=Lax',
         'Path=/',
       ].filter(Boolean).join('; ');
 
