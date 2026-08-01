@@ -43,7 +43,7 @@ export default function EncryptedMessengerPage() {
             <input
               id="passphrase"
               type="password"
-              autocomplete="new-password"
+              autoComplete="new-password"
             />
             <button id="encrypt" type="button">encrypt</button>
             <label>sealed envelope</label>
@@ -60,7 +60,7 @@ export default function EncryptedMessengerPage() {
             <input
               id="openPassphrase"
               type="password"
-              autocomplete="current-password"
+              autoComplete="current-password"
             />
             <button id="decrypt" type="button">decrypt</button>
             <label>plaintext</label>
