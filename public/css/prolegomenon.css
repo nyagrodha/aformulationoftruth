@@ -889,6 +889,11 @@ footer .footer-return {
   text-transform: lowercase;
 }
 
+/* Opt a proper noun back out of the footer's lowercasing. */
+.keep-case {
+  text-transform: none;
+}
+
 /* ── motion ────────────────────────────────────────────────────────────── */
 @keyframes rise {
   0% {

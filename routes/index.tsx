@@ -381,7 +381,10 @@ export default function Home({ data }: PageProps<IndexData>) {
           </a>
 
           <div>
-            <p>a Proust questionnaire that aims to acquaint oneself with a sequence of selves this lifetime.</p>
+            <p>
+              a <span class='keep-case'>Proust</span>{' '}
+              questionnaire that aims to acquaint oneself with a sequence of selves this lifetime.
+            </p>
             <p style='margin-top: 1rem;'>
               database hosted in Iceland by{' '}
               <a
