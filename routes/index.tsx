@@ -381,9 +381,9 @@ export default function Home({ data }: PageProps<IndexData>) {
           </a>
 
           <div>
-            <p>a questionnaire to become acquainted oneself with a sequence of selves this lifetime.</p>
+            <p>a Proust questionnaire that aims to acquaint oneself with a sequence of selves this lifetime.</p>
             <p style='margin-top: 1rem;'>
-              Encrypted database hosted in Iceland by{' '}
+              database hosted in Iceland by{' '}
               <a
                 href='https://billing.flokinet.is/aff.php?aff=543'
                 target='_blank'
