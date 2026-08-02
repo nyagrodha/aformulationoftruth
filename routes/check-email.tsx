@@ -7,7 +7,8 @@
  */
 
 import { Handlers } from '$fresh/server.ts';
-import LogoMenu from '../components/LogoMenu.tsx';
+import Nav from '../islands/Nav.tsx';
+import { NAV_NOSCRIPT_CSS, PAGE_NAV } from '../components/nav-shared.ts';
 
 export const handler: Handlers = {
   GET(_req, ctx) {
@@ -25,10 +26,16 @@ export default function CheckEmail() {
         <title>check your email — a formulation of truth</title>
         <link rel="stylesheet" href="/css/main.css" />
         <link rel="stylesheet" href="/css/landing.css" />
+        <link rel='stylesheet' href='/css/nav-mark.css' />
+        {/* The toggle is inert without JS, so leave the menu open instead. */}
+        <noscript>
+          <style>{NAV_NOSCRIPT_CSS}</style>
+        </noscript>
       </head>
       <body class="landing">
-        <nav>
-          <LogoMenu />        </nav>
+        <header class='site-header'>
+          <Nav items={PAGE_NAV} />
+        </header>
 
         <main>
           <section class="hero landing-hero">

@@ -26,17 +26,21 @@ import type { VNode } from 'preact';
 import Nav, { type NavItem } from '../islands/Nav.tsx';
 import Spheroid from '../islands/Spheroid.tsx';
 import { WordmarkGlyphs } from '../components/Wordmark.tsx';
+import { NAV_NOSCRIPT_CSS } from '../components/nav-shared.ts';
 
 /*
  * The landing page is one long page, so its nav is fragment anchors that scroll
- * it — #about is the footer, #begin the gate form. The gift shop is the one
- * item that leaves the page: it is a route, not a section.
+ * it — #about is the footer, #begin the gate form. These bare fragments are why
+ * items is a prop: they resolve only on this document, and PAGE_NAV carries the
+ * '/#begin' form every other page needs.
+ *
+ * Messaging and the gift shop are the two that leave the page.
  */
 const LANDING_NAV: NavItem[] = [
-  { label: 'Introduction', href: '#prolegomenon' },
-  { label: 'Gate', href: '#begin' },
-  { label: 'Gift Shop', href: '/shop' },
-  { label: 'About', href: '#about' },
+  { label: 'begin', href: '#begin' },
+  { label: 'about', href: '#about' },
+  { label: 'messaging', href: '/contact.html' },
+  { label: 'gift shop', href: '/shop' },
 ];
 
 interface IndexData {
@@ -131,9 +135,10 @@ export default function Home({ data }: PageProps<IndexData>) {
         <link rel='manifest' href='/manifest.json' />
 
         <link rel='stylesheet' href='/css/prolegomenon.css' />
+        <link rel='stylesheet' href='/css/nav-mark.css' />
         {/* The toggle is inert without JS, so leave the menu open instead. */}
         <noscript>
-          <style>{'.nav-list[hidden]{display:flex}.nav-arrow{display:none}'}</style>
+          <style>{NAV_NOSCRIPT_CSS}</style>
         </noscript>
       </head>
       <body>

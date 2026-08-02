@@ -180,77 +180,6 @@ body::before {
   text-transform: lowercase;
 }
 
-/*
- * The nav is a disclosure whose toggle is the wordmark. `.nav-list` is taken
- * out of flow so opening it never reflows the header or shoves the hero down
- * the page.
- */
-.site-nav {
-  position: relative;
-}
-
-.nav-toggle {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0;
-  border: none;
-  background: none;
-  color: inherit;
-  font: inherit;
-  text-align: left;
-}
-
-/*
- * Only the hydrated toggle is a control. Before that — and always, without JS —
- * it is a span holding the wordmark, and must not offer a pointer it can't honour.
- */
-button.nav-toggle {
-  cursor: pointer;
-}
-
-.nav-arrow {
-  display: inline-block;
-  color: var(--muted);
-  font-size: 0.6rem;
-  transition: transform 0.18s ease;
-}
-
-.nav-toggle[aria-expanded='true'] .nav-arrow {
-  transform: rotate(90deg);
-}
-
-.nav-list {
-  position: absolute;
-  z-index: 3;
-  display: flex;
-  flex-direction: column;
-  margin: 0.55rem 0 0;
-  padding: 0.4rem 1.4rem 0.4rem 1.1rem;
-  border-left: 1px solid var(--rule);
-  background: var(--paper);
-  list-style: none;
-}
-
-/*
- * The [hidden] attribute only carries `display: none` at UA weight, which the
- * flex above outranks. Restate it, or the closed menu stays on screen.
- */
-.nav-list[hidden] {
-  display: none;
-}
-
-.nav-list li {
-  margin: 0;
-  padding: 0;
-}
-
-.nav-list a {
-  display: block;
-  padding: 0.34rem 0;
-  white-space: nowrap;
-}
-
 .site-nav a,
 .eyebrow,
 .enter,
@@ -915,9 +844,14 @@ footer .footer-return {
     height: 68px;
   }
 
-  .site-nav a:not(:first-child) {
-    display: none;
-  }
+  /*
+   * A `.site-nav a:not(:first-child) { display: none }` rule lived here, from a
+   * nav whose links were bare <a> children of .site-nav. They are <li><a> inside
+   * .nav-list now, so it stopped hiding links some time ago — and once the
+   * wordmark became an <a> it matched that instead, deleting the wordmark on
+   * every viewport under 900px. Removed rather than rescoped: the disclosure is
+   * what handles narrow widths now.
+   */
 
   .hero {
     display: block;

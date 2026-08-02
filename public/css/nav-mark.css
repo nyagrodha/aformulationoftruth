@@ -1,0 +1,193 @@
+/*
+ * ═══════════════════════════════════════════════════════════════
+ * FIVE-LINE MARK NAV — shared by every page that renders <Nav>
+ * ═══════════════════════════════════════════════════════════════
+ *
+ * Its own file rather than a block in prolegomenon.css because the callers do
+ * not share a stylesheet: routes/index.tsx and PageShell load prolegomenon,
+ * while /profile-choice, /check-email and /profile-create load main.css. One
+ * copy here beats the same rules maintained in two themes.
+ *
+ * Every custom property therefore carries a fallback — on the main.css pages
+ * prolegomenon's :root is not present, and a bare var() would resolve to
+ * nothing and paint the bar invisible.
+ */
+
+:root {
+  /*
+   * The source palette (#00B8F0 / #2563EB / #16A085 / #D7263D / #2B2D42) was
+   * drawn against a dark card. Two of the five collapse on the site's paper
+   * ground — the cyan measures 1.71:1 and the teal 2.43:1, both under the 3:1
+   * that SC 1.4.11 asks of a non-text graphic. Those two are darkened here at
+   * constant hue and saturation until they clear 3.5:1. The blue (3.83:1), red
+   * (3.68:1) and navy (10.01:1) already pass and are carried through untouched.
+   *
+   * This mirrors what prolegomenon.css already documents for the --wm-* triad,
+   * which had the same origin and the same problem.
+   */
+  --mark-1: #007ba1;
+  --mark-2: #2563eb;
+  --mark-3: #12816b;
+  --mark-4: #d7263d;
+  --mark-5: #2b2d42;
+}
+
+/*
+ * The nav is a disclosure whose toggle is the five-line mark, sitting left, with
+ * the wordmark opposite it on the right. `.nav-list` opens as a horizontal bar
+ * running the width of the header rather than a column dropping out of it.
+ *
+ * Above 700px the bar is a single row and stays out of flow, so opening it never
+ * shoves the hero down the page — the original reason for absolute positioning.
+ * Below 700px it wraps to two or three rows, and a wrapped bar of unknown height
+ * cannot be cleared by any fixed reserve, so there it returns to normal flow and
+ * pushes content instead. Overlap then cannot happen at either size.
+ */
+.site-nav {
+  position: relative;
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.nav-toggle {
+  display: flex;
+  align-items: center;
+  padding: 0;
+  border: none;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+}
+
+/* Only the hydrated toggle is a control; before that it is a span. */
+button.nav-toggle {
+  cursor: pointer;
+}
+
+/*
+ * The ௨ cut needs room to read. Below roughly 110px wide the negative space
+ * collapses into texture and the mark is just five bars, so the floor here is
+ * deliberately larger than a conventional hamburger.
+ */
+.five-line-mark {
+  display: block;
+  width: clamp(96px, 10vw, 124px);
+  height: auto;
+}
+
+/* Bars part as the menu opens — the mark carries the state itself. */
+.mark-bar {
+  transition: transform 0.22s ease;
+}
+
+.nav-toggle[aria-expanded='true'] .mark-bar-2 {
+  transform: translateX(16px);
+}
+
+.nav-toggle[aria-expanded='true'] .mark-bar-4 {
+  transform: translateX(-16px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mark-bar {
+    transition: none;
+  }
+}
+
+/*
+ * The wordmark is a link home now, not the control — and that change alone is
+ * enough to restyle it. prolegomenon.css sets `.site-nav a` to uppercase Arial
+ * with wide tracking, which is right for the menu links; while the wordmark sat
+ * inside a <button> that rule could not reach it, and as an <a> it suddenly can.
+ * Specificity has to beat `.site-nav a`, hence the qualified selector.
+ */
+.site-nav a.wordmark-home {
+  flex: none;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  text-decoration: none;
+  text-transform: none;
+}
+
+/*
+ * The glyphs are wrapped in an aria-hidden span so the link can carry its own
+ * name. That wrapper would otherwise become the single flex child of
+ * `.site-header .wordmark` and collapse the two lines onto one, so it is taken
+ * out of the box tree and its children inherit the column directly.
+ */
+.wordmark-home > [aria-hidden='true'] {
+  display: contents;
+}
+
+/*
+ * Translucent rather than solid so the page reads through it, and blurred so the
+ * links stay legible over whatever they cross. The two together are why the bar
+ * can sit over content at all; the flow switch below 700px is what guarantees it
+ * never has to.
+ */
+.nav-list {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  left: 0;
+  z-index: 3;
+  display: flex;
+  flex-flow: row wrap;
+  gap: 0.2rem 2.4rem;
+  margin: 0.55rem 0 0;
+  padding: 0.75rem 0.2rem;
+  border-top: 1px solid var(--rule, #17171557);
+  border-bottom: 1px solid var(--rule, #17171557);
+  background: color-mix(in srgb, var(--paper, #e8ddc5) 86%, transparent);
+  list-style: none;
+  backdrop-filter: blur(7px);
+  -webkit-backdrop-filter: blur(7px);
+}
+
+@supports not (background: color-mix(in srgb, red 50%, transparent)) {
+  .nav-list {
+    background: var(--paper, #e8ddc5);
+  }
+}
+
+/*
+ * The [hidden] attribute only carries `display: none` at UA weight, which the
+ * flex above outranks. Restate it, or the closed menu stays on screen.
+ */
+.nav-list[hidden] {
+  display: none;
+}
+
+.nav-list li {
+  margin: 0;
+  padding: 0;
+}
+
+.nav-list a {
+  display: block;
+  padding: 0.34rem 0;
+  white-space: nowrap;
+}
+
+@media (max-width: 700px) {
+  .site-nav {
+    flex-wrap: wrap;
+  }
+
+  /*
+   * Wrapped, so it must push rather than overlay — see the note above. Taking a
+   * full basis forces it onto its own flex line; without that it stays a sibling
+   * of the mark and the wordmark, and being the widest of the three it shrinks
+   * the wordmark to nothing.
+   */
+  .nav-list {
+    position: static;
+    flex-basis: 100%;
+    margin-top: 0.5rem;
+  }
+}

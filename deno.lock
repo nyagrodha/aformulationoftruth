@@ -524,6 +524,8 @@
     "https://esm.sh/*preact-render-to-string@6.3.1/denonext/preact-render-to-string.mjs": "859e9f3dc137a53c17542bbed4cf8accdca81a2895d7a52d1fca38e6c5c00c90",
     "https://esm.sh/@babel/helper-validator-identifier@7.22.20": "3b0b7d94b8ac689175ecb7e72183b07c6a771cc7680a7c9916091add73bd7f88",
     "https://esm.sh/@babel/helper-validator-identifier@7.22.20/denonext/helper-validator-identifier.mjs": "f765fd69eb4fd81b839b76bf60f227caac4fe4d41b4c646cc08aa7b8d948fe17",
+    "https://esm.sh/preact-render-to-string@6.5.11/X-ZXByZWFjdA/denonext/preact-render-to-string.mjs": "768d3be2c616792bb2e880dfc6a07c5fa722afcb1a18d03d2c9d3561be2650a5",
+    "https://esm.sh/preact-render-to-string@6.5.11?external=preact": "3b2585322f05c8278a33ba535883a21cf9fc40eedb58fe6cfd86147ffa227a32",
     "https://esm.sh/preact@10.24.3": "2f38aa62496da4b9bf12c04f799b0770249ce26dbe04f0ed6434f233fc8469d2",
     "https://esm.sh/preact@10.24.3/debug": "b1ea8575aa814153388fd94d9a0e7e436ac080889dc6cc91c81ce7d1936c42a0",
     "https://esm.sh/preact@10.24.3/denonext/debug.mjs": "0b70b4378bd602b38605bd128a3e00fb47ef4b8e5b3fb231032a971ef0d84be8",

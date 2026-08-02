@@ -1,7 +1,9 @@
 # Nav: Five-Line Mark as Hamburger — Design
 
 **Date:** 2026-08-02
-**Status:** Approved (design); implementation plan pending
+**Status:** Built. Revised against the implementation and against CodeRabbit's
+review of the first draft; sections marked *Resolved during build* record what
+measurement changed.
 **Branch:** `feat/nav-five-line-mark` (off `origin/production`)
 
 ## Goal
@@ -27,8 +29,9 @@ Tamil numeral **௨** (இரண்டு, 2). Five lines, five energies; the gl
 | 4 | `#D7263D` | red |
 | 5 | `#2B2D42` | dark navy |
 
-Bar 5 is near-black and is the one at risk in dark mode — it needs a lightened
-dark-theme value, not a straight reuse. See *Light and dark* below.
+Those are the **source** values, drawn against the dark card in the reference
+artwork. Two of them do not survive the move to the site's paper ground and are
+darkened before use — see *Colour* below.
 
 ## Findings that shaped this design
 
@@ -46,18 +49,19 @@ Recorded because several contradicted the obvious reading of the request.
 
 ### New component
 
-```
+```text
 components/FiveLineMark.tsx    →  inline SVG, five <rect>, ௨ cut via <mask>
 ```
 
 Inline SVG rather than `<img>` or a background image, for three reasons: the bars
-inherit CSS custom properties so the existing light/dark switch drives them for
-free; it ships no client JS; and the ௨ mask stays in the same file as the bars it
-cuts, so the two cannot drift apart.
+read `--mark-*` off the cascade, so a caller on a different ground can restate the
+five tokens without a second asset; it ships no client JS; and the ௨ mask stays in
+the same file as the bars it cuts, so the two cannot drift apart.
 
-Props: `class` (pass-through for sizing) and nothing else. The component does not
-decide its own size — callers do, the same way `WordmarkGlyphs` leaves its
-wrapper to the caller.
+Props: `class` (pass-through for sizing) and `id`. The component does not decide
+its own size — callers do, the same way `WordmarkGlyphs` leaves its wrapper to the
+caller. `id` exists because mask ids are document-global: two marks on one page
+would collide and the second would render uncut.
 
 ### Nav restructure — `islands/Nav.tsx`
 
@@ -79,43 +83,63 @@ The `live` guard keeps its current purpose: before hydration and forever without
 JS, the toggle renders as a `<span>`, not a `<button>`, so nothing announces
 `aria-expanded="false"` beside a list the `<noscript>` rule has already opened.
 
-### Layout — `public/css/prolegomenon.css`
+### Layout — `public/css/nav-mark.css`
 
-`.nav-list` changes from `flex-direction: column` to `row`, spans the header's
-full width, and keeps `position: absolute` so opening it still does not reflow the
-header or shove the hero down the page — the existing decision documented at
-`prolegomenon.css:184` is preserved deliberately.
+`.nav-list` changes from `flex-direction: column` to `row` and spans the header's
+full width.
 
-Non-obstruction is handled in two layers, because the user asked for both:
+Non-obstruction is handled by position, which varies with width — a fixed reserve
+cannot work, because a wrapped bar's height is not known in advance:
 
-1. **Translucency** — a semi-opaque background plus `backdrop-filter: blur()`,
-   matching the treatment already on `.site-nav` in `site-nav.css`.
-2. **Clearance** — the first content block below the header gets enough top
-   spacing that an open bar never overlaps text. Translucency alone makes
-   collisions *readable*; clearance makes them *not happen*.
+- **Above 700px** the bar is a single row and stays `position: absolute`, so
+  opening it does not reflow the header or shove the hero down the page. That was
+  the original reason for absolute positioning and it is preserved deliberately.
+  It is translucent (`color-mix` on `--paper`) with `backdrop-filter: blur()`, so
+  the page reads through it and the links stay legible over whatever they cross.
+- **Below 700px** it wraps to two or three rows and returns to normal flow with
+  `flex-basis: 100%`, taking its own line and pushing content down. Overlap
+  becomes impossible rather than merely tolerable.
 
-Wrapping: with four items the bar fits comfortably. On narrow viewports the row
-wraps rather than scrolls, so no item becomes unreachable.
+The `flex-basis: 100%` is load-bearing: without it the list stays a flex sibling
+of the mark and the wordmark and, being the widest of the three, shrinks the
+wordmark to nothing.
 
-### Colour variables
+### Colour
 
-Five new custom properties beside the existing `--wm-*` triad at
-`prolegomenon.css:104`:
+**There is no dark mode on this site.** No stylesheet carries a
+`prefers-color-scheme` rule; the block at `prolegomenon.css:860` that looks like
+one is the `footer` scope inverting to ink. The two panels in the reference
+artwork are presentation, not a theme. An earlier draft of this spec assumed
+otherwise and built a requirement on it; that requirement is withdrawn.
+
+What is real is a contrast problem. Measured against `--paper` (`#e8ddc5`):
+
+| token | source | on paper | verdict |
+|---|---|---:|---|
+| `--mark-1` | `#00B8F0` | **1.71:1** | fails |
+| `--mark-2` | `#2563EB` | 3.83:1 | passes |
+| `--mark-3` | `#16A085` | **2.43:1** | fails |
+| `--mark-4` | `#D7263D` | 3.68:1 | passes |
+| `--mark-5` | `#2B2D42` | 10.01:1 | passes |
+
+WCAG SC 1.4.11 asks 3:1 of a non-text graphic. The cyan and the teal are well
+under it — on cream the cyan is close to invisible. This is the *same* failure
+`prolegomenon.css:97` already documents for the wordmark triad, from the same
+cause: a palette drawn for a dark ground.
+
+Resolved the same way: those two are darkened at constant hue and saturation
+until they clear 3.5:1. The other three pass and are carried through untouched.
 
 ```css
---mark-1: #00B8F0;  --mark-2: #2563EB;  --mark-3: #16A085;
---mark-4: #D7263D;  --mark-5: #2B2D42;
+--mark-1: #007ba1;  /* was #00B8F0 — 1.71:1 → 3.58:1 */
+--mark-2: #2563eb;
+--mark-3: #12816b;  /* was #16A085 — 2.43:1 → 3.56:1 */
+--mark-4: #d7263d;
+--mark-5: #2b2d42;
 ```
 
-### Light and dark
-
-`prolegomenon.css` already redefines `--wm-magenta/blue/gold` in a dark block at
-line 860. The `--mark-*` set follows the same pattern in the same block — this is
-exactly the seam the two panels of the source image imply.
-
-`--mark-5` (`#2B2D42`) is the only bar that cannot survive unchanged: on a dark
-ground it disappears. It gets a lightened dark-mode value. The other four are
-saturated enough to hold on both grounds.
+The mark never renders on the ink-backed footer, so unlike `--wm-*` there is no
+inverted set. If it ever goes there, the source values are the ones to restore.
 
 ### Open state
 
@@ -126,8 +150,10 @@ the attribute, so it costs no JS and degrades to "no animation" without script.
 ### Retiring LogoMenu
 
 `components/LogoMenu.tsx` is deleted. `/profile-choice`, `/check-email`, and
-`/profile-create` import `Nav` instead, with their own `items` list. This removes
-the `/lotto.html` 404 as a side effect.
+`/profile-create` import `Nav` instead and **reuse `PAGE_NAV`** rather than
+declaring their own list — a per-route list is how `/lotto.html` would come back
+by being re-typed. A test asserts `PAGE_NAV` contains neither `/lotto.html` nor
+any bare fragment. This removes the 404 as a side effect.
 
 ### The `<noscript>` rule
 
@@ -169,23 +195,52 @@ real destination when the encrypted-messaging feature lands — see *Out of scop
 
 ## Testing
 
-`islands/Nav_test.tsx` currently has five tests asserting the wordmark-as-toggle
-structure. They are rewritten, not patched — the interaction model genuinely
-changed. Coverage to retain and extend:
+`islands/Nav_test.tsx` is rewritten, not patched — the interaction model genuinely
+changed. Nine tests, all passing:
 
-- Toggle renders as `<span>` before hydration, `<button>` after.
-- Toggle contains the mark and carries `aria-label`.
-- Wordmark renders as an `<a href="/">`, not a button, and carries no `aria-expanded`.
-- List renders `hidden` when closed, all items present when open.
-- Empty `items` renders an empty list without crashing.
-- New: the mark's SVG includes the ௨ mask (guards against the cut being lost).
+- Every item renders with its `href`.
+- The wordmark ships Tamil and Devanagari both, with per-segment colour classes.
+- The wordmark link carries `aria-label="Home"` and hides its glyphs.
+- The server render is inert: no `<button>`, no `aria-expanded`, no `aria-controls`.
+- Empty `items` renders no `<li>`.
+- The mark renders inside the toggle with all five bars and all five tokens.
+- **The mask is *referenced* by bars 2–4**, and by neither bar 1 nor bar 5.
+- `PAGE_NAV` contains no `/lotto.html` and no bare fragments.
 
-## Open question
+The mask test earns its place: a `<mask>` that nothing points at is inert, so a
+test asserting only that the mask *exists* would pass on a mark rendering five
+unbroken bars with no glyph in it at all.
 
-**Mark size.** At typical header size (~24–32px) the ௨ carved into the negative
-space will be near-invisible. Resolution agreed: build it, screenshot at header
-size with the existing Playwright setup, and judge the real artefact rather than a
-mockup. If the glyph does not survive, scale the mark up in one follow-up pass.
+**Limitation, stated rather than papered over.** Escape-key focus restoration,
+outside-`pointerdown` closing, and "the toggle becomes a `<button>` after
+hydration" are **not** covered. `render()` from `preact-render-to-string` returns
+a string — there is no DOM and no hydration — and the repo has no Playwright
+config and no tracked e2e specs; the old `tests/e2e/*.spec.ts` were deleted in the
+2026-08-02 merge. Covering those behaviours means standing up a browser harness,
+which is its own piece of work and does not belong inside a nav redesign.
+
+## Resolved during build
+
+**Mark size — settled by measurement.** Rendered at a range of widths and judged
+on the artefact: the ௨ needs roughly **110px of width** to read. Below about
+80px the negative space collapses into texture and the mark is just five bars.
+The stylesheet therefore floors it at `clamp(96px, 10vw, 124px)`, deliberately
+larger than a conventional hamburger. The mark is ~1.15:1, near-square — not the
+3:1 letterbox a row of bars first suggests.
+
+**The glyph is a path, not text.** The outline is the real `two-tamil` glyph from
+Noto Serif Tamil, extracted with fontTools and normalised. It is not `<text>`,
+for two reasons: a webfont inside a mask is a runtime dependency, and the site's
+own `SaiIndira.woff2` is a **legacy Latin-encoded face carrying no Tamil
+codepoints at all** (0x20–0xFF, 226 glyphs). It could never have rendered ௨ —
+and by the same token it is not rendering `Wordmark.tsx`'s Unicode `முல` either,
+which is worth a separate look.
+
+**The cut is a stroke, not a fill.** Filling the glyph punches its whole body out
+and reads as three ragged holes. Stroking cuts only where the contour crosses a
+bar, so the ௨ is implied by the alignment of thin slices — which is what makes it
+negative space. Placement is constrained: ௨ carries two long horizontal strokes
+near its foot, and wherever those land on a bar they erase most of its width.
 
 ## Out of scope
 
@@ -213,16 +268,41 @@ server). Different threat models; the user's call.
 
 ## Files touched
 
-```
-components/FiveLineMark.tsx      new
-components/Wordmark.tsx          unchanged (still used, now on the right)
+```text
+components/FiveLineMark.tsx      new — inline SVG, ௨ cut via a referenced mask
+components/nav-shared.ts         new — NAV_NOSCRIPT_CSS + PAGE_NAV
+public/css/nav-mark.css          new — all nav layout and the --mark-* tokens
 components/LogoMenu.tsx          deleted
 islands/Nav.tsx                  restructured
-islands/Nav_test.tsx             rewritten
-components/PageShell.tsx         noscript rule extracted; PAGE_NAV updated
-routes/index.tsx                 noscript rule extracted; LANDING_NAV updated
+islands/Nav_test.tsx             rewritten — 9 tests
+components/PageShell.tsx         shared PAGE_NAV + noscript, links nav-mark.css
+routes/index.tsx                 LANDING_NAV updated, links nav-mark.css
 routes/profile-choice.tsx        LogoMenu → Nav
 routes/check-email.tsx           LogoMenu → Nav
 routes/profile-create.tsx        LogoMenu → Nav
-public/css/prolegomenon.css      --mark-* vars, row layout, translucency, clearance
+components/Wordmark.tsx          unchanged (still used, now on the right)
+public/css/prolegomenon.css      nav rules removed; dead responsive rule removed
 ```
+
+### Why the CSS moved out of `prolegomenon.css`
+
+The callers do not share a stylesheet. `routes/index.tsx` and `PageShell` load
+`prolegomenon.css`; the three profile routes load `main.css`. Unifying them onto
+one nav therefore meant either dragging the whole prolegomenon theme onto the
+profile pages or maintaining the rules twice. `nav-mark.css` is the third option,
+and every custom property in it carries a fallback because prolegomenon's `:root`
+is absent on the `main.css` pages.
+
+### Two regressions the build surfaced
+
+Both from the same root cause — the wordmark becoming an `<a>` inside `.site-nav`
+picks up rules written for menu links, which never reached it as a `<button>`.
+
+1. `.site-nav a { text-transform: uppercase; font-family: Arial }` restyled the
+   wordmark to `A4முலसत्यSYA`. Fixed with a qualified `.site-nav a.wordmark-home`
+   override restoring `font: inherit` and `text-transform: none`.
+2. `prolegomenon.css` carried `@media (width <= 900px) { .site-nav
+   a:not(:first-child) { display: none } }` — written for a nav whose links were
+   bare `<a>` children. It had long since stopped hiding links, and once the
+   wordmark became an `<a>` it matched *that*, **deleting the wordmark on every
+   viewport under 900px.** Rule removed.

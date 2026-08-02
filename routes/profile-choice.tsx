@@ -7,7 +7,8 @@
  */
 
 import { Handlers } from '$fresh/server.ts';
-import LogoMenu from '../components/LogoMenu.tsx';
+import Nav from '../islands/Nav.tsx';
+import { NAV_NOSCRIPT_CSS, PAGE_NAV } from '../components/nav-shared.ts';
 import { verifyQuestionnaireJWT } from '../lib/jwt.ts';
 import { getSessionById } from '../lib/questionnaire-session.ts';
 import { increment } from '../lib/metrics.ts';
@@ -59,10 +60,16 @@ export default function ProfileChoicePage() {
           content='Optional public profile creation after completing the questionnaire.'
         />
         <link rel='stylesheet' href='/css/main.css' />
+        <link rel='stylesheet' href='/css/nav-mark.css' />
+        {/* The toggle is inert without JS, so leave the menu open instead. */}
+        <noscript>
+          <style>{NAV_NOSCRIPT_CSS}</style>
+        </noscript>
       </head>
       <body>
-        <nav>
-          <LogoMenu />        </nav>
+        <header class='site-header'>
+          <Nav items={PAGE_NAV} />
+        </header>
 
         <main>
           <section class='section gate-section' style='min-height: 100vh; display: flex; align-items: center;'>
