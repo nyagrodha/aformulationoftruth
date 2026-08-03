@@ -41,7 +41,7 @@ Deno.test('PageShell footer links to about, contact and privacy', () => {
   );
   assertStringIncludes(html, 'href="/about"');
   assertStringIncludes(html, 'href="/contact.html"');
-  assertStringIncludes(html, 'href="/privacy.html"');
+  assertStringIncludes(html, 'href="/privacy"');
 });
 
 /*

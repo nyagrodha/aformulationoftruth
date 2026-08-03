@@ -123,7 +123,7 @@ export default function ProfileChoicePage() {
             <div class='footer-links'>
               <a href='/about'>about</a>
               <a href='/contact.html'>contact</a>
-              <a href='/privacy.html'>privacy</a>
+              <a href='/privacy'>privacy</a>
             </div>
             <p class='footer-copy'>
               Encrypted database hosted in Iceland by{' '}
