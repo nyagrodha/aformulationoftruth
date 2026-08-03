@@ -175,6 +175,18 @@ button.nav-toggle {
 }
 
 @media (max-width: 700px) {
+  /*
+   * prolegomenon.css pins .site-header to a fixed height: 68px through 900px,
+   * which is fine while .nav-list is absolutely positioned. Once it wraps onto
+   * its own flex line below it has real height, and a fixed-height header
+   * cannot grow to hold it — the list overflows and overlays the page instead
+   * of pushing it down, defeating the rule below. Keep 68px as the floor.
+   */
+  .site-header {
+    height: auto;
+    min-height: 68px;
+  }
+
   .site-nav {
     flex-wrap: wrap;
   }
