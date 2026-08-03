@@ -67,7 +67,7 @@ export default function CheckEmail() {
             <div class="footer-links">
               <a href="/about">About</a>
               <a href="/contact.html">Contact</a>
-              <a href="/privacy.html">Privacy</a>
+              <a href="/privacy">Privacy</a>
             </div>
             <p class="footer-copy">
               Encrypted database hosted in Iceland by{' '}

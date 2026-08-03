@@ -79,7 +79,7 @@ export function PageShell(
             </p>
             <p style='margin-top: 1rem;'>
               <a href='/about'>About</a> · <a href='/shop'>Gift Shop</a> · <a href='/contact.html'>Contact</a> ·{' '}
-              <a href='/privacy.html'>Privacy</a>
+              <a href='/privacy'>Privacy</a>
             </p>
           </div>
         </footer>

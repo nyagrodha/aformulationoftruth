@@ -410,7 +410,7 @@ export default function Home({ data }: PageProps<IndexData>) {
             <a href='/about'>about</a>
             <a href='/shop'>gift shop</a>
             <a href='/contact.html'>contact</a>
-            <a href='/privacy.html'>privacy</a>
+            <a href='/privacy'>privacy</a>
           </div>
         </footer>
       </body>

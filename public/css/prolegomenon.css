@@ -1065,6 +1065,24 @@ footer .footer-return {
   margin-top: 0.6em;
 }
 
+/* Privacy ------------------------------------------------------------------ */
+
+/*
+ * Replaces the .highlight-box the page carried under western-theme.css. The
+ * saffron rule is the same device .shop-disclosure uses, so the two pages
+ * mark an aside the same way.
+ */
+.callout {
+  border-left: 2px solid var(--saffron);
+  padding-left: 1em;
+}
+
+.policy-revised {
+  margin-top: 2rem;
+  color: var(--muted);
+  font-style: italic;
+}
+
 /* Gift shop ---------------------------------------------------------------- */
 
 .shop-disclosure {
