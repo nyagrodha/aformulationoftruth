@@ -285,22 +285,22 @@ export default function Home({ data }: PageProps<IndexData>) {
                 anticipation of scolding, punishment, shame, or rejection. Inhibition causes us to shy away from that
                 prohibitive act. Human beings are ruled by inhibition. On measure we like this — I wanted to kill my
                 boyfriend the other night! But I didn’t. Not because homicide is impossible but because inhibition is
-                properly functioning in this fleshy mess.
+                properly functioning in this fleshy temple.
               </p>
               <p class='gate-description'>
-                Lo, the many a spontaneous wish that inner dictator crushes. Merely anticipating punishment, shame, etc.
-                keeps me away from the spontaneous fantasy, thought, etc. Imposed ‘shoulds’ overpower legit desire.
-                Inhibition censors speech, inhibition delays action, making avoidance appear prudent even when no danger
-                is present.
+                Lo, many the spontaneous wishes that inner dictator, inhibition, crushes. So well disciplined for some
+                among us merely anticipating punishment, shame, etc. keeps me away from spontaneity. These self-imposed
+                ‘shoulds’ overpower legit desire. Inhibition censors speech, inhibition delays action, making even
+                avoidance appear prudent when no danger is present.
               </p>
               <p class='gate-description'>
-                Inhibition rules a human being. For what follows, at least, don’t should on yourself. Compose what first
-                comes to mind. Be it simple something or more complex a memory, privacy and total control of your data
-                here mean to suggest the elephant in the room.
+                Inhibition rules a human being. For what follows, at least, in this space don’t should on yourself.
+                Compose what first comes to mind — nobody reads it unless you decide they do. What you record is
+                encrypted the moment it arrives, and it remains yours to keep, share, or destroy.
               </p>
               <p class='gate-description'>
-                What follow are not intended to be polite questions. Consider this an ice-breaker, and these are holes
-                in the ice. Answer honestly, spontaneously and something cold touches the feet.
+                What follow are not polite questions. These are holes in the ice. Answer honestly and something cold
+                touches the feet.
               </p>
 
               {error && (
