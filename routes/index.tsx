@@ -26,17 +26,21 @@ import type { VNode } from 'preact';
 import Nav, { type NavItem } from '../islands/Nav.tsx';
 import Spheroid from '../islands/Spheroid.tsx';
 import { WordmarkGlyphs } from '../components/Wordmark.tsx';
+import { NAV_NOSCRIPT_CSS } from '../components/nav-shared.ts';
 
 /*
  * The landing page is one long page, so its nav is fragment anchors that scroll
- * it — #about is the footer, #begin the gate form. The gift shop is the one
- * item that leaves the page: it is a route, not a section.
+ * it — #about is the footer, #begin the gate form. These bare fragments are why
+ * items is a prop: they resolve only on this document, and PAGE_NAV carries the
+ * '/#begin' form every other page needs.
+ *
+ * Messaging and the gift shop are the two that leave the page.
  */
 const LANDING_NAV: NavItem[] = [
-  { label: 'Introduction', href: '#prolegomenon' },
-  { label: 'Gate', href: '#begin' },
-  { label: 'Gift Shop', href: '/shop' },
-  { label: 'About', href: '#about' },
+  { label: 'begin', href: '#begin' },
+  { label: 'about', href: '#about' },
+  { label: 'messaging', href: '/contact.html' },
+  { label: 'gift shop', href: '/shop' },
 ];
 
 interface IndexData {
@@ -131,9 +135,10 @@ export default function Home({ data }: PageProps<IndexData>) {
         <link rel='manifest' href='/manifest.json' />
 
         <link rel='stylesheet' href='/css/prolegomenon.css' />
+        <link rel='stylesheet' href='/css/nav-mark.css' />
         {/* The toggle is inert without JS, so leave the menu open instead. */}
         <noscript>
-          <style>{'.nav-list[hidden]{display:flex}.nav-arrow{display:none}'}</style>
+          <style>{NAV_NOSCRIPT_CSS}</style>
         </noscript>
       </head>
       <body>
@@ -280,22 +285,22 @@ export default function Home({ data }: PageProps<IndexData>) {
                 anticipation of scolding, punishment, shame, or rejection. Inhibition causes us to shy away from that
                 prohibitive act. Human beings are ruled by inhibition. On measure we like this — I wanted to kill my
                 boyfriend the other night! But I didn’t. Not because homicide is impossible but because inhibition is
-                properly functioning in this fleshy mess.
+                properly functioning in this fleshy temple.
               </p>
               <p class='gate-description'>
-                Lo, the many a spontaneous wish that inner dictator crushes. Merely anticipating punishment, shame, etc.
-                keeps me away from the spontaneous fantasy, thought, etc. Imposed ‘shoulds’ overpower legit desire.
-                Inhibition censors speech, inhibition delays action, making avoidance appear prudent even when no danger
-                is present.
+                Lo, many the spontaneous wishes that inner dictator, inhibition, crushes. So well disciplined for some
+                among us merely anticipating punishment, shame, etc. keeps me away from spontaneity. These self-imposed
+                ‘shoulds’ overpower legit desire. Inhibition censors speech, inhibition delays action, making even
+                avoidance appear prudent when no danger is present.
               </p>
               <p class='gate-description'>
-                Inhibition rules a human being. For what follows, at least, don’t should on yourself. Compose what first
-                comes to mind. Be it simple something or more complex a memory, privacy and total control of your data
-                here mean to suggest the elephant in the room.
+                Inhibition rules a human being. For what follows, at least, in this space don’t should on yourself.
+                Compose what first comes to mind — nothing you write is kept in the clear, and no one but me can read
+                it. <a href='/contact.html'>Ask me to destroy it</a> and it is destroyed.
               </p>
               <p class='gate-description'>
-                What follow are not intended to be polite questions. Consider this an ice-breaker, and these are holes
-                in the ice. Answer honestly, spontaneously and something cold touches the feet.
+                What follow are not polite questions. These are holes in the ice. Answer honestly and something cold
+                touches the feet.
               </p>
 
               {error && (

@@ -57,15 +57,14 @@ for (const envFile of envFiles) {
 import { start } from '$fresh/server.ts';
 import manifest from './fresh.gen.ts';
 import config from './fresh.config.ts';
-import { initPool } from './lib/db.ts';
+import { isDatabaseConfigured } from './lib/db.ts';
 
-// Initialize database pool with failover (PRIMARY VPN -> LOCAL)
-try {
-  await initPool();
-} catch (error) {
-  const errMsg = error instanceof Error ? error.message : String(error);
-  console.error('[db] Failed to initialize database pool:', errMsg);
-  // Continue without database - some routes may still work
+// The connection pool initializes lazily on first query (see getPool in
+// lib/db.ts), so there is no explicit init step. Warn at boot if the database
+// is not configured; DB-backed routes will error, but the server still starts
+// so static and non-DB routes keep working.
+if (!isDatabaseConfigured()) {
+  console.error('[db] Database not configured; DB-backed routes will fail.');
 }
 
 await start(manifest, config);
