@@ -295,8 +295,8 @@ export default function Home({ data }: PageProps<IndexData>) {
               </p>
               <p class='gate-description'>
                 Inhibition rules a human being. For what follows, at least, in this space don’t should on yourself.
-                Compose what first comes to mind — nobody reads it unless you decide they do. What you record is
-                encrypted the moment it arrives, and it remains yours to keep, share, or destroy.
+                Compose what first comes to mind — nothing you write is kept in the clear, and no one but me can read
+                it. <a href='/contact.html'>Ask me to destroy it</a> and it is destroyed.
               </p>
               <p class='gate-description'>
                 What follow are not polite questions. These are holes in the ice. Answer honestly and something cold
