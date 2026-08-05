@@ -1,0 +1,23 @@
+[Unit]
+Description=A Formulation of Truth - Rust Web Server
+After=network.target
+
+[Service]
+Type=simple
+User=marcel
+WorkingDirectory=/home/marcel/aformulationoftruth/rust-server
+Environment="RUST_LOG=info"
+EnvironmentFile=/home/marcel/aformulationoftruth/rust-server/.env
+ExecStart=/usr/local/bin/aformulationoftruth-server
+Restart=always
+RestartSec=10
+
+# Security hardening
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/home/marcel/aformulationoftruth
+
+[Install]
+WantedBy=multi-user.target
