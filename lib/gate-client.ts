@@ -32,7 +32,7 @@ const GATE_TIMEOUT_MS = 5000;
  * Throws on network/auth errors. Caller should catch and handle gracefully.
  */
 export async function storeEncryptedAnswer(
-  params: StoreAnswerParams
+  params: StoreAnswerParams,
 ): Promise<StoreAnswerResult> {
   if (!GATE_API_KEY) {
     throw new Error('GATE_API_KEY not configured');
