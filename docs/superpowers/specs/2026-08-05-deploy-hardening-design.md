@@ -38,7 +38,9 @@ divergence accumulates silently.
 
 ## Goals
 
-1. A boot-breaking commit must never reach production.
+1. Commits failing `deno check main.ts` must not be restarted into. Bounded
+   `/api/health` polling after restart detects runtime startup failures. A
+   deploy that leaves the site unhealthy must fail loudly, at deploy time.
 2. Asset staleness must be impossible, not merely avoided by discipline.
 3. A deploy that leaves the site broken must fail loudly, at deploy time.
 
@@ -79,13 +81,20 @@ Inserted before the catch-all `handle` in the
 ```caddy
 handle /css/* {
 	root * /var/www/aformulationoftruth/public
-	file_server
+	file_server {
+		disable_canonical_uris
+	}
 }
 
 handle {
 	reverse_proxy http://127.0.0.1:7268 { ... }   # unchanged
 }
 ```
+
+Caddy's `file_server` follows symlinks by default, which could escape
+`/var/www/aformulationoftruth/public` if a symlink under `public/css` pointed
+outside the tree. The deployment process must reject symlinks under `public/css`
+or publish a symlink-free asset tree to prevent this.
 
 `handle` blocks are first-match, so `/_frsh/*` (island JS) and every route still
 reach Fresh. Scope is `/css/*` only: no route namespace collides with it, and it
@@ -119,18 +128,34 @@ without the self-rewrite hazard.
 Sequence:
 
 ```
-1. record CURRENT_SHA
-2. git pull --ff-only
-3. deno check main.ts          <- pre-restart gate
-4. systemctl restart
-5. poll /api/health until ready (bounded, ~30s)
-6. scripts/smoke.sh <base-url>
-7. on failure: report + rollback instructions, exit 1
+1. acquire host-level lock (flock) — held through completion or failure
+2. record CURRENT_SHA
+3. git pull --ff-only
+4. deno check main.ts          <- pre-restart gate
+5. systemctl restart
+6. poll /api/health until ready (bounded, ~30s)
+7. scripts/smoke.sh <base-url>
+8. on failure: report + rollback instructions, exit 1
+9. release lock
 ```
 
-Step 3 is the load-bearing one. A commit that cannot boot never reaches a
-restart, so the old process keeps serving rather than the site going dark. This
-is strictly better than the manual sequence that caused the outage.
+The lock prevents concurrent invocations from interleaving deployment steps. It
+is acquired before recording `CURRENT_SHA` or pulling changes, and held through
+health checks and smoke testing.
+
+Each command's exit status is explicitly validated. Deployment terminates on
+failure of `git pull --ff-only` or `deno check main.ts`. `systemctl restart` is
+only reachable if both succeed. Failure reporting and rollback guidance remain
+unchanged.
+
+Step 4 is the load-bearing pre-restart gate. A commit that cannot boot never
+reaches a restart, so the old process keeps serving rather than the site going
+dark. This is strictly better than the manual sequence that caused the outage.
+
+On health polling timeout: report the deployed SHA and the observed health
+result, exit with nonzero status, and skip `scripts/smoke.sh` (the service is
+not ready). Smoke-test failure handling for the successful health check case
+remains unchanged.
 
 ## Error handling
 
@@ -151,12 +176,19 @@ have reported the original outage as healthy.
 
 Targets, chosen for non-overlap:
 
-| Target | Proves |
-|---|---|
-| `/api/health` (+ `"status":"ok"`) | Fresh alive **and** DB reachable |
-| `/` | HTML rendering |
-| `/gate` | route handler execution |
-| `/css/prolegomenon.css` | the Caddy static path |
+| Target | Proves | Ownership assertion |
+|---|---|---|
+| `/api/health` (+ `"status":"ok"`) | Fresh alive **and** DB reachable | body key presence |
+| `/` | HTML rendering | HTML marker present |
+| `/gate` | route handler execution | gate-section route marker |
+| `/css/prolegomenon.css` | the Caddy static path | Caddy-specific header or signal |
+
+Ownership assertions prevent fallback or generic Caddy responses from being
+accepted as Fresh route success. For `/`, require an HTML marker (e.g.,
+`<title>` or a known meta tag). For `/gate`, require the gate-section route
+marker (existing HTML element). For `/css/prolegomenon.css`, verify a
+Caddy-specific header or equivalent signal that proves Caddy served the file.
+Status and exit-code checks are retained.
 
 `/gate` is chosen over `/about` because `/about` is a pure `PageShell` render
 with no handler, making it near-redundant with `/`, whereas `/gate` exports a
@@ -176,10 +208,18 @@ edits would break.
 (`PORT=8411 deno run --allow-all main.ts`) as well as production. Both paths get
 proven before it guards a real deploy:
 
-- **pass path** — against a healthy local instance, all targets green.
+- **pass path** — against a healthy local instance, all targets green. Start
+  PostgreSQL and set `DATABASE_URL` before launching the local instance so
+  `/api/health` returns 200. The `/gate` GET verification relies on bundled
+  questions (no seed data required). Setup must be reproducible, not reliant on
+  implicit database state.
 - **fail path** — stop the local server and confirm it exits nonzero; separately,
   confirm a truncated response is caught by the exit-code assertion where a
-  status-only check would pass.
+  status-only check would pass; additionally, test a nonresponsive endpoint
+  whose in-flight transfer exceeds the timeout limit.
+
+All `curl` requests, including readiness and health checks, must specify
+explicit `--connect-timeout` and `--max-time` limits.
 
 `deploy.sh` is exercised on the server with an already-deployed SHA, which
 should be a clean no-op pull followed by a green smoke run.
