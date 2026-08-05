@@ -281,7 +281,7 @@ export default function Home({ data }: PageProps<IndexData>) {
               <p class='gate-eyebrow'>a gate:</p>
               <h2 class='gate-title'>we meet @ this gate:</h2>
               <p class='gate-description'>
-                Often a thought or memory or fantasy floats into awareness only to be censored by merely the
+                Often a thought, memory, or fantasy floats into awareness only to be censored by merely the
                 anticipation of scolding, punishment, shame, or rejection. Inhibition causes us to shy away from that
                 prohibitive act. Human beings are ruled by inhibition. On measure we like this — I wanted to kill my
                 boyfriend the other night! But I didn’t. Not because homicide is impossible but because inhibition is
