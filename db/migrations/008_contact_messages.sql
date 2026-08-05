@@ -1,4 +1,4 @@
--- Contact form: secure messaging
+-- 008_contact_messages.sql — Contact form: secure messaging
 -- Users send a message via /contact.html; server age-encrypts to a dedicated
 -- recipient (CONTACT_AGE_RECIPIENT, separate from the gate's age key).
 -- Optional client-side PGP wrap is recorded in pgp_inner.
