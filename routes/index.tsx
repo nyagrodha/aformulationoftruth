@@ -283,13 +283,12 @@ export default function Home({ data }: PageProps<IndexData>) {
               <p class='gate-description'>
                 Often a thought, memory, or fantasy floats into awareness only to be censored by merely the
                 anticipation of scolding, punishment, shame, or rejection. Inhibition causes us to shy away from that
-                prohibitive act. Human beings are ruled by inhibition. On measure we like this — I wanted to kill my
+                prohibitive act, keeps me away from a moment’s spontaneity. Human beings are ruled by inhibition. On measure we like this — I wanted to kill my
                 boyfriend the other night! But I didn’t. Not because homicide is impossible but because inhibition is
                 properly functioning in this fleshy temple.
               </p>
               <p class='gate-description'>
-                Lo, many the spontaneous wishes that inner dictator, inhibition, crushes. So well disciplined for some
-                among us merely anticipating punishment, shame, etc. keeps me away from spontaneity. These self-imposed
+                Lo, many the spontaneous wishes that inner dictator, inhibition, crushes. These self-imposed
                 ‘shoulds’ overpower legit desire. Inhibition censors speech, inhibition delays action, making even
                 avoidance appear prudent when no danger is present.
               </p>
