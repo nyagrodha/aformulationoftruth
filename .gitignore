@@ -140,6 +140,7 @@ docker/pyaz/
 !README.md
 !DATABASE_SETUP.md
 !public/SHUFFLE-IMPLEMENTATION.md
+!Inhibition_copy.md
 
 # Allow project configuration tracked in this repository
 !package.json
