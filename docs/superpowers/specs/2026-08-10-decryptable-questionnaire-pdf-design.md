@@ -22,7 +22,7 @@ without giving any single machine the ability to read the corpus.
   and sends a magic link — **all in one request** (`gate-submit.ts:91` onward).
 - Q2–Q34 flow through `/api/questions/answer` → `storeEncryptedAnswer`
   (`lib/gate-client.ts`) → the same gate → `gate_encrypted_answers`.
-- Encryption is one-way by construction: `lib/age-encrypt.ts` holds a *recipient*
+- Encryption is one-way by construction: `lib/age-encrypt.ts` holds a _recipient_
   (public key), never an identity. The web tier cannot decrypt anything it wrote.
 - One global identity at `/root/.a4t/gate-identity.txt` decrypts everything.
   `scripts/read-gate-answers.ts` is the only reader, operator-run, terminal-only.
@@ -41,24 +41,24 @@ kept," and `/privacy` repeats the claim three times (lines 46-47, 50, 80-81).
 
 **This design knowingly reverses that promise** — it stores a reversible address —
 and therefore treats correcting the public copy as part of the work, not a
-follow-up. What it does *not* do is give the storing machine the ability to read
+follow-up. What it does _not_ do is give the storing machine the ability to read
 that address.
 
 ## Decisions
 
-| # | Decision |
-|---|---|
-| 1 | Deliver the PDF by email to the respondent, on explicit consent only. |
-| 2 | Generate a per-session age keypair inside `/api/gate-submit`, before any answer is stored. |
-| 3 | Public key stays in Iceland; private key goes to Romania over WireGuard, mode `0600`. |
-| 4 | Encrypt to **two** recipients: the session public key and an offline break-glass key. |
-| 5 | Iceland pushes the ciphertext bundle; Romania never holds database credentials. |
-| 6 | Render with Typst; encrypt the PDF with qpdf, AES-256, *user* password. |
-| 7 | Romania sends the mail directly via Apple submission, egress-locked to one host/port. |
-| 8 | Shred the session key 7 days after first successful send. The clock never extends. |
-| 9 | Password is optional, user-typed, and never stored, logged, or transmitted to Apple. |
-| 10 | A tokenized, address-locked re-send link allows private recovery within the window. |
-| 11 | The PDF is ordered canonically; the shuffle is preserved untouched in the session row. |
+| #  | Decision                                                                                   |
+| -- | ------------------------------------------------------------------------------------------ |
+| 1  | Deliver the PDF by email to the respondent, on explicit consent only.                      |
+| 2  | Generate a per-session age keypair inside `/api/gate-submit`, before any answer is stored. |
+| 3  | Public key stays in Iceland; private key goes to Romania over WireGuard, mode `0600`.      |
+| 4  | Encrypt to **two** recipients: the session public key and an offline break-glass key.      |
+| 5  | Iceland pushes the ciphertext bundle; Romania never holds database credentials.            |
+| 6  | Render with Typst; encrypt the PDF with qpdf, AES-256, _user_ password.                    |
+| 7  | Romania sends the mail directly via Apple submission, egress-locked to one host/port.      |
+| 8  | Shred the session key 7 days after first successful send. The clock never extends.         |
+| 9  | Password is optional, user-typed, and never stored, logged, or transmitted to Apple.       |
+| 10 | A tokenized, address-locked re-send link allows private recovery within the window.        |
+| 11 | The PDF is ordered canonically; the shuffle is preserved untouched in the session row.     |
 
 ## Architecture
 
@@ -212,19 +212,20 @@ Would you like a copy of your responses?
 ## Recovery model
 
 The PDF is disposable; the ciphertext is the durable artifact. A forgotten
-password loses a *rendering*, never data — so the design makes re-rendering cheap
+password loses a _rendering_, never data — so the design makes re-rendering cheap
 rather than making the PDF recoverable.
 
-| When | Cost of recovery |
-|---|---|
-| Within 7 days | Self-serve re-send link. New password. No operator. |
-| After 7 days | Break-glass ceremony — **a person reads their answers.** |
-| After "forget" | Nothing. Correct and intended. |
+| When           | Cost of recovery                                         |
+| -------------- | -------------------------------------------------------- |
+| Within 7 days  | Self-serve re-send link. New password. No operator.      |
+| After 7 days   | Break-glass ceremony — **a person reads their answers.** |
+| After "forget" | Nothing. Correct and intended.                           |
 
 The middle row is the real cost, and it is privacy, not inconvenience. Keeping
 recovery inside the window is the point of the re-send link.
 
 **Re-send link constraints:**
+
 - Destination is always the stored `encrypted_email`. It never accepts a
   user-supplied address, or it becomes an exfiltration primitive.
 - Expires with the key, so the button never outlives what makes it work.
@@ -244,21 +245,21 @@ outstanding re-send tokens immediately rather than letting them expire naturally
 
 ### Iceland (this repo)
 
-| File | Change |
-|---|---|
-| `lib/session-keys.ts` | **new** — generate keypair, scp to Romania over wg, return public key. Fails closed. |
-| `lib/age-encrypt.ts` | multi-recipient support (`addRecipient` twice: session + break-glass) |
-| `lib/gate-client.ts` | pass per-session recipients to the Rust gate |
-| `routes/api/gate-submit.ts` | keypair generated and pushed **before** answers are stored; encrypt email; store pubkey |
-| `routes/api/questions/answer.ts` | thread session recipients through |
-| `routes/completion.tsx` | consent UI; needs the session token threaded in |
-| `routes/api/responses/deliver.ts` | **new** — assemble bundle `ORDER BY question_index`, encrypt password, push |
-| `routes/api/responses/forget.ts` | **new** — deletion; revokes resend tokens |
-| `routes/api/responses/resend/[token].ts` | **new** — address-locked re-issue |
-| `lib/romania-client.ts` | **new** — mesh HTTP client with retry/queue |
-| `db/migrations/009_session_keys.sql` | **new** — `session_pubkey`, `pdf_delivered_at`, resend tokens |
-| `routes/privacy.tsx`, `routes/index.tsx` | correct the "never stored / nothing reversible" claims |
-| `FONTS.md`, `public/fonts/` | vendor Noto Sans Tamil |
+| File                                     | Change                                                                                  |
+| ---------------------------------------- | --------------------------------------------------------------------------------------- |
+| `lib/session-keys.ts`                    | **new** — generate keypair, scp to Romania over wg, return public key. Fails closed.    |
+| `lib/age-encrypt.ts`                     | multi-recipient support (`addRecipient` twice: session + break-glass)                   |
+| `lib/gate-client.ts`                     | pass per-session recipients to the Rust gate                                            |
+| `routes/api/gate-submit.ts`              | keypair generated and pushed **before** answers are stored; encrypt email; store pubkey |
+| `routes/api/questions/answer.ts`         | thread session recipients through                                                       |
+| `routes/completion.tsx`                  | consent UI; needs the session token threaded in                                         |
+| `routes/api/responses/deliver.ts`        | **new** — assemble bundle `ORDER BY question_index`, encrypt password, push             |
+| `routes/api/responses/forget.ts`         | **new** — deletion; revokes resend tokens                                               |
+| `routes/api/responses/resend/[token].ts` | **new** — address-locked re-issue                                                       |
+| `lib/romania-client.ts`                  | **new** — mesh HTTP client with retry/queue                                             |
+| `db/migrations/009_session_keys.sql`     | **new** — `session_pubkey`, `pdf_delivered_at`, resend tokens                           |
+| `routes/privacy.tsx`, `routes/index.tsx` | correct the "never stored / nothing reversible" claims                                  |
+| `FONTS.md`, `public/fonts/`              | vendor Noto Sans Tamil                                                                  |
 
 ### Romania
 
@@ -284,7 +285,7 @@ Only Romania can decrypt `encrypted_email`, so only Romania knows the address. I
 Iceland sent it, Romania would have to hand Iceland both the plaintext address and
 the plaintext PDF — exactly what the split exists to prevent.
 
-Deliverability is unaffected: this is authenticated *submission* to Apple, not
+Deliverability is unaffected: this is authenticated _submission_ to Apple, not
 direct-to-MX, so SPF/DKIM/DMARC alignment is unchanged. The cost is that Romania
 gains one outbound internet path, mitigated by an egress policy allowing
 `tcp/587 → smtp.mail.me.com` and nothing else.
@@ -293,14 +294,14 @@ gains one outbound internet path, mitigated by an egress policy allowing
 
 All fail closed, matching the existing posture at `gate-submit.ts:120`.
 
-| Failure | Behaviour |
-|---|---|
-| Key push to Romania fails | Abort submission, 503, persist nothing. No session whose PDF could never be made. |
-| Romania unreachable at consent | Queue and retry. The respondent sees "on its way"; completion never fails on it. |
-| Decrypt or Typst render fails | No PDF, operator alerted, nothing deleted. |
-| **qpdf fails** | **Never fall back to sending unencrypted.** A silent downgrade would mail intimate disclosures in the clear to someone who explicitly asked for a password. |
-| Password round-trip check fails | Refuse to send; surface as a re-render. |
-| SMTP failure | Retry inside the 7-day window. `smtpFailureKind`/`smtpReplyCode` in `lib/email.ts` already separate transport failures from rejections. |
+| Failure                         | Behaviour                                                                                                                                                   |
+| ------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Key push to Romania fails       | Abort submission, 503, persist nothing. No session whose PDF could never be made.                                                                           |
+| Romania unreachable at consent  | Queue and retry. The respondent sees "on its way"; completion never fails on it.                                                                            |
+| Decrypt or Typst render fails   | No PDF, operator alerted, nothing deleted.                                                                                                                  |
+| **qpdf fails**                  | **Never fall back to sending unencrypted.** A silent downgrade would mail intimate disclosures in the clear to someone who explicitly asked for a password. |
+| Password round-trip check fails | Refuse to send; surface as a re-render.                                                                                                                     |
+| SMTP failure                    | Retry inside the 7-day window. `smtpFailureKind`/`smtpReplyCode` in `lib/email.ts` already separate transport failures from rejections.                     |
 
 **Plaintext is ephemeral on Romania.** Decrypted answers and the rendered PDF are
 the most sensitive bytes in the system and exist in the clear only there. Both
