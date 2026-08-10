@@ -142,6 +142,13 @@ docker/pyaz/
 !public/SHUFFLE-IMPLEMENTATION.md
 !Inhibition_copy.md
 
+# Superpowers specs and plans are the design record and are always tracked.
+# Without this, the blanket *.md above silently swallows them: the three specs
+# committed before 2026-08-10 each had to be forced past it with `git add -f`,
+# and a spec that is merely *written* looks identical to one that is committed
+# until you go looking for it.
+!docs/superpowers/**/*.md
+
 # Allow project configuration tracked in this repository
 !package.json
 !package-lock.json
