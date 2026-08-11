@@ -64,9 +64,26 @@ export function breakglassRecipient(): string {
 }
 
 /**
+ * How long the whole push may take before the child is killed.
+ *
+ * ConnectTimeout alone is not enough: it bounds the TCP handshake and nothing
+ * after it. An ssh that connects and then stalls -- a wedged sshd, a half-open
+ * mesh path, a full disk on the far end -- leaves child.output() awaiting
+ * forever, and this runs inside the request that gates gate-submit. The user
+ * would watch a spinner until their browser gave up.
+ */
+const PUSH_DEADLINE_MS = 20_000;
+
+/**
  * Default transport: ssh over the mesh, identity delivered on stdin so it never
  * touches Iceland's filesystem. StrictHostKeyChecking=yes is the point of the
  * exercise -- an unpinned host key would let anything on the mesh collect keys.
+ *
+ * BatchMode=yes is not redundant with it: StrictHostKeyChecking stops ssh
+ * *accepting* an unknown host, while BatchMode stops it *asking* about one, or
+ * asking for a key passphrase. Without it a prompt is written to a stderr we
+ * discard and ssh waits on a stdin we have closed, which presents as a hang
+ * rather than an error.
  */
 const scpTransport: IdentityTransport = async (sessionId, identity) => {
   // Re-checked here, not only at the entry point: this is the function that
@@ -84,6 +101,8 @@ const scpTransport: IdentityTransport = async (sessionId, identity) => {
       '-o',
       'StrictHostKeyChecking=yes',
       '-o',
+      'BatchMode=yes',
+      '-o',
       'ConnectTimeout=10',
       ROMANIA_SSH,
       // Single-quoted as belt-and-braces. The allowlist above already excludes
@@ -97,13 +116,29 @@ const scpTransport: IdentityTransport = async (sessionId, identity) => {
     stderr: 'null',
   });
   const child = cmd.spawn();
-  const w = child.stdin.getWriter();
-  await w.write(new TextEncoder().encode(identity));
-  await w.close();
-  const out = await child.output();
-  if (!out.success) {
-    // No stderr, no identity, no session id in the message.
-    throw new Error('identity transport failed');
+  const deadline = setTimeout(() => {
+    // The child may have exited between the timer firing and this running.
+    try {
+      child.kill('SIGKILL');
+    } catch {
+      // Already gone; nothing to kill.
+    }
+  }, PUSH_DEADLINE_MS);
+
+  try {
+    const w = child.stdin.getWriter();
+    await w.write(new TextEncoder().encode(identity));
+    await w.close();
+    const out = await child.output();
+    if (!out.success) {
+      // Covers a killed child too: SIGKILL surfaces as success === false, so a
+      // timeout and a refusal fail identically and neither says why out loud.
+      throw new Error('identity transport failed');
+    }
+  } finally {
+    // Must clear on the success path as well, or the timer holds the event loop
+    // open for its full duration after the push has already returned.
+    clearTimeout(deadline);
   }
 };
 

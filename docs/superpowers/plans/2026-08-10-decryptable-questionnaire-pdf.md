@@ -575,16 +575,25 @@ CREATE INDEX IF NOT EXISTS idx_fresh_gate_responses_undelivered
 Run:
 
 ```bash
-psql "$DATABASE_URL" -f db/migrations/009_session_keys.sql
-psql "$DATABASE_URL" -c "\d fresh_gate_responses" | grep -E 'session_pubkey|encrypted_email|pdf_delivered_at'
-psql "$DATABASE_URL" -c "\d pdf_resend_tokens"
+# AMENDED 2026-08-11: use an EXPLICIT scratch URL, never ambient $DATABASE_URL.
+# In a shell that has sourced production env -- which is how anyone debugging
+# the live gate gets there -- the original ran this against Iceland.
+SCRATCH_DB="postgresql://localhost/a4t_scratch"
+
+case "$SCRATCH_DB" in
+  *fobdongle*|*iceland*|*prod*) echo "refusing: that looks like production" >&2; exit 1;;
+esac
+
+psql "$SCRATCH_DB" -f db/migrations/009_session_keys.sql
+psql "$SCRATCH_DB" -c "\d fresh_gate_responses" | grep -E 'session_pubkey|encrypted_email|pdf_delivered_at'
+psql "$SCRATCH_DB" -c "\d pdf_resend_tokens"
 ```
 
 Expected: all three columns listed; `pdf_resend_tokens` exists.
 
 - [ ] **Step 4: Verify idempotency**
 
-Run: `psql "$DATABASE_URL" -f db/migrations/009_session_keys.sql`
+Run: `psql "$SCRATCH_DB" -f db/migrations/009_session_keys.sql`
 Expected: succeeds a second time with no error.
 
 - [ ] **Step 5: Commit**
@@ -676,15 +685,46 @@ insert:
 // Romania BEFORE anything is stored. If the mesh is down we abort: a
 // session whose identity never arrived is one whose PDF could never be
 // produced, and storing it would be storing an unreadable orphan.
+//
+// AMENDED 2026-08-11: breakglassRecipient() is now read BEFORE the push, not
+// after. It throws when unconfigured, and in the original order that throw
+// landed after the identity had already reached Romania -- so a missing env
+// var left a key on the key box for a session that was then refused and never
+// existed. Read the cheap local thing first; touch the remote box only once
+// everything that can fail locally already has not.
 let recipients: string[];
+let pushed = false;
 try {
+  const breakglass = breakglassRecipient();
   const keypair = await generateSessionKeypair();
   await pushIdentity(gateToken, keypair.identity);
-  recipients = [keypair.recipient, breakglassRecipient()];
+  pushed = true;
+  recipients = [keypair.recipient, breakglass];
 } catch {
   console.error('[gate-submit] Session key provisioning failed; submission refused');
   increment('errors.5xx');
   return fail(503, 'Unable to securely store your answers right now. Please try again.', 'server');
+}
+```
+
+**Everything after the push needs unwinding on failure.** Once `pushed` is
+true, an identity exists on Romania for a session that may still not come into
+being — the answer writes or the row insert can fail. Wrap the remainder of the
+handler so any failure past this point removes the pushed identity and any
+answers already written for `gateToken`:
+
+```ts
+try {
+  // ...storeEncryptedAnswer x2, ageEncryptTo(email), the INSERT...
+} catch (e) {
+  if (pushed) {
+    // Best-effort. A failure here leaves an orphaned key, which the absolute
+    // 30-day ceiling in romania/keystore.ts will eventually collect -- that
+    // ceiling is the backstop for exactly this path.
+    await shredRemoteIdentity(gateToken).catch(() => {});
+    await deleteGateAnswers(gateToken).catch(() => {});
+  }
+  throw e;
 }
 ```
 
@@ -743,7 +783,7 @@ git commit -m "feat(gate-submit): mint session keypair and encrypt address to it
 
 ```ts
 // tests/answer_recipients_test.ts
-import { assertEquals, assertRejects } from 'https://deno.land/std@0.208.0/assert/mod.ts';
+import { assertEquals } from 'https://deno.land/std@0.208.0/assert/mod.ts';
 import { recipientsForSession } from '../routes/api/questions/answer.ts';
 
 Deno.test('recipientsForSession - pairs the stored pubkey with break-glass', () => {
@@ -756,12 +796,19 @@ Deno.test('recipientsForSession - pairs the stored pubkey with break-glass', () 
 // against std 0.208 -- it does not merely false-pass, it raises an uncaught
 // "Function throws when expected to reject" that fails the whole module and
 // cancels sibling tests. Use assertThrows.
-Deno.test('recipientsForSession - refuses a session with no stored pubkey', () => {
-  assertThrows(() => recipientsForSession(null, 'age1breakglass'), Error, 'session has no pubkey');
+// AMENDED AGAIN 2026-08-11 for rollout: a NULL pubkey is a pre-existing session,
+// not an error. It must degrade to the gate default so people mid-questionnaire
+// at deploy time can finish, rather than hitting a hard failure.
+Deno.test('recipientsForSession - a legacy session falls back to the gate default', () => {
+  assertEquals(recipientsForSession(null, 'age1breakglass'), []);
+});
+
+Deno.test('recipientsForSession - never returns break-glass alone', () => {
+  // Encrypting to break-glass only would produce a row the respondent could
+  // never receive and only an offline ceremony could open.
+  assertEquals(recipientsForSession(null, 'age1breakglass').includes('age1breakglass'), false);
 });
 ```
-
-Import `assertThrows` (not `assertRejects`) for this file.
 
 - [ ] **Step 2: Run test to verify it fails**
 
@@ -776,12 +823,26 @@ Add to `routes/api/questions/answer.ts`:
 /**
  * Recipients for a session's answers.
  *
- * A missing pubkey means the session predates per-session keys, or its
- * provisioning failed. Either way, encrypting to break-glass alone would create
- * a row the respondent could never receive — so refuse rather than degrade.
+ * AMENDED 2026-08-11 for rollout. The original threw on a missing pubkey, which
+ * is correct for a NEW session -- gate-submit fails closed, so one cannot exist
+ * -- but every questionnaire already in flight at deploy time has a NULL
+ * pubkey. Throwing would have broken those people mid-run, at whichever
+ * question they happened to be on, with no way to finish or resume.
+ *
+ * A legacy session therefore returns an empty list, which `storeEncryptedAnswer`
+ * sends as `recipients: []` and the gate reads as "use my configured default"
+ * -- exactly the behaviour those sessions started under. They stay readable by
+ * the global identity and simply never become PDF-eligible.
+ *
+ * This branch is temporary. `sessions.legacy_recipients` counts every use; when
+ * it reaches zero and stays there for longer than a session can live, delete
+ * the branch and restore the throw.
  */
 export function recipientsForSession(sessionPubkey: string | null, breakglass: string): string[] {
-  if (!sessionPubkey) throw new Error('session has no pubkey');
+  if (!sessionPubkey) {
+    increment('sessions.legacy_recipients');
+    return [];
+  }
   return [sessionPubkey, breakglass];
 }
 ```
@@ -790,10 +851,17 @@ In the POST handler, load `session_pubkey` alongside the session and pass
 `recipients: recipientsForSession(session.sessionPubkey, breakglassRecipient())`
 into `storeEncryptedAnswer`.
 
+**Consequence to carry into Task 8:** a legacy session's answers are encrypted
+to the global identity, so Romania cannot render them. `/api/responses/deliver`
+must check `session_pubkey IS NOT NULL` before offering delivery and tell those
+respondents plainly that a copy is not available for a questionnaire begun
+before this existed — rather than accepting the request and failing silently in
+a queue they cannot see.
+
 - [ ] **Step 4: Run tests**
 
 Run: `deno test --allow-net --allow-read --allow-env tests/answer_recipients_test.ts && deno check main.ts`
-Expected: PASS, 2 tests.
+Expected: PASS, 3 tests.
 
 - [ ] **Step 5: Commit**
 
@@ -881,14 +949,16 @@ export function ConsentForm({ resumeToken }: { resumeToken: string }) {
       <input type='hidden' name='resume_token' value={resumeToken} />
       <p class='consent-question'>Would you like a copy of your responses?</p>
 
-      {/*
+      {
+        /*
         AMENDED 2026-08-11. The radio must NOT be nested inside the label.
         `.consent-yes:checked ~ .pw-panel` is a sibling combinator, and siblings
         must share a parent -- with the input inside the label its only siblings
         are the <span>, so the panel could never be revealed and the no-JS path
         would silently have no password field at all. Input hoisted to the form,
         label bound by `for`/`id`.
-      */}
+      */
+      }
       <input type='radio' name='consent' value='yes' id='consent-yes' class='consent-yes' required />
       <label class='consent-choice' for='consent-yes'>Yes, please</label>
 
@@ -980,7 +1050,7 @@ git commit -m "feat(completion): consent form for PDF delivery, no JS required"
 
 ```ts
 // tests/deliver_bundle_test.ts
-import { assertEquals } from 'https://deno.land/std@0.208.0/assert/mod.ts';
+import { assertEquals, assertThrows } from 'https://deno.land/std@0.208.0/assert/mod.ts';
 import { buildBundle } from '../routes/api/responses/deliver.ts';
 
 const rows = [
@@ -991,12 +1061,31 @@ const rows = [
 
 Deno.test('buildBundle - orders answers canonically, not chronologically', () => {
   const bundle = buildBundle('sess-1', rows, 'enc-email', null);
-  assertEquals(bundle.answers.map((a) => a.questionIndex), [0, 3, 7]);
+  // AMENDED 2026-08-11: always all 35, in canonical order, gaps filled.
+  assertEquals(bundle.answers.length, 35);
+  assertEquals(bundle.answers.map((a) => a.questionIndex), Array.from({ length: 35 }, (_, i) => i));
 });
 
 Deno.test('buildBundle - preserves skipped markers', () => {
   const bundle = buildBundle('sess-1', rows, 'enc-email', null);
   assertEquals(bundle.answers.find((a) => a.questionIndex === 3)?.skipped, true);
+});
+
+Deno.test('buildBundle - carries the real ciphertext for answered questions', () => {
+  const bundle = buildBundle('sess-1', rows, 'enc-email', null);
+  assertEquals(bundle.answers.find((a) => a.questionIndex === 7)?.ciphertext, 'ct7');
+});
+
+Deno.test('buildBundle - fills an unreached question rather than shortening the document', () => {
+  const bundle = buildBundle('sess-1', rows, 'enc-email', null);
+  const missing = bundle.answers.find((a) => a.questionIndex === 20);
+  assertEquals(missing?.skipped, true);
+  assertEquals(missing?.ciphertext, '');
+});
+
+Deno.test('buildBundle - refuses duplicate indices', () => {
+  const dupes = [...rows, { question_index: 7, question_text: 'q7', ciphertext: 'other', skipped: false }];
+  assertThrows(() => buildBundle('sess-1', dupes, 'enc-email', null), Error, 'duplicate answer');
 });
 
 Deno.test('buildBundle - carries no plaintext password', () => {
@@ -1049,14 +1138,39 @@ export function buildBundle(
   encryptedEmail: string,
   encryptedPassword: string | null,
 ): DeliveryBundle {
-  const answers = [...rows]
-    .sort((a, b) => a.question_index - b.question_index)
-    .map((r) => ({
-      questionIndex: r.question_index,
-      questionText: r.question_text,
-      ciphertext: r.ciphertext,
-      skipped: r.skipped,
-    }));
+  // AMENDED 2026-08-11: a duplicate index used to survive into the bundle and
+  // a missing one used to shorten the document silently. Both produce a PDF
+  // that looks complete and is not -- and the respondent has no way to tell,
+  // because they cannot remember which of 35 questions they were asked.
+  const byIndex = new Map<number, AnswerRow>();
+  for (const r of rows) {
+    if (byIndex.has(r.question_index)) {
+      throw new Error(`duplicate answer for question ${r.question_index}`);
+    }
+    byIndex.set(r.question_index, r);
+  }
+
+  const answers = Array.from({ length: 35 }, (_, questionIndex) => {
+    const row = byIndex.get(questionIndex);
+    if (row) {
+      return {
+        questionIndex,
+        questionText: row.question_text,
+        ciphertext: row.ciphertext,
+        skipped: row.skipped,
+      };
+    }
+    // Absent rather than skipped: the respondent never reached it. Synthesized
+    // so the document stays numbered against the canonical set -- omitting it
+    // would renumber every question after it.
+    return {
+      questionIndex,
+      questionText: CANONICAL_QUESTIONS[questionIndex],
+      ciphertext: '',
+      skipped: true,
+    };
+  });
+
   return { sessionId, answers, encryptedEmail, encryptedPassword };
 }
 ```
@@ -1178,7 +1292,7 @@ land before the 7-day shred so a stuck bundle surfaces while its key still
 exists.
 
 `claimDue` must use `SELECT ... FOR UPDATE SKIP LOCKED` so two workers cannot
-claim the same row. `recordFailure` stores a failure *category*, never a raw
+claim the same row. `recordFailure` stores a failure _category_, never a raw
 error string — Romania's errors can quote request context.
 
 - [ ] **Step 5: Run tests**
@@ -1258,13 +1372,46 @@ export function tokenState(
 ```
 
 The GET renders a password form (the field must be blank and re-entered — never
-defaulted, or a habitual click downgrades the document to unencrypted). The POST
-redeems the token, rebuilds the bundle, and pushes it.
+defaulted, or a habitual click downgrades the document to unencrypted).
+
+**The POST must claim the token in the database, not via `tokenState`.**
+AMENDED 2026-08-11: `tokenState` is a read-then-act check, so two clicks
+arriving together both read `used_at IS NULL`, both pass, and both send. It
+stays as the function that explains _why_ a token was refused to the user, but
+it must never be what authorizes a send:
+
+```ts
+// Claim and check in one statement. Whoever gets the row wins; everyone else
+// gets zero rows and is told the link was already used.
+const claimed = await client.queryObject<{ gate_token: string }>(
+  `UPDATE pdf_resend_tokens
+      SET used_at = NOW()
+    WHERE token = $1
+      AND used_at IS NULL
+      AND expires_at > NOW()
+  RETURNING gate_token`,
+  [token],
+);
+if (claimed.rows.length === 0) {
+  // Already used, expired, or revoked by a forget request. Do not distinguish
+  // these to the caller -- it would confirm that a token once existed.
+  return renderRefusal();
+}
+```
+
+Only build and push the bundle once that returns a row.
 
 `forget.ts` deletes the `fresh_gate_responses` row (cascading the tokens),
 instructs the gate to delete `gate_encrypted_answers` for the session, and asks
 Romania to shred the identity. Deletion revokes capabilities immediately rather
 than waiting for expiry.
+
+**Deletion spans three systems, so it must not report success early.** Do the
+local work (row delete, token revocation) in one transaction, and record a
+durable deletion job for the two remote steps. Retry the gate and Romania calls
+until each acknowledges; report the deletion complete only when both have. A
+"deleted" message shown while the identity still sits on the Romania box is the
+same class of lie as the privacy copy this design already had to correct.
 
 - [ ] **Step 4: Run tests**
 
@@ -1290,14 +1437,18 @@ git commit -m "feat(responses): address-locked re-send tokens and deletion"
 
 **Interfaces:**
 
-- Produces: `storeIdentity(dir, sessionId, identity)`, `loadIdentity(dir, sessionId): Promise<string>`, `shredIdentity(dir, sessionId)`, `shredExpired(dir, now, maxAgeDays): Promise<number>`
+- Produces: `storeIdentity(dir, sessionId, identity)`, `loadIdentity(dir, sessionId): Promise<string>`, `shredIdentity(dir, sessionId)`, `markDelivered(dir, sessionId, at)`, `shredExpired(dir, now, policy: ShredPolicy): Promise<number>` where `ShredPolicy = { afterDelivery: number; absolute: number }`
+
+**Two clocks, not one.** A delivered session's key dies `afterDelivery` days
+after its first send; a session that never delivers dies `absolute` days after
+the key arrived. Task 14 passes `{ afterDelivery: 7, absolute: 30 }`.
 
 - [ ] **Step 1: Write the failing test**
 
 ```ts
 // romania/tests/keystore_test.ts
 import { assert, assertEquals, assertRejects } from 'https://deno.land/std@0.208.0/assert/mod.ts';
-import { loadIdentity, shredIdentity, storeIdentity } from '../keystore.ts';
+import { loadIdentity, markDelivered, shredExpired, shredIdentity, storeIdentity } from '../keystore.ts';
 
 async function tmp(): Promise<string> {
   return await Deno.makeTempDir({ prefix: 'keystore-test-' });
@@ -1322,6 +1473,51 @@ Deno.test('shredIdentity - removes the key and later loads fail', async () => {
 Deno.test('storeIdentity - rejects a session id containing path separators', async () => {
   const dir = await tmp();
   await assertRejects(() => storeIdentity(dir, '../escape', 'k'), Error, 'invalid session id');
+});
+
+// AMENDED 2026-08-11: the two clocks below had no coverage. The undelivered
+// case in particular was not merely untested -- it did not exist, and keys for
+// respondents who declined a copy would have lived on the box forever.
+
+const POLICY = { afterDelivery: 7, absolute: 30 };
+const ID = '11111111-2222-3333-4444-555555555555';
+
+Deno.test('shredExpired - keeps a delivered key inside its 7-day window', async () => {
+  const dir = await tmp();
+  await storeIdentity(dir, ID, 'AGE-SECRET-KEY-1TEST');
+  await markDelivered(dir, ID, new Date('2026-08-10T00:00:00Z'));
+
+  assertEquals(await shredExpired(dir, new Date('2026-08-15T00:00:00Z'), POLICY), 0);
+  assertEquals(await loadIdentity(dir, ID), 'AGE-SECRET-KEY-1TEST');
+});
+
+Deno.test('shredExpired - destroys a delivered key past its window', async () => {
+  const dir = await tmp();
+  await storeIdentity(dir, ID, 'AGE-SECRET-KEY-1TEST');
+  await markDelivered(dir, ID, new Date('2026-08-10T00:00:00Z'));
+
+  assertEquals(await shredExpired(dir, new Date('2026-08-18T00:00:00Z'), POLICY), 1);
+  await assertRejects(() => loadIdentity(dir, ID));
+});
+
+Deno.test('markDelivered - a re-send never extends the clock', async () => {
+  const dir = await tmp();
+  await storeIdentity(dir, ID, 'AGE-SECRET-KEY-1TEST');
+  await markDelivered(dir, ID, new Date('2026-08-10T00:00:00Z'));
+  // A re-send on day 6 must not buy another 7 days.
+  await markDelivered(dir, ID, new Date('2026-08-16T00:00:00Z'));
+
+  assertEquals(await shredExpired(dir, new Date('2026-08-18T00:00:00Z'), POLICY), 1);
+});
+
+Deno.test('shredExpired - an undelivered key still dies at the absolute ceiling', async () => {
+  const dir = await tmp();
+  await storeIdentity(dir, ID, 'AGE-SECRET-KEY-1TEST');
+  // No marker: the respondent declined, or delivery never succeeded.
+  const long = new Date(Date.now() + 31 * 86_400_000);
+
+  assertEquals(await shredExpired(dir, long, POLICY), 1);
+  await assertRejects(() => loadIdentity(dir, ID));
 });
 ```
 
@@ -1359,23 +1555,85 @@ export async function loadIdentity(dir: string, sessionId: string): Promise<stri
   return (await Deno.readTextFile(keyPath(dir, sessionId))).trim();
 }
 
+/**
+ * Unlink an identity.
+ *
+ * AMENDED 2026-08-11: this used to be described as destruction. It is not.
+ * Deno.remove unlinks; on a journaling filesystem or an SSD with wear
+ * levelling the bytes can survive in a way no userspace call can reach. The
+ * real guarantee comes from WHERE the key lives, not from this function: the
+ * key directory is a tmpfs mount (see romania/deploy/README.md), so the pages
+ * are freed to RAM and never written to persistent storage at all.
+ *
+ * Keep those two facts together. If anyone ever moves the keystore off tmpfs
+ * "temporarily", this call quietly stops meaning what the design claims.
+ */
 export async function shredIdentity(dir: string, sessionId: string): Promise<void> {
   await Deno.remove(keyPath(dir, sessionId));
+  await Deno.remove(`${dir}/${sessionId}.delivered`).catch(() => {});
 }
 
 /**
- * Destroy identities older than maxAgeDays. The clock runs from file mtime,
- * set once at delivery and never touched again — re-sends must not extend a
- * key's life, or a respondent re-sending weekly keeps it alive forever.
+ * Record the first successful delivery for a session.
+ *
+ * Written once and never rewritten: the 7-day clock runs from the FIRST send
+ * and must not extend, or a respondent re-sending every six days keeps a
+ * private key alive forever -- the long-lived-key risk per-session keys exist
+ * to avoid.
  */
-export async function shredExpired(dir: string, now: Date, maxAgeDays: number): Promise<number> {
-  const cutoff = now.getTime() - maxAgeDays * 86_400_000;
+export async function markDelivered(dir: string, sessionId: string, at: Date): Promise<void> {
+  const path = `${dir}/${sessionId}.delivered`;
+  try {
+    // createNew: an existing marker is left exactly as it was.
+    await Deno.writeTextFile(path, at.toISOString(), { mode: 0o600, createNew: true });
+  } catch (e) {
+    if (!(e instanceof Deno.errors.AlreadyExists)) throw e;
+  }
+}
+
+export interface ShredPolicy {
+  /** Days after first successful delivery. The spec's 7. */
+  afterDelivery: number;
+  /**
+   * Absolute ceiling from key creation, for sessions that NEVER deliver.
+   *
+   * AMENDED 2026-08-11: without this, a respondent who chose "No", abandoned
+   * the questionnaire, or hit permanent delivery failure left their key on the
+   * box indefinitely -- the one outcome the whole design is built to prevent,
+   * reached by the path nobody tested.
+   */
+  absolute: number;
+}
+
+/**
+ * Destroy identities past their deadline. Returns how many were removed.
+ *
+ * Two clocks, and which applies depends on whether the session ever delivered:
+ * delivered keys expire afterDelivery days from the marker; undelivered keys
+ * expire absolute days from the key file itself.
+ */
+export async function shredExpired(dir: string, now: Date, policy: ShredPolicy): Promise<number> {
+  const DAY = 86_400_000;
   let removed = 0;
+
   for await (const entry of Deno.readDir(dir)) {
     if (!entry.isFile || !entry.name.endsWith('.key')) continue;
-    const info = await Deno.stat(`${dir}/${entry.name}`);
-    if (info.mtime && info.mtime.getTime() < cutoff) {
-      await Deno.remove(`${dir}/${entry.name}`);
+    const sessionId = entry.name.slice(0, -'.key'.length);
+
+    let deadline: number;
+    try {
+      const marker = await Deno.readTextFile(`${dir}/${sessionId}.delivered`);
+      deadline = new Date(marker.trim()).getTime() + policy.afterDelivery * DAY;
+    } catch {
+      // No marker: never delivered. Fall back to the absolute ceiling, measured
+      // from when the key arrived.
+      const info = await Deno.stat(`${dir}/${entry.name}`);
+      const born = info.mtime?.getTime() ?? 0;
+      deadline = born + policy.absolute * DAY;
+    }
+
+    if (now.getTime() >= deadline) {
+      await shredIdentity(dir, sessionId);
       removed++;
     }
   }
@@ -1386,7 +1644,7 @@ export async function shredExpired(dir: string, now: Date, maxAgeDays: number): 
 - [ ] **Step 4: Run tests**
 
 Run: `deno test --allow-read --allow-write romania/tests/keystore_test.ts`
-Expected: PASS, 3 tests.
+Expected: PASS, 7 tests.
 
 - [ ] **Step 5: Commit**
 
@@ -1412,6 +1670,21 @@ git commit -m "feat(romania): 0600 session keystore with age-based shredding"
 
 **Prerequisite:** Noto Sans Tamil must be vendored (Task 15) or Tamil renders as
 tofu. Install Typst on the box: `cargo install typst-cli` or the release binary.
+
+**Pin and verify the version before writing code.** Typst's CLI is still moving,
+and this task depends on two specifics: that `--root` scopes file reads, and
+that `json()` resolves relative to that root. Neither was verifiable when this
+plan was written — Typst is not installed on the authoring machine — so confirm
+both against the version you install rather than trusting the code below:
+
+```bash
+typst --version                     # record it; pin it in the deploy README
+typst compile --help | grep -- --root
+```
+
+If `json()` turns out to resolve relative to the _file_ rather than the root,
+the fix is one line (template and data are already siblings), but find that out
+here rather than in Task 14.
 
 - [ ] **Step 1: Write the failing test**
 
@@ -1454,16 +1727,22 @@ Deno.test('renderPdf - produces a real PDF', async () => {
 Deno.test('renderPdf - skipped questions still appear', async () => {
   const dir = await Deno.makeTempDir({ prefix: 'render-test-' });
   const pdf = await renderPdf(doc, dir);
-  const text = new TextDecoder('utf-8', { fatal: false }).decode(pdf);
-  // Uncompressed text is not guaranteed; assert via pdftotext instead.
-  const out = await new Deno.Command('pdftotext', { args: ['-', '-'], stdin: 'piped' }).spawn();
-  const w = out.stdin.getWriter();
+  // AMENDED 2026-08-11: stdout was not piped, so res.stdout was always empty
+  // and the assertion below could never fail. A test that cannot fail is worse
+  // than no test -- it reports coverage of a claim it never checked.
+  const child = new Deno.Command('pdftotext', {
+    args: ['-', '-'],
+    stdin: 'piped',
+    stdout: 'piped',
+  }).spawn();
+  const w = child.stdin.getWriter();
   await w.write(pdf);
   await w.close();
-  const res = await out.output();
+  const res = await child.output();
+
   const extracted = new TextDecoder().decode(res.stdout);
+  assert(extracted.length > 0, 'pdftotext produced nothing - the assertion below would be vacuous');
   assert(extracted.includes('greatest fear'), 'skipped questions must not be omitted');
-  assert(text.length > 0);
 });
 ```
 
@@ -1476,8 +1755,18 @@ Expected: FAIL — `romania/render.ts` does not exist.
 
 ```typst
 // romania/template.typ
-// Data arrives as JSON on the command line via --input.
-#let doc = json(bytes(sys.inputs.data))
+// AMENDED 2026-08-11. Data is read from a sibling file, NOT from --input.
+//
+// The original passed the whole decrypted document as a command-line argument.
+// Process arguments are world-readable in /proc/<pid>/cmdline on Linux, so
+// every respondent's answers were visible to any local user for the lifetime
+// of the render -- on the one machine that also holds every private key. The
+// rest of this design keeps plaintext on tmpfs and out of logs; that version
+// handed it to `ps`.
+//
+// json() resolves relative to the Typst root, which render.ts sets to the
+// tmpfs working directory.
+#let doc = json("data.json")
 
 #set document(title: "a formulation of truth", author: "")
 #set page(margin: 2.5cm, numbering: "1")
@@ -1535,20 +1824,35 @@ export interface RenderDoc {
 const TEMPLATE = new URL('./template.typ', import.meta.url).pathname;
 
 export async function renderPdf(doc: RenderDoc, workDir: string): Promise<Uint8Array> {
-  const out = `${workDir}/out.pdf`;
-  const cmd = new Deno.Command('typst', {
-    args: ['compile', '--input', `data=${JSON.stringify(doc)}`, TEMPLATE, out],
-    stdout: 'null',
-    stderr: 'piped',
-  });
-  const res = await cmd.output();
-  if (!res.success) {
-    // Typst echoes source context on failure, which could include answer text.
-    throw new Error('typst render failed');
+  const dataPath = `${workDir}/data.json`;
+  const typPath = `${workDir}/template.typ`;
+  const outPath = `${workDir}/out.pdf`;
+
+  try {
+    // 0600 and inside the tmpfs workDir. Nothing sensitive goes on argv --
+    // see the note in template.typ for why that mattered.
+    await Deno.writeTextFile(dataPath, JSON.stringify(doc), { mode: 0o600 });
+    // Copied in so --root can be the workDir alone: Typst refuses to read
+    // outside its root, and the root must contain both template and data.
+    await Deno.copyFile(TEMPLATE, typPath);
+
+    const res = await new Deno.Command('typst', {
+      args: ['compile', '--root', workDir, typPath, outPath],
+      stdout: 'null',
+      // Discarded rather than captured: Typst echoes source context on failure,
+      // which for this template means answer text.
+      stderr: 'null',
+    }).output();
+    if (!res.success) throw new Error('typst render failed');
+
+    return await Deno.readFile(outPath);
+  } finally {
+    // Runs on every path. A thrown render previously left decrypted JSON behind
+    // in the working directory for whatever cleaned up next.
+    for (const p of [dataPath, typPath, outPath]) {
+      await Deno.remove(p).catch(() => {});
+    }
   }
-  const pdf = await Deno.readFile(out);
-  await Deno.remove(out);
-  return pdf;
 }
 ```
 
@@ -1584,6 +1888,22 @@ git commit -m "feat(romania): typeset the questionnaire PDF with Typst"
 
 - Consumes: `renderPdf` output (Task 11)
 - Produces: `protectPdf(pdf: Uint8Array, password: string, workDir: string): Promise<Uint8Array>` — AES-256, user password, verified openable before returning. Throws on any failure; **never returns the unprotected input.**
+
+- [ ] **Step 0: Pin qpdf and confirm its flag syntax**
+
+qpdf was not installed on the authoring machine, so the three flags this task
+depends on are unverified. Confirm all of them before writing code — the
+`--encrypt` syntax changed in qpdf 11.7, and older builds take the password
+positionally, which is exactly the argv exposure being fixed:
+
+```bash
+qpdf --version                                   # 11.7+ required; pin it
+qpdf --help=encryption | grep -E 'user-password|bits'
+qpdf --help=usage      | grep -E 'password-file|@filename'
+```
+
+If `--password-file=-` is unavailable in the pinned build, the fallback is a
+`0600` file path rather than `-`. Do **not** fall back to putting it on argv.
 
 - [ ] **Step 1: Write the failing test**
 
@@ -1664,29 +1984,57 @@ export async function protectPdf(pdf: Uint8Array, password: string, workDir: str
 
   const inPath = `${workDir}/plain.pdf`;
   const outPath = `${workDir}/protected.pdf`;
-  await Deno.writeFile(inPath, pdf, { mode: 0o600 });
+  const argPath = `${workDir}/qpdf.args`;
 
-  const enc = await new Deno.Command('qpdf', {
-    args: ['--encrypt', password, password, '256', '--', inPath, outPath],
-    stdout: 'null',
-    stderr: 'null',
-  }).output();
-  await Deno.remove(inPath);
-  if (!enc.success) throw new Error('qpdf encryption failed');
+  try {
+    await Deno.writeFile(inPath, pdf, { mode: 0o600 });
 
-  const check = await new Deno.Command('qpdf', {
-    args: [`--password=${password}`, '--check', outPath],
-    stdout: 'null',
-    stderr: 'null',
-  }).output();
-  if (!check.success) {
-    await Deno.remove(outPath);
-    throw new Error('encrypted pdf failed its round-trip check');
+    // AMENDED 2026-08-11: the password used to be an argv element, readable in
+    // /proc/<pid>/cmdline by any local user. Mailing a password-protected PDF
+    // while publishing the password to the process table protects nobody.
+    //
+    // qpdf reads an @argfile, one argument per line, so the password reaches it
+    // through a 0600 file instead. Both files live on the tmpfs workDir.
+    const args = [
+      '--encrypt',
+      `--user-password=${password}`,
+      `--owner-password=${password}`,
+      '--bits=256',
+      '--',
+      inPath,
+      outPath,
+    ].join('\n');
+    await Deno.writeTextFile(argPath, args, { mode: 0o600 });
+
+    const enc = await new Deno.Command('qpdf', {
+      args: [`@${argPath}`],
+      stdout: 'null',
+      stderr: 'null',
+    }).output();
+    if (!enc.success) throw new Error('qpdf encryption failed');
+
+    // Same reasoning for the verification pass: --password-file=- takes it on
+    // stdin, keeping it off argv here too.
+    const checkChild = new Deno.Command('qpdf', {
+      args: ['--password-file=-', '--check', outPath],
+      stdin: 'piped',
+      stdout: 'null',
+      stderr: 'null',
+    }).spawn();
+    const w = checkChild.stdin.getWriter();
+    await w.write(new TextEncoder().encode(password));
+    await w.close();
+    const check = await checkChild.output();
+    if (!check.success) throw new Error('encrypted pdf failed its round-trip check');
+
+    return await Deno.readFile(outPath);
+  } finally {
+    // Every path, including the throws above. A failed encryption previously
+    // left plain.pdf -- the fully decrypted document -- sitting in workDir.
+    for (const p of [inPath, argPath, outPath]) {
+      await Deno.remove(p).catch(() => {});
+    }
   }
-
-  const out = await Deno.readFile(outPath);
-  await Deno.remove(outPath);
-  return out;
 }
 ```
 
@@ -1847,7 +2195,10 @@ directory in a `finally` block so plaintext never outlives the request.
 - [ ] **Step 4: Write the deployment units**
 
 `render.service` binds to the WireGuard address only. `shred.timer` runs daily
-and invokes `shredExpired(dir, new Date(), 7)`. The README documents the egress
+and invokes `shredExpired(dir, new Date(), { afterDelivery: 7, absolute: 30 })`.
+The service calls `markDelivered(dir, sessionId, new Date())` on the first
+successful SMTP send and never again — that marker, not the file's mtime, is
+what starts the 7-day clock. The README documents the egress
 policy — allow `tcp/587` to `smtp.mail.me.com` and the mesh, deny everything
 else — and the tmpfs mount for the working directory.
 
@@ -1904,9 +2255,26 @@ Expected: FAIL — the old claims are still present.
 
 Replace the "Never stored as an address" claim with an accurate description:
 the address is kept encrypted to a key held on a separate server, is unreadable
-on the machine that stores it, is used only to send a copy of the responses when
-asked, and is destroyed with the session key. Apply the same correction to the
-header comment in `routes/index.tsx:14-18`.
+on the machine that stores it, and is used only to send a copy of the responses
+when asked. Apply the same correction to the header comment in
+`routes/index.tsx:14-18`.
+
+**AMENDED 2026-08-11 — do not write "destroyed with the session key."** That was
+the original wording here and it is false. `encrypted_email` is encrypted to
+_two_ recipients, and the break-glass key is the second. Shredding the session
+key on day 7 ends routine access; it does not end all access, and the ciphertext
+stays in Postgres until the row is deleted.
+
+Correcting one false statement with another is worse than leaving the first: it
+launders the inaccuracy through a change that looks like diligence. Say what is
+true — routine access ends when the session key is shredded, the row is removed
+on a deletion request, and one offline key retained for recovery can still open
+it until then. If that sentence feels uncomfortable to publish, the objection is
+to the design, not to the wording, and it should be raised as such.
+
+The same care applies to the deletion claim on `/privacy:141`: verify it against
+what `forget.ts` actually does across all three systems before leaving it in
+place.
 
 - [ ] **Step 4: Vendor the font**
 
@@ -1963,7 +2331,7 @@ Tasks 1-3 are implemented and committed. Amendments made during execution:
    Not reachable today (Task 5, the only caller, is unwritten and passes
    `crypto.randomUUID()`), but `pushIdentity` is exported with an unvalidated
    `sessionId: string` and would have been a live hole the moment Task 5 landed.
-   Notably the plan already validated this exact value on the *Romania* side
+   Notably the plan already validated this exact value on the _Romania_ side
    (Task 10's `SESSION_ID`) — the end that merely writes a filename got the
    guard, while the end that builds a shell command did not.
 
@@ -1975,7 +2343,7 @@ Tasks 1-3 are implemented and committed. Amendments made during execution:
 
 6. **`clippy --all-targets` catches what `cargo test` cannot.** Replacing
    `iter::once(recipient)` with `refs.into_iter()` left `std::iter` unused in the
-   *bin* target while the test module still needed it. `cargo test` compiles the
+   _bin_ target while the test module still needed it. `cargo test` compiles the
    test cfg and stayed green. Import scoped into `mod tests`.
 
 **BLOCKER for Task 5 and Task 15.** Both specify `deno task test` → PASS, which

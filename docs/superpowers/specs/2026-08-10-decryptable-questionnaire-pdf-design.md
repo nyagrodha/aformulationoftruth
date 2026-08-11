@@ -1,7 +1,8 @@
 # Decryptable questionnaire PDF — design
 
 **Date:** 2026-08-10
-**Status:** design approved, not yet planned
+**Status:** approved; planned in `docs/superpowers/plans/2026-08-10-decryptable-questionnaire-pdf.md`; Tasks 1-3 implemented
+**Amended:** 2026-08-11 — absolute key-expiry ceiling, and an honesty correction about what shredding does not reach
 **Supersedes:** the unimplemented premise of `db/migrations/004_pdf_delivery_pipeline.sql` (2026-02-14)
 
 ## Problem
@@ -46,23 +47,23 @@ that address.
 
 ## Decisions
 
-| #  | Decision                                                                                   |
-| -- | ------------------------------------------------------------------------------------------ |
-| 1  | Deliver the PDF by email to the respondent, on explicit consent only.                      |
-| 2  | Generate a per-session age keypair inside `/api/gate-submit`, before any answer is stored. |
-| 3  | Public key stays in Iceland; private key goes to Romania over WireGuard, mode `0600`.      |
-| 4  | Encrypt to **two** recipients: the session public key and an offline break-glass key.      |
-| 5  | Iceland pushes the ciphertext bundle; Romania never holds database credentials.            |
-| 6  | Render with Typst; encrypt the PDF with qpdf, AES-256, _user_ password.                    |
-| 7  | Romania sends the mail directly via Apple submission, egress-locked to one host/port.      |
-| 8  | Shred the session key 7 days after first successful send. The clock never extends.         |
-| 9  | Password is optional, user-typed, and never stored, logged, or transmitted to Apple.       |
-| 10 | A tokenized, address-locked re-send link allows private recovery within the window.        |
-| 11 | The PDF is ordered canonically; the shuffle is preserved untouched in the session row.     |
+| #  | Decision                                                                                                                                  |
+| -- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| 1  | Deliver the PDF by email to the respondent, on explicit consent only.                                                                     |
+| 2  | Generate a per-session age keypair inside `/api/gate-submit`, before any answer is stored.                                                |
+| 3  | Public key stays in Iceland; private key goes to Romania over WireGuard, mode `0600`.                                                     |
+| 4  | Encrypt to **two** recipients: the session public key and an offline break-glass key.                                                     |
+| 5  | Iceland pushes the ciphertext bundle; Romania never holds database credentials.                                                           |
+| 6  | Render with Typst; encrypt the PDF with qpdf, AES-256, _user_ password.                                                                   |
+| 7  | Romania sends the mail directly via Apple submission, egress-locked to one host/port.                                                     |
+| 8  | Shred the session key 7 days after first successful send, or 30 days after it was minted if no send ever succeeds. Neither clock extends. |
+| 9  | Password is optional, user-typed, and never stored, logged, or transmitted to Apple.                                                      |
+| 10 | A tokenized, address-locked re-send link allows private recovery within the window.                                                       |
+| 11 | The PDF is ordered canonically; the shuffle is preserved untouched in the session row.                                                    |
 
 ## Architecture
 
-```
+```text
   ICELAND (FlokiNET)                    ROMANIA (fib.…)
   ──────────────────                    ───────────────
   Fresh + Postgres                      age identities, 0600
@@ -94,7 +95,7 @@ neither machine.
 
 ## Data flow
 
-```
+```text
 ① GATE  /api/gate-submit                            [ICELAND]
    generate age keypair, id = gateToken
    scp private key ──wg──> ROMANIA (0600)   ← fails closed
@@ -119,7 +120,8 @@ neither machine.
 ⑤ DELIVER                                            [ROMANIA]
    receive bundle over wg (ciphertext + encrypted_email + encrypted password)
    load key 0600 → decrypt → typst → PDF (canonical order)
-   qpdf --encrypt … 256 --   (only if a password was supplied)
+   qpdf AES-256 via @argfile  (only if a password was supplied)
+     password NEVER on argv -- /proc/<pid>/cmdline is world-readable
    verify round-trip: reopen with the same password, or refuse to send
    Apple SMTP :587, PDF attached
    callback ──wg──> Iceland: pdf_delivered_at = now()
@@ -173,7 +175,7 @@ respondent's document, not an operational artifact.
 `routes/completion.tsx` is presently static, JS-free, and takes no props. It gains
 the consent control and must be threaded the session's resume token.
 
-```
+```text
 Would you like a copy of your responses?
   ( ) Yes, please
   ( ) No
@@ -233,6 +235,15 @@ recovery inside the window is the point of the re-send link.
   habitual click silently downgrades the document to an unencrypted PDF.
 - Rate-limited and single-use per render, since it is a bearer capability sitting
   in an inbox for a week.
+
+**Two clocks, because one leaves a hole.** The 7-day clock starts at first
+successful send — but a session that never delivers never starts it. A
+respondent who chooses "No", abandons the questionnaire, or whose delivery fails
+permanently would otherwise leave a private key on the Romania box forever,
+which is precisely the outcome per-session keys exist to prevent, reached
+through the path nobody thinks to test. So an **absolute 30-day ceiling from key
+creation** applies to any identity with no recorded delivery. Whichever deadline
+comes first wins.
 
 **Shred clock runs from first successful send and never extends**, even across
 re-sends. Otherwise a respondent re-sending every six days keeps a private key
@@ -356,3 +367,10 @@ line. `scripts/check-zero-logging.sh` and `check-secrets.sh` must pass.
   rows encrypted to the global identity.
 - Romania is no longer network-isolated. It reaches one host on one port.
 - SMTP credentials now exist on the machine holding every private key.
+- **Shredding the session key does not make a respondent's data unreadable.**
+  Every ciphertext, `encrypted_email` included, is encrypted to the break-glass
+  key as well. Day 7 ends _routine_ access; it does not end all access, and the
+  rows persist until a deletion request removes them. Only "forget" — rows
+  deleted, key shredded — actually ends it. Any user-facing copy that implies
+  otherwise is false, and the temptation to write it will be strongest exactly
+  where it is least true.
