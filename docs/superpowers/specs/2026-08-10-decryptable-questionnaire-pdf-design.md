@@ -268,7 +268,7 @@ outstanding re-send tokens immediately rather than letting them expire naturally
 | `routes/api/responses/forget.ts`         | **new** — deletion; revokes resend tokens                                               |
 | `routes/api/responses/resend/[token].ts` | **new** — address-locked re-issue                                                       |
 | `lib/romania-client.ts`                  | **new** — mesh HTTP client with retry/queue                                             |
-| `db/migrations/009_session_keys.sql`     | **new** — `session_pubkey`, `pdf_delivered_at`, resend tokens                           |
+| `db/migrations/010_session_keys.sql`     | **new** — `session_pubkey`, `pdf_delivered_at`, resend tokens                           |
 | `routes/privacy.tsx`, `routes/index.tsx` | correct the "never stored / nothing reversible" claims                                  |
 | `FONTS.md`, `public/fonts/`              | vendor Noto Sans Tamil                                                                  |
 

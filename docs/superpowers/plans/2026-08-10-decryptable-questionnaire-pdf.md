@@ -64,7 +64,7 @@ is a signature change, not a redesign.
 | `lib/romania-client.ts`                   | _create_ — mesh HTTP client for the delivery push                                                         |
 | `lib/gate-client.ts`                      | _modify_ — forward per-session recipients to the gate                                                     |
 | `rust-server/src/main.rs`                 | _modify_ — accept and honour a `recipients` array                                                         |
-| `db/migrations/009_session_keys.sql`      | _create_ — `session_pubkey`, `encrypted_email`, `pdf_delivered_at`, resend tokens                         |
+| `db/migrations/010_session_keys.sql`      | _create_ — `session_pubkey`, `encrypted_email`, `pdf_delivered_at`, resend tokens                         |
 | `routes/api/gate-submit.ts`               | _modify_ — mint and push keypair before storing anything                                                  |
 | `routes/api/questions/answer.ts`          | _modify_ — thread session recipients                                                                      |
 | `routes/completion.tsx`                   | _modify_ — consent UI                                                                                     |
@@ -512,7 +512,7 @@ git commit -m "feat(crypto): per-session age keypairs with fail-closed transport
 
 **Files:**
 
-- Create: `db/migrations/009_session_keys.sql`
+- Create: `db/migrations/010_session_keys.sql`
 
 **Interfaces:**
 
@@ -521,7 +521,7 @@ git commit -m "feat(crypto): per-session age keypairs with fail-closed transport
 **Before writing:** confirm how migrations are applied. `db/migrations/` contains
 duplicate numeric prefixes (two `001`, two `002`, two `003`, no `005`), so the
 runner is not keying on the prefix alone. Read `migrate.ts` and match its
-convention, or `009` may silently never run.
+convention, or `010` may silently never run.
 
 - [x] **Step 1: Read the migration runner**
 
@@ -584,7 +584,7 @@ case "$SCRATCH_DB" in
   *fobdongle*|*iceland*|*prod*) echo "refusing: that looks like production" >&2; exit 1;;
 esac
 
-psql "$SCRATCH_DB" -f db/migrations/009_session_keys.sql
+psql "$SCRATCH_DB" -f db/migrations/010_session_keys.sql
 psql "$SCRATCH_DB" -c "\d fresh_gate_responses" | grep -E 'session_pubkey|encrypted_email|pdf_delivered_at'
 psql "$SCRATCH_DB" -c "\d pdf_resend_tokens"
 ```
@@ -593,13 +593,13 @@ Expected: all three columns listed; `pdf_resend_tokens` exists.
 
 - [ ] **Step 4: Verify idempotency**
 
-Run: `psql "$SCRATCH_DB" -f db/migrations/009_session_keys.sql`
+Run: `psql "$SCRATCH_DB" -f db/migrations/010_session_keys.sql`
 Expected: succeeds a second time with no error.
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add db/migrations/009_session_keys.sql
+git add db/migrations/010_session_keys.sql
 git commit -m "feat(db): session pubkeys, encrypted email, resend tokens"
 ```
 
