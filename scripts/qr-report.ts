@@ -44,11 +44,13 @@ const SLUG = arg('slug', 'WillyStCo-op');
 const DAYS = Number(arg('days', '90'));
 const INCLUDE_BOTS = Deno.args.includes('--bots');
 
-// Must be an int4: DAYS is cast to ::int in the query below, so a fractional
-// or oversized value reaches the operator as a raw Postgres cast error rather
-// than as the message here.
-if (!Number.isSafeInteger(DAYS) || DAYS <= 0 || DAYS > 2_147_483_647) {
-  console.error('--days must be a positive integer no greater than 2147483647');
+// Capped at a century, not at int4's ceiling. DAYS is subtracted from a date
+// in SQL, and a value near 2147483647 pushes the result past Postgres's
+// minimum date -- so the operator gets "date out of range" instead of the
+// message here. No QR object outlives a hundred years of reporting.
+const MAX_DAYS = 36_500;
+if (!Number.isSafeInteger(DAYS) || DAYS <= 0 || DAYS > MAX_DAYS) {
+  console.error(`--days must be a positive integer no greater than ${MAX_DAYS}`);
   Deno.exit(2);
 }
 
@@ -72,6 +74,10 @@ const rows = await withConnection(async (client) => {
         -- would silently shift the window by a day. DAYS - 1 so --days 90
         -- covers ninety dates including today, not ninety-one.
         AND day >= ((CURRENT_TIMESTAMP AT TIME ZONE 'UTC')::date - ($2::int - 1))
+        -- Closed at both ends. Nothing constrains day to the past, so a row
+        -- dated ahead -- clock skew, a manual insert -- would otherwise make
+        -- --days 1 cover more than one date.
+        AND day <= (CURRENT_TIMESTAMP AT TIME ZONE 'UTC')::date
       GROUP BY day
       ORDER BY day`,
     [SLUG, DAYS, INCLUDE_BOTS],
