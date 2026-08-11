@@ -101,7 +101,7 @@ against fixture bundles before Phase 3 is finished.
 - Consumes: nothing
 - Produces: `ageEncryptTo(plaintext: string, recipients: string[]): Promise<string>` — returns ASCII-armored ciphertext openable by any listed recipient. Throws on an empty array.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 // tests/age_encrypt_test.ts
@@ -140,12 +140,12 @@ Deno.test('ageEncryptTo - empty recipient list is refused', async () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `deno test --allow-net --allow-read --allow-env tests/age_encrypt_test.ts`
 Expected: FAIL — `ageEncryptTo` is not exported from `lib/age-encrypt.ts`.
 
-- [ ] **Step 3: Write minimal implementation**
+- [x] **Step 3: Write minimal implementation**
 
 Append to `lib/age-encrypt.ts` (leave `ageEncrypt` exactly as it is — the
 contact form depends on it):
@@ -173,12 +173,12 @@ export async function ageEncryptTo(
 }
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `deno test --allow-net --allow-read --allow-env tests/age_encrypt_test.ts`
 Expected: PASS, 3 tests.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 deno fmt lib/age-encrypt.ts tests/age_encrypt_test.ts
@@ -199,7 +199,7 @@ git commit -m "feat(crypto): encrypt to multiple age recipients"
 - Consumes: nothing
 - Produces: `POST /api/store` accepts an optional `recipients: string[]`. When present and non-empty, the answer is encrypted to exactly those recipients. When absent or empty, behaviour is unchanged (the configured default recipient), so existing callers keep working.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Add to `rust-server/src/main.rs`, at the bottom:
 
@@ -241,12 +241,12 @@ mod tests {
 
 Add `use std::io::Read;` to the test module if the crate does not already import it.
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `cd rust-server && cargo test`
 Expected: FAIL to compile — `armor_encrypt` takes `&age::x25519::Recipient`, not a slice.
 
-- [ ] **Step 3: Write minimal implementation**
+- [x] **Step 3: Write minimal implementation**
 
 Change the signature and body of `armor_encrypt` (line 85):
 
@@ -296,12 +296,12 @@ if req.recipients.len() > 8 {
 let ciphertext = armor_encrypt(&req.answer, &recipients)?;
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `cd rust-server && cargo test && cargo clippy -- -D warnings`
 Expected: PASS, 2 tests, no clippy warnings.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add rust-server/src/main.rs
@@ -326,7 +326,7 @@ git commit -m "feat(gate): accept per-session recipients on /api/store"
   - `pushIdentity(sessionId: string, identity: string, transport?: IdentityTransport): Promise<void>` — throws if the transport fails. Default transport shells out to `scp` over the mesh.
   - `breakglassRecipient(): string` — reads `BREAKGLASS_AGE_RECIPIENT`, throws if unset.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 // tests/session_keys_test.ts
@@ -373,12 +373,12 @@ Deno.test('pushIdentity - transport failure message carries no key material', as
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `deno test --allow-net --allow-read --allow-env tests/session_keys_test.ts`
 Expected: FAIL — `lib/session-keys.ts` does not exist.
 
-- [ ] **Step 3: Write minimal implementation**
+- [x] **Step 3: Write minimal implementation**
 
 ```ts
 // lib/session-keys.ts
@@ -474,12 +474,12 @@ export async function pushIdentity(
 }
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `deno test --allow-net --allow-read --allow-env tests/session_keys_test.ts`
 Expected: PASS, 4 tests.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 deno fmt lib/session-keys.ts tests/session_keys_test.ts
