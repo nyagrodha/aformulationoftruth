@@ -700,7 +700,15 @@ try {
   await pushIdentity(gateToken, keypair.identity);
   pushed = true;
   recipients = [keypair.recipient, breakglass];
-} catch {
+} catch (e) {
+  // AMENDED 2026-08-11: a FAILED push can still have left a key behind.
+  // pushIdentity kills ssh at its deadline, and a killed `cat > file` may have
+  // written a complete key, a truncated one, or nothing -- indistinguishable
+  // from here. Cleaning up only after a *successful* push therefore misses the
+  // exact case the deadline exists to handle.
+  if (e instanceof IdentityPushFailed && e.ambiguous) {
+    await shredRemoteIdentity(gateToken).catch(() => {});
+  }
   console.error('[gate-submit] Session key provisioning failed; submission refused');
   increment('errors.5xx');
   return fail(503, 'Unable to securely store your answers right now. Please try again.', 'server');
@@ -1523,6 +1531,20 @@ Deno.test('markDelivered - a re-send never extends the clock', async () => {
   assertEquals(await shredExpired(dir, new Date('2026-08-18T00:00:00Z'), POLICY), 1);
 });
 
+// A corrupt marker must not confer immortality. new Date('garbage').getTime()
+// is NaN, and `now >= NaN` is false -- so before the Number.isFinite guard this
+// key was skipped on every run, forever.
+Deno.test('shredExpired - a corrupt delivery marker falls back to the ceiling', async () => {
+  const dir = await tmp();
+  await storeIdentity(dir, ID, 'AGE-SECRET-KEY-1TEST');
+  await Deno.writeTextFile(`${dir}/${ID}.delivered`, 'not a date at all', { mode: 0o600 });
+
+  // Inside the ceiling: still kept, because the marker is simply ignored.
+  assertEquals(await shredExpired(dir, new Date(Date.now() + 3 * 86_400_000), POLICY), 0);
+  // Past the ceiling: destroyed, rather than living forever.
+  assertEquals(await shredExpired(dir, new Date(Date.now() + 31 * 86_400_000), POLICY), 1);
+});
+
 Deno.test('shredExpired - an undelivered key still dies at the absolute ceiling', async () => {
   const dir = await tmp();
   await storeIdentity(dir, ID, 'AGE-SECRET-KEY-1TEST');
@@ -1633,16 +1655,28 @@ export async function shredExpired(dir: string, now: Date, policy: ShredPolicy):
     if (!entry.isFile || !entry.name.endsWith('.key')) continue;
     const sessionId = entry.name.slice(0, -'.key'.length);
 
-    let deadline: number;
+    // The absolute ceiling is computed FIRST and always applies. A key must
+    // never outlive it, whatever the marker says.
+    const info = await Deno.stat(`${dir}/${entry.name}`);
+    const born = info.mtime?.getTime() ?? 0;
+    let deadline = born + policy.absolute * DAY;
+
     try {
       const marker = await Deno.readTextFile(`${dir}/${sessionId}.delivered`);
-      deadline = new Date(marker.trim()).getTime() + policy.afterDelivery * DAY;
+      const delivered = new Date(marker.trim()).getTime();
+
+      // AMENDED 2026-08-11: an unparseable marker yields NaN, and EVERY
+      // comparison against NaN is false -- so `now >= deadline` would never
+      // fire and the key would live forever. A corrupt timestamp is exactly
+      // how the ceiling added to prevent immortal keys gets defeated.
+      // Number.isFinite is the guard; on failure we keep the absolute ceiling.
+      if (Number.isFinite(delivered)) {
+        // Whichever comes first. A delivered key must not gain time relative to
+        // an undelivered one just because delivery happened late.
+        deadline = Math.min(deadline, delivered + policy.afterDelivery * DAY);
+      }
     } catch {
-      // No marker: never delivered. Fall back to the absolute ceiling, measured
-      // from when the key arrived.
-      const info = await Deno.stat(`${dir}/${entry.name}`);
-      const born = info.mtime?.getTime() ?? 0;
-      deadline = born + policy.absolute * DAY;
+      // No marker: never delivered. The absolute ceiling already stands.
     }
 
     if (now.getTime() >= deadline) {
@@ -1965,6 +1999,29 @@ Deno.test('protectPdf - refuses an empty password rather than emitting plaintext
   const plain = await renderPdf(doc, dir);
   await assertRejects(() => protectPdf(plain, '', dir), Error, 'empty password');
 });
+
+// The @argfile is one argument per line. A newline in the password injects
+// qpdf arguments; \r is included because qpdf trims CR and a CRLF password
+// would otherwise split too.
+for (const [name, pw] of [['LF', 'a\n--decrypt'], ['CR', 'a\r--decrypt'], ['CRLF', 'a\r\n--decrypt']]) {
+  Deno.test(`protectPdf - refuses a password containing ${name}`, async () => {
+    const dir = await Deno.makeTempDir();
+    const plain = await renderPdf(doc, dir);
+    await assertRejects(() => protectPdf(plain, pw, dir), Error, 'line separator');
+  });
+}
+
+Deno.test('protectPdf - leaves no plaintext behind when it refuses', async () => {
+  const dir = await Deno.makeTempDir();
+  const plain = await renderPdf(doc, dir);
+  await assertRejects(() => protectPdf(plain, 'a\n--decrypt', dir));
+
+  // The decrypted PDF and the argfile must not survive a rejected call.
+  for await (const entry of Deno.readDir(dir)) {
+    assert(entry.name !== 'plain.pdf', 'decrypted PDF left in the working directory');
+    assert(entry.name !== 'qpdf.args', 'argument file left in the working directory');
+  }
+});
 ```
 
 - [ ] **Step 2: Run test to verify it fails**
@@ -1994,6 +2051,18 @@ Expected: FAIL — `romania/protect.ts` does not exist.
  */
 export async function protectPdf(pdf: Uint8Array, password: string, workDir: string): Promise<Uint8Array> {
   if (password.length === 0) throw new Error('empty password');
+
+  // AMENDED 2026-08-11. The @argfile format is ONE ARGUMENT PER LINE, so a
+  // password containing a newline does not merely corrupt the file -- it
+  // injects additional qpdf arguments. Moving the password off argv to fix an
+  // information leak introduced an injection vector in the same edit, which is
+  // its own lesson: a replacement that is "obviously safer" earns the same
+  // scrutiny as the thing it replaced.
+  //
+  // Rejected rather than stripped or escaped: the argfile format has no
+  // escaping, and silently altering someone's password would produce a PDF
+  // that does not open with what they typed.
+  if (/[\r\n]/.test(password)) throw new Error('password contains a line separator');
 
   const inPath = `${workDir}/plain.pdf`;
   const outPath = `${workDir}/protected.pdf`;
@@ -2197,10 +2266,27 @@ Expected: FAIL — `validateBundle` is not exported.
 
 - [ ] **Step 3: Implement the service**
 
-`validateBundle` returns `'ok'` or a reason string. The handler then: loads the
-identity, decrypts every answer and the address (and the password when present),
-renders, protects when a password was supplied, mails with the PDF attached,
-calls Iceland back to set `pdf_delivered_at`, and unlinks the tmpfs working
+`validateBundle` returns `'ok'` or a reason string. It must require **exactly 35
+answers with indices 0-34 in canonical order** — the same guarantee `buildBundle`
+now makes on the Iceland side. Checking it again at the Romania boundary is not
+redundant: Romania accepts bundles over the network, and a short or reordered
+one would otherwise render as a plausible-looking but wrong document.
+
+The handler then loads the identity and decrypts — but **not unconditionally**:
+
+```ts
+// AMENDED 2026-08-11: buildBundle synthesizes gaps as { ciphertext: '',
+// skipped: true }, so decrypting every entry would hand age an empty string
+// and fail the whole render for a question the respondent simply never reached.
+const entries = await Promise.all(bundle.answers.map(async (a) => ({
+  ...canonicalQuestion(a.questionIndex),
+  skipped: a.skipped,
+  answer: a.skipped || a.ciphertext === '' ? '' : await decrypt(a.ciphertext, identity),
+})));
+```
+
+Then: render, protect when a password was supplied, mail with the PDF attached,
+call Iceland back to set `pdf_delivered_at`, and unlink the tmpfs working
 directory in a `finally` block so plaintext never outlives the request.
 
 **Do not shred the key here.** The 7-day timer owns that.

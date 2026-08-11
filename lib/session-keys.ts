@@ -20,6 +20,30 @@ export interface SessionKeypair {
 export type IdentityTransport = (sessionId: string, identity: string) => Promise<void>;
 
 /**
+ * A push that failed after the transport had already started.
+ *
+ * `ambiguous` is the whole point. When ssh is killed at the deadline -- or dies
+ * mid-write, or the far end fills its disk -- Iceland cannot know whether the
+ * identity landed. `cat > file` may have created a complete key, a truncated
+ * one, or nothing at all, and the failure looks identical in every case.
+ *
+ * Callers must treat ambiguous === true as "Romania may be holding a key for a
+ * session that will never exist" and run their cleanup. Only a rejection that
+ * happens BEFORE any transport runs (a malformed session id) is unambiguous,
+ * because nothing was ever sent.
+ */
+export class IdentityPushFailed extends Error {
+  readonly ambiguous: boolean;
+
+  constructor(ambiguous: boolean) {
+    // Deliberately contentless: no identity, no session id, no callee message.
+    super('identity transport failed');
+    this.name = 'IdentityPushFailed';
+    this.ambiguous = ambiguous;
+  }
+}
+
+/**
  * Session ids are interpolated into a command that a REMOTE SHELL executes, so
  * they are validated against an allowlist before they can get near one.
  *
@@ -150,11 +174,17 @@ export async function pushIdentity(
   // Validated before ANY transport runs, including injected ones. A custom
   // transport is not automatically safer than the default, and this is the
   // single choke point every caller passes through.
+  //
+  // This throw is deliberately NOT an IdentityPushFailed: nothing has been sent
+  // yet, so there is nothing for a caller to clean up.
   assertSafeSessionId(sessionId);
+
   try {
     await transport(sessionId, identity);
   } catch {
-    // Re-thrown as a bare category so no callee message can carry key material.
-    throw new Error('identity transport failed');
+    // Everything past assertSafeSessionId is ambiguous. The transport ran; we
+    // do not know how far it got. Re-thrown as a bare category so no callee
+    // message can carry key material.
+    throw new IdentityPushFailed(true);
   }
 }

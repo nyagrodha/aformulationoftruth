@@ -10,7 +10,7 @@
 import { assert, assertEquals, assertRejects } from 'https://deno.land/std@0.208.0/assert/mod.ts';
 import { armor, Decrypter } from '@age/age-encryption';
 import { ageEncryptTo } from '../lib/age-encrypt.ts';
-import { generateSessionKeypair, pushIdentity } from '../lib/session-keys.ts';
+import { generateSessionKeypair, IdentityPushFailed, pushIdentity } from '../lib/session-keys.ts';
 
 Deno.test('generateSessionKeypair - keypair is usable and unique per call', async () => {
   const a = await generateSessionKeypair();
@@ -95,4 +95,34 @@ Deno.test('pushIdentity - accepts a real gate token', async () => {
     return Promise.resolve();
   });
   assert(ran, 'a legitimate UUID gate token must still be accepted');
+});
+
+// A failure AFTER the transport starts is ambiguous: ssh may have written a
+// complete key, a truncated one, or nothing. The caller must clean up, so the
+// error has to say so rather than looking like a clean refusal.
+Deno.test('pushIdentity - a transport failure is marked ambiguous', async () => {
+  const err = await pushIdentity(
+    '11111111-2222-3333-4444-555555555555',
+    'AGE-SECRET-KEY-1TEST',
+    () => Promise.reject(new Error('killed at deadline')),
+  )
+    .then(() => null, (e: unknown) => e);
+
+  assert(err instanceof IdentityPushFailed, 'must be an IdentityPushFailed');
+  assertEquals(err.ambiguous, true, 'Romania may be holding a key; caller must clean up');
+});
+
+// A malformed session id is rejected BEFORE anything is sent, so there is
+// nothing to clean up. Marking it ambiguous would send callers chasing a key
+// that was never pushed.
+Deno.test('pushIdentity - a rejected session id is not ambiguous', async () => {
+  let transportRan = false;
+  const err = await pushIdentity('../escape', 'AGE-SECRET-KEY-1TEST', () => {
+    transportRan = true;
+    return Promise.resolve();
+  }).then(() => null, (e: unknown) => e);
+
+  assert(err instanceof Error);
+  assert(!(err instanceof IdentityPushFailed), 'nothing was sent, so nothing is ambiguous');
+  assert(!transportRan, 'the transport must never run for a bad session id');
 });
