@@ -131,6 +131,14 @@ is recomputable forever by anyone holding `SECRET`, so every past day stays
 re-linkable and the daily rotation is decorative. Random-and-deleted means that
 once a salt is gone, its rows are opaque bytes even to us.
 
+**Known limit on the 48h guarantee.** Pruning happens in the request path,
+because this app has no scheduler and adding one is a larger decision than the
+feature warrants. If scanning stops, pruning stops with it, and salts outlive
+the window for as long as the route is idle — so the guarantee is "48 hours,
+provided the object is being scanned", not unconditionally. If the co-op node
+turns out to see long quiet stretches, move the `DELETE` to a scheduled UTC
+task; it is written to be safe to run from anywhere.
+
 ### Bots
 
 Link unfurlers (Signal, iMessage, WhatsApp, Slack) fetch a URL to build a

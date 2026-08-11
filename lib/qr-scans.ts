@@ -23,8 +23,16 @@ import type { PoolClient } from 'postgres';
 import { hmacSign, randomBytes } from './crypto.ts';
 import { withConnection } from './db.ts';
 
-/** How long a day's salt is retained. Past this, its rows are opaque forever. */
-export const SALT_RETENTION_DAYS = 2;
+/**
+ * Days of salt history kept *beyond today*. 1 retains today and yesterday,
+ * which bounds any salt's age at 48 hours; past that its rows are opaque
+ * forever, to us included.
+ *
+ * This was 2, which kept the day before yesterday as well and so retained up
+ * to 72 hours -- the guarantee the whole design rests on, quietly overshot by
+ * a day.
+ */
+export const SALT_RETENTION_DAYS = 1;
 
 /**
  * User-agent substrings belonging to link unfurlers and crawlers.
@@ -105,8 +113,16 @@ async function saltForDay(client: PoolClient, day: string): Promise<Uint8Array<A
     [day, randomBytes(32)],
   );
 
-  // Prune in the same path rather than on a schedule: no cron to forget, and
-  // the guarantee holds as long as the route is being hit at all.
+  // Pruned in the request path rather than on a schedule: there is no
+  // scheduler in this app, and adding one for this is a bigger decision than
+  // the feature warrants.
+  //
+  // KNOWN LIMIT, and it is a real one: if scanning stops, pruning stops with
+  // it, and salts outlive the 48h window for as long as the route is idle.
+  // The exposure is that someone with database access could recompute hashes
+  // for days that should have become unrecomputable. If this object turns out
+  // to see long quiet stretches, move this DELETE to a scheduled UTC task --
+  // it is written to be safe to run from anywhere.
   await client.queryObject(
     `DELETE FROM fresh_qr_salts WHERE day < ($1::date - $2::int)`,
     [day, SALT_RETENTION_DAYS],

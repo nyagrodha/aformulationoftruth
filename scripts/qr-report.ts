@@ -44,8 +44,11 @@ const SLUG = arg('slug', 'WillyStCo-op');
 const DAYS = Number(arg('days', '90'));
 const INCLUDE_BOTS = Deno.args.includes('--bots');
 
-if (!Number.isFinite(DAYS) || DAYS <= 0) {
-  console.error('--days must be a positive number');
+// Must be an int4: DAYS is cast to ::int in the query below, so a fractional
+// or oversized value reaches the operator as a raw Postgres cast error rather
+// than as the message here.
+if (!Number.isSafeInteger(DAYS) || DAYS <= 0 || DAYS > 2_147_483_647) {
+  console.error('--days must be a positive integer no greater than 2147483647');
   Deno.exit(2);
 }
 
@@ -64,7 +67,11 @@ const rows = await withConnection(async (client) => {
             COUNT(*) FILTER (WHERE bot)::bigint                    AS bots
        FROM fresh_qr_scans
       WHERE slug = $1
-        AND day >= (CURRENT_DATE - $2::int)
+        -- UTC, not CURRENT_DATE: the day column is bucketed in UTC, and
+        -- CURRENT_DATE follows the session timezone, so a non-UTC session
+        -- would silently shift the window by a day. DAYS - 1 so --days 90
+        -- covers ninety dates including today, not ninety-one.
+        AND day >= ((CURRENT_TIMESTAMP AT TIME ZONE 'UTC')::date - ($2::int - 1))
       GROUP BY day
       ORDER BY day`,
     [SLUG, DAYS, INCLUDE_BOTS],
