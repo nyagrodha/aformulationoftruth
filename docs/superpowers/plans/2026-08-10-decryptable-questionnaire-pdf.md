@@ -731,13 +731,18 @@ Deno.test('recipientsForSession - pairs the stored pubkey with break-glass', () 
   assertEquals(recipientsForSession('age1session', 'age1breakglass'), ['age1session', 'age1breakglass']);
 });
 
+// AMENDED 2026-08-11. recipientsForSession throws SYNCHRONOUSLY, so the
+// original assertRejects form was wrong twice over: the arrow threw before
+// Promise.resolve ran, and the un-awaited assertion escaped the test. Verified
+// against std 0.208 -- it does not merely false-pass, it raises an uncaught
+// "Function throws when expected to reject" that fails the whole module and
+// cancels sibling tests. Use assertThrows.
 Deno.test('recipientsForSession - refuses a session with no stored pubkey', () => {
-  assertRejects(
-    () => Promise.resolve(recipientsForSession(null, 'age1breakglass')),
-    Error,
-  );
+  assertThrows(() => recipientsForSession(null, 'age1breakglass'), Error, 'session has no pubkey');
 });
 ```
+
+Import `assertThrows` (not `assertRejects`) for this file.
 
 - [ ] **Step 2: Run test to verify it fails**
 
@@ -824,9 +829,14 @@ Deno.test('ConsentForm - works without JavaScript', () => {
   assert(!html.includes('onclick'), 'no inline JS handlers');
 });
 
+// AMENDED 2026-08-11. The original asserted !html.includes('required') across
+// the WHOLE form, which the radios legitimately violate -- a guaranteed red.
+// Scope the check to the password input itself.
 Deno.test('ConsentForm - password field is optional and not autofilled', () => {
   const html = render(<ConsentForm resumeToken='tok-1' />);
-  assert(!html.includes('required'), 'password must be optional');
+  const pw = html.slice(html.indexOf('type="password"'));
+  const pwTag = pw.slice(0, pw.indexOf('>'));
+  assert(!pwTag.includes('required'), 'password must be optional');
   assertStringIncludes(html, 'autocomplete="new-password"');
 });
 ```
@@ -852,10 +862,16 @@ export function ConsentForm({ resumeToken }: { resumeToken: string }) {
       <input type='hidden' name='resume_token' value={resumeToken} />
       <p class='consent-question'>Would you like a copy of your responses?</p>
 
-      <label class='consent-choice'>
-        <input type='radio' name='consent' value='yes' class='consent-yes' required />
-        <span>Yes, please</span>
-      </label>
+      {/*
+        AMENDED 2026-08-11. The radio must NOT be nested inside the label.
+        `.consent-yes:checked ~ .pw-panel` is a sibling combinator, and siblings
+        must share a parent -- with the input inside the label its only siblings
+        are the <span>, so the panel could never be revealed and the no-JS path
+        would silently have no password field at all. Input hoisted to the form,
+        label bound by `for`/`id`.
+      */}
+      <input type='radio' name='consent' value='yes' id='consent-yes' class='consent-yes' required />
+      <label class='consent-choice' for='consent-yes'>Yes, please</label>
 
       <div class='pw-panel'>
         <input
@@ -871,10 +887,8 @@ export function ConsentForm({ resumeToken }: { resumeToken: string }) {
         </p>
       </div>
 
-      <label class='consent-choice'>
-        <input type='radio' name='consent' value='no' required />
-        <span>No</span>
-      </label>
+      <input type='radio' name='consent' value='no' id='consent-no' required />
+      <label class='consent-choice' for='consent-no'>No</label>
 
       <button type='submit' class='cta cta-primary'>Send me a .pdf email</button>
     </form>
@@ -1032,9 +1046,14 @@ The handler: parse the form (both urlencoded and JSON, mirroring
 `gate-submit.ts:41`), resolve the session from `resume_token`, and on
 `consent=no` redirect to the deletion dialogue without contacting Romania. On
 `consent=yes`, encrypt any supplied password with `ageEncryptTo(password.normalize('NFC'), recipients)`,
-build the bundle, and `pushBundle` it. If Romania is unreachable, enqueue for
-retry and still return success to the respondent — their completion must not
-fail because the mesh hiccuped.
+build the bundle, and `pushBundle` it. If Romania is unreachable, enqueue the
+bundle via Task 8b and tell the respondent their copy is queued — **not** that
+it has been sent.
+
+> **AMENDED 2026-08-11.** This step originally read "enqueue for retry and still
+> return success", which named no queue and contradicted the plan's own
+> fail-closed constraint. Decision: build the queue for real (Task 8b) and never
+> claim delivery that has not happened.
 
 - [ ] **Step 4: Run tests**
 
@@ -1047,6 +1066,113 @@ Expected: PASS, 3 tests.
 deno fmt routes/api/responses/deliver.ts lib/romania-client.ts tests/deliver_bundle_test.ts
 git add routes/api/responses/deliver.ts lib/romania-client.ts tests/deliver_bundle_test.ts
 git commit -m "feat(deliver): assemble and push the canonical ciphertext bundle"
+```
+
+---
+
+## Task 8b: Durable delivery queue
+
+> **Added 2026-08-11.** Task 8 originally hand-waved "enqueue for retry" with no
+> queue anywhere in the plan. This task builds it.
+
+**Files:**
+
+- Create: `db/migrations/010_delivery_queue.sql`
+- Create: `lib/delivery-queue.ts`, `lib/delivery-worker.ts`
+- Test: `tests/delivery_queue_test.ts` (create)
+
+**Interfaces:**
+
+- Consumes: `DeliveryBundle` (Task 8)
+- Produces:
+  - `enqueue(bundle): Promise<void>`
+  - `nextAttemptAt(attempts: number, now: Date): Date` — pure, exponential backoff
+  - `claimDue(now, limit): Promise<QueuedBundle[]>`
+  - `recordFailure(id, now)` / `recordSuccess(id)`
+
+**Why queuing is safe here:** the bundle is ciphertext end to end. Iceland cannot
+read it, so parking it in Postgres leaks nothing that the answers table does not
+already hold. The queue stores no plaintext, no address, and no password.
+
+- [ ] **Step 1: Write the failing test**
+
+```ts
+// tests/delivery_queue_test.ts
+import { assertEquals } from 'https://deno.land/std@0.208.0/assert/mod.ts';
+import { DEAD_LETTER_AFTER, nextAttemptAt } from '../lib/delivery-queue.ts';
+
+const now = new Date('2026-08-11T00:00:00Z');
+
+Deno.test('nextAttemptAt - backs off exponentially', () => {
+  assertEquals(nextAttemptAt(0, now).toISOString(), '2026-08-11T00:01:00.000Z'); // 1m
+  assertEquals(nextAttemptAt(1, now).toISOString(), '2026-08-11T00:04:00.000Z'); // 4m
+  assertEquals(nextAttemptAt(2, now).toISOString(), '2026-08-11T00:16:00.000Z'); // 16m
+});
+
+Deno.test('nextAttemptAt - caps the interval so retries never stall for days', () => {
+  assertEquals(nextAttemptAt(99, now).toISOString(), '2026-08-11T06:00:00.000Z'); // 6h cap
+});
+
+Deno.test('dead-letters before the session key is shredded', () => {
+  // The key dies at 7 days (Task 10). A bundle still queued past that point can
+  // never be rendered, so it must dead-letter while a human can still act.
+  assertEquals(DEAD_LETTER_AFTER < 7, true);
+});
+```
+
+- [ ] **Step 2: Run test to verify it fails**
+
+Run: `deno test --allow-net --allow-read --allow-env tests/delivery_queue_test.ts`
+Expected: FAIL — `lib/delivery-queue.ts` does not exist.
+
+- [ ] **Step 3: Write the migration**
+
+```sql
+-- Durable delivery queue. Ciphertext only: nothing here is readable by Iceland.
+CREATE TABLE IF NOT EXISTS delivery_queue (
+  id              BIGSERIAL PRIMARY KEY,
+  gate_token      TEXT NOT NULL REFERENCES fresh_gate_responses (gate_token) ON DELETE CASCADE,
+  bundle          JSONB NOT NULL,
+  attempts        INT NOT NULL DEFAULT 0,
+  next_attempt_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  dead_lettered   BOOLEAN NOT NULL DEFAULT FALSE,
+  last_error      TEXT,
+  created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- One live queue entry per session; a re-send replaces rather than duplicates.
+CREATE UNIQUE INDEX IF NOT EXISTS idx_delivery_queue_live
+  ON delivery_queue (gate_token) WHERE NOT dead_lettered;
+
+CREATE INDEX IF NOT EXISTS idx_delivery_queue_due
+  ON delivery_queue (next_attempt_at) WHERE NOT dead_lettered;
+
+COMMENT ON COLUMN delivery_queue.last_error IS
+  'Failure CATEGORY only -- never a message that could quote bundle contents.';
+```
+
+- [ ] **Step 4: Implement backoff and the claim loop**
+
+`nextAttemptAt` is pure and therefore the only part worth unit-testing:
+backoff is `min(60s * 4^attempts, 6h)`. `DEAD_LETTER_AFTER = 5` days, chosen to
+land before the 7-day shred so a stuck bundle surfaces while its key still
+exists.
+
+`claimDue` must use `SELECT ... FOR UPDATE SKIP LOCKED` so two workers cannot
+claim the same row. `recordFailure` stores a failure *category*, never a raw
+error string — Romania's errors can quote request context.
+
+- [ ] **Step 5: Run tests**
+
+Run: `deno test --allow-net --allow-read --allow-env tests/delivery_queue_test.ts && deno check main.ts`
+Expected: PASS, 3 tests.
+
+- [ ] **Step 6: Commit**
+
+```bash
+deno fmt lib/delivery-queue.ts lib/delivery-worker.ts tests/delivery_queue_test.ts
+git add db/migrations/010_delivery_queue.sql lib/delivery-queue.ts lib/delivery-worker.ts tests/delivery_queue_test.ts
+git commit -m "feat(deliver): durable retry queue with dead-lettering before key shred"
 ```
 
 ---
@@ -1783,6 +1909,53 @@ git commit -m "docs(privacy): describe encrypted address storage truthfully"
 ```
 
 ---
+
+## Amendment log — 2026-08-11 (execution session 1)
+
+Tasks 1-3 are implemented and committed. Amendments made during execution:
+
+**Defects found by review, fixed in the plan above:**
+
+1. **Task 6's test broke its whole module.** `recipientsForSession` throws
+   synchronously; `assertRejects(() => Promise.resolve(...))` therefore threw
+   before the promise existed, and the un-awaited assertion escaped the test.
+   Verified against std 0.208: uncaught error, sibling tests cancelled. Now
+   `assertThrows`.
+2. **Task 7's CSS reveal could never fire.** The radio was nested inside its
+   `<label>`, so `.consent-yes:checked ~ .pw-panel` had no matching sibling. On
+   the no-JS path this means no password field, ever. Input hoisted out.
+3. **Task 7's test contradicted Task 7's markup** — `!html.includes('required')`
+   over the whole form, which both radios violate by design. Now scoped to the
+   password input.
+4. **Task 2 bounded the recipient list after parsing it.** Moved above the parse
+   loop; a limit that runs after the expensive work protects nothing.
+
+**Found during implementation, not predicted by the plan:**
+
+5. **`clippy --all-targets` catches what `cargo test` cannot.** Replacing
+   `iter::once(recipient)` with `refs.into_iter()` left `std::iter` unused in the
+   *bin* target while the test module still needed it. `cargo test` compiles the
+   test cfg and stayed green. Import scoped into `mod tests`.
+
+**BLOCKER for Task 5 and Task 15.** Both specify `deno task test` → PASS, which
+is currently impossible: `tests/integration_test.ts` fails type-check with 12
+`TS2345` errors (`Uint8Array<ArrayBufferLike>` vs `Uint8Array<ArrayBuffer>`, from
+TypeScript 5.7 making `Uint8Array` generic over its backing buffer). **Verified
+pre-existing** — identical 12 errors at `a1837e3`, before any work here. Unrelated
+to this feature, but it must be fixed or those gates can never go green.
+
+**Decisions taken (2026-08-11):**
+
+- **Break-glass custody:** keypair generated; recipient is
+  `age1f93924ka5fkrmnr5lunexq20wezslnguyqy6tzjarg8d2ec47gtqyycjn8`. The identity
+  was handed to the operator and is **not** stored in this repo, on Iceland, or
+  in any log. Set it as `BREAKGLASS_AGE_RECIPIENT` before Task 5 runs.
+- **Romania unreachable:** build a real durable queue (new **Task 8b**) rather
+  than reporting success for mail that never went out.
+- **Task 12 open concern (not yet actioned):** `qpdf --encrypt <pw> <pw> 256`
+  puts the PDF password in `argv`, readable from `/proc/<pid>/cmdline` by any
+  local user. Confirm the qpdf version on the Romania box and prefer stdin-based
+  password passing before implementing Task 12.
 
 ## Self-review notes
 
