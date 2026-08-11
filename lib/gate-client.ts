@@ -12,6 +12,15 @@ interface StoreAnswerParams {
   questionIndex: number;
   answer: string;
   skipped: boolean;
+  /**
+   * age recipients to encrypt this answer to.
+   *
+   * Omitted or empty means "use the Gate's configured default", which is how
+   * every answer worked before per-session keys and how sessions that predate
+   * them still work. A non-empty list is the session's own public key plus the
+   * offline break-glass key.
+   */
+  recipients?: string[];
 }
 
 interface StoreAnswerResult {
@@ -51,6 +60,7 @@ export async function storeEncryptedAnswer(
       question_index: params.questionIndex,
       answer: params.answer,
       skipped: params.skipped,
+      recipients: params.recipients ?? [],
     }),
   });
 

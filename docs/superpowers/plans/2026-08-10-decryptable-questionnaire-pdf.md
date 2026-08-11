@@ -523,12 +523,12 @@ duplicate numeric prefixes (two `001`, two `002`, two `003`, no `005`), so the
 runner is not keying on the prefix alone. Read `migrate.ts` and match its
 convention, or `009` may silently never run.
 
-- [ ] **Step 1: Read the migration runner**
+- [x] **Step 1: Read the migration runner**
 
 Run: `cat migrate.ts`
 Confirm: how files are discovered, ordered, and recorded as applied.
 
-- [ ] **Step 2: Write the migration**
+- [x] **Step 2: Write the migration**
 
 ```sql
 -- Session keys + PDF delivery
@@ -838,18 +838,31 @@ Add to `routes/api/questions/answer.ts`:
  * it reaches zero and stays there for longer than a session can live, delete
  * the branch and restore the throw.
  */
-export function recipientsForSession(sessionPubkey: string | null, breakglass: string): string[] {
+export function recipientsForSession(sessionPubkey: string | null, breakglass: () => string): string[] {
   if (!sessionPubkey) {
     increment('sessions.legacy_recipients');
     return [];
   }
-  return [sessionPubkey, breakglass];
+  // AMENDED during execution: a thunk, not a string. breakglassRecipient()
+  // throws when unconfigured, and an eagerly-evaluated argument threw on the
+  // legacy path too -- turning a missing env var into a failure for exactly
+  // the sessions that never needed the key.
+  return [sessionPubkey, breakglass()];
 }
 ```
 
-In the POST handler, load `session_pubkey` alongside the session and pass
-`recipients: recipientsForSession(session.sessionPubkey, breakglassRecipient())`
-into `storeEncryptedAnswer`.
+In the POST handler, resolve the pubkey and pass
+`recipients: recipientsForSession(sessionPubkey, breakglassRecipient)` into
+`storeEncryptedAnswer` — note the bare function reference, not a call.
+
+**AMENDED during execution:** the pubkey comes from a dedicated
+`getSessionPubkey(sessionId)` in `lib/questionnaire-session.ts`, _not_ from
+widening `getSessionByToken` / `getSessionById` / `findActiveSession`. Those
+three run on every answer and every resume; adding a join there means editing
+the hot path of a live questionnaire, and with no database available to test
+against, a mistake would break people mid-run. The separate query is additive —
+if its join is wrong it returns null, and the caller degrades to the legacy
+path rather than failing.
 
 **Consequence to carry into Task 8:** a legacy session's answers are encrypted
 to the global identity, so Romania cannot render them. `/api/responses/deliver`
