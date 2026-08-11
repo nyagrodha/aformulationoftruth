@@ -35,3 +35,24 @@ export async function ageEncrypt(
   const encrypted = await e.encrypt(plaintext);
   return armor.encode(encrypted);
 }
+
+/**
+ * Encrypt to several recipients at once. Any one of their identities opens the
+ * result; none of them can be derived from the ciphertext.
+ *
+ * Used for per-session encryption, where every answer goes to the respondent's
+ * session key AND the offline break-glass key. Refusing an empty list matters:
+ * age would otherwise produce a file nobody on earth can decrypt, and the
+ * failure would not surface until someone tried to read it months later.
+ */
+export async function ageEncryptTo(
+  plaintext: string,
+  recipients: string[],
+): Promise<string> {
+  if (recipients.length === 0) {
+    throw new Error('ageEncryptTo: no recipients');
+  }
+  const e = new Encrypter();
+  for (const r of recipients) e.addRecipient(r);
+  return armor.encode(await e.encrypt(plaintext));
+}
