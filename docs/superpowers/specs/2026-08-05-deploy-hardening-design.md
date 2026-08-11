@@ -48,11 +48,11 @@ Non-goal: zero-downtime deploys. A brief restart is acceptable.
 
 Each layer catches a different failure class. None subsumes another.
 
-| Layer | Catches | Runs |
-|---|---|---|
-| A. `deno check main.ts` in CI | boot-breaking imports | PR, before merge |
-| B. Caddy `file_server` for `/css/*` | stale `Content-Length` | always, by construction |
-| C. `deploy.sh` + `smoke.sh` | everything else, including unknowns | at deploy |
+| Layer                               | Catches                             | Runs                    |
+| ----------------------------------- | ----------------------------------- | ----------------------- |
+| A. `deno check main.ts` in CI       | boot-breaking imports               | PR, before merge        |
+| B. Caddy `file_server` for `/css/*` | stale `Content-Length`              | always, by construction |
+| C. `deploy.sh` + `smoke.sh`         | everything else, including unknowns | at deploy               |
 
 A prevents; B eliminates; C detects. Prevention only covers anticipated
 failures, which is exactly why C exists.
@@ -112,7 +112,7 @@ The split exists for a concrete reason: **bash reads a script incrementally, not
 all at once.** A deploy script inside the working tree would be rewritten by its
 own `git pull` mid-execution, and bash would resume reading at a byte offset
 into changed content. Keeping `deploy.sh` outside the tree makes that
-impossible. `smoke.sh` is invoked as a fresh process *after* the pull, so it is
+impossible. `smoke.sh` is invoked as a fresh process _after_ the pull, so it is
 always the version matching the code just deployed — versioning where it helps,
 without the self-rewrite hazard.
 
@@ -137,7 +137,7 @@ is strictly better than the manual sequence that caused the outage.
 **On smoke failure: report loudly and change nothing.** No auto-rollback.
 
 This incident is the argument: rollback would have reset to `e27764a`, which was
-*itself* the unbootable commit. Automated rollback assumes the previous state is
+_itself_ the unbootable commit. Automated rollback assumes the previous state is
 good, and that assumption was false here. A human reading a clear report decides
 better than a script acting on a false premise.
 
@@ -151,12 +151,12 @@ have reported the original outage as healthy.
 
 Targets, chosen for non-overlap:
 
-| Target | Proves |
-|---|---|
+| Target                            | Proves                           |
+| --------------------------------- | -------------------------------- |
 | `/api/health` (+ `"status":"ok"`) | Fresh alive **and** DB reachable |
-| `/` | HTML rendering |
-| `/gate` | route handler execution |
-| `/css/prolegomenon.css` | the Caddy static path |
+| `/`                               | HTML rendering                   |
+| `/gate`                           | route handler execution          |
+| `/css/prolegomenon.css`           | the Caddy static path            |
 
 `/gate` is chosen over `/about` because `/about` is a pure `PageShell` render
 with no handler, making it near-redundant with `/`, whereas `/gate` exports a
@@ -164,8 +164,8 @@ with no handler, making it near-redundant with `/`, whereas `/gate` exports a
 path does not touch the (currently crash-looping) gate encryption service —
 that `fetch` is in `POST` — so it imports no external instability.
 
-Following the philosophy stated in `scripts/check-zero-logging.sh` — *a checker
-that fires spuriously will be disabled, and then it protects no one* —
+Following the philosophy stated in `scripts/check-zero-logging.sh` — _a checker
+that fires spuriously will be disabled, and then it protects no one_ —
 assertions stay narrow and deterministic: status and exit code, one body key on
 `/api/health`, no timing thresholds, no content matching that ordinary copy
 edits would break.
