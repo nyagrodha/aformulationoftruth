@@ -11,7 +11,7 @@
 //!
 //! All input goes in encrypted; nothing leaves except an ack.
 
-use std::{env, iter, net::SocketAddr, sync::Arc, time::Duration};
+use std::{env, net::SocketAddr, sync::Arc, time::Duration};
 
 use axum::{
     extract::State,
@@ -45,6 +45,10 @@ struct StoreReq {
     answer: String,
     #[serde(default)]
     skipped: bool,
+    /// Per-session age recipients. Empty or omitted keeps the service default,
+    /// so callers predating session keys keep working unchanged.
+    #[serde(default)]
+    recipients: Vec<String>,
 }
 
 #[derive(Debug, Serialize)]
@@ -82,8 +86,19 @@ impl IntoResponse for AppError {
     }
 }
 
-fn armor_encrypt(plaintext: &str, recipient: &age::x25519::Recipient) -> Result<String, AppError> {
-    let encryptor = age::Encryptor::with_recipients(iter::once(recipient as &dyn age::Recipient))
+/// Encrypt to every supplied recipient. Any one of their identities opens the
+/// result. An empty list is rejected rather than silently producing a file no
+/// key can ever open.
+fn armor_encrypt(
+    plaintext: &str,
+    recipients: &[age::x25519::Recipient],
+) -> Result<String, AppError> {
+    if recipients.is_empty() {
+        return Err(AppError::Encryption("no recipients".into()));
+    }
+    let refs: Vec<&dyn age::Recipient> =
+        recipients.iter().map(|r| r as &dyn age::Recipient).collect();
+    let encryptor = age::Encryptor::with_recipients(refs.into_iter())
         .map_err(|e| AppError::Encryption(format!("encryptor init: {e}")))?;
 
     let mut encrypted: Vec<u8> = Vec::with_capacity(plaintext.len() + 256);
@@ -150,9 +165,28 @@ async fn store(
         return Err(AppError::Validation("answer too long".into()));
     }
 
+    // Bound the list BEFORE parsing it: parsing is the expensive part, so a
+    // check that runs afterwards is no protection at all.
+    if req.recipients.len() > 8 {
+        return Err(AppError::Validation("too many recipients".into()));
+    }
+
+    // Per-session recipients when the caller supplies them, else the service
+    // default. Parsing failures must abort: encrypting to a partial set would
+    // silently drop the break-glass key and make recovery impossible.
+    let recipients: Vec<age::x25519::Recipient> = if req.recipients.is_empty() {
+        vec![(*state.recipient).clone()]
+    } else {
+        req.recipients
+            .iter()
+            .map(|r| r.parse::<age::x25519::Recipient>())
+            .collect::<Result<Vec<_>, _>>()
+            .map_err(|_| AppError::Validation("bad recipient".into()))?
+    };
+
     // Encrypt the answer payload (empty string when skipped is still encrypted
     // so the row shape stays uniform and no plaintext side-channel exists).
-    let ciphertext = armor_encrypt(&req.answer, &state.recipient)?;
+    let ciphertext = armor_encrypt(&req.answer, &recipients)?;
 
     sqlx::query(
         r#"
@@ -267,4 +301,50 @@ async fn main() -> anyhow::Result<()> {
     axum::serve(listener, app).await?;
 
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    // Only the tests build a single-identity iterator now; the encrypt path
+    // collects a slice into trait-object refs instead.
+    use std::io::Read;
+    use std::iter;
+
+    fn parse(s: &str) -> age::x25519::Recipient {
+        s.parse().expect("valid recipient")
+    }
+
+    /// The whole point of the multi-recipient change: one ciphertext, two keys
+    /// that open it. The respondent's session identity is shredded after seven
+    /// days, so without the break-glass identity on the same file the data
+    /// would become permanently unreadable.
+    #[test]
+    fn encrypts_to_every_listed_recipient() {
+        let a = age::x25519::Identity::generate();
+        let b = age::x25519::Identity::generate();
+        let recipients = vec![
+            parse(&a.to_public().to_string()),
+            parse(&b.to_public().to_string()),
+        ];
+
+        let armored = armor_encrypt("intimate answer", &recipients).expect("encrypt");
+
+        for id in [&a, &b] {
+            let decryptor = age::Decryptor::new(age::armor::ArmoredReader::new(armored.as_bytes()))
+                .expect("decryptor");
+            let mut reader = decryptor
+                .decrypt(iter::once(id as &dyn age::Identity))
+                .expect("decrypt");
+            let mut out = String::new();
+            reader.read_to_string(&mut out).expect("read");
+            assert_eq!(out, "intimate answer");
+        }
+    }
+
+    /// An empty list must be an error, not a well-formed file with no way in.
+    #[test]
+    fn refuses_an_empty_recipient_list() {
+        assert!(armor_encrypt("x", &[]).is_err());
+    }
 }
