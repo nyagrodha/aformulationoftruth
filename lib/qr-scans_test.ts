@@ -1,5 +1,5 @@
-import { assert, assertEquals, assertNotEquals } from '$std/assert/mod.ts';
-import { isBotUserAgent, utcDay, visitorHash } from './qr-scans.ts';
+import { assert, assertEquals, assertNotEquals, assertRejects } from '$std/assert/mod.ts';
+import { isBotUserAgent, utcDay, visitorHash, withDeadline } from './qr-scans.ts';
 
 const SALT_A = new Uint8Array(32).fill(1);
 const SALT_B = new Uint8Array(32).fill(2);
@@ -62,6 +62,45 @@ Deno.test('the hash is hex and reveals nothing of its length', async () => {
   const long = await visitorHash(SALT_A, '203.0.113.7', PHONE.repeat(4));
   assertEquals(short.length, long.length);
   assert(/^[0-9a-f]+$/.test(short), short);
+});
+
+// --- deadline -------------------------------------------------------------
+
+Deno.test('work that finishes in time passes its value through', async () => {
+  assertEquals(await withDeadline(Promise.resolve('done'), 1000), 'done');
+});
+
+// A rejection must stay a rejection rather than being flattened into the
+// deadline case: the caller distinguishes them only by not caring, and a
+// future caller might.
+Deno.test('work that fails in time still rejects', async () => {
+  await assertRejects(() => withDeadline(Promise.reject(new Error('boom')), 1000), Error, 'boom');
+});
+
+// The case the try/catch around recordScan cannot cover. A rejecting database
+// is caught; a *stalled* one is not, and without this the handler waits on it
+// and the scanner never receives the redirect.
+Deno.test('work that stalls past the deadline rejects instead of hanging', async () => {
+  const stalled = new Promise<never>(() => {}); // never settles
+  await assertRejects(() => withDeadline(stalled, 20), Error, 'deadline');
+});
+
+// A timer left armed keeps the process alive and trips Deno's leak detector;
+// this test fails outright if the timer is not cleared on the fast path.
+Deno.test('the deadline timer is cleared when work wins', async () => {
+  await withDeadline(Promise.resolve(1), 60_000);
+});
+
+// Promise.race attaches a handler to both, so a late rejection from abandoned
+// work must not surface as an unhandled rejection and kill the process.
+Deno.test('work rejecting after the deadline does not go unhandled', async () => {
+  let failLate: (e: Error) => void = () => {};
+  const late = new Promise<never>((_, reject) => {
+    failLate = reject;
+  });
+  await assertRejects(() => withDeadline(late, 10), Error, 'deadline');
+  failLate(new Error('too late'));
+  await new Promise((r) => setTimeout(r, 20));
 });
 
 // --- bot detection --------------------------------------------------------

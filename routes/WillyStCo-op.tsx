@@ -23,10 +23,17 @@
 import { Handlers } from '$fresh/server.ts';
 import { getClientIp } from '../lib/client-ip.ts';
 import { increment } from '../lib/metrics.ts';
-import { recordScan } from '../lib/qr-scans.ts';
+import { recordScan, withDeadline } from '../lib/qr-scans.ts';
 
 /** Matches the counter's slug column; also the name of this file's route. */
 const SLUG = 'WillyStCo-op';
+
+/**
+ * How long the redirect will wait on the counter. Generous for a single
+ * INSERT on a warm pool, short enough that a stalled database costs the
+ * scanner a beat rather than the page.
+ */
+const RECORD_DEADLINE_MS = 1500;
 
 /** Same shape tools/seed-wearable.ts mints and /w/[token] accepts. */
 const TOKEN_PATTERN = /^[A-Za-z0-9_-]{16,64}$/;
@@ -54,10 +61,17 @@ export const handler: Handlers = {
     const remoteHost = (ctx as { remoteAddr?: { hostname?: string } }).remoteAddr?.hostname;
 
     try {
-      await recordScan(
-        SLUG,
-        getClientIp(req, remoteHost),
-        req.headers.get('user-agent') ?? '',
+      // Bounded, not merely wrapped. try/catch handles a database that fails;
+      // it does nothing for one that stalls, and a stalled pool would hold the
+      // redirect until an upstream timeout -- leaving someone standing in a
+      // shop looking at a spinner. Losing a count is the cheaper failure.
+      await withDeadline(
+        recordScan(
+          SLUG,
+          getClientIp(req, remoteHost),
+          req.headers.get('user-agent') ?? '',
+        ),
+        RECORD_DEADLINE_MS,
       );
       increment('qr.scan.recorded');
     } catch {

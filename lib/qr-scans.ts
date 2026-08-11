@@ -63,6 +63,34 @@ export const BOT_USER_AGENT_MARKERS = [
   'headlesschrome',
 ];
 
+/**
+ * Reject if `work` has not settled within `ms`.
+ *
+ * Wrapping recordScan in try/catch handles a database that *fails*. It does
+ * nothing for one that *stalls* -- an exhausted pool or a query with no
+ * statement timeout never rejects, so the handler would wait on it and the
+ * scanner would never receive their redirect. That is a worse failure than
+ * the one the try/catch was written for, because it is silent from both ends.
+ *
+ * The abandoned work is not cancelled -- deno-postgres exposes no cancellation
+ * -- so the query runs to completion against a connection nobody is waiting
+ * on. That is acceptable here: the row is idempotent and the pool reclaims the
+ * connection. Promise.race attaches a handler to both sides, so a late
+ * rejection from the abandoned work is already handled and cannot surface as
+ * an unhandled rejection.
+ */
+export function withDeadline<T>(work: Promise<T>, ms: number): Promise<T> {
+  // Not `number`: nodeModulesDir puts Node's typings in scope, where
+  // setTimeout returns a Timeout object rather than a handle.
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const deadline = new Promise<never>((_, reject) => {
+    timer = setTimeout(() => reject(new Error('deadline')), ms);
+  });
+  // clearTimeout on both paths: an armed timer holds the process open and
+  // trips Deno's leak detector in tests.
+  return Promise.race([work, deadline]).finally(() => clearTimeout(timer));
+}
+
 /** The UTC calendar day a timestamp falls in, as YYYY-MM-DD. */
 export function utcDay(now: Date): string {
   return now.toISOString().slice(0, 10);

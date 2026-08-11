@@ -1,7 +1,9 @@
 # Co-op QR scan counting
 
 **Date:** 2026-08-11
-**Status:** approved, not implemented
+**Status:** implemented — migration, recorder, route and CLI all landed.
+Two operator steps remain before it records anything: apply migration 009, and
+seed the co-op wearable so `COOP_WEARABLE_TOKEN` is set (see Configuration).
 **Scope:** this repo only. The firmware half is
 `heltec-dd-node/docs/superpowers/specs/2026-08-11-coop-oled-content-rotation-design.md`.
 
