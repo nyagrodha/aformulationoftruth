@@ -94,9 +94,13 @@ if (rows.length === 0) {
   Deno.exit(0);
 }
 
-const totalVisitors = rows.reduce((n, r) => n + Number(r.visitors), 0);
-const totalScans = rows.reduce((n, r) => n + Number(r.scans), 0);
-const totalBots = rows.reduce((n, r) => n + Number(r.bots), 0);
+// Accumulated as bigint because that is what the driver hands back for these
+// aggregates. Not a realistic overflow risk at co-op foot traffic -- it would
+// take 2^53 scans -- but converting to Number here and back to string for
+// display just mixes the two representations for no gain.
+const totalVisitors = rows.reduce((n, r) => n + r.visitors, 0n);
+const totalScans = rows.reduce((n, r) => n + r.scans, 0n);
+const totalBots = rows.reduce((n, r) => n + r.bots, 0n);
 const iso = (d: Date) => d.toISOString().slice(0, 10);
 
 console.log('');
