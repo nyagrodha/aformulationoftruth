@@ -622,7 +622,7 @@ git commit -m "feat(db): session pubkeys, encrypted email, resend tokens"
 Step 2 stores any answer. Today Step 2 (store) precedes Step 3 (magic link);
 the push becomes the new first point of failure.
 
-- [ ] **Step 1: Add recipients to the gate client**
+- [x] **Step 1: Add recipients to the gate client**
 
 In `lib/gate-client.ts`, extend `StoreAnswerParams` and the request body:
 
@@ -644,7 +644,7 @@ and inside the `JSON.stringify` body, add:
 recipients: params.recipients ?? [],
 ```
 
-- [ ] **Step 2: Write the failing test**
+- [x] **Step 2: Write the failing test**
 
 ```ts
 // tests/gate_submit_keys_test.ts
@@ -669,13 +669,13 @@ Deno.test('gate-submit crypto contract - address is recoverable only with the se
 });
 ```
 
-- [ ] **Step 3: Run test to verify it fails**
+- [x] **Step 3: Run test to verify it fails**
 
 Run: `deno test --allow-net --allow-read --allow-env tests/gate_submit_keys_test.ts`
 Expected: FAIL until Tasks 1 and 3 are merged; PASS afterwards. If it already
 passes, that is fine — it pins the contract the route must honour.
 
-- [ ] **Step 4: Wire the route**
+- [x] **Step 4: Wire the route**
 
 In `routes/api/gate-submit.ts`, immediately after `const gateToken = crypto.randomUUID();`
 insert:
@@ -760,12 +760,12 @@ import { ageEncryptTo } from '../../lib/age-encrypt.ts';
 import { breakglassRecipient, generateSessionKeypair, pushIdentity } from '../../lib/session-keys.ts';
 ```
 
-- [ ] **Step 5: Run the full suite and the logging check**
+- [x] **Step 5: Run the full suite and the logging check**
 
 Run: `deno task test && ./scripts/check-zero-logging.sh && deno check main.ts`
 Expected: PASS. No new log line mentions the address, an answer, or a key.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 deno fmt routes/api/gate-submit.ts lib/gate-client.ts tests/gate_submit_keys_test.ts

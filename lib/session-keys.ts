@@ -185,6 +185,60 @@ const scpTransport: IdentityTransport = async (sessionId, identity) => {
   }
 };
 
+/**
+ * Withdraw a session identity from the key box.
+ *
+ * Called when a submission fails *after* its key was pushed -- including when
+ * the push itself failed ambiguously, since a killed `cat > file` may have left
+ * a complete or truncated key behind. Without this, the key box accumulates
+ * identities for sessions that never came into being.
+ *
+ * Deliberately best-effort: the caller is already failing a submission and must
+ * not fail differently because the withdrawal also failed. A key that survives
+ * this is collected by the keystore's absolute expiry ceiling, which exists
+ * precisely as the backstop for this path.
+ *
+ * `rm -f` so a key that never landed is not an error.
+ */
+export async function shredRemoteIdentity(
+  sessionId: string,
+  transport?: (sessionId: string) => Promise<void>,
+): Promise<void> {
+  // Validated before anything runs, exactly as pushIdentity does: this also
+  // builds a remote shell command, and an unvalidated id here would delete
+  // paths outside the key directory.
+  assertSafeSessionId(sessionId);
+
+  const run = transport ?? (async (id: string) => {
+    if (!KEYBOX_SSH || !KEYBOX_KEY_DIR) throw new Error('key box transport not configured');
+    const res = await new Deno.Command('ssh', {
+      args: [
+        '-i',
+        KEYBOX_SSH_KEY,
+        '-o',
+        'IdentitiesOnly=yes',
+        '-o',
+        'StrictHostKeyChecking=yes',
+        '-o',
+        'BatchMode=yes',
+        '-o',
+        'ConnectTimeout=10',
+        KEYBOX_SSH,
+        `rm -f '${KEYBOX_KEY_DIR}/${id}.key'`,
+      ],
+      stdout: 'null',
+      stderr: 'null',
+    }).output();
+    if (!res.success) throw new Error('identity withdrawal failed');
+  });
+
+  try {
+    await run(sessionId);
+  } catch {
+    // Swallowed on purpose -- see above.
+  }
+}
+
 export async function pushIdentity(
   sessionId: string,
   identity: string,
