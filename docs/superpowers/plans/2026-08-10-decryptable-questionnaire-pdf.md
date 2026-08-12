@@ -417,9 +417,9 @@ export function assertSafeSessionId(sessionId: string): void {
   if (!SESSION_ID.test(sessionId)) throw new Error('invalid session id');
 }
 
-const ROMANIA_SSH = Deno.env.get('ROMANIA_SSH_DEST') || '';
-const ROMANIA_KEY_DIR = Deno.env.get('ROMANIA_KEY_DIR') || '';
-const ROMANIA_SSH_KEY = Deno.env.get('ROMANIA_SSH_KEY') || '';
+const KEYBOX_SSH = Deno.env.get('ICELANDonion_SSH_DEST') || '';
+const KEYBOX_KEY_DIR = Deno.env.get('ICELANDonion_KEY_DIR') || '';
+const KEYBOX_SSH_KEY = Deno.env.get('ICELANDonion_SSH_KEY') || '';
 
 export async function generateSessionKeypair(): Promise<SessionKeypair> {
   const identity = await generateX25519Identity();
@@ -444,24 +444,24 @@ export function breakglassRecipient(): string {
  */
 const scpTransport: IdentityTransport = async (sessionId, identity) => {
   assertSafeSessionId(sessionId); // builds a remote shell command; checks itself
-  if (!ROMANIA_SSH || !ROMANIA_KEY_DIR) {
+  if (!KEYBOX_SSH || !KEYBOX_KEY_DIR) {
     throw new Error('Romania transport not configured');
   }
   const cmd = new Deno.Command('ssh', {
     args: [
       '-i',
-      ROMANIA_SSH_KEY,
+      KEYBOX_SSH_KEY,
       '-o',
       'IdentitiesOnly=yes',
       '-o',
       'StrictHostKeyChecking=yes',
       '-o',
       'ConnectTimeout=10',
-      ROMANIA_SSH,
+      KEYBOX_SSH,
       // Quoted as belt-and-braces: the allowlist already excludes every
       // metacharacter, so a future widening degrades to a wrong filename
       // rather than to remote execution.
-      `umask 077 && cat > '${ROMANIA_KEY_DIR}/${sessionId}.key'`,
+      `umask 077 && cat > '${KEYBOX_KEY_DIR}/${sessionId}.key'`,
     ],
     stdin: 'piped',
     stdout: 'null',

