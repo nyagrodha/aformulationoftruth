@@ -570,7 +570,7 @@ CREATE INDEX IF NOT EXISTS idx_fresh_gate_responses_undelivered
   WHERE pdf_delivered_at IS NULL;
 ```
 
-- [ ] **Step 3: Apply against a scratch database and verify**
+- [x] **Step 3: Apply against a scratch database and verify**
 
 Run:
 
@@ -591,12 +591,12 @@ psql "$SCRATCH_DB" -c "\d pdf_resend_tokens"
 
 Expected: all three columns listed; `pdf_resend_tokens` exists.
 
-- [ ] **Step 4: Verify idempotency**
+- [x] **Step 4: Verify idempotency**
 
 Run: `psql "$SCRATCH_DB" -f db/migrations/010_session_keys.sql`
 Expected: succeeds a second time with no error.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add db/migrations/010_session_keys.sql
@@ -884,7 +884,7 @@ a queue they cannot see.
 Run: `deno test --allow-net --allow-read --allow-env tests/answer_recipients_test.ts && deno check main.ts`
 Expected: PASS, 3 tests.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 deno fmt routes/api/questions/answer.ts tests/answer_recipients_test.ts
@@ -1214,7 +1214,7 @@ it has been sent.
 Run: `deno test --allow-net --allow-read --allow-env tests/deliver_bundle_test.ts && deno check main.ts`
 Expected: PASS, 3 tests.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 deno fmt routes/api/responses/deliver.ts lib/romania-client.ts tests/deliver_bundle_test.ts
@@ -1439,7 +1439,7 @@ same class of lie as the privacy copy this design already had to correct.
 Run: `deno test --allow-net --allow-read --allow-env tests/resend_token_test.ts && deno check main.ts`
 Expected: PASS, 3 tests.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 deno fmt routes/api/responses/
@@ -1693,7 +1693,7 @@ export async function shredExpired(dir: string, now: Date, policy: ShredPolicy):
 Run: `deno test --allow-read --allow-write romania/tests/keystore_test.ts`
 Expected: PASS, 7 tests.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 deno fmt romania/
@@ -2125,7 +2125,7 @@ export async function protectPdf(pdf: Uint8Array, password: string, workDir: str
 Run: `deno test --allow-read --allow-write --allow-run romania/tests/protect_test.ts`
 Expected: PASS, 3 tests.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 deno fmt romania/protect.ts romania/tests/protect_test.ts
