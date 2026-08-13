@@ -11,6 +11,7 @@
  */
 
 import { generateX25519Identity, identityToRecipient } from '@age/age-encryption';
+import { increment } from './metrics.ts';
 
 export interface SessionKeypair {
   identity: string;
@@ -70,10 +71,11 @@ export function assertSafeSessionId(sessionId: string): void {
 /*
  * The key box: wherever session identities are pushed to live.
  *
- * The design calls this "Romania" and the env vars said ROMANIA_*, but that
- * host is not reachable -- `fib.aformulationiontruth.com` has no DNS record at
- * all, and the box answering on the apex accepts no key we hold. The role has
- * therefore moved to the Iceland onion host for now.
+ * The env vars are ICELANDonion_* for historical reasons: the role passed
+ * through the Iceland onion host while the Romania box was unreachable. It now
+ * runs on Romania again -- aformulationiontruth.com:2078, Debian, no database
+ * -- reached via the apex because `fib.aformulationiontruth.com` still has no
+ * DNS record despite the design naming it throughout.
  *
  * The constants are named KEYBOX_* rather than after any particular site: the
  * role has already relocated once, and code that hardcodes a country in its
@@ -89,6 +91,12 @@ export function assertSafeSessionId(sessionId: string): void {
 const KEYBOX_SSH = Deno.env.get('ICELANDonion_SSH_DEST') || '';
 const KEYBOX_KEY_DIR = Deno.env.get('ICELANDonion_KEY_DIR') || '';
 const KEYBOX_SSH_KEY = Deno.env.get('ICELANDonion_SSH_KEY') || '';
+/**
+ * Non-standard ports are the norm here, not the exception: the key box listens
+ * on 2078. Defaulting to 22 silently dials the wrong port and surfaces as a
+ * connection failure that looks like the box being down.
+ */
+const KEYBOX_SSH_PORT = Deno.env.get('ICELANDonion_SSH_PORT') || '22';
 
 export async function generateSessionKeypair(): Promise<SessionKeypair> {
   const identity = await generateX25519Identity();
@@ -137,6 +145,8 @@ const scpTransport: IdentityTransport = async (sessionId, identity) => {
   }
   const cmd = new Deno.Command('ssh', {
     args: [
+      '-p',
+      KEYBOX_SSH_PORT,
       '-i',
       KEYBOX_SSH_KEY,
       '-o',
@@ -213,6 +223,8 @@ export async function shredRemoteIdentity(
     if (!KEYBOX_SSH || !KEYBOX_KEY_DIR) throw new Error('key box transport not configured');
     const res = await new Deno.Command('ssh', {
       args: [
+        '-p',
+        KEYBOX_SSH_PORT,
         '-i',
         KEYBOX_SSH_KEY,
         '-o',
@@ -235,7 +247,12 @@ export async function shredRemoteIdentity(
   try {
     await run(sessionId);
   } catch {
-    // Swallowed on purpose -- see above.
+    // Swallowed on purpose -- see above -- but COUNTED. Silent best-effort is
+    // how a permanently broken withdrawal path stays invisible: every call
+    // looks identical whether it worked or not. This metric is the only signal
+    // that keys are accumulating on the key box, and the absolute expiry
+    // ceiling is what stops that being unbounded.
+    increment('keybox.withdraw_failed');
   }
 }
 
