@@ -1733,7 +1733,7 @@ If `json()` turns out to resolve relative to the _file_ rather than the root,
 the fix is one line (template and data are already siblings), but find that out
 here rather than in Task 14.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 // romania/tests/render_test.ts
@@ -1793,12 +1793,12 @@ Deno.test('renderPdf - skipped questions still appear', async () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `deno test --allow-read --allow-write --allow-run romania/tests/render_test.ts`
 Expected: FAIL — `romania/render.ts` does not exist.
 
-- [ ] **Step 3: Write the template**
+- [x] **Step 3: Write the template**
 
 ```typst
 // romania/template.typ
@@ -1843,7 +1843,7 @@ Expected: FAIL — `romania/render.ts` does not exist.
 ]
 ```
 
-- [ ] **Step 4: Implement the runner**
+- [x] **Step 4: Implement the runner**
 
 ```ts
 // romania/render.ts
@@ -1903,18 +1903,18 @@ export async function renderPdf(doc: RenderDoc, workDir: string): Promise<Uint8A
 }
 ```
 
-- [ ] **Step 5: Run tests**
+- [x] **Step 5: Run tests**
 
 Run: `deno test --allow-read --allow-write --allow-run romania/tests/render_test.ts`
 Expected: PASS, 2 tests.
 
-- [ ] **Step 6: Inspect the output by eye**
+- [x] **Step 6: Inspect the output by eye**
 
 Render the fixture, open the PDF, and confirm Tamil conjuncts are shaped
 correctly rather than shown as separate or dotted-circle glyphs. **No automated
 test catches broken shaping.**
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 deno fmt romania/render.ts romania/tests/render_test.ts
@@ -1936,7 +1936,7 @@ git commit -m "feat(romania): typeset the questionnaire PDF with Typst"
 - Consumes: `renderPdf` output (Task 11)
 - Produces: `protectPdf(pdf: Uint8Array, password: string, workDir: string): Promise<Uint8Array>` — AES-256, user password, verified openable before returning. Throws on any failure; **never returns the unprotected input.**
 
-- [ ] **Step 0: Pin qpdf and confirm its flag syntax**
+- [x] **Step 0: Pin qpdf and confirm its flag syntax**
 
 qpdf was not installed on the authoring machine, so the three flags this task
 depends on are unverified. Confirm all of them before writing code — the
@@ -1952,7 +1952,7 @@ qpdf --help=usage      | grep -E 'password-file|@filename'
 If `--password-file=-` is unavailable in the pinned build, the fallback is a
 `0600` file path rather than `-`. Do **not** fall back to putting it on argv.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 // romania/tests/protect_test.ts
@@ -2024,12 +2024,12 @@ Deno.test('protectPdf - leaves no plaintext behind when it refuses', async () =>
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `deno test --allow-read --allow-write --allow-run romania/tests/protect_test.ts`
 Expected: FAIL — `romania/protect.ts` does not exist.
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 ```ts
 // romania/protect.ts
@@ -2120,7 +2120,7 @@ export async function protectPdf(pdf: Uint8Array, password: string, workDir: str
 }
 ```
 
-- [ ] **Step 4: Run tests**
+- [x] **Step 4: Run tests**
 
 Run: `deno test --allow-read --allow-write --allow-run romania/tests/protect_test.ts`
 Expected: PASS, 3 tests.
