@@ -30,13 +30,23 @@ import { pruneSalts, saltCutoffDay } from '../lib/qr-scans.ts';
 
 // Match migrate.ts and the other operator scripts: load env so DATABASE_URL
 // is present when this runs from a unit file with a minimal environment.
+//
+// Unlike those scripts, the real environment WINS over the dotenv files. This
+// job deletes rows, and a stale .env in the working directory pointing at a
+// different database would make it delete the wrong ones. The unit file
+// deliberately sets no EnvironmentFile today, so nothing is inherited -- this
+// is here so that adding one later is safe rather than silently destructive.
+const inherited = new Set(Object.keys(Deno.env.toObject()));
 for (const envFile of ['.env.fresh', '.env']) {
   try {
     for (const line of (await Deno.readTextFile(envFile)).split('\n')) {
       const t = line.trim();
       if (t && !t.startsWith('#')) {
         const i = t.indexOf('=');
-        if (i > 0) Deno.env.set(t.slice(0, i).trim(), t.slice(i + 1).trim());
+        if (i > 0) {
+          const key = t.slice(0, i).trim();
+          if (!inherited.has(key)) Deno.env.set(key, t.slice(i + 1).trim());
+        }
       }
     }
   } catch { /* file optional */ }
@@ -53,7 +63,10 @@ try {
   console.error(
     `[prune-qr-salts] FAILED: ${err instanceof Error ? err.name : 'error'}`,
   );
-  Deno.exit(1);
+  // exitCode, not exit(): Deno.exit() terminates immediately and the finally
+  // below never runs, leaking the pool connection on exactly the path where
+  // the database is already unhappy.
+  Deno.exitCode = 1;
 } finally {
   await closePool();
 }

@@ -125,8 +125,9 @@ this machinery.
 On the first visit of a UTC day, generate 32 random bytes and
 `INSERT ... ON CONFLICT (day) DO NOTHING`, then `SELECT` the winner — the
 conflict path is what makes two simultaneous first-visits agree on one salt
-instead of racing. The same code path prunes:
-`DELETE FROM fresh_qr_salts WHERE day < CURRENT_DATE - 1`.
+instead of racing. That path also prunes opportunistically, using the same
+`SALT_PRUNE_SQL` (`DELETE FROM fresh_qr_salts WHERE day < $1`) the timer runs,
+parameterised with `saltCutoffDay()` — see "Pruning runs on a timer" below.
 
 Deriving the salt from a long-lived secret was rejected. `HMAC(SECRET, date)`
 is recomputable forever by anyone holding `SECRET`, so every past day stays
