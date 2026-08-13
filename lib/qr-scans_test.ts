@@ -1,5 +1,5 @@
 import { assert, assertEquals, assertNotEquals, assertRejects } from '$std/assert/mod.ts';
-import { isBotUserAgent, utcDay, visitorHash, withDeadline } from './qr-scans.ts';
+import { isBotUserAgent, saltCutoffDay, utcDay, visitorHash, withDeadline } from './qr-scans.ts';
 
 const SALT_A = new Uint8Array(32).fill(1);
 const SALT_B = new Uint8Array(32).fill(2);
@@ -17,6 +17,38 @@ Deno.test('utcDay formats as YYYY-MM-DD', () => {
 Deno.test('utcDay uses UTC, not the host timezone', () => {
   assertEquals(utcDay(new Date('2026-08-11T23:59:59Z')), '2026-08-11');
   assertEquals(utcDay(new Date('2026-08-12T00:00:00Z')), '2026-08-12');
+});
+
+// --- saltCutoffDay --------------------------------------------------------
+
+// Salts strictly before the cutoff are deleted, so the cutoff is yesterday:
+// today and yesterday survive, bounding any salt's age at 48 hours.
+Deno.test('the cutoff is yesterday, so today and yesterday survive', () => {
+  assertEquals(saltCutoffDay(new Date('2026-08-13T02:22:00Z')), '2026-08-12');
+});
+
+// The live case that prompted moving this off the request path: on Aug 13 an
+// Aug 11 salt must be deleted, and it was not, because nothing had visited.
+Deno.test('a two-day-old salt falls before the cutoff', () => {
+  const cutoff = saltCutoffDay(new Date('2026-08-13T02:22:00Z'));
+  assert('2026-08-11' < cutoff, `2026-08-11 should sort before ${cutoff}`);
+  assertEquals('2026-08-12' < cutoff, false); // yesterday is kept
+  assertEquals('2026-08-13' < cutoff, false); // today is kept
+});
+
+// Computed in TS from UTC rather than in SQL from CURRENT_DATE, which follows
+// the database session's timezone and would shift the window by a day.
+Deno.test('the cutoff is UTC, and late-evening UTC does not roll it early', () => {
+  assertEquals(saltCutoffDay(new Date('2026-08-13T23:59:59Z')), '2026-08-12');
+  assertEquals(saltCutoffDay(new Date('2026-08-13T00:00:00Z')), '2026-08-12');
+});
+
+Deno.test('the cutoff crosses a month boundary', () => {
+  assertEquals(saltCutoffDay(new Date('2026-08-01T09:00:00Z')), '2026-07-31');
+});
+
+Deno.test('the cutoff crosses a year boundary', () => {
+  assertEquals(saltCutoffDay(new Date('2027-01-01T09:00:00Z')), '2026-12-31');
 });
 
 // --- visitorHash ----------------------------------------------------------

@@ -97,6 +97,20 @@ export function utcDay(now: Date): string {
 }
 
 /**
+ * Salts for days strictly before this are deleted. With SALT_RETENTION_DAYS=1
+ * that is yesterday, so today and yesterday survive and no salt outlives 48h.
+ *
+ * Derived in TypeScript from UTC rather than in SQL from CURRENT_DATE, which
+ * follows the database session's timezone and would shift the window by a day
+ * on a non-UTC session -- the same trap the report query hit.
+ */
+export function saltCutoffDay(now: Date): string {
+  const cutoff = new Date(now);
+  cutoff.setUTCDate(cutoff.getUTCDate() - SALT_RETENTION_DAYS);
+  return utcDay(cutoff);
+}
+
+/**
  * Whether a user agent looks like an automated fetch rather than a person.
  *
  * An empty user agent is deliberately NOT treated as a bot. Privacy-hardened
@@ -125,6 +139,29 @@ export function visitorHash(
   return hmacSign(`${ip}\n${userAgent}`, salt);
 }
 
+/** One definition of the prune, shared by the request path and the timer. */
+const SALT_PRUNE_SQL = `DELETE FROM fresh_qr_salts WHERE day < $1`;
+
+/**
+ * Delete every salt older than the retention window, on its own connection.
+ *
+ * This is the scheduled entry point (scripts/prune-qr-salts.ts). It exists
+ * because pruning inside the request path only runs while the object is being
+ * scanned -- and a quiet noticeboard is the normal case, not the edge case.
+ * Observed live: an Aug 11 salt was still present on Aug 13 because nothing
+ * had visited the route since, leaving those visitors re-linkable past the
+ * window the design promises.
+ *
+ * Returns the number of salts removed so the caller can report it.
+ */
+export async function pruneSalts(now: Date = new Date()): Promise<number> {
+  const cutoff = saltCutoffDay(now);
+  return await withConnection(async (client) => {
+    const result = await client.queryObject(SALT_PRUNE_SQL, [cutoff]);
+    return result.rowCount ?? 0;
+  });
+}
+
 /**
  * Today's salt, minting one if this is the day's first visit, and pruning any
  * that have aged out.
@@ -141,20 +178,15 @@ async function saltForDay(client: PoolClient, day: string): Promise<Uint8Array<A
     [day, randomBytes(32)],
   );
 
-  // Pruned in the request path rather than on a schedule: there is no
-  // scheduler in this app, and adding one for this is a bigger decision than
-  // the feature warrants.
+  // Opportunistic prune. scripts/prune-qr-salts.ts on a timer is what actually
+  // guarantees the window -- this one only helps while traffic exists, and
+  // that is exactly the condition under which it is not needed.
   //
-  // KNOWN LIMIT, and it is a real one: if scanning stops, pruning stops with
-  // it, and salts outlive the 48h window for as long as the route is idle.
-  // The exposure is that someone with database access could recompute hashes
-  // for days that should have become unrecomputable. If this object turns out
-  // to see long quiet stretches, move this DELETE to a scheduled UTC task --
-  // it is written to be safe to run from anywhere.
-  await client.queryObject(
-    `DELETE FROM fresh_qr_salts WHERE day < ($1::date - $2::int)`,
-    [day, SALT_RETENTION_DAYS],
-  );
+  // Kept anyway, deliberately: the two mechanisms fail independently. A dead
+  // timer is covered by traffic, an idle URL is covered by the timer, and the
+  // cost here is one indexed DELETE against a table that holds at most two
+  // rows. For a property the design rests on, that is worth paying twice.
+  await client.queryObject(SALT_PRUNE_SQL, [saltCutoffDay(new Date())]);
 
   const result = await client.queryObject<{ salt: Uint8Array }>(
     `SELECT salt FROM fresh_qr_salts WHERE day = $1`,

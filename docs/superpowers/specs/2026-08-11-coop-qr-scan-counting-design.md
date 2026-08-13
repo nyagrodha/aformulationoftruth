@@ -125,21 +125,34 @@ this machinery.
 On the first visit of a UTC day, generate 32 random bytes and
 `INSERT ... ON CONFLICT (day) DO NOTHING`, then `SELECT` the winner — the
 conflict path is what makes two simultaneous first-visits agree on one salt
-instead of racing. The same code path prunes:
-`DELETE FROM fresh_qr_salts WHERE day < CURRENT_DATE - 1`.
+instead of racing. That path also prunes opportunistically, using the same
+`SALT_PRUNE_SQL` (`DELETE FROM fresh_qr_salts WHERE day < $1`) the timer runs,
+parameterised with `saltCutoffDay()` — see "Pruning runs on a timer" below.
 
 Deriving the salt from a long-lived secret was rejected. `HMAC(SECRET, date)`
 is recomputable forever by anyone holding `SECRET`, so every past day stays
 re-linkable and the daily rotation is decorative. Random-and-deleted means that
 once a salt is gone, its rows are opaque bytes even to us.
 
-**Known limit on the 48h guarantee.** Pruning happens in the request path,
-because this app has no scheduler and adding one is a larger decision than the
-feature warrants. If scanning stops, pruning stops with it, and salts outlive
-the window for as long as the route is idle — so the guarantee is "48 hours,
-provided the object is being scanned", not unconditionally. If the co-op node
-turns out to see long quiet stretches, move the `DELETE` to a scheduled UTC
-task; it is written to be safe to run from anywhere.
+**Pruning runs on a timer, and also in the request path.**
+
+This was originally request-path only, on the reasoning that the app had no
+scheduler. That was wrong, and it failed in production within two days:
+on 2026-08-13 the **2026-08-11 salt was still present**, because nothing had
+visited `/WillyStCo-op` since Aug 11 — leaving those two visitors re-linkable
+past the window this design rests on. A quiet noticeboard is the normal case
+for a QR on a wall, not the edge case, so the condition that disables pruning
+is the same condition the feature operates under most of the time.
+
+`scripts/prune-qr-salts.ts` on a systemd timer is now what guarantees the
+window. The request-path prune is kept as well, deliberately: the two fail
+independently — a dead timer is covered by traffic, an idle URL is covered by
+the timer — and the cost is one indexed `DELETE` against a table holding at
+most two rows.
+
+The cutoff is computed in TypeScript from UTC (`saltCutoffDay`) rather than in
+SQL from `CURRENT_DATE`, which follows the database session's timezone and
+would shift the window by a day.
 
 ### Bots
 
