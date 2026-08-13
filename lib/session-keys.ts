@@ -71,11 +71,16 @@ export function assertSafeSessionId(sessionId: string): void {
 /*
  * The key box: wherever session identities are pushed to live.
  *
- * The env vars are ICELANDonion_* for historical reasons: the role passed
- * through the Iceland onion host while the Romania box was unreachable. It now
- * runs on Romania again -- aformulationiontruth.com:2078, Debian, no database
- * -- reached via the apex because `fib.aformulationiontruth.com` still has no
- * DNS record despite the design naming it throughout.
+ * Named for the ROLE, not the site. This has been Romania, then the Iceland
+ * onion host, then Romania again inside two days, and each move made the
+ * previous name a lie -- ICELANDonion_* was still in use while dialling
+ * 185.146.232.223. A name that describes what the box DOES survives the next
+ * relocation; one that describes where it sits has to be edited every time,
+ * and is misleading in the window before someone does.
+ *
+ * Currently: aformulationiontruth.com:2078, Debian 13, no database running.
+ * Reached via the apex -- `fib.aformulationiontruth.com` still has no DNS
+ * record, despite the design naming it throughout.
  *
  * The constants are named KEYBOX_* rather than after any particular site: the
  * role has already relocated once, and code that hardcodes a country in its
@@ -88,15 +93,15 @@ export function assertSafeSessionId(sessionId: string): void {
  * database would satisfy every type in this file and quietly delete the
  * security argument.
  */
-const KEYBOX_SSH = Deno.env.get('ICELANDonion_SSH_DEST') || '';
-const KEYBOX_KEY_DIR = Deno.env.get('ICELANDonion_KEY_DIR') || '';
-const KEYBOX_SSH_KEY = Deno.env.get('ICELANDonion_SSH_KEY') || '';
+const KEYBOX_SSH = Deno.env.get('KEYBOX_SSH_DEST') || '';
+const KEYBOX_KEY_DIR = Deno.env.get('KEYBOX_KEY_DIR') || '';
+const KEYBOX_SSH_KEY = Deno.env.get('KEYBOX_SSH_KEY') || '';
 /**
  * Non-standard ports are the norm here, not the exception: the key box listens
  * on 2078. Defaulting to 22 silently dials the wrong port and surfaces as a
  * connection failure that looks like the box being down.
  */
-const KEYBOX_SSH_PORT = Deno.env.get('ICELANDonion_SSH_PORT') || '22';
+const KEYBOX_SSH_PORT = Deno.env.get('KEYBOX_SSH_PORT') || '22';
 
 export async function generateSessionKeypair(): Promise<SessionKeypair> {
   const identity = await generateX25519Identity();

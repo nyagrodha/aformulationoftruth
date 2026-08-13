@@ -417,9 +417,9 @@ export function assertSafeSessionId(sessionId: string): void {
   if (!SESSION_ID.test(sessionId)) throw new Error('invalid session id');
 }
 
-const KEYBOX_SSH = Deno.env.get('ICELANDonion_SSH_DEST') || '';
-const KEYBOX_KEY_DIR = Deno.env.get('ICELANDonion_KEY_DIR') || '';
-const KEYBOX_SSH_KEY = Deno.env.get('ICELANDonion_SSH_KEY') || '';
+const KEYBOX_SSH = Deno.env.get('KEYBOX_SSH_DEST') || '';
+const KEYBOX_KEY_DIR = Deno.env.get('KEYBOX_KEY_DIR') || '';
+const KEYBOX_SSH_KEY = Deno.env.get('KEYBOX_SSH_KEY') || '';
 
 export async function generateSessionKeypair(): Promise<SessionKeypair> {
   const identity = await generateX25519Identity();
