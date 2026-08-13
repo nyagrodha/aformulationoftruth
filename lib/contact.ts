@@ -18,12 +18,13 @@
 import { withConnection } from './db.ts';
 import { ageEncrypt } from './age-encrypt.ts';
 
-// Baked-in default: dedicated contact-form age x25519 recipient, distinct
-// from the gate's AGE_RECIPIENT. Safe to embed — age public keys can only
-// encrypt, not decrypt. Override via CONTACT_AGE_RECIPIENT if you need to
-// rotate without redeploying.
-const DEFAULT_CONTACT_AGE_RECIPIENT =
-  'age14c0ul2v80vzs2me3jjg7vhsltnvgsmm3n0dtt5sr28tfn3hftgpqjmfpsm';
+// No baked-in default, deliberately. The recipient is dedicated to the contact
+// form and distinct from the gate's AGE_RECIPIENT, so a compromise of one
+// private key does not unseal the other -- but embedding it here is what let
+// production drift: the key was rotated by editing this constant on the server
+// and never committing it, leaving the repo naming a stale recipient while the
+// service used another. Encrypting to a key nobody holds is unrecoverable, so
+// an absent variable must stop the request rather than fall back.
 
 export interface StoreContactMessageParams {
   message: string;
@@ -31,9 +32,9 @@ export interface StoreContactMessageParams {
 }
 
 /**
- * Thrown if the contact recipient is explicitly cleared (env set to empty and
- * the default is somehow gone). Routes map this to 503 as a safety net so we
- * never silently fall back to a different recipient.
+ * Thrown when CONTACT_AGE_RECIPIENT is unset or empty. Routes map this to 503:
+ * refusing the message is correct, because the alternative is encrypting it to
+ * a recipient whose private key may not exist.
  */
 export class ContactRecipientNotConfiguredError extends Error {
   constructor() {
@@ -46,8 +47,8 @@ export class ContactRecipientNotConfiguredError extends Error {
  * Age-encrypt the message to the contact recipient and store the ciphertext.
  *
  * Recipient resolution at call time (not module load) so an operator can flip
- * the key without restarting: env CONTACT_AGE_RECIPIENT wins; otherwise the
- * baked-in default above.
+ * the key without restarting. CONTACT_AGE_RECIPIENT is required; there is no
+ * fallback.
  *
  * Returns the inserted row id (for caller-side logging only — never echoed to
  * the client).
@@ -55,8 +56,7 @@ export class ContactRecipientNotConfiguredError extends Error {
 export async function storeContactMessage(
   params: StoreContactMessageParams,
 ): Promise<number> {
-  const recipient = Deno.env.get('CONTACT_AGE_RECIPIENT') ||
-    DEFAULT_CONTACT_AGE_RECIPIENT;
+  const recipient = Deno.env.get('CONTACT_AGE_RECIPIENT');
   if (!recipient) {
     throw new ContactRecipientNotConfiguredError();
   }

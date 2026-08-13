@@ -28,8 +28,6 @@ use tracing::{error, info};
 use tracing_subscriber::EnvFilter;
 
 const DEFAULT_BIND: &str = "127.0.0.1:8787";
-const DEFAULT_RECIPIENT: &str =
-    "age1jwpy3l4pdzzswm5jj3q2yax4eduf97t6wjqkyd4g6anjtffn5vrs38ag5q";
 
 #[derive(Clone)]
 struct AppState {
@@ -271,7 +269,12 @@ async fn main() -> anyhow::Result<()> {
     // create a second store, which is the split this consolidation removes.
     let db_url = env::var("DATABASE_URL")
         .map_err(|_| anyhow::anyhow!("DATABASE_URL is required (postgres:// connection string)"))?;
-    let recipient_str = env::var("AGE_RECIPIENT").unwrap_or_else(|_| DEFAULT_RECIPIENT.to_string());
+    // REQUIRED. No baked-in default: rotating the recipient by editing a
+    // constant on the server, without committing it, is exactly how the repo
+    // came to name a stale key while the service used another. Refusing to
+    // start is safer than encrypting to a key nobody holds.
+    let recipient_str = env::var("AGE_RECIPIENT")
+        .expect("AGE_RECIPIENT must be set (no default recipient is compiled in)");
 
     let recipient: age::x25519::Recipient = recipient_str
         .parse()

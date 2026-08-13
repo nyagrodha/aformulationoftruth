@@ -16,8 +16,22 @@
 
 import { armor, Encrypter } from '@age/age-encryption';
 
-const AGE_RECIPIENT = Deno.env.get('AGE_RECIPIENT') ||
-  'age1x060v073jaf6pwz7pw66pdtt4eu7zp7sh9yayj0f4nfpktv3zg2shket77';
+/**
+ * The gate's age recipient. REQUIRED -- there is deliberately no baked-in
+ * default.
+ *
+ * A hardcoded fallback is how production drifted: the recipient was rotated by
+ * editing this constant on the server and never committing, so the repo named
+ * a stale key while the running service used another, and read-gate-answers.ts
+ * grew a multi-identity loop to cope with ciphertext from "several key eras".
+ * A missing variable must stop the service, not silently encrypt to whatever
+ * was last committed -- data encrypted to a key nobody holds is unrecoverable.
+ */
+function requireRecipient(): string {
+  const r = Deno.env.get('AGE_RECIPIENT');
+  if (!r) throw new Error('AGE_RECIPIENT not configured');
+  return r;
+}
 
 /**
  * Encrypt a string with age x25519, returning ASCII-armored ciphertext.
@@ -31,7 +45,7 @@ export async function ageEncrypt(
   recipient?: string,
 ): Promise<string> {
   const e = new Encrypter();
-  e.addRecipient(recipient ?? AGE_RECIPIENT);
+  e.addRecipient(recipient ?? requireRecipient());
   const encrypted = await e.encrypt(plaintext);
   return armor.encode(encrypted);
 }
