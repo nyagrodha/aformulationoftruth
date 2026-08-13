@@ -910,7 +910,7 @@ git commit -m "feat(answers): encrypt questionnaire answers to the session keypa
 The page is currently static and takes no props; it must be given the session's
 resume token. The reveal is CSS-only so the page keeps working without JS.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 // tests/completion_consent_test.tsx
@@ -949,12 +949,12 @@ Deno.test('ConsentForm - password field is optional and not autofilled', () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `deno test --allow-net --allow-read --allow-env tests/completion_consent_test.tsx`
 Expected: FAIL — `ConsentForm` is not exported from `routes/completion.tsx`.
 
-- [ ] **Step 3: Implement the component**
+- [x] **Step 3: Implement the component**
 
 ```tsx
 /**
@@ -1009,7 +1009,7 @@ export function ConsentForm({ resumeToken }: { resumeToken: string }) {
 Render `<ConsentForm resumeToken={...} />` inside the existing `<main>`, and add
 a `handler` that reads the resume token from the cookie into props.
 
-- [ ] **Step 4: Write the CSS**
+- [x] **Step 4: Write the CSS**
 
 ```css
 /* public/css/consent.css
@@ -1032,17 +1032,17 @@ a `handler` that reads the resume token from the cookie into props.
 Link it from the page head. Note the markup order: `.pw-panel` must be a
 following sibling of the `.consent-yes` input for `~` to match.
 
-- [ ] **Step 5: Run tests**
+- [x] **Step 5: Run tests**
 
 Run: `deno test --allow-net --allow-read --allow-env tests/completion_consent_test.tsx`
 Expected: PASS, 3 tests.
 
-- [ ] **Step 6: Verify by eye with JS disabled**
+- [x] **Step 6: Verify by eye with JS disabled**
 
 Run: `deno task dev`, open `/completion`, disable JavaScript, confirm the panel
 appears on selecting "Yes, please" and the form still submits.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 deno fmt routes/completion.tsx tests/completion_consent_test.tsx

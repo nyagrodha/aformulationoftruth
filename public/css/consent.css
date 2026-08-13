@@ -1,0 +1,36 @@
+/* Consent to receive a PDF copy of one's responses.
+ *
+ * The password panel appears only when "Yes, please" is selected, and it does
+ * so with a sibling combinator rather than script. That is deliberate: the
+ * gate works without JavaScript, so the page that decides what happens to a
+ * respondent's answers must too. If this were JS-driven, a visitor with script
+ * disabled would see no password field at all and would silently receive an
+ * unprotected PDF while believing otherwise.
+ *
+ * The selector REQUIRES .consent-yes and .pw-panel to be siblings. Nesting the
+ * radio inside its label breaks it with no error and no visual clue.
+ */
+.pw-panel {
+  display: none;
+}
+
+.consent-yes:checked ~ .pw-panel {
+  display: block;
+}
+
+.consent-question {
+  margin-bottom: 0.75rem;
+}
+
+.consent-choice {
+  display: inline-block;
+  margin-right: 1rem;
+  cursor: pointer;
+}
+
+.pw-note {
+  font-size: 0.85rem;
+  opacity: 0.8;
+  max-width: 42ch;
+  margin-top: 0.4rem;
+}
