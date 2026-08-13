@@ -41,7 +41,7 @@ export function ConsentForm({ resumeToken }: { resumeToken: string }) {
   return (
     <form method='post' action='/api/responses/deliver' class='consent'>
       <input type='hidden' name='resume_token' value={resumeToken} />
-      <p class='consent-question'>Would you like a copy of your responses?</p>
+      <p class='consent-question'>Would you like a copy of your responses e-mailed to you?</p>
 
       {
         /*
@@ -59,7 +59,7 @@ export function ConsentForm({ resumeToken }: { resumeToken: string }) {
         <input
           type='password'
           name='password'
-          placeholder='password optional'
+          placeholder='optional password'
           autocomplete='new-password'
           maxLength={256}
         />

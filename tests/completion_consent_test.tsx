@@ -19,9 +19,10 @@ Deno.test('ConsentForm - carries the exact approved copy', () => {
     'Remember this password. No one can reset it. Should you forget it, however, ' +
       'you may request another copy of the pdf be sent to you.',
   );
+  assertStringIncludes(html, 'Would you like a copy of your responses e-mailed to you?');
   assertStringIncludes(html, 'Yes, please');
   assertStringIncludes(html, 'Send me a .pdf email');
-  assertStringIncludes(html, 'placeholder="password optional"');
+  assertStringIncludes(html, 'placeholder="optional password"');
 });
 
 Deno.test('ConsentForm - works without JavaScript', () => {
