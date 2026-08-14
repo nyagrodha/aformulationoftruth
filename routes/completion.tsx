@@ -32,28 +32,31 @@ export const handler: Handlers<CompletionData> = {
 /**
  * Consent to receive a PDF copy.
  *
- * No JavaScript. The password panel is revealed by a CSS sibling selector on
- * the checked radio (public/css/consent.css). The gate is deliberately usable
- * without script -- gate-submit parses urlencoded bodies for exactly that
- * reason -- and this page must not be the exception.
+ * No JavaScript, and no radios. The answer is carried by WHICH submit button
+ * the respondent presses: a form submitted by a button sends only that
+ * button's name/value pair, so `consent=yes` or `consent=no` arrives from the
+ * browser itself with nothing scripted in between. The gate is deliberately
+ * usable without script -- gate-submit parses urlencoded bodies for exactly
+ * that reason -- and this page must not be the exception.
+ *
+ * `value='yes'` must stay exactly that, lowercase: consentFrom() in
+ * routes/api/responses/deliver.ts accepts only the literal string 'yes' and
+ * reads everything else as a refusal.
+ *
+ * The password field is now ALWAYS visible. It used to be hidden behind
+ * `.consent-yes:checked ~ .pw-panel`, which needed a radio to check; with the
+ * radios gone that selector has nothing to hang on, and the only ways to
+ * restore a reveal would be script (breaking the no-JS guarantee) or a hidden
+ * checkbox hack (a control the respondent cannot see but can still tab into).
+ * An always-visible optional field is the honest version: whoever wants a
+ * password types one before pressing "Yes, please", and whoever does not
+ * simply leaves it empty.
  */
 export function ConsentForm({ resumeToken }: { resumeToken: string }) {
   return (
     <form method='post' action='/api/responses/deliver' class='consent'>
       <input type='hidden' name='resume_token' value={resumeToken} />
       <p class='consent-question'>Would you like a copy of your responses e-mailed to you?</p>
-
-      {
-        /*
-        The radio must NOT be nested inside its label. `.consent-yes:checked ~
-        .pw-panel` is a sibling combinator and siblings must share a parent;
-        nested, the input's only sibling is the label text, the panel can never
-        be revealed, and on the no-JS path the password field silently does not
-        exist. Input hoisted to the form, label bound by for/id.
-      */
-      }
-      <input type='radio' name='consent' value='yes' id='consent-yes' class='consent-yes' required />
-      <label class='consent-choice' for='consent-yes'>Yes, please</label>
 
       <div class='pw-panel'>
         <input
@@ -69,10 +72,10 @@ export function ConsentForm({ resumeToken }: { resumeToken: string }) {
         </p>
       </div>
 
-      <input type='radio' name='consent' value='no' id='consent-no' required />
-      <label class='consent-choice' for='consent-no'>No</label>
-
-      <button type='submit' class='cta cta-primary'>Send me a .pdf email</button>
+      <div class='consent-actions'>
+        <button type='submit' name='consent' value='yes' class='consent-btn consent-btn-yes'>Yes, please</button>
+        <button type='submit' name='consent' value='no' class='consent-btn consent-btn-no'>No, thanks</button>
+      </div>
     </form>
   );
 }
