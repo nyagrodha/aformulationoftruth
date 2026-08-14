@@ -23,7 +23,7 @@ const GATE_QUESTIONS: Question[] = getGateQuestions();
 function getCookieSecureFlag(req: Request): string {
   const isHttps = new URL(req.url).protocol === 'https:';
   const isProd = Deno.env.get('DENO_ENV') === 'production' ||
-                 Deno.env.get('NODE_ENV') === 'production';
+    Deno.env.get('NODE_ENV') === 'production';
   return (isHttps || isProd) ? '; Secure' : '';
 }
 
@@ -73,11 +73,11 @@ export const handler: Handlers<GateData> = {
     const headers = new Headers();
     headers.append(
       'Set-Cookie',
-      `gate_token=${gateToken}; HttpOnly; SameSite=Strict; Path=/; Max-Age=3600${secureFlag}`
+      `gate_token=${gateToken}; HttpOnly; SameSite=Strict; Path=/; Max-Age=3600${secureFlag}`,
     );
     headers.append(
       'Set-Cookie',
-      `gate_q=${questionIndex}; HttpOnly; SameSite=Strict; Path=/; Max-Age=3600${secureFlag}`
+      `gate_q=${questionIndex}; HttpOnly; SameSite=Strict; Path=/; Max-Age=3600${secureFlag}`,
     );
 
     return ctx.render({
@@ -147,7 +147,7 @@ export const handler: Handlers<GateData> = {
       headers.set('Location', '/login');
       headers.append(
         'Set-Cookie',
-        `gate_q=${nextIndex}; HttpOnly; SameSite=Strict; Path=/; Max-Age=3600${secureFlag}`
+        `gate_q=${nextIndex}; HttpOnly; SameSite=Strict; Path=/; Max-Age=3600${secureFlag}`,
       );
       return new Response(null, { status: 302, headers });
     }
@@ -157,7 +157,7 @@ export const handler: Handlers<GateData> = {
     headers.set('Location', '/gate');
     headers.append(
       'Set-Cookie',
-      `gate_q=${nextIndex}; HttpOnly; SameSite=Strict; Path=/; Max-Age=3600${secureFlag}`
+      `gate_q=${nextIndex}; HttpOnly; SameSite=Strict; Path=/; Max-Age=3600${secureFlag}`,
     );
     return new Response(null, { status: 302, headers });
   },
@@ -167,65 +167,69 @@ export default function GatePage({ data }: PageProps<GateData>) {
   const { questionIndex, question, gateToken, error } = data;
 
   return (
-    <html lang="en">
+    <html lang='en'>
       <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta charset='UTF-8' />
+        <meta name='viewport' content='width=device-width, initial-scale=1.0' />
         <title>a formulation of truth</title>
-        <meta name="description" content="An apparatus for attention. Self-inquiry through the Proust Questionnaire." />
-        <link rel="stylesheet" href="/css/main.css" />
+        <meta name='description' content='An apparatus for attention. Self-inquiry through the Proust Questionnaire.' />
+        <link rel='stylesheet' href='/css/main.css' />
       </head>
       <body>
         <nav>
-          <a href="/" class="logo">A4T</a>        </nav>
+          <a href='/' class='logo'>A4T</a>
+        </nav>
 
         <main>
-          <section class="section gate-section" style="min-height: 100vh; display: flex; align-items: center;">
-            <div class="gate-content">
-              <div class="gate-icon">?</div>
+          <section class='section gate-section' style='min-height: 100vh; display: flex; align-items: center;'>
+            <div class='gate-content'>
+              <div class='gate-icon'>?</div>
 
-              <p class="gate-progress">
+              <p class='gate-progress'>
                 question {questionIndex + 1} of {GATE_QUESTIONS.length}
               </p>
 
               {/* Trilingual question display: Tamil, transliteration, English */}
-              <h2 class="gate-title">
-                <span class="tamil-text">{question.tamil}</span>
+              <h2 class='gate-title'>
+                <span class='tamil-text'>{question.tamil}</span>
               </h2>
-              <p class="gate-transliteration">{question.transliteration}</p>
-              <p class="gate-english">{question.english}</p>
+              <p class='gate-transliteration'>{question.transliteration}</p>
+              <p class='gate-english'>{question.english}</p>
 
-              <p class="gate-description">
-                These are not polite questions. They are holes in the ice.
-                If you answer them honestly, something cold touches your feet.
+              <p class='gate-description'>
+                These are not polite questions. They are holes in the ice. If you answer them honestly, something cold
+                touches your feet.
               </p>
 
-              {error && <div class="message message-error">{error}</div>}
+              {error && <div class='message message-error'>{error}</div>}
 
-              <form method="POST" action="/gate" class="gate-form">
-                <input type="hidden" name="gate_token" value={gateToken} />
-                <input type="hidden" name="question_index" value={questionIndex} />
+              <form method='POST' action='/gate' class='gate-form'>
+                <input type='hidden' name='gate_token' value={gateToken} />
+                <input type='hidden' name='question_index' value={questionIndex} />
 
-                <div class="form-group">
-                  <label htmlFor="answer">Your reflection</label>
-                  <div class="textarea-wrapper">
-                    <div class="watermark">truth</div>
+                <div class='form-group'>
+                  <label htmlFor='answer'>Your reflection</label>
+                  <div class='textarea-wrapper'>
+                    <div class='watermark'>truth</div>
                     <textarea
-                      id="answer"
-                      name="answer"
-                      aria-describedby="accessibility-hint"
-                    ></textarea>
+                      id='answer'
+                      name='answer'
+                      aria-describedby='accessibility-hint'
+                    >
+                    </textarea>
                   </div>
-                  <p class="accessibility-note" id="accessibility-hint">
-                    For voice input, use <a href="https://github.com/cjpais/Handy" target="_blank" rel="noopener">Handy</a> - free offline speech-to-text
+                  <p class='accessibility-note' id='accessibility-hint'>
+                    For voice input, use{' '}
+                    <a href='https://github.com/cjpais/Handy' target='_blank' rel='noopener'>Handy</a>{' '}
+                    - free offline speech-to-text
                   </p>
                 </div>
 
-                <div class="form-actions">
-                  <button type="submit" name="action" value="continue" class="cta cta-primary">
+                <div class='form-actions'>
+                  <button type='submit' name='action' value='continue' class='cta cta-primary'>
                     Continue
                   </button>
-                  <button type="submit" name="action" value="skip" class="cta cta-secondary">
+                  <button type='submit' name='action' value='skip' class='cta cta-secondary'>
                     Skip
                   </button>
                 </div>
@@ -235,14 +239,22 @@ export default function GatePage({ data }: PageProps<GateData>) {
         </main>
 
         <footer>
-          <div class="footer-inner">
-            <div class="footer-links">
-              <a href="/about">About</a>
-              <a href="/contact.html">Contact</a>
-              <a href="/privacy">Privacy</a>
+          <div class='footer-inner'>
+            <div class='footer-links'>
+              <a href='/about'>About</a>
+              <a href='/contact.html'>Contact</a>
+              <a href='/privacy'>Privacy</a>
             </div>
-            <p class="footer-copy">
-              Encrypted database hosted in Iceland by <a href="https://fobdongle.com" target="_blank" rel="noopener" style="color: var(--neon-emerald); text-decoration: none;">FlokiNET</a>
+            <p class='footer-copy'>
+              Encrypted database hosted in Iceland by{' '}
+              <a
+                href='https://fobdongle.com'
+                target='_blank'
+                rel='noopener'
+                style='color: var(--neon-emerald); text-decoration: none;'
+              >
+                FlokiNET
+              </a>
             </p>
           </div>
         </footer>

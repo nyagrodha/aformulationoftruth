@@ -122,13 +122,13 @@ export const handler: Handlers<VerifyData> = {
       // Set JWT cookie (24 hour expiry)
       headers.append(
         'Set-Cookie',
-        `jwt=${jwtToken}; ${cookieOptions}; Max-Age=86400`
+        `jwt=${jwtToken}; ${cookieOptions}; Max-Age=86400`,
       );
 
       // Set resume token cookie (30 day expiry for long-term resumption)
       headers.append(
         'Set-Cookie',
-        `resume_token=${resumeToken}; ${cookieOptions}; Max-Age=2592000`
+        `resume_token=${resumeToken}; ${cookieOptions}; Max-Age=2592000`,
       );
 
       // Redirect to questionnaire
@@ -167,7 +167,8 @@ export default function VerifyPage({ data }: PageProps<VerifyData>) {
     <html>
       <head>
         <title>Verification Failed</title>
-        <style>{`
+        <style>
+          {`
           body {
             font-family: Georgia, serif;
             background: #0c0720;
@@ -188,14 +189,15 @@ export default function VerifyPage({ data }: PageProps<VerifyData>) {
             text-decoration: none;
           }
           a:hover { text-decoration: underline; }
-        `}</style>
+        `}
+        </style>
       </head>
       <body>
-        <div class="container">
+        <div class='container'>
           <h1>Verification Failed</h1>
           <p>{data.error || 'An error occurred'}</p>
           <p>
-            <a href="/login">Request a new magic link</a>
+            <a href='/login'>Request a new magic link</a>
           </p>
         </div>
       </body>

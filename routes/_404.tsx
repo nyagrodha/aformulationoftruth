@@ -6,10 +6,11 @@ export default function NotFoundPage() {
   return (
     <html>
       <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta charset='UTF-8' />
+        <meta name='viewport' content='width=device-width, initial-scale=1.0' />
         <title>404 - Not Found</title>
-        <style>{`
+        <style>
+          {`
           body {
             background: #0c0720;
             color: #d7ccff;
@@ -32,13 +33,16 @@ export default function NotFoundPage() {
             text-decoration: none;
           }
           a:hover { text-decoration: underline; }
-        `}</style>
+        `}
+        </style>
       </head>
       <body>
         <div>
           <h1>404</h1>
           <p>The page you seek does not exist.</p>
-          <p><a href="/">Return home</a></p>
+          <p>
+            <a href='/'>Return home</a>
+          </p>
         </div>
       </body>
     </html>

@@ -12,11 +12,7 @@
  * "What is your greatest fear?" before requesting the magic link.
  */
 
-import {
-  assertEquals,
-  assertExists,
-  assertStringIncludes,
-} from '$std/assert/mod.ts';
+import { assertEquals, assertExists, assertStringIncludes } from '$std/assert/mod.ts';
 
 // Mock environment for tests
 const originalEnv = Deno.env.toObject();
@@ -212,7 +208,7 @@ Deno.test({
     // Does NOT decode actual JWTs; see integration tests for runtime verification
 
     const expectedPayload = {
-      email_hash: 'sha256_hash_of_email',  // NEVER the actual email
+      email_hash: 'sha256_hash_of_email', // NEVER the actual email
       session_id: 'hmac_hash_of_opaque_token',
       iat: 1704067200,
       exp: 1704153600,
@@ -256,7 +252,8 @@ Deno.test({
     // Documentation test - demonstrates expected question order format
     // Does NOT verify actual session creation; see integration tests
 
-    const mockQuestionOrder = '0,1,15,3,22,7,12,34,5,19,28,11,24,6,2,17,30,9,21,4,26,13,33,8,20,29,14,27,16,31,10,25,32,23,18';
+    const mockQuestionOrder =
+      '0,1,15,3,22,7,12,34,5,19,28,11,24,6,2,17,30,9,21,4,26,13,33,8,20,29,14,27,16,31,10,25,32,23,18';
 
     const questions = mockQuestionOrder.split(',').map(Number);
 

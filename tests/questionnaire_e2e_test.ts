@@ -10,13 +10,9 @@
  * Run with: deno task test:e2e
  */
 
-import {
-  assertEquals,
-  assertExists,
-  assertStringIncludes,
-} from "https://deno.land/std@0.208.0/assert/mod.ts";
+import { assertEquals, assertExists, assertStringIncludes } from 'https://deno.land/std@0.208.0/assert/mod.ts';
 
-const BASE_URL = Deno.env.get("TEST_BASE_URL") || "http://localhost:8393";
+const BASE_URL = Deno.env.get('TEST_BASE_URL') || 'http://localhost:8393';
 const TEST_EMAIL = `test_${Date.now()}@example.com`;
 
 // Helper to consume response body to prevent leaks
@@ -29,13 +25,13 @@ async function consumeResponse(response: Response): Promise<void> {
 // ============================================================================
 
 Deno.test({
-  name: "Magic Link - Should create and send magic link for valid email",
+  name: 'Magic Link - Should create and send magic link for valid email',
   sanitizeResources: false,
   sanitizeOps: false,
   async fn() {
     const response = await fetch(`${BASE_URL}/api/auth/magic-link`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email: TEST_EMAIL }),
     });
 
@@ -44,19 +40,19 @@ Deno.test({
     const data = await response.json();
     assertExists(data.message);
     assertExists(data.expiresAt);
-    assertStringIncludes(data.message, "Magic link sent");
+    assertStringIncludes(data.message, 'Magic link sent');
   },
 });
 
 Deno.test({
-  name: "Magic Link - Should reject invalid email format",
+  name: 'Magic Link - Should reject invalid email format',
   sanitizeResources: false,
   sanitizeOps: false,
   async fn() {
     const response = await fetch(`${BASE_URL}/api/auth/magic-link`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email: "not-an-email" }),
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: 'not-an-email' }),
     });
 
     assertEquals(response.status, 400);
@@ -67,13 +63,13 @@ Deno.test({
 });
 
 Deno.test({
-  name: "Magic Link - Should reject empty request body",
+  name: 'Magic Link - Should reject empty request body',
   sanitizeResources: false,
   sanitizeOps: false,
   async fn() {
     const response = await fetch(`${BASE_URL}/api/auth/magic-link`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({}),
     });
 
@@ -89,37 +85,37 @@ Deno.test({
 // ============================================================================
 
 Deno.test({
-  name: "Questionnaire - Should redirect to login without JWT",
+  name: 'Questionnaire - Should redirect to login without JWT',
   sanitizeResources: false,
   sanitizeOps: false,
   async fn() {
     const response = await fetch(`${BASE_URL}/questionnaire`, {
-      redirect: "manual",
+      redirect: 'manual',
     });
 
     await consumeResponse(response);
     assertEquals(response.status, 302);
-    const location = response.headers.get("Location");
-    assertEquals(location, "/");
+    const location = response.headers.get('Location');
+    assertEquals(location, '/');
   },
 });
 
 Deno.test({
-  name: "Questionnaire - Should reject POST without JWT",
+  name: 'Questionnaire - Should reject POST without JWT',
   sanitizeResources: false,
   sanitizeOps: false,
   async fn() {
     const response = await fetch(`${BASE_URL}/questionnaire`, {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: "answer=test&action=continue",
-      redirect: "manual",
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: 'answer=test&action=continue',
+      redirect: 'manual',
     });
 
     await consumeResponse(response);
     assertEquals(response.status, 302);
-    const location = response.headers.get("Location");
-    assertEquals(location, "/");
+    const location = response.headers.get('Location');
+    assertEquals(location, '/');
   },
 });
 
@@ -128,16 +124,16 @@ Deno.test({
 // ============================================================================
 
 Deno.test({
-  name: "Answer API - Should reject request without Authorization header",
+  name: 'Answer API - Should reject request without Authorization header',
   sanitizeResources: false,
   sanitizeOps: false,
   async fn() {
     const response = await fetch(`${BASE_URL}/api/questions/answer`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         questionIndex: 2,
-        answer: "Test answer",
+        answer: 'Test answer',
         skipped: false,
       }),
     });
@@ -145,24 +141,24 @@ Deno.test({
     assertEquals(response.status, 401);
 
     const data = await response.json();
-    assertStringIncludes(data.error.toLowerCase(), "authorization");
+    assertStringIncludes(data.error.toLowerCase(), 'authorization');
   },
 });
 
 Deno.test({
-  name: "Answer API - Should reject request without resume token",
+  name: 'Answer API - Should reject request without resume token',
   sanitizeResources: false,
   sanitizeOps: false,
   async fn() {
     const response = await fetch(`${BASE_URL}/api/questions/answer`, {
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
-        "Authorization": "Bearer fake-jwt-token",
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer fake-jwt-token',
       },
       body: JSON.stringify({
         questionIndex: 2,
-        answer: "Test answer",
+        answer: 'Test answer',
         skipped: false,
       }),
     });
@@ -170,25 +166,25 @@ Deno.test({
     assertEquals(response.status, 401);
 
     const data = await response.json();
-    assertStringIncludes(data.error.toLowerCase(), "resume token");
+    assertStringIncludes(data.error.toLowerCase(), 'resume token');
   },
 });
 
 Deno.test({
-  name: "Answer API - Should reject invalid JWT",
+  name: 'Answer API - Should reject invalid JWT',
   sanitizeResources: false,
   sanitizeOps: false,
   async fn() {
     const response = await fetch(`${BASE_URL}/api/questions/answer`, {
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
-        "Authorization": "Bearer invalid.jwt.token",
-        "X-Resume-Token": "fake-resume-token",
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer invalid.jwt.token',
+        'X-Resume-Token': 'fake-resume-token',
       },
       body: JSON.stringify({
         questionIndex: 2,
-        answer: "Test answer",
+        answer: 'Test answer',
         skipped: false,
       }),
     });
@@ -205,12 +201,12 @@ Deno.test({
 // ============================================================================
 
 Deno.test({
-  name: "Auth Verify - Should redirect when token is missing",
+  name: 'Auth Verify - Should redirect when token is missing',
   sanitizeResources: false,
   sanitizeOps: false,
   async fn() {
     const response = await fetch(`${BASE_URL}/auth/verify`, {
-      redirect: "manual",
+      redirect: 'manual',
     });
 
     await consumeResponse(response);
@@ -220,12 +216,12 @@ Deno.test({
 });
 
 Deno.test({
-  name: "Auth Verify - Should handle invalid token",
+  name: 'Auth Verify - Should handle invalid token',
   sanitizeResources: false,
   sanitizeOps: false,
   async fn() {
     const response = await fetch(`${BASE_URL}/auth/verify?token=invalid`, {
-      redirect: "manual",
+      redirect: 'manual',
     });
 
     await consumeResponse(response);
@@ -239,7 +235,7 @@ Deno.test({
 // ============================================================================
 
 Deno.test({
-  name: "Rate Limit - Should handle rapid magic link requests gracefully",
+  name: 'Rate Limit - Should handle rapid magic link requests gracefully',
   sanitizeResources: false,
   sanitizeOps: false,
   async fn() {
@@ -250,21 +246,21 @@ Deno.test({
     for (let i = 0; i < 3; i++) {
       requests.push(
         fetch(`${BASE_URL}/api/auth/magic-link`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email }),
-        })
+        }),
       );
     }
 
     const responses = await Promise.all(requests);
 
     // Consume all responses to prevent leaks
-    await Promise.all(responses.map(r => r.text()));
+    await Promise.all(responses.map((r) => r.text()));
 
     // At least one should succeed
-    const statuses = responses.map(r => r.status);
-    const hasSuccess = statuses.some(s => s === 200);
+    const statuses = responses.map((r) => r.status);
+    const hasSuccess = statuses.some((s) => s === 200);
     assertEquals(hasSuccess, true);
   },
 });
@@ -274,13 +270,13 @@ Deno.test({
 // ============================================================================
 
 Deno.test({
-  name: "Validation - Should reject XSS attempts in email",
+  name: 'Validation - Should reject XSS attempts in email',
   sanitizeResources: false,
   sanitizeOps: false,
   async fn() {
     const response = await fetch(`${BASE_URL}/api/auth/magic-link`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email: "<script>alert('xss')</script>@test.com" }),
     });
 
@@ -291,13 +287,13 @@ Deno.test({
 });
 
 Deno.test({
-  name: "Validation - Should reject SQL injection attempts",
+  name: 'Validation - Should reject SQL injection attempts',
   sanitizeResources: false,
   sanitizeOps: false,
   async fn() {
     const response = await fetch(`${BASE_URL}/api/auth/magic-link`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email: "'; DROP TABLE users; --@test.com" }),
     });
 
@@ -308,14 +304,14 @@ Deno.test({
 });
 
 Deno.test({
-  name: "Validation - Should handle extremely long email",
+  name: 'Validation - Should handle extremely long email',
   sanitizeResources: false,
   sanitizeOps: false,
   async fn() {
-    const longEmail = "a".repeat(500) + "@example.com";
+    const longEmail = 'a'.repeat(500) + '@example.com';
     const response = await fetch(`${BASE_URL}/api/auth/magic-link`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email: longEmail }),
     });
 
@@ -332,33 +328,33 @@ Deno.test({
 // ============================================================================
 
 Deno.test({
-  name: "API Response - Should return JSON for magic link endpoint",
+  name: 'API Response - Should return JSON for magic link endpoint',
   sanitizeResources: false,
   sanitizeOps: false,
   async fn() {
     const response = await fetch(`${BASE_URL}/api/auth/magic-link`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email: `format_test_${Date.now()}@example.com` }),
     });
 
-    const contentType = response.headers.get("Content-Type");
+    const contentType = response.headers.get('Content-Type');
     await response.json(); // This will throw if not valid JSON
-    assertStringIncludes(contentType || "", "application/json");
+    assertStringIncludes(contentType || '', 'application/json');
   },
 });
 
 Deno.test({
-  name: "API Response - Should include request ID in error responses",
+  name: 'API Response - Should include request ID in error responses',
   sanitizeResources: false,
   sanitizeOps: false,
   async fn() {
     const response = await fetch(`${BASE_URL}/api/questions/answer`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         questionIndex: 2,
-        answer: "Test",
+        answer: 'Test',
         skipped: false,
       }),
     });
@@ -368,9 +364,9 @@ Deno.test({
   },
 });
 
-console.log("\n===========================================");
-console.log("Questionnaire E2E Test Suite");
-console.log("===========================================");
+console.log('\n===========================================');
+console.log('Questionnaire E2E Test Suite');
+console.log('===========================================');
 console.log(`Target: ${BASE_URL}`);
 console.log(`Test Email: ${TEST_EMAIL}`);
-console.log("===========================================\n");
+console.log('===========================================\n');

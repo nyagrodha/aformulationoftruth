@@ -39,8 +39,8 @@ function resolveConfig(): DbConfig | null {
         tls: isLocalhost
           ? { enabled: false, enforce: false }
           : url.searchParams.get('sslmode') === 'require'
-            ? { enabled: true, enforce: false }
-            : undefined,
+          ? { enabled: true, enforce: false }
+          : undefined,
       };
     } catch {
       console.error('[db] Invalid DATABASE_URL format');
@@ -74,7 +74,7 @@ function createPool(): Pool {
 
   if (!config) {
     throw new Error(
-      'PostgreSQL connection not configured. Set DATABASE_URL or PGHOST/PGDATABASE/PGUSER/PGPASSWORD.'
+      'PostgreSQL connection not configured. Set DATABASE_URL or PGHOST/PGDATABASE/PGUSER/PGPASSWORD.',
     );
   }
 
@@ -105,7 +105,7 @@ export function isDatabaseConfigured(): boolean {
  * Connection is released back to pool after handler completes.
  */
 export async function withConnection<T>(
-  handler: (client: PoolClient) => Promise<T>
+  handler: (client: PoolClient) => Promise<T>,
 ): Promise<T> {
   const client = await getPool().connect();
   try {
@@ -120,7 +120,7 @@ export async function withConnection<T>(
  * Automatically commits on success, rolls back on error.
  */
 export async function withTransaction<T>(
-  handler: (client: PoolClient) => Promise<T>
+  handler: (client: PoolClient) => Promise<T>,
 ): Promise<T> {
   const client = await getPool().connect();
   try {

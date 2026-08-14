@@ -349,7 +349,8 @@ export default function ProfileCreatePage() {
           </div>
         </footer>
 
-        <script>{`
+        <script>
+          {`
           // Progressive enhancement: POST the profile metadata to /api/profile.
           // Per-answer publishing (the "public answers" fieldset) is deferred,
           // so only visibility, nameplate, and anonymous-mail are sent here.
@@ -408,7 +409,8 @@ export default function ProfileCreatePage() {
               }
             });
           })();
-        `}</script>
+        `}
+        </script>
       </body>
     </html>
   );

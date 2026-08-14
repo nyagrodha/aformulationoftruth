@@ -1067,7 +1067,7 @@ git commit -m "feat(completion): consent form for PDF delivery, no JS required"
   - `buildBundle(rows, encryptedEmail, encryptedPassword): DeliveryBundle` where `DeliveryBundle = { sessionId: string; answers: Array<{ questionIndex: number; questionText: string; ciphertext: string; skipped: boolean }>; encryptedEmail: string; encryptedPassword: string | null }`
   - `pushBundle(bundle: DeliveryBundle): Promise<void>`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 // tests/deliver_bundle_test.ts
@@ -1115,12 +1115,12 @@ Deno.test('buildBundle - carries no plaintext password', () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `deno test --allow-net --allow-read --allow-env tests/deliver_bundle_test.ts`
 Expected: FAIL — module does not exist.
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 ```ts
 // routes/api/responses/deliver.ts (excerpt)
@@ -1209,7 +1209,7 @@ it has been sent.
 > fail-closed constraint. Decision: build the queue for real (Task 8b) and never
 > claim delivery that has not happened.
 
-- [ ] **Step 4: Run tests**
+- [x] **Step 4: Run tests**
 
 Run: `deno test --allow-net --allow-read --allow-env tests/deliver_bundle_test.ts && deno check main.ts`
 Expected: PASS, 3 tests.

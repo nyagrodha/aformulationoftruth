@@ -41,7 +41,7 @@ const TAMIL_NUMERALS = ['௦', '௧', '௨', '௩', '௪', '௫', '௬', '௭', 
 function toTamilNumeral(n: number): string {
   if (!Number.isInteger(n) || n < 0) {
     throw new RangeError(
-      `toTamilNumeral requires a non-negative integer, got: ${n}`
+      `toTamilNumeral requires a non-negative integer, got: ${n}`,
     );
   }
   if (n === 0) return TAMIL_NUMERALS[0];
@@ -388,7 +388,7 @@ export function getQuestionById(id: number): Question | undefined {
  * Get all questions in a specific language layer
  */
 export function getQuestionsInLanguage(
-  lang: 'tamil' | 'transliteration' | 'english'
+  lang: 'tamil' | 'transliteration' | 'english',
 ): string[] {
   return QUESTIONS.map((q) => q[lang]);
 }

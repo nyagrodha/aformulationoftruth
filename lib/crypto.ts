@@ -66,14 +66,14 @@ export async function hashEmail(email: string): Promise<string> {
 export async function deriveKey(
   password: string,
   salt: Uint8Array<ArrayBuffer>,
-  iterations = 100000
+  iterations = 100000,
 ): Promise<CryptoKey> {
   const keyMaterial = await crypto.subtle.importKey(
     'raw',
     encoder.encode(password),
     'PBKDF2',
     false,
-    ['deriveKey']
+    ['deriveKey'],
   );
 
   return crypto.subtle.deriveKey(
@@ -86,7 +86,7 @@ export async function deriveKey(
     keyMaterial,
     { name: 'AES-GCM', length: 256 },
     false,
-    ['encrypt', 'decrypt']
+    ['encrypt', 'decrypt'],
   );
 }
 
@@ -96,13 +96,13 @@ export async function deriveKey(
  */
 export async function encrypt(
   plaintext: string,
-  key: CryptoKey
+  key: CryptoKey,
 ): Promise<string> {
   const iv = randomBytes(12); // 96-bit IV for GCM
   const ciphertext = await crypto.subtle.encrypt(
     { name: 'AES-GCM', iv },
     key,
-    encoder.encode(plaintext)
+    encoder.encode(plaintext),
   );
 
   // Prepend IV to ciphertext
@@ -118,7 +118,7 @@ export async function encrypt(
  */
 export async function decrypt(
   encryptedBase64: string,
-  key: CryptoKey
+  key: CryptoKey,
 ): Promise<string> {
   const combined = Uint8Array.from(atob(encryptedBase64), (c) => c.charCodeAt(0));
   const iv = combined.slice(0, 12);
@@ -127,7 +127,7 @@ export async function decrypt(
   const plaintext = await crypto.subtle.decrypt(
     { name: 'AES-GCM', iv },
     key,
-    ciphertext
+    ciphertext,
   );
 
   return decoder.decode(plaintext);
@@ -139,14 +139,14 @@ export async function decrypt(
  */
 export async function hmacSign(
   data: string,
-  secretKey: Uint8Array<ArrayBuffer>
+  secretKey: Uint8Array<ArrayBuffer>,
 ): Promise<string> {
   const key = await crypto.subtle.importKey(
     'raw',
     secretKey,
     { name: 'HMAC', hash: 'SHA-256' },
     false,
-    ['sign']
+    ['sign'],
   );
 
   const signature = await crypto.subtle.sign('HMAC', key, encoder.encode(data));
@@ -161,7 +161,7 @@ export async function hmacSign(
 export async function hmacVerify(
   data: string,
   signature: string,
-  secretKey: Uint8Array<ArrayBuffer>
+  secretKey: Uint8Array<ArrayBuffer>,
 ): Promise<boolean> {
   const expectedSignature = await hmacSign(data, secretKey);
 
@@ -184,7 +184,7 @@ export async function hmacVerify(
  */
 export function isTimestampValid(
   timestamp: number,
-  windowMs = 5 * 60 * 1000
+  windowMs = 5 * 60 * 1000,
 ): boolean {
   const now = Date.now();
   return Math.abs(now - timestamp) <= windowMs;
@@ -233,7 +233,7 @@ export async function hashResumeToken(token: string): Promise<string> {
  */
 export async function verifyResumeToken(
   token: string,
-  storedHash: string
+  storedHash: string,
 ): Promise<boolean> {
   const secret = Deno.env.get('RESUME_TOKEN_SECRET');
   if (!secret) {

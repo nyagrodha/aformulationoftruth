@@ -271,7 +271,7 @@ https://aformulationoftruth.com
 export async function sendNewsletterConfirmationEmail(
   email: string,
   confirmUrl: string,
-  unsubscribeUrl: string
+  unsubscribeUrl: string,
 ): Promise<SendEmailResult> {
   const subject = 'Confirm your subscription to a formulation of truth';
 

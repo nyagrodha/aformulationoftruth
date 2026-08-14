@@ -32,7 +32,7 @@ export const handler: Handlers = {
       if (json) {
         return new Response(
           JSON.stringify({ success: false, error: 'Missing confirmation token' }),
-          { status: 400, headers: { 'Content-Type': 'application/json' } }
+          { status: 400, headers: { 'Content-Type': 'application/json' } },
         );
       }
       return new Response(renderPage('error', 'Missing confirmation token.'), {
@@ -49,12 +49,12 @@ export const handler: Handlers = {
         if (json) {
           return new Response(
             JSON.stringify({ success: true, status: 'confirmed', message: 'Subscription confirmed' }),
-            { status: 200, headers: { 'Content-Type': 'application/json' } }
+            { status: 200, headers: { 'Content-Type': 'application/json' } },
           );
         }
         return new Response(
           renderPage('success', 'Your subscription has been confirmed! Welcome to the newsletter.'),
-          { status: 200, headers: { 'Content-Type': 'text/html' } }
+          { status: 200, headers: { 'Content-Type': 'text/html' } },
         );
       }
 
@@ -62,12 +62,12 @@ export const handler: Handlers = {
         if (json) {
           return new Response(
             JSON.stringify({ success: true, status: 'already_confirmed', message: 'Already confirmed' }),
-            { status: 200, headers: { 'Content-Type': 'application/json' } }
+            { status: 200, headers: { 'Content-Type': 'application/json' } },
           );
         }
         return new Response(
           renderPage('info', 'Your subscription was already confirmed.'),
-          { status: 200, headers: { 'Content-Type': 'text/html' } }
+          { status: 200, headers: { 'Content-Type': 'text/html' } },
         );
       }
 
@@ -75,12 +75,12 @@ export const handler: Handlers = {
         if (json) {
           return new Response(
             JSON.stringify({ success: false, status: 'expired', message: 'Confirmation link expired' }),
-            { status: 200, headers: { 'Content-Type': 'application/json' } }
+            { status: 200, headers: { 'Content-Type': 'application/json' } },
           );
         }
         return new Response(
           renderPage('error', 'This confirmation link has expired. Please subscribe again.'),
-          { status: 410, headers: { 'Content-Type': 'text/html' } }
+          { status: 410, headers: { 'Content-Type': 'text/html' } },
         );
       }
 
@@ -88,12 +88,12 @@ export const handler: Handlers = {
       if (json) {
         return new Response(
           JSON.stringify({ success: false, status: 'invalid', message: 'Invalid confirmation link' }),
-          { status: 200, headers: { 'Content-Type': 'application/json' } }
+          { status: 200, headers: { 'Content-Type': 'application/json' } },
         );
       }
       return new Response(
         renderPage('error', 'Invalid confirmation link.'),
-        { status: 400, headers: { 'Content-Type': 'text/html' } }
+        { status: 400, headers: { 'Content-Type': 'text/html' } },
       );
     } catch (error) {
       console.error('[newsletter] Confirm failed');
@@ -102,12 +102,12 @@ export const handler: Handlers = {
       if (json) {
         return new Response(
           JSON.stringify({ success: false, error: 'Internal server error' }),
-          { status: 500, headers: { 'Content-Type': 'application/json' } }
+          { status: 500, headers: { 'Content-Type': 'application/json' } },
         );
       }
       return new Response(
         renderPage('error', 'Something went wrong. Please try again.'),
-        { status: 500, headers: { 'Content-Type': 'text/html' } }
+        { status: 500, headers: { 'Content-Type': 'text/html' } },
       );
     }
   },

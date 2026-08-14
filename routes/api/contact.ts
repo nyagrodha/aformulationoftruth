@@ -18,10 +18,7 @@
 
 import { Handlers } from '$fresh/server.ts';
 import { z } from 'zod';
-import {
-  ContactRecipientNotConfiguredError,
-  storeContactMessage,
-} from '../../lib/contact.ts';
+import { ContactRecipientNotConfiguredError, storeContactMessage } from '../../lib/contact.ts';
 import { increment } from '../../lib/metrics.ts';
 
 const ContactSchema = z.object({
@@ -91,8 +88,7 @@ export const handler: Handlers = {
     const headers = corsHeaders(req);
 
     // Rate limit by IP. Done before body parse so flood attempts pay less work.
-    const remoteHost =
-      (ctx as { remoteAddr?: { hostname?: string } }).remoteAddr?.hostname;
+    const remoteHost = (ctx as { remoteAddr?: { hostname?: string } }).remoteAddr?.hostname;
     const ip = getClientIp(req, remoteHost);
     const retryAfterMs = rateLimitCheck(ip);
     if (retryAfterMs > 0) {

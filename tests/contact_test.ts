@@ -12,11 +12,7 @@
  * Run with: deno task test
  */
 
-import {
-  assert,
-  assertEquals,
-  assertStringIncludes,
-} from 'https://deno.land/std@0.208.0/assert/mod.ts';
+import { assert, assertEquals, assertStringIncludes } from 'https://deno.land/std@0.208.0/assert/mod.ts';
 
 const BASE_URL = Deno.env.get('TEST_BASE_URL') || 'http://localhost:8000';
 

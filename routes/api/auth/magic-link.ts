@@ -47,7 +47,7 @@ export const handler: Handlers = {
       increment('errors.4xx');
       return new Response(
         JSON.stringify({ error: 'Invalid JSON body' }),
-        { status: 400, headers: { 'Content-Type': 'application/json' } }
+        { status: 400, headers: { 'Content-Type': 'application/json' } },
       );
     }
 
@@ -56,7 +56,7 @@ export const handler: Handlers = {
       increment('errors.4xx');
       return new Response(
         JSON.stringify({ error: 'Valid email required' }),
-        { status: 400, headers: { 'Content-Type': 'application/json' } }
+        { status: 400, headers: { 'Content-Type': 'application/json' } },
       );
     }
 
@@ -101,7 +101,7 @@ export const handler: Handlers = {
         increment('errors.email');
         return new Response(
           JSON.stringify({ error: 'Failed to send magic link' }),
-          { status: 500, headers: { 'Content-Type': 'application/json' } }
+          { status: 500, headers: { 'Content-Type': 'application/json' } },
         );
       }
 
@@ -122,7 +122,7 @@ export const handler: Handlers = {
             _devSessionId: sessionId,
           }),
         }),
-        { status: 200, headers: { 'Content-Type': 'application/json' } }
+        { status: 200, headers: { 'Content-Type': 'application/json' } },
       );
     } catch (_error) {
       console.error('[auth] Failed to create magic link');
@@ -130,7 +130,7 @@ export const handler: Handlers = {
 
       return new Response(
         JSON.stringify({ error: 'Failed to send magic link' }),
-        { status: 500, headers: { 'Content-Type': 'application/json' } }
+        { status: 500, headers: { 'Content-Type': 'application/json' } },
       );
     }
   },
