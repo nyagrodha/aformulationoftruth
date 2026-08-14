@@ -16,6 +16,8 @@
  * /proc/<pid>/cmdline.
  */
 
+import { fromFileUrl } from 'https://deno.land/std@0.216.0/path/mod.ts';
+
 export interface DeliveryMail {
   to: string;
   /** Already protected, if a password was supplied. */
@@ -49,7 +51,16 @@ function body(mail: DeliveryMail): string {
   return lines.join('\n');
 }
 
-const SENDER = new URL('./send_mail.py', import.meta.url).pathname;
+/**
+ * fromFileUrl, not URL.pathname: pathname keeps percent-encoding, so an
+ * installation path containing a space would hand python3/typst a literal
+ * "%20" and the file would not be found.
+ *
+ * The full std URL rather than a bare $std/ specifier -- this module runs
+ * standalone on the key box, which has no deno.json, so an import map is not
+ * available to resolve one.
+ */
+const SENDER = fromFileUrl(new URL('./send_mail.py', import.meta.url));
 
 export async function sendDelivery(mail: DeliveryMail): Promise<void> {
   const from = Deno.env.get('FROM_EMAIL') || Deno.env.get('SMTP_USER');

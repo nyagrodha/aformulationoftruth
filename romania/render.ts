@@ -6,6 +6,8 @@
  * system and they must never reach a disk that survives a reboot.
  */
 
+import { fromFileUrl } from 'https://deno.land/std@0.216.0/path/mod.ts';
+
 export interface RenderEntry {
   index: number;
   tamilNumeral: string;
@@ -20,7 +22,16 @@ export interface RenderDoc {
   entries: RenderEntry[];
 }
 
-const TEMPLATE = new URL('./template.typ', import.meta.url).pathname;
+/**
+ * fromFileUrl, not URL.pathname: pathname keeps percent-encoding, so an
+ * installation path containing a space would hand python3/typst a literal
+ * "%20" and the file would not be found.
+ *
+ * The full std URL rather than a bare $std/ specifier -- this module runs
+ * standalone on the key box, which has no deno.json, so an import map is not
+ * available to resolve one.
+ */
+const TEMPLATE = fromFileUrl(new URL('./template.typ', import.meta.url));
 
 /**
  * Render a document to PDF bytes.
