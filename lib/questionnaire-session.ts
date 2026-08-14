@@ -431,9 +431,14 @@ export async function getNextQuestion(
 export async function cleanupExpiredSessions(): Promise<number> {
   return await withConnection(async (client) => {
     const { rows } = await client.queryObject<{ count: number }>(
+      // updated_at, NOT created_at. The questionnaire page promises thirty
+      // days from a respondent's LAST VISIT, and the key box expires session
+      // identities on the same basis (romania/keystore.ts shredExpired).
+      // Measuring from creation would delete the session of someone still
+      // working on it, making that promise false the moment this is scheduled.
       `WITH deleted AS (
          DELETE FROM fresh_questionnaire_sessions
-         WHERE created_at < NOW() - INTERVAL '30 days'
+         WHERE updated_at < NOW() - INTERVAL '30 days'
          RETURNING 1
        ) SELECT COUNT(*) as count FROM deleted`,
     );

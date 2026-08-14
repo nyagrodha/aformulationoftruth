@@ -448,6 +448,19 @@ export default function QuestionnairePage({ data }: PageProps<QuestionnaireData>
             padding: 2rem;
             text-align: center;
           }
+          .resume-hint {
+            margin-top: 1.25rem;
+            font-size: 0.72rem;
+            line-height: 1.6;
+            color: #555;
+            max-width: 46ch;
+          }
+          .resume-hint a {
+            color: #777;
+            text-decoration: underline;
+            text-underline-offset: 2px;
+          }
+          .resume-hint a:hover { color: #aaa; }
           .footer-links {
             display: flex;
             justify-content: center;
@@ -514,6 +527,31 @@ export default function QuestionnairePage({ data }: PageProps<QuestionnaireData>
               For voice input, use <a href='https://github.com/cjpais/Handy' target='_blank' rel='noopener'>Handy</a>
               {' '}
               — free offline speech-to-text
+            </p>
+
+            {
+              /*
+              Persistent rather than shown on exit: this page works without
+              JavaScript, so there is no way to detect someone leaving. Quiet
+              enough to ignore while answering, present when it matters.
+
+              The thirty days is real and measured from the LAST visit, not the
+              first — it is the same clock the key box uses to expire session
+              identities (romania/keystore.ts) and the one
+              cleanupExpiredSessions now uses. Every return resets it.
+
+              After that the key is gone and the questionnaire cannot be
+              resumed, but the answers themselves are not lost: they are also
+              encrypted to the offline break-glass key, so recovery is a
+              deliberate ceremony rather than an impossibility. The copy says
+              "write to the webmaster" for that reason and does not claim the
+              work is destroyed.
+            */
+            }
+            <p class='resume-hint'>
+              You can stop here and come back. Your place is kept for thirty days from your last visit, and returning
+              resets the clock. After that the thread is let go and you would need to write to the{' '}
+              <a href='mailto:formitselfisemptiness@aformulationoftruth.com'>webmaster</a>.
             </p>
           </div>
         </main>
