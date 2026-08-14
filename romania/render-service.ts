@@ -22,8 +22,16 @@ const BIND = Deno.env.get('RENDER_BIND') || '127.0.0.1';
 const PORT = parseInt(Deno.env.get('RENDER_PORT') || '8791', 10);
 const TOKEN = Deno.env.get('RENDER_TOKEN') || '';
 const KEY_DIR = Deno.env.get('KEYBOX_KEY_DIR') || '/home/liar/keybox';
-/** tmpfs in production: plaintext must never reach persistent storage. */
-const WORK_ROOT = Deno.env.get('RENDER_WORK_ROOT') || '/dev/shm';
+/**
+ * Where the plaintext lives for the duration of one request.
+ *
+ * /tmp, NOT /dev/shm. Deno treats /dev/shm as a special path and refuses every
+ * operation there without --allow-all ("Requires all access to ..."), which
+ * would mean running this service unsandboxed to gain a tmpfs it already has:
+ * /tmp is tmpfs here, and the unit sets PrivateTmp=true, so the service gets a
+ * private, memory-backed /tmp no other process can see. Better on both counts.
+ */
+const WORK_ROOT = Deno.env.get('RENDER_WORK_ROOT') || '/tmp';
 const CALLBACK_URL = Deno.env.get('RENDER_CALLBACK_URL') || '';
 const CALLBACK_TOKEN = Deno.env.get('RENDER_CALLBACK_TOKEN') || '';
 
@@ -82,7 +90,13 @@ async function decryptWith(identity: string, ciphertext: string): Promise<string
  */
 export async function handleBundle(bundle: DeliveryBundle): Promise<void> {
   const identity = await loadIdentity(KEY_DIR, bundle.sessionId);
-  const work = await Deno.makeTempDir({ dir: WORK_ROOT, prefix: 'render-' });
+  // NOT Deno.makeTempDir({ dir }): that demands blanket filesystem access
+  // (NotCapable: "Requires all access to /dev/shm") even with --allow-read and
+  // --allow-write granted, which would force the service to run --allow-all.
+  // Creating the directory ourselves needs only write permission, so the
+  // sandbox stays narrow.
+  const work = `${WORK_ROOT}/render-${crypto.randomUUID()}`;
+  await Deno.mkdir(work, { recursive: false, mode: 0o700 });
 
   try {
     const address = await decryptWith(identity, bundle.encryptedEmail);
@@ -110,6 +124,7 @@ export async function handleBundle(bundle: DeliveryBundle): Promise<void> {
       pdf,
       filename: 'responses.pdf',
       protected: Boolean(password),
+      workDir: work,
     });
 
     // Only after the send succeeded. Recording a delivery that did not happen
@@ -207,9 +222,10 @@ if (import.meta.main) {
     try {
       await handleBundle(bundle);
       return new Response('ok', { status: 200 });
-    } catch {
-      // Category only. The thrown error can carry answer text or the address.
-      console.error('[render] delivery failed');
+    } catch (exc) {
+      // The MESSAGE is withheld -- it can carry answer text or the address --
+      // but the exception CLASS cannot, and without it a failure is undiagnosable.
+      console.error('[render] delivery failed (%s)', exc instanceof Error ? exc.name : typeof exc);
       return new Response('render failed', { status: 500 });
     }
   });
