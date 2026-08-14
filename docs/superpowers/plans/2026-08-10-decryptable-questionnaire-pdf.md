@@ -1464,7 +1464,7 @@ git commit -m "feat(responses): address-locked re-send tokens and deletion"
 after its first send; a session that never delivers dies `absolute` days after
 the key arrived. Task 14 passes `{ afterDelivery: 7, absolute: 30 }`.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 // romania/tests/keystore_test.ts
@@ -1556,12 +1556,12 @@ Deno.test('shredExpired - an undelivered key still dies at the absolute ceiling'
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `deno test --allow-read --allow-write romania/tests/keystore_test.ts`
 Expected: FAIL — module does not exist.
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 ```ts
 // romania/keystore.ts
@@ -1688,7 +1688,7 @@ export async function shredExpired(dir: string, now: Date, policy: ShredPolicy):
 }
 ```
 
-- [ ] **Step 4: Run tests**
+- [x] **Step 4: Run tests**
 
 Run: `deno test --allow-read --allow-write romania/tests/keystore_test.ts`
 Expected: PASS, 7 tests.
@@ -2150,12 +2150,12 @@ git commit -m "feat(romania): AES-256 PDF protection with verified round-trip"
 `https://deno.land/x/denomailer@1.6.0/mod.ts` and match its actual API before
 writing the adapter; do not assume the field names above map directly.
 
-- [ ] **Step 1: Confirm the denomailer attachment API**
+- [x] **Step 1: Confirm the denomailer attachment API**
 
 Run: `deno doc https://deno.land/x/denomailer@1.6.0/mod.ts | grep -iA5 attach`
 Record the exact shape it expects.
 
-- [ ] **Step 2: Write the failing test**
+- [x] **Step 2: Write the failing test**
 
 ```ts
 // tests/email_attachment_test.ts
@@ -2176,23 +2176,23 @@ Deno.test('toDenomailerAttachments - empty list maps to empty list', () => {
 });
 ```
 
-- [ ] **Step 3: Run test to verify it fails**
+- [x] **Step 3: Run test to verify it fails**
 
 Run: `deno test --allow-net --allow-read --allow-env tests/email_attachment_test.ts`
 Expected: FAIL — `toDenomailerAttachments` is not exported.
 
-- [ ] **Step 4: Implement**
+- [x] **Step 4: Implement**
 
 Add the exported mapper and extend `SendEmailOptions` with `attachments?`, then
 pass the mapped array into the `client.send(...)` call. Keep the existing
 `smtpReplyCode` / `smtpFailureKind` error handling untouched.
 
-- [ ] **Step 5: Run tests**
+- [x] **Step 5: Run tests**
 
 Run: `deno test --allow-net --allow-read --allow-env tests/email_attachment_test.ts && deno check main.ts`
 Expected: PASS, 2 tests.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 deno fmt lib/email.ts tests/email_attachment_test.ts
@@ -2215,7 +2215,7 @@ git commit -m "feat(email): binary attachment support"
 - Consumes: Tasks 10-13
 - Produces: `POST /render` accepting a `DeliveryBundle`, bound to the mesh address only.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 // romania/tests/service_test.ts
@@ -2259,12 +2259,12 @@ Deno.test('validateBundle - rejects a traversal-shaped session id', () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `deno test --allow-read romania/tests/service_test.ts`
 Expected: FAIL — `validateBundle` is not exported.
 
-- [ ] **Step 3: Implement the service**
+- [x] **Step 3: Implement the service**
 
 `validateBundle` returns `'ok'` or a reason string. It must require **exactly 35
 answers with indices 0-34 in canonical order** — the same guarantee `buildBundle`
@@ -2291,7 +2291,7 @@ directory in a `finally` block so plaintext never outlives the request.
 
 **Do not shred the key here.** The 7-day timer owns that.
 
-- [ ] **Step 4: Write the deployment units**
+- [x] **Step 4: Write the deployment units**
 
 `render.service` binds to the WireGuard address only. `shred.timer` runs daily
 and invokes `shredExpired(dir, new Date(), { afterDelivery: 7, absolute: 30 })`.
@@ -2301,12 +2301,12 @@ what starts the 7-day clock. The README documents the egress
 policy — allow `tcp/587` to `smtp.mail.me.com` and the mesh, deny everything
 else — and the tmpfs mount for the working directory.
 
-- [ ] **Step 5: Run tests**
+- [x] **Step 5: Run tests**
 
 Run: `deno test --allow-read romania/tests/service_test.ts`
 Expected: PASS, 3 tests.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 deno fmt romania/
