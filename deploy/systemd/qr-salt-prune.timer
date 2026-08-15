@@ -1,0 +1,17 @@
+[Unit]
+Description=Hourly prune of QR daily salts
+
+[Timer]
+OnCalendar=hourly
+# Catch up after downtime. Without this a box that was off across a day
+# boundary would leave an over-age salt until the next scheduled tick --
+# precisely the silent breach this timer exists to prevent.
+Persistent=true
+# Enough jitter to stay off the same instant as every other hourly job on the
+# host, small enough to keep the worst-case lateness near an hour rather than
+# an hour and five minutes. The retention boundary is a whole day, so this
+# margin is not load-bearing -- see the bound documented in README.md.
+RandomizedDelaySec=60
+
+[Install]
+WantedBy=timers.target

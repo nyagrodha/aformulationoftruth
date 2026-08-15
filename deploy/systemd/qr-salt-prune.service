@@ -1,0 +1,23 @@
+[Unit]
+Description=Prune QR daily salts past the retention window
+Documentation=https://github.com/nyagrodha/aformulationoftruth/blob/production/scripts/prune-qr-salts.ts
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=ahamahamahakaha
+WorkingDirectory=/var/www/aformulationoftruth
+# EnvironmentFile, exactly as aformulationoftruth-fresh.service does it.
+#
+# This is load-bearing, not decoration: .env is 0600 and owned by wthami, so
+# ahamahamahakaha CANNOT read it. systemd reads EnvironmentFile as root before
+# dropping to User=, which is the only reason the main service works either.
+# Without this line the script finds .env unreadable, gets no DATABASE_URL,
+# and fails on every tick.
+#
+# The script's own dotenv loader then finds nothing readable and skips, and
+# its `inherited` guard makes the real environment win regardless -- which is
+# what keeps a stray .env from ever pointing this DELETE at another database.
+EnvironmentFile=/var/www/aformulationoftruth/.env
+ExecStart=/usr/local/bin/deno run --allow-net --allow-env --allow-read scripts/prune-qr-salts.ts

@@ -31,7 +31,7 @@ Three things stand in the way, all verified 2026-08-11:
 |---|---|---|
 | URL | `aformulationoftruth.com/WillyStCo-op` | Human-readable; re-pointable later without reflashing the node |
 | "Discrete" | Hashed IP + user-agent, deduped per UTC day | Works when cookies are blocked; owner accepted the privacy trade-off over a cookie-based count |
-| Salt lifetime | Random per day, deleted at 48h | Makes past days permanently un-recomputable, which is what "non-linkable across days" has to mean to be true |
+| Salt lifetime | Random per day, deleted on the second UTC day after creation (age 24–48h, see below) | Makes past days permanently un-recomputable, which is what "non-linkable across days" has to mean to be true |
 | Report surface | CLI script | Adds no public HTTP surface to guard |
 | Landing | `302` to `/w/<token>` | Reuses the existing invitation page and its encounter machinery |
 
@@ -144,11 +144,31 @@ past the window this design rests on. A quiet noticeboard is the normal case
 for a QR on a wall, not the edge case, so the condition that disables pruning
 is the same condition the feature operates under most of the time.
 
-`scripts/prune-qr-salts.ts` on a systemd timer is now what guarantees the
-window. The request-path prune is kept as well, deliberately: the two fail
-independently — a dead timer is covered by traffic, an idle URL is covered by
-the timer — and the cost is one indexed `DELETE` against a table holding at
+`scripts/prune-qr-salts.ts` on a systemd timer is what enforces the window when
+the URL is idle. The request-path prune is kept as well, deliberately: the two
+fail independently — a dead timer is covered by traffic, an idle URL is covered
+by the timer — and the cost is one indexed `DELETE` against a table holding at
 most two rows.
+
+**What the deployed mechanism can actually promise.** Not a strict 48 hours,
+and it never could have been — the earlier wording overclaimed.
+
+Retention is **day-granular**, not a rolling window. A salt becomes eligible
+for deletion when the UTC date advances past `saltCutoffDay()`, i.e. at 00:00
+UTC on the second day after it was created. So a salt minted at 00:00 lives
+~48h; one minted at 23:59 lives ~24h. Its age depends only on *when in the day*
+it was created.
+
+On top of that, deletion happens at the next timer tick, not at the instant of
+eligibility: hourly with up to 60s jitter, so up to ~61 minutes late. Failed
+runs, host downtime, or a stopped timer extend it further — `Persistent=true`
+catches up after downtime but cannot retroactively delete on time.
+
+The honest statement is therefore: **a salt is normally removed within about an
+hour of becoming eligible, giving a worst case near 49 hours, and this is
+best-effort rather than a guarantee.** Anything stronger would need deletion
+driven by the database itself, which this app has no mechanism for (there is no
+`pg_cron` on the host — checked).
 
 The cutoff is computed in TypeScript from UTC (`saltCutoffDay`) rather than in
 SQL from `CURRENT_DATE`, which follows the database session's timezone and
