@@ -33,9 +33,14 @@ import { pruneSalts, saltCutoffDay } from '../lib/qr-scans.ts';
 //
 // Unlike those scripts, the real environment WINS over the dotenv files. This
 // job deletes rows, and a stale .env in the working directory pointing at a
-// different database would make it delete the wrong ones. The unit file
-// deliberately sets no EnvironmentFile today, so nothing is inherited -- this
-// is here so that adding one later is safe rather than silently destructive.
+// different database would make it delete the wrong ones.
+//
+// This is not hypothetical: qr-salt-prune.service DOES set EnvironmentFile,
+// because .env is 0600 and owned by another user, so systemd must read it as
+// root before dropping privileges -- the script cannot read it at all. So
+// DATABASE_URL always arrives inherited, and this guard is the only thing
+// keeping a stray readable .env from redirecting the DELETE. Do not remove it,
+// and do not drop EnvironmentFile from the unit.
 const inherited = new Set(Object.keys(Deno.env.toObject()));
 for (const envFile of ['.env.fresh', '.env']) {
   try {
