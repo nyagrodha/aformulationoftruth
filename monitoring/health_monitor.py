@@ -67,7 +67,7 @@ SERVICES = {
     },
     'fresh_api_vpn': {
         'name': 'Fresh API (VPN)',
-        'url': 'http://10.67.0.1:7781/api/health',
+        'url': f'http://{os.environ["VPN_GATEWAY_IP"]}:7781/api/health',
         'expected_status': 200,
         'timeout': 15,
         'optional': True,  # Don't alert if VPN service is down (fallback exists)

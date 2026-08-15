@@ -12,6 +12,7 @@ Local data:
 """
 
 import json
+import os
 import subprocess
 import time
 from datetime import datetime
@@ -19,7 +20,7 @@ from waveshare_epd import epd2in13_V4
 from PIL import Image, ImageDraw, ImageFont
 
 # --- Connection config ---
-MARCEL_HOST = "marcel@10.67.0.2"
+MARCEL_HOST = os.environ["MARCEL_HOST"]  # e.g. marcel@<wireguard-ip>
 MARCEL_KEY = "/home/cam/.ssh/finland_key"
 MARCEL_PORT = "2078"
 SYSTEM_API = "http://127.0.0.1:9191"
