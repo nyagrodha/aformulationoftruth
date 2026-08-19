@@ -24,6 +24,7 @@ import * as $api_questions_answer from './routes/api/questions/answer.ts';
 import * as $api_questions_next from './routes/api/questions/next.ts';
 import * as $api_responses from './routes/api/responses.ts';
 import * as $api_responses_deliver from './routes/api/responses/deliver.ts';
+import * as $api_responses_delivered from './routes/api/responses/delivered.ts';
 import * as $auth_verify from './routes/auth/verify.tsx';
 import * as $check_email from './routes/check-email.tsx';
 import * as $completion from './routes/completion.tsx';
@@ -66,6 +67,7 @@ const manifest = {
     './routes/api/questions/next.ts': $api_questions_next,
     './routes/api/responses.ts': $api_responses,
     './routes/api/responses/deliver.ts': $api_responses_deliver,
+    './routes/api/responses/delivered.ts': $api_responses_delivered,
     './routes/auth/verify.tsx': $auth_verify,
     './routes/check-email.tsx': $check_email,
     './routes/completion.tsx': $completion,
