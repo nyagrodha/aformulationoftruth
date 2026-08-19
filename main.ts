@@ -4,6 +4,26 @@
 /// <reference lib="dom.asynciterable" />
 /// <reference lib="deno.ns" />
 
+/**
+ * A rejected promise nobody awaited must not end the process.
+ *
+ * Deno's default is to exit(1) on an unhandled rejection. denomailer 1.6.0 hit
+ * exactly that for days: lib/email.ts caught its own failures correctly while
+ * the library leaked a *second* rejection from its socket reader, so every
+ * magic-link send took the whole site down — 251 crashes in one day, each one
+ * a respondent who submitted the gate and got no link. The mailer is python
+ * now, but the class of fault outlives any one library.
+ *
+ * Registered before anything else so it covers boot as well as serving. Only
+ * the rejection's class name is recorded; the value itself can carry an
+ * address, a token, or answer text.
+ */
+globalThis.addEventListener('unhandledrejection', (event) => {
+  event.preventDefault();
+  const reason = (event as PromiseRejectionEvent).reason;
+  console.error(`[fatal] unhandled rejection suppressed kind=${reason instanceof Error ? reason.name : typeof reason}`);
+});
+
 // Load environment variables from .env.fresh (Deno Fresh config)
 // Falls back to .env if .env.fresh doesn't exist
 const envFiles = ['.env.fresh', '.env'];
