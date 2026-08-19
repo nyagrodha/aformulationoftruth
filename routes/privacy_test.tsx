@@ -4,7 +4,7 @@ import PrivacyPage from './privacy.tsx';
 
 Deno.test('privacy page preserves its original copy', () => {
   const html = render(<PrivacyPage />);
-  assertStringIncludes(html, 'We believe in radical privacy');
+  assertStringIncludes(html, 'We believe citizens of a free society must be able to choose privacy');
   assertStringIncludes(html, 'Your data belongs to you');
   assertStringIncludes(html, 'Abhinavagupta');
 });

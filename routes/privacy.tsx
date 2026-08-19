@@ -27,8 +27,10 @@ export default function PrivacyPage() {
         <h2>Our Commitment to Privacy</h2>
 
         <p class='lead'>
-          We believe in radical privacy. This is not merely a policy—it is a foundational principle. In a world{' '}
-          increasingly hostile to individual privacy, this space is designed to be different.
+          We believe citizens of a free society must be able to choose privacy. This is not merely a policy—it is a{' '}
+          foundational principle. In a world increasingly hostile to individual privacy, this space is designed to be
+          {' '}
+          different.
         </p>
 
         <p class='callout'>
