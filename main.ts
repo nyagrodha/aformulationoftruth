@@ -87,4 +87,27 @@ if (!isDatabaseConfigured()) {
   console.error('[db] Database not configured; DB-backed routes will fail.');
 }
 
+/**
+ * Flush the open audience window before exiting.
+ *
+ * The counter holds its state in memory on purpose (see lib/audience.ts), so a
+ * process that dies without this loses whatever it had counted since the last
+ * 60s flush. Every restart observed on this host has been a clean `Stopping`,
+ * which is precisely the case a signal handler covers.
+ *
+ * Fresh's start() never returns, so a signal listener is the only hook there is.
+ */
+for (const signal of ['SIGTERM', 'SIGINT'] as const) {
+  Deno.addSignalListener(signal, async () => {
+    try {
+      const { shutdownAudience } = await import('./lib/audience.ts');
+      await shutdownAudience();
+    } catch {
+      // Losing one window's count must not stop the process from exiting.
+      console.error('[shutdown] audience flush failed');
+    }
+    Deno.exit(0);
+  });
+}
+
 await start(manifest, config);
