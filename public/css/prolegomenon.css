@@ -1142,7 +1142,7 @@ footer .footer-return {
   color: var(--saffron);
 }
 
-/* Support / donation block on /about ---------------------------------------
+/* Support / tip block on /about ---------------------------------------
    The Zcash unified address is 178 characters; without an explicit wrap and a
    monospace face it renders as one unbroken line that blows out the layout on
    every viewport. Everything below is built from the tokens above. */

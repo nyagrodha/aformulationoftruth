@@ -3,9 +3,9 @@
 
 User-agent: *
 Allow: /
-Allow: /about.html
+Allow: /about
 Allow: /contact.html
-Allow: /privacy.html
+Allow: /privacy
 
 # Block all API endpoints
 Disallow: /api/
