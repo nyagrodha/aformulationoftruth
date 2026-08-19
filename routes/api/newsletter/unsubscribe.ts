@@ -33,7 +33,7 @@ export const handler: Handlers = {
       if (json) {
         return new Response(
           JSON.stringify({ success: false, error: 'Missing unsubscribe token' }),
-          { status: 400, headers: { 'Content-Type': 'application/json' } }
+          { status: 400, headers: { 'Content-Type': 'application/json' } },
         );
       }
       return new Response(renderPage('error', 'Missing unsubscribe token.'), {
@@ -50,12 +50,12 @@ export const handler: Handlers = {
         if (json) {
           return new Response(
             JSON.stringify({ success: true, status: 'unsubscribed', message: 'Successfully unsubscribed' }),
-            { status: 200, headers: { 'Content-Type': 'application/json' } }
+            { status: 200, headers: { 'Content-Type': 'application/json' } },
           );
         }
         return new Response(
           renderPage('success', "You have been unsubscribed from the newsletter. We're sorry to see you go."),
-          { status: 200, headers: { 'Content-Type': 'text/html' } }
+          { status: 200, headers: { 'Content-Type': 'text/html' } },
         );
       }
 
@@ -63,12 +63,12 @@ export const handler: Handlers = {
         if (json) {
           return new Response(
             JSON.stringify({ success: true, status: 'already_unsubscribed', message: 'Already unsubscribed' }),
-            { status: 200, headers: { 'Content-Type': 'application/json' } }
+            { status: 200, headers: { 'Content-Type': 'application/json' } },
           );
         }
         return new Response(
           renderPage('info', 'You were already unsubscribed from the newsletter.'),
-          { status: 200, headers: { 'Content-Type': 'text/html' } }
+          { status: 200, headers: { 'Content-Type': 'text/html' } },
         );
       }
 
@@ -76,12 +76,12 @@ export const handler: Handlers = {
       if (json) {
         return new Response(
           JSON.stringify({ success: false, status: 'invalid', message: 'Invalid unsubscribe link' }),
-          { status: 200, headers: { 'Content-Type': 'application/json' } }
+          { status: 200, headers: { 'Content-Type': 'application/json' } },
         );
       }
       return new Response(
         renderPage('error', 'Invalid unsubscribe link.'),
-        { status: 400, headers: { 'Content-Type': 'text/html' } }
+        { status: 400, headers: { 'Content-Type': 'text/html' } },
       );
     } catch (error) {
       console.error('[newsletter] Unsubscribe failed');
@@ -90,12 +90,12 @@ export const handler: Handlers = {
       if (json) {
         return new Response(
           JSON.stringify({ success: false, error: 'Internal server error' }),
-          { status: 500, headers: { 'Content-Type': 'application/json' } }
+          { status: 500, headers: { 'Content-Type': 'application/json' } },
         );
       }
       return new Response(
         renderPage('error', 'Something went wrong. Please try again.'),
-        { status: 500, headers: { 'Content-Type': 'text/html' } }
+        { status: 500, headers: { 'Content-Type': 'text/html' } },
       );
     }
   },

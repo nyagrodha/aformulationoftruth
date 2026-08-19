@@ -1,18 +1,7 @@
 import type { ComponentChildren } from 'preact';
-import Nav, { type NavItem } from '../islands/Nav.tsx';
+import Nav from '../islands/Nav.tsx';
 import { WordmarkGlyphs } from './Wordmark.tsx';
-
-/*
- * The prose pages navigate by route. 'Home' is the landing page — the gate's
- * own submit button still reads 'Begin', and two things called Begin that went
- * different places was the confusion worth removing.
- */
-const PAGE_NAV: NavItem[] = [
-  { label: 'Home', href: '/' },
-  { label: 'About', href: '/about' },
-  { label: 'Contact', href: '/contact.html' },
-  { label: 'Gift Shop', href: '/shop' },
-];
+import { NAV_NOSCRIPT_CSS, PAGE_NAV } from './nav-shared.ts';
 
 /**
  * Section divider. Uses prolegomenon's own `.section-break`, which the
@@ -54,9 +43,10 @@ export function PageShell(
         <title>{title}</title>
         <meta name='description' content={description} />
         <link rel='stylesheet' href='/css/prolegomenon.css' />
+        <link rel='stylesheet' href='/css/nav-mark.css' />
         {/* The toggle is inert without JS, so leave the menu open instead. */}
         <noscript>
-          <style>{'.nav-list[hidden]{display:flex}.nav-arrow{display:none}'}</style>
+          <style>{NAV_NOSCRIPT_CSS}</style>
         </noscript>
       </head>
       <body>

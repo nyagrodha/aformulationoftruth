@@ -36,10 +36,10 @@ function getJwtSecret(): string {
 const JWT_VALIDITY_HOURS = 24;
 
 export interface JWTPayload {
-  email_hash: string;    // For client-side encryption key derivation
-  session_id: string;    // HMAC hash of opaque token
-  iat: number;           // Issued at (Unix timestamp)
-  exp: number;           // Expiration (Unix timestamp)
+  email_hash: string; // For client-side encryption key derivation
+  session_id: string; // HMAC hash of opaque token
+  iat: number; // Issued at (Unix timestamp)
+  exp: number; // Expiration (Unix timestamp)
 }
 
 /**
@@ -65,7 +65,7 @@ function getFutureTimestamp(seconds: number): number {
  */
 export async function createQuestionnaireJWT(
   emailHash: string,
-  sessionId: string
+  sessionId: string,
 ): Promise<string> {
   const secret = getJwtSecret();
 
@@ -75,7 +75,7 @@ export async function createQuestionnaireJWT(
     encoder.encode(secret),
     { name: 'HMAC', hash: 'SHA-256' },
     false,
-    ['sign']
+    ['sign'],
   );
 
   // Build JWT payload
@@ -101,7 +101,7 @@ export async function createQuestionnaireJWT(
   const signatureBuffer = await crypto.subtle.sign(
     'HMAC',
     key,
-    encoder.encode(signatureInput)
+    encoder.encode(signatureInput),
   );
   const signatureB64 = base64urlEncode(signatureBuffer);
 
@@ -116,7 +116,7 @@ export async function createQuestionnaireJWT(
  * @returns Payload if valid, null if invalid or expired
  */
 export async function verifyQuestionnaireJWT(
-  token: string
+  token: string,
 ): Promise<JWTPayload | null> {
   const secret = getJwtSecret();
 
@@ -136,7 +136,7 @@ export async function verifyQuestionnaireJWT(
       encoder.encode(secret),
       { name: 'HMAC', hash: 'SHA-256' },
       false,
-      ['verify']
+      ['verify'],
     );
 
     // Verify signature
@@ -147,7 +147,7 @@ export async function verifyQuestionnaireJWT(
       'HMAC',
       key,
       signatureBuffer,
-      encoder.encode(signatureInput)
+      encoder.encode(signatureInput),
     );
 
     if (!isValid) {

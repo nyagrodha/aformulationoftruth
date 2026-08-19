@@ -85,7 +85,7 @@ export function isValidQuestionOrder(order: number[]): boolean {
  */
 export function canonicalizeAnswers(
   answers: Record<string, unknown>,
-  presentationOrder: number[]
+  presentationOrder: number[],
 ): Record<number, unknown> {
   const canonical: Record<number, unknown> = {};
 

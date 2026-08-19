@@ -39,7 +39,7 @@ interface UnsubscribeResult {
 function generateToken(): string {
   const bytes = new Uint8Array(32);
   crypto.getRandomValues(bytes);
-  return Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('');
+  return Array.from(bytes).map((b) => b.toString(16).padStart(2, '0')).join('');
 }
 
 /**
@@ -50,7 +50,7 @@ async function hashToken(token: string): Promise<string> {
   const data = encoder.encode(token);
   const hashBuffer = await crypto.subtle.digest('SHA-256', data);
   const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
 }
 
 /**
@@ -73,7 +73,7 @@ export async function subscribeEmail(email: string): Promise<SubscribeResult> {
       unsubscribe_token: string;
     }>(
       `SELECT id, status, unsubscribe_token FROM newsletter_subscribers WHERE email_hash = $1`,
-      [emailHash]
+      [emailHash],
     );
 
     if (existing.rows.length > 0) {
@@ -95,7 +95,7 @@ export async function subscribeEmail(email: string): Promise<SubscribeResult> {
                confirmation_expires_at = $2,
                unsubscribed_at = NULL
            WHERE id = $3`,
-          [confirmationTokenHash, expiresAt, subscriber.id]
+          [confirmationTokenHash, expiresAt, subscriber.id],
         );
 
         return {
@@ -112,7 +112,7 @@ export async function subscribeEmail(email: string): Promise<SubscribeResult> {
          SET confirmation_token_hash = $1,
              confirmation_expires_at = $2
          WHERE id = $3`,
-        [confirmationTokenHash, expiresAt, subscriber.id]
+        [confirmationTokenHash, expiresAt, subscriber.id],
       );
 
       return {
@@ -128,7 +128,7 @@ export async function subscribeEmail(email: string): Promise<SubscribeResult> {
       `INSERT INTO newsletter_subscribers (email_hash, confirmation_token_hash, confirmation_expires_at, unsubscribe_token)
        VALUES ($1, $2, $3, $4)
        RETURNING unsubscribe_token`,
-      [emailHash, confirmationTokenHash, expiresAt, unsubscribeToken]
+      [emailHash, confirmationTokenHash, expiresAt, unsubscribeToken],
     );
 
     return {
@@ -155,7 +155,7 @@ export async function confirmSubscription(token: string): Promise<ConfirmResult>
       `SELECT id, status, confirmation_expires_at
        FROM newsletter_subscribers
        WHERE confirmation_token_hash = $1`,
-      [tokenHash]
+      [tokenHash],
     );
 
     if (result.rows.length === 0) {
@@ -180,7 +180,7 @@ export async function confirmSubscription(token: string): Promise<ConfirmResult>
            confirmation_token_hash = NULL,
            confirmation_expires_at = NULL
        WHERE id = $1`,
-      [subscriber.id]
+      [subscriber.id],
     );
 
     return { success: true, status: 'confirmed' as const };
@@ -194,7 +194,7 @@ export async function unsubscribeEmail(token: string): Promise<UnsubscribeResult
   return await withConnection(async (client) => {
     const result = await client.queryObject<{ id: string; status: string }>(
       `SELECT id, status FROM newsletter_subscribers WHERE unsubscribe_token = $1`,
-      [token]
+      [token],
     );
 
     if (result.rows.length === 0) {
@@ -212,7 +212,7 @@ export async function unsubscribeEmail(token: string): Promise<UnsubscribeResult
        SET status = 'unsubscribed',
            unsubscribed_at = NOW()
        WHERE id = $1`,
-      [subscriber.id]
+      [subscriber.id],
     );
 
     return { success: true, status: 'unsubscribed' as const };
@@ -225,7 +225,7 @@ export async function unsubscribeEmail(token: string): Promise<UnsubscribeResult
 export async function getSubscriberCount(): Promise<{ total: number; confirmed: number; pending: number }> {
   return await withConnection(async (client) => {
     const result = await client.queryObject<{ status: string; count: string }>(
-      `SELECT status, COUNT(*) as count FROM newsletter_subscribers GROUP BY status`
+      `SELECT status, COUNT(*) as count FROM newsletter_subscribers GROUP BY status`,
     );
 
     const counts = { total: 0, confirmed: 0, pending: 0 };

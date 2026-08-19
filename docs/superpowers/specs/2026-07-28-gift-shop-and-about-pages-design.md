@@ -16,13 +16,13 @@ Three things, in one push:
 
 Recorded because several contradicted prior assumptions.
 
-| Assumption | Reality |
-|---|---|
-| Live site runs on the poet Pi | Runs on the **`fob` VPS**, `185.146.234.144`, Caddy-fronted. Poet Pi is offline and unrelated. |
-| `routes/about.tsx` exists | It does not. About is `public/about.html`, linked as `/about.html` from 8 routes. |
-| A store exists and needs finishing | Nothing exists. No shop code on any branch; `/shop` and `/store` both 404. It is net-new. |
-| Site is strictly no-JS | The **questionnaire flow** is no-JS. Prose pages already ship JS (`copyZcashAddress()`, `theme-toggle.js`). |
-| `origin/production` matches the server | Server is **1 commit ahead and unpushed** (`ad8e3614`), with a dirty working tree. |
+| Assumption                             | Reality                                                                                                     |
+| -------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| Live site runs on the poet Pi          | Runs on the **`fob` VPS**, `185.146.234.144`, Caddy-fronted. Poet Pi is offline and unrelated.              |
+| `routes/about.tsx` exists              | It does not. About is `public/about.html`, linked as `/about.html` from 8 routes.                           |
+| A store exists and needs finishing     | Nothing exists. No shop code on any branch; `/shop` and `/store` both 404. It is net-new.                   |
+| Site is strictly no-JS                 | The **questionnaire flow** is no-JS. Prose pages already ship JS (`copyZcashAddress()`, `theme-toggle.js`). |
+| `origin/production` matches the server | Server is **1 commit ahead and unpushed** (`ad8e3614`), with a dirty working tree.                          |
 
 Two content corrections:
 
@@ -58,7 +58,7 @@ Design vocabulary to match, taken from `about.html`:
 
 - `madras-theme.css`; themes Tamas / Nīla / Uruvam via `theme-toggle.js`
 - Tamil buttons: திரும்பவும் ("return"), தொடங்கு ("begin")
-- Sanskrit/Tamil section headers in the existing register (*vividhā racanā*, அகம்)
+- Sanskrit/Tamil section headers in the existing register (_vividhā racanā_, அகம்)
 - Filigree SVG ornament as section divider
 - Classes: `.about-container`, `.about-content`, `.lead`, `.ornament`, `.btn.btn-primary`
 
@@ -69,22 +69,22 @@ Catalog lives in `data/shop.ts` so it is editable without touching markup:
 ```ts
 export type ShopItem =
   | {
-      kind: "affiliate";
-      title: string;
-      author: string;
-      translator?: string;
-      isbn: string;
-      volume?: number;
-      blurb: string;
-      links: { retailer: string; url: string }[];
-    }
+    kind: 'affiliate';
+    title: string;
+    author: string;
+    translator?: string;
+    isbn: string;
+    volume?: number;
+    blurb: string;
+    links: { retailer: string; url: string }[];
+  }
   | {
-      kind: "own";
-      title: string;
-      blurb: string;
-      price: string;
-      paymentLink: string; // Stripe Payment Link URL
-    };
+    kind: 'own';
+    title: string;
+    blurb: string;
+    price: string;
+    paymentLink: string; // Stripe Payment Link URL
+  };
 ```
 
 `links` is an **array, not named fields** (`amazonUrl` / `penguinUrl`). This is what makes "let them choose" cheap: adding Bookshop.org later is one entry per item and zero template changes, and a title available from only one retailer renders with no conditional branching.
@@ -100,7 +100,7 @@ Status of the two programs:
 - **Amazon Associates — account exists.** Tag appended as `?tag=<TAG>` (or `&tag=` where the URL already has a query string).
 - **Penguin Random House / ShareASale — not yet registered.** Build with links to `penguinrandomhouse.com` product pages and a single interpolation point for the affiliate ID, so registering later is a one-line change. Until registered, PRH links are plain non-affiliate links — which is correct and honest, not broken.
 
-Useful simplification: de Botton's *How Proust Can Change Your Life* is published by **Vintage, a PRH imprint**, and sells on penguinrandomhouse.com. One PRH account therefore covers all eight titles.
+Useful simplification: de Botton's _How Proust Can Change Your Life_ is published by **Vintage, a PRH imprint**, and sells on penguinrandomhouse.com. One PRH account therefore covers all eight titles.
 
 ### Payments — Stripe Payment Links
 
@@ -116,40 +116,41 @@ FTC requires **conspicuous** affiliate disclosure — placed at the top of `/sho
 
 ## Catalog
 
-### Penguin Classics Deluxe — *In Search of Lost Time* (Christopher Prendergast, gen. ed.)
+### Penguin Classics Deluxe — _In Search of Lost Time_ (Christopher Prendergast, gen. ed.)
 
-| Vol | Title | Translator | ISBN |
-|---|---|---|---|
-| 1 | Swann's Way | Lydia Davis | 9780142437964 |
-| 2 | In the Shadow of Young Girls in Flower | James Grieve | 9780143039075 |
-| 3 | The Guermantes Way | Mark Treharne | 9780143039228 |
-| 4 | Sodom and Gomorrah | John Sturrock | 9780143039310 |
-| 5 | The Prisoner | Carol Clark | 9780143133599 |
-| 6 | The Fugitive | Peter Collier | 9780143133704 |
-| 7 | Finding Time Again | Ian Patterson | 9780143133711 |
+| Vol | Title                                  | Translator    | ISBN          |
+| --- | -------------------------------------- | ------------- | ------------- |
+| 1   | Swann's Way                            | Lydia Davis   | 9780142437964 |
+| 2   | In the Shadow of Young Girls in Flower | James Grieve  | 9780143039075 |
+| 3   | The Guermantes Way                     | Mark Treharne | 9780143039228 |
+| 4   | Sodom and Gomorrah                     | John Sturrock | 9780143039310 |
+| 5   | The Prisoner                           | Carol Clark   | 9780143133599 |
+| 6   | The Fugitive                           | Peter Collier | 9780143133704 |
+| 7   | Finding Time Again                     | Ian Patterson | 9780143133711 |
 
 ### Also
 
-| Title | Author | Publisher | ISBN |
-|---|---|---|---|
+| Title                           | Author          | Publisher     | ISBN          |
+| ------------------------------- | --------------- | ------------- | ------------- |
 | How Proust Can Change Your Life | Alain de Botton | Vintage (PRH) | 9780679779155 |
 
 ### Own items — shipping in this phase
 
 Not the QR wearables (those don't exist as products yet). The Stripe account already held three live t-shirt products at $35.00 each. Two ship on `/shop`:
 
-| Item | Product | Price | Payment Link |
-|---|---|---|---|
-| Abhinava-Tee | `prod_U52G154jFbfScg` | `price_1T6sBsE0bl8qdZq4N5H8Jo1f` | `https://buy.stripe.com/4gM5kD2iS77L0p67K53ZK00` |
+| Item                      | Product               | Price                            | Payment Link                                     |
+| ------------------------- | --------------------- | -------------------------------- | ------------------------------------------------ |
+| Abhinava-Tee              | `prod_U52G154jFbfScg` | `price_1T6sBsE0bl8qdZq4N5H8Jo1f` | `https://buy.stripe.com/4gM5kD2iS77L0p67K53ZK00` |
 | Abhinavabsurd… yet funny! | `prod_U52JkzW7noXQMf` | `price_1T6sFJE0bl8qdZq4KyyGgQkb` | `https://buy.stripe.com/bJeaEX8Hg63H5Jqe8t3ZK01` |
 
-*Abhinavabsurd* carries the "REFRIGERATOR on the Blockchain" line and is **dual-listed** — it appears on both `/shop` and the fridge-rs site, as one Stripe product with one Payment Link referenced from two catalogs. Its metadata records `site: aformulationoftruth,fridge-rs`.
+_Abhinavabsurd_ carries the "REFRIGERATOR on the Blockchain" line and is **dual-listed** — it appears on both `/shop` and the fridge-rs site, as one Stripe product with one Payment Link referenced from two catalogs. Its metadata records `site: aformulationoftruth,fridge-rs`.
 
 **"Nobody knows I'm a fridge"** (`prod_U52IFWVQlsWqrP`) is **excluded** from this site — it belongs to fridge-rs. Its config was corrected alongside the others, but no Payment Link was created for it.
 
 ### Stripe configuration applied 2026-07-28
 
 Products (all three, including the fridge tee):
+
 - `shippable: true`
 - `tax_code: txcd_30011000` (Clothing & Footwear), corrected from `txcd_20030000` (General – Services)
 - `type` remains `service` — immutable after creation, and harmless: shipping collection is governed by the Payment Link, not the product
@@ -166,7 +167,7 @@ Both pages are prose in the register of `about.html` — essayistic, not listicl
 
 Beats to cover:
 
-- Confession albums as a Victorian parlour pastime, descended from the *album amicorum* / friendship album; printed volumes with pre-printed prompts circulated among friends, 1860s–1890s.
+- Confession albums as a Victorian parlour pastime, descended from the _album amicorum_ / friendship album; printed volumes with pre-printed prompts circulated among friends, 1860s–1890s.
 - **Proust did not invent the questionnaire.** He answered an existing one — once around age 13 in Antoinette Faure's album, and again around 20. The attribution is retrospective; the form predates him.
 - The 1890 manuscript resurfaced and was auctioned in 2003, which is much of why his name attached to the form.
 - Relation to adjacent forms: birthday books, autograph albums, friendship books.
@@ -176,9 +177,9 @@ Beats to cover:
 
 Beats to cover:
 
-- **Bernard Pivot** — *Apostrophes* (1975–90) and *Bouillon de Culture*; his own condensed variant closing each interview.
-- **James Lipton, *Inside the Actors Studio*** — adopted Pivot's variant, which is how most English-speaking audiences met the form.
-- ***Vanity Fair*** back page, from 1993 onward — the long-running Proust Questionnaire feature.
+- **Bernard Pivot** — _Apostrophes_ (1975–90) and _Bouillon de Culture_; his own condensed variant closing each interview.
+- **James Lipton, _Inside the Actors Studio_** — adopted Pivot's variant, which is how most English-speaking audiences met the form.
+- _**Vanity Fair**_ back page, from 1993 onward — the long-running Proust Questionnaire feature.
 
 **Research required at implementation.** Specific respondents, dates, and quotations must be verified before publication rather than written from memory. Do not ship unverified attributions to named living people.
 
@@ -201,15 +202,15 @@ Beats to cover:
 
 The item list outgrew a single push. `data/shop.ts` holds all of it — later items are array entries, not rewrites.
 
-| Phase | Contents | Blocked on |
-|---|---|---|
-| **This spec** | 8 books + 2 Abhinava tees, `/about` route, 2 essay pages | Nothing |
-| **Next** | QR wearables/brooches, prints/broadsides, further tee designs | Artwork, pricing, fulfillment |
-| **Separate spec** | Coffee-table invitation node | Own brainstorm — see below |
+| Phase             | Contents                                                      | Blocked on                    |
+| ----------------- | ------------------------------------------------------------- | ----------------------------- |
+| **This spec**     | 8 books + 2 Abhinava tees, `/about` route, 2 essay pages      | Nothing                       |
+| **Next**          | QR wearables/brooches, prints/broadsides, further tee designs | Artwork, pricing, fulfillment |
+| **Separate spec** | Coffee-table invitation node                                  | Own brainstorm — see below    |
 
 ### Coffee-table invitation node (deferred, not designed here)
 
-A physical device for a home or family that hosts *their* invitation: visitors scan its QR, answer the questionnaire, and join the site **through that household's node**. It extends the `/w/:token` attribution graph from individual wearables to a persistent household presence, and connects to existing e-ink/Heltec work and the Garden Aura live-token-QR pattern.
+A physical device for a home or family that hosts _their_ invitation: visitors scan its QR, answer the questionnaire, and join the site **through that household's node**. It extends the `/w/:token` attribution graph from individual wearables to a persistent household presence, and connects to existing e-ink/Heltec work and the Garden Aura live-token-QR pattern.
 
 This is hardware plus firmware plus a provisioning flow plus a data-model change. It is deliberately **not** specified here — folding it in would stall the shop indefinitely. It needs its own brainstorm.
 

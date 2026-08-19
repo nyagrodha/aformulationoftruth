@@ -9,7 +9,7 @@
  * - Tokens expire and are single-use
  */
 
-import { randomToken, hashEmail, sha256 } from './crypto.ts';
+import { hashEmail, randomToken, sha256 } from './crypto.ts';
 import { withConnection, withTransaction } from './db.ts';
 
 // Token validity period: 15 minutes
@@ -58,14 +58,14 @@ export async function createMagicLink(email: string): Promise<MagicLinkResult> {
     // Invalidate any existing tokens for this email hash
     await client.queryObject(
       `UPDATE fresh_magic_links SET used_at = NOW() WHERE email_hash = $1 AND used_at IS NULL`,
-      [emailHash]
+      [emailHash],
     );
 
     // Create new token
     await client.queryObject(
       `INSERT INTO fresh_magic_links (email_hash, token_hash, expires_at)
        VALUES ($1, $2, $3)`,
-      [emailHash, tokenHash, expiresAt]
+      [emailHash, tokenHash, expiresAt],
     );
   });
 
@@ -75,7 +75,7 @@ export async function createMagicLink(email: string): Promise<MagicLinkResult> {
       await withConnection(async (client) => {
         await client.queryObject(
           `UPDATE fresh_magic_links SET used_at = NOW() WHERE token_hash = $1`,
-          [tokenHash]
+          [tokenHash],
         );
       });
       console.log('[auth] Cleaned up unused magic link after email failure');
@@ -109,7 +109,7 @@ export async function verifyMagicLink(token: string): Promise<string | null> {
          AND used_at IS NULL
          AND expires_at > NOW()
        RETURNING email_hash, expires_at`,
-      [tokenHash]
+      [tokenHash],
     );
 
     if (rows.length === 0) {
@@ -135,7 +135,7 @@ export async function createSession(emailHash: string): Promise<string> {
     await client.queryObject(
       `INSERT INTO fresh_sessions (session_hash, email_hash, expires_at)
        VALUES ($1, $2, $3)`,
-      [sessionHash, emailHash, expiresAt]
+      [sessionHash, emailHash, expiresAt],
     );
   });
 
@@ -154,7 +154,7 @@ export async function verifySession(sessionToken: string): Promise<string | null
     const { rows } = await client.queryObject<{ email_hash: string }>(
       `SELECT email_hash FROM fresh_sessions
        WHERE session_hash = $1 AND expires_at > NOW()`,
-      [sessionHash]
+      [sessionHash],
     );
     return rows[0] ?? null;
   });
@@ -171,7 +171,7 @@ export async function invalidateSession(sessionToken: string): Promise<void> {
   await withConnection(async (client) => {
     await client.queryObject(
       `DELETE FROM fresh_sessions WHERE session_hash = $1`,
-      [sessionHash]
+      [sessionHash],
     );
   });
 }
@@ -185,13 +185,13 @@ export async function cleanupExpired(): Promise<{ tokens: number; sessions: numb
     const tokensResult = await client.queryObject<{ count: number }>(
       `WITH deleted AS (
          DELETE FROM fresh_magic_links WHERE expires_at < NOW() RETURNING 1
-       ) SELECT COUNT(*) as count FROM deleted`
+       ) SELECT COUNT(*) as count FROM deleted`,
     );
 
     const sessionsResult = await client.queryObject<{ count: number }>(
       `WITH deleted AS (
          DELETE FROM fresh_sessions WHERE expires_at < NOW() RETURNING 1
-       ) SELECT COUNT(*) as count FROM deleted`
+       ) SELECT COUNT(*) as count FROM deleted`,
     );
 
     return {

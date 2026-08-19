@@ -1,0 +1,9 @@
+[Unit]
+Description=a formulation of truth — expire session identities
+
+[Service]
+Type=oneshot
+User=liar
+EnvironmentFile=/home/liar/keybox.env
+WorkingDirectory=/home/liar/romania
+ExecStart=/home/liar/.deno/bin/deno run --allow-read --allow-write --allow-env shred.ts

@@ -1,0 +1,10 @@
+# Build artifacts — the release binary is ~5 MB and rebuilt from source.
+/target/
+
+# Runtime configuration. Holds DATABASE_URL, which carries the Postgres
+# password. Never commit it, and never log it either: see redact_db_url() in
+# src/main.rs, which exists because the startup line printed this credential
+# into journald on every start once the store moved from SQLite to Postgres.
+.env
+.env.*
+!.env.example

@@ -1,0 +1,24 @@
+[Unit]
+Description=a formulation of truth — key box render service
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=liar
+EnvironmentFile=/home/liar/keybox.env
+WorkingDirectory=/home/liar/romania
+ExecStart=/home/liar/.deno/bin/deno run --allow-read --allow-write --allow-run --allow-net --allow-env render-service.ts
+Restart=on-failure
+RestartSec=10s
+
+# The plaintext floor. PrivateTmp gives this unit its own /tmp and /var/tmp;
+# the work root is /dev/shm, which is memory-backed.
+PrivateTmp=true
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/home/liar/keybox /dev/shm
+
+[Install]
+WantedBy=multi-user.target

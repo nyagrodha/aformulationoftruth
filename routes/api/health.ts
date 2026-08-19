@@ -7,7 +7,7 @@
  */
 
 import { Handlers } from '$fresh/server.ts';
-import { withConnection, isDatabaseConfigured } from '../../lib/db.ts';
+import { isDatabaseConfigured, withConnection } from '../../lib/db.ts';
 import { increment } from '../../lib/metrics.ts';
 
 export const handler: Handlers = {
@@ -20,7 +20,7 @@ export const handler: Handlers = {
         {
           status: 503,
           headers: { 'Content-Type': 'application/json' },
-        }
+        },
       );
     }
 
@@ -38,7 +38,7 @@ export const handler: Handlers = {
         {
           status: 200,
           headers: { 'Content-Type': 'application/json' },
-        }
+        },
       );
     } catch (_error) {
       // Log error without sensitive details
@@ -50,7 +50,7 @@ export const handler: Handlers = {
         {
           status: 500,
           headers: { 'Content-Type': 'application/json' },
-        }
+        },
       );
     }
   },

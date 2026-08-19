@@ -32,7 +32,7 @@ export const handler: Handlers = {
           'Content-Type': 'application/json',
           'Cache-Control': 'public, max-age=60', // Cache for 1 minute
         },
-      }
+      },
     );
   },
 };

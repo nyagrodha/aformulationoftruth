@@ -6,7 +6,7 @@
  * Run with: deno task test tests/newsletter_test.ts
  */
 
-import { assertEquals, assertExists, assertNotEquals, assert } from "https://deno.land/std@0.208.0/assert/mod.ts";
+import { assert, assertEquals, assertExists, assertNotEquals } from 'https://deno.land/std@0.208.0/assert/mod.ts';
 
 const BASE_URL = Deno.env.get('TEST_BASE_URL') || 'http://localhost:8393';
 const TEST_EMAIL = `newsletter_test_${Date.now()}@example.com`;
@@ -24,7 +24,7 @@ Test Email: ${TEST_EMAIL}
 // Newsletter Subscribe Endpoint Tests
 // ============================================
 
-Deno.test("Newsletter - Should accept valid email and return success", async () => {
+Deno.test('Newsletter - Should accept valid email and return success', async () => {
   const response = await fetch(`${BASE_URL}/api/newsletter/subscribe`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -38,7 +38,7 @@ Deno.test("Newsletter - Should accept valid email and return success", async () 
   assert(['new', 'pending', 'resubscribed'].includes(data.status), `Unexpected status: ${data.status}`);
 });
 
-Deno.test("Newsletter - Should handle duplicate email submission gracefully", async () => {
+Deno.test('Newsletter - Should handle duplicate email submission gracefully', async () => {
   // Submit the same email again
   const response = await fetch(`${BASE_URL}/api/newsletter/subscribe`, {
     method: 'POST',
@@ -54,7 +54,7 @@ Deno.test("Newsletter - Should handle duplicate email submission gracefully", as
   assert(['pending', 'already_confirmed'].includes(data.status));
 });
 
-Deno.test("Newsletter - Should reject empty email", async () => {
+Deno.test('Newsletter - Should reject empty email', async () => {
   const response = await fetch(`${BASE_URL}/api/newsletter/subscribe`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -67,7 +67,7 @@ Deno.test("Newsletter - Should reject empty email", async () => {
   assertEquals(data.success, false);
 });
 
-Deno.test("Newsletter - Should reject invalid email format", async () => {
+Deno.test('Newsletter - Should reject invalid email format', async () => {
   const invalidEmails = [
     'notanemail',
     '@nodomain.com',
@@ -87,7 +87,7 @@ Deno.test("Newsletter - Should reject invalid email format", async () => {
   }
 });
 
-Deno.test("Newsletter - Should reject missing email field", async () => {
+Deno.test('Newsletter - Should reject missing email field', async () => {
   const response = await fetch(`${BASE_URL}/api/newsletter/subscribe`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -98,7 +98,7 @@ Deno.test("Newsletter - Should reject missing email field", async () => {
   assertEquals(response.status, 400);
 });
 
-Deno.test("Newsletter - Should reject non-JSON content type", async () => {
+Deno.test('Newsletter - Should reject non-JSON content type', async () => {
   const response = await fetch(`${BASE_URL}/api/newsletter/subscribe`, {
     method: 'POST',
     headers: { 'Content-Type': 'text/plain' },
@@ -114,7 +114,7 @@ Deno.test("Newsletter - Should reject non-JSON content type", async () => {
 // Newsletter Confirm Endpoint Tests
 // ============================================
 
-Deno.test("Newsletter - Confirm endpoint should reject invalid token", async () => {
+Deno.test('Newsletter - Confirm endpoint should reject invalid token', async () => {
   const response = await fetch(`${BASE_URL}/api/newsletter/confirm?token=invalid_token_12345`);
 
   // Should be 200 with status: invalid (not exposing token validity)
@@ -125,14 +125,14 @@ Deno.test("Newsletter - Confirm endpoint should reject invalid token", async () 
   assertEquals(data.status, 'invalid');
 });
 
-Deno.test("Newsletter - Confirm endpoint should reject missing token", async () => {
+Deno.test('Newsletter - Confirm endpoint should reject missing token', async () => {
   const response = await fetch(`${BASE_URL}/api/newsletter/confirm`);
 
   await response.body?.cancel();
   assertEquals(response.status, 400);
 });
 
-Deno.test("Newsletter - Confirm endpoint should reject empty token", async () => {
+Deno.test('Newsletter - Confirm endpoint should reject empty token', async () => {
   const response = await fetch(`${BASE_URL}/api/newsletter/confirm?token=`);
 
   await response.body?.cancel();
@@ -143,7 +143,7 @@ Deno.test("Newsletter - Confirm endpoint should reject empty token", async () =>
 // Newsletter Unsubscribe Endpoint Tests
 // ============================================
 
-Deno.test("Newsletter - Unsubscribe endpoint should reject invalid token", async () => {
+Deno.test('Newsletter - Unsubscribe endpoint should reject invalid token', async () => {
   const response = await fetch(`${BASE_URL}/api/newsletter/unsubscribe?token=invalid_token_12345`);
 
   assertEquals(response.status, 200);
@@ -153,7 +153,7 @@ Deno.test("Newsletter - Unsubscribe endpoint should reject invalid token", async
   assertEquals(data.status, 'invalid');
 });
 
-Deno.test("Newsletter - Unsubscribe endpoint should reject missing token", async () => {
+Deno.test('Newsletter - Unsubscribe endpoint should reject missing token', async () => {
   const response = await fetch(`${BASE_URL}/api/newsletter/unsubscribe`);
 
   await response.body?.cancel();
@@ -164,7 +164,7 @@ Deno.test("Newsletter - Unsubscribe endpoint should reject missing token", async
 // Security Tests
 // ============================================
 
-Deno.test("Newsletter - Should reject XSS attempts in email", async () => {
+Deno.test('Newsletter - Should reject XSS attempts in email', async () => {
   const xssEmail = '<script>alert("xss")</script>@example.com';
 
   const response = await fetch(`${BASE_URL}/api/newsletter/subscribe`, {
@@ -178,7 +178,7 @@ Deno.test("Newsletter - Should reject XSS attempts in email", async () => {
   assertEquals(response.status, 400);
 });
 
-Deno.test("Newsletter - Should reject SQL injection attempts", async () => {
+Deno.test('Newsletter - Should reject SQL injection attempts', async () => {
   const sqlEmail = "'; DROP TABLE newsletter_subscribers; --@example.com";
 
   const response = await fetch(`${BASE_URL}/api/newsletter/subscribe`, {
@@ -192,7 +192,7 @@ Deno.test("Newsletter - Should reject SQL injection attempts", async () => {
   assertEquals(response.status, 400);
 });
 
-Deno.test("Newsletter - Should handle extremely long email", async () => {
+Deno.test('Newsletter - Should handle extremely long email', async () => {
   const longEmail = 'a'.repeat(500) + '@example.com';
 
   const response = await fetch(`${BASE_URL}/api/newsletter/subscribe`, {
@@ -210,7 +210,7 @@ Deno.test("Newsletter - Should handle extremely long email", async () => {
 // Response Format Tests
 // ============================================
 
-Deno.test("Newsletter - Should return JSON content type", async () => {
+Deno.test('Newsletter - Should return JSON content type', async () => {
   const response = await fetch(`${BASE_URL}/api/newsletter/subscribe`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -222,7 +222,7 @@ Deno.test("Newsletter - Should return JSON content type", async () => {
   assert(contentType?.includes('application/json'));
 });
 
-Deno.test("Newsletter - Should not leak confirmation tokens in response", async () => {
+Deno.test('Newsletter - Should not leak confirmation tokens in response', async () => {
   const response = await fetch(`${BASE_URL}/api/newsletter/subscribe`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -238,7 +238,7 @@ Deno.test("Newsletter - Should not leak confirmation tokens in response", async 
   assert(!text.includes('confirmationToken'), 'Response should not leak confirmation tokens');
 });
 
-Deno.test("Newsletter - Should use HTTPS upgrade headers appropriately", async () => {
+Deno.test('Newsletter - Should use HTTPS upgrade headers appropriately', async () => {
   const response = await fetch(`${BASE_URL}/api/newsletter/subscribe`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },

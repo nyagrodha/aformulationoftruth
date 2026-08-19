@@ -7,7 +7,8 @@
  */
 
 import { Handlers } from '$fresh/server.ts';
-import LogoMenu from '../components/LogoMenu.tsx';
+import Nav from '../islands/Nav.tsx';
+import { NAV_NOSCRIPT_CSS, PAGE_NAV } from '../components/nav-shared.ts';
 import { verifyQuestionnaireJWT } from '../lib/jwt.ts';
 import { getSessionById } from '../lib/questionnaire-session.ts';
 import { increment } from '../lib/metrics.ts';
@@ -55,6 +56,11 @@ export default function ProfileCreatePage() {
         <title>a formulation of truth</title>
         <meta name='description' content='Create an optional profile after completing the questionnaire.' />
         <link rel='stylesheet' href='/css/main.css' />
+        <link rel='stylesheet' href='/css/nav-mark.css' />
+        {/* The toggle is inert without JS, so leave the menu open instead. */}
+        <noscript>
+          <style>{NAV_NOSCRIPT_CSS}</style>
+        </noscript>
         <style>
           {`
             .profile-create-wrap {
@@ -212,8 +218,9 @@ export default function ProfileCreatePage() {
         </style>
       </head>
       <body>
-        <nav>
-          <LogoMenu />        </nav>
+        <header class='site-header'>
+          <Nav items={PAGE_NAV} />
+        </header>
 
         <main>
           <section class='profile-create-wrap'>
@@ -342,7 +349,8 @@ export default function ProfileCreatePage() {
           </div>
         </footer>
 
-        <script>{`
+        <script>
+          {`
           // Progressive enhancement: POST the profile metadata to /api/profile.
           // Per-answer publishing (the "public answers" fieldset) is deferred,
           // so only visibility, nameplate, and anonymous-mail are sent here.
@@ -401,7 +409,8 @@ export default function ProfileCreatePage() {
               }
             });
           })();
-        `}</script>
+        `}
+        </script>
       </body>
     </html>
   );

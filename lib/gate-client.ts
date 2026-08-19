@@ -12,6 +12,15 @@ interface StoreAnswerParams {
   questionIndex: number;
   answer: string;
   skipped: boolean;
+  /**
+   * age recipients to encrypt this answer to.
+   *
+   * Omitted or empty means "use the Gate's configured default", which is how
+   * every answer worked before per-session keys and how sessions that predate
+   * them still work. A non-empty list is the session's own public key plus the
+   * offline break-glass key.
+   */
+  recipients?: string[];
 }
 
 interface StoreAnswerResult {
@@ -20,7 +29,7 @@ interface StoreAnswerResult {
 }
 
 const GATE_URL = Deno.env.get('GATE_URL') || 'http://127.0.0.1:8787';
-const GATE_API_KEY = Deno.env.get('GATE_API_KEY') || '';
+const GATE_API_KEY = Deno.env.get('GATE_API_KEY') || ''; // secrets-ok: reads the env, no literal key
 const GATE_TIMEOUT_MS = 5000;
 
 /**
@@ -34,7 +43,7 @@ const GATE_TIMEOUT_MS = 5000;
 const GATE_TIMEOUT_MS = 5000;
 
 export async function storeEncryptedAnswer(
-  params: StoreAnswerParams
+  params: StoreAnswerParams,
 ): Promise<StoreAnswerResult> {
   if (!GATE_API_KEY) {
     throw new Error('GATE_API_KEY not configured');
@@ -53,6 +62,7 @@ export async function storeEncryptedAnswer(
       question_index: params.questionIndex,
       answer: params.answer,
       skipped: params.skipped,
+      recipients: params.recipients ?? [],
     }),
   });
 

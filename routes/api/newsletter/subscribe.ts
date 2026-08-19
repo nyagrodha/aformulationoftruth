@@ -41,7 +41,7 @@ export const handler: Handlers = {
       increment('errors.4xx');
       return new Response(
         JSON.stringify({ success: false, error: 'Invalid JSON body' }),
-        { status: 400, headers: corsHeaders }
+        { status: 400, headers: corsHeaders },
       );
     }
 
@@ -50,7 +50,7 @@ export const handler: Handlers = {
       increment('errors.4xx');
       return new Response(
         JSON.stringify({ success: false, error: 'Email required' }),
-        { status: 400, headers: corsHeaders }
+        { status: 400, headers: corsHeaders },
       );
     }
 
@@ -63,7 +63,7 @@ export const handler: Handlers = {
       }
       return new Response(
         JSON.stringify({ success: false, error: 'Please use a valid email address' }),
-        { status: 400, headers: corsHeaders }
+        { status: 400, headers: corsHeaders },
       );
     }
 
@@ -79,7 +79,7 @@ export const handler: Handlers = {
             message: 'You are already subscribed to the newsletter.',
             status: 'already_confirmed',
           }),
-          { status: 200, headers: corsHeaders }
+          { status: 200, headers: corsHeaders },
         );
       }
 
@@ -96,7 +96,7 @@ export const handler: Handlers = {
           increment('errors.email');
           return new Response(
             JSON.stringify({ success: false, error: 'Failed to send confirmation email. Please try again.' }),
-            { status: 500, headers: corsHeaders }
+            { status: 500, headers: corsHeaders },
           );
         }
       }
@@ -110,7 +110,7 @@ export const handler: Handlers = {
           message: 'Please check your email to confirm your subscription.',
           status: result.status,
         }),
-        { status: 200, headers: corsHeaders }
+        { status: 200, headers: corsHeaders },
       );
     } catch (error) {
       console.error('[newsletter] Subscribe failed');
@@ -118,7 +118,7 @@ export const handler: Handlers = {
 
       return new Response(
         JSON.stringify({ success: false, error: 'Failed to process subscription' }),
-        { status: 500, headers: corsHeaders }
+        { status: 500, headers: corsHeaders },
       );
     }
   },

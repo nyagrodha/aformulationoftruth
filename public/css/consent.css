@@ -1,0 +1,129 @@
+/* Consent to receive a PDF copy of one's responses.
+ *
+ * The choice is made by pressing one of two submit buttons that share the
+ * field name `consent`. A browser sends only the pressed button's name/value,
+ * so the answer reaches the server with no script involved. That matters: the
+ * gate works without JavaScript, so the page deciding what happens to a
+ * respondent's answers must too.
+ *
+ * The password field is always visible. It was previously revealed by
+ * `.consent-yes:checked ~ .pw-panel`, which depended on a radio that no longer
+ * exists; a CSS-only reveal cannot be rebuilt without reintroducing a hidden
+ * control, and a JS reveal would leave a script-less visitor with no password
+ * field at all, silently receiving an unprotected PDF while believing
+ * otherwise. Always-visible-and-optional is the version that cannot lie.
+ */
+.consent {
+  margin: 0 auto 2rem;
+  max-width: 42ch;
+  text-align: left;
+}
+
+.consent-question {
+  margin-bottom: 0.75rem;
+}
+
+.pw-panel {
+  margin-bottom: 1.25rem;
+}
+
+.pw-panel input[type='password'] {
+  width: 100%;
+  padding: 0.6rem 0.8rem;
+  background: var(--obsidian, #0a0a0a);
+  border: 1px solid var(--ghost, #2a2a2a);
+  border-radius: 4px;
+  color: var(--bone, #e8e8e8);
+  font-family: inherit;
+  font-size: 0.95rem;
+}
+
+.pw-panel input[type='password']:focus {
+  outline: none;
+  border-color: var(--neon-pink, #ff69b4);
+  box-shadow: 0 0 8px var(--pink-glow, rgba(255, 105, 180, 0.4));
+}
+
+.pw-note {
+  font-size: 0.85rem;
+  opacity: 0.8;
+  max-width: 42ch;
+  margin-top: 0.4rem;
+}
+
+/* The two submit buttons. */
+.consent-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.consent-btn {
+  padding: 0.7rem 1.6rem;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
+}
+
+.consent-btn:hover {
+  transform: translateY(-1px);
+}
+
+.consent-btn:active {
+  transform: translateY(0);
+}
+
+/* "Yes, please" -- hot pink into orange, warm and inviting. */
+.consent-btn-yes {
+  background: linear-gradient(
+    135deg,
+    var(--neon-pink, #ff69b4) 0%,
+    var(--neon-orange, #ff8c42) 100%
+  );
+  border: 2px solid var(--neon-orange, #ff8c42);
+  color: var(--void, #000000);
+  box-shadow: 0 0 12px var(--pink-glow, rgba(255, 105, 180, 0.4));
+}
+
+.consent-btn-yes:hover {
+  box-shadow:
+    0 0 18px var(--pink-glow, rgba(255, 105, 180, 0.4)),
+    0 0 32px var(--orange-glow, rgba(255, 140, 66, 0.4));
+  filter: brightness(1.08);
+}
+
+/* "No, thanks" -- black with neon blue, cool and quiet by comparison. */
+.consent-btn-no {
+  background: var(--void, #000000);
+  border: 2px solid #00e5ff;
+  color: #00e5ff;
+  text-shadow: 0 0 8px rgba(0, 229, 255, 0.6);
+  box-shadow:
+    0 0 10px rgba(0, 229, 255, 0.35),
+    inset 0 0 10px rgba(0, 229, 255, 0.12);
+}
+
+.consent-btn-no:hover {
+  box-shadow:
+    0 0 18px rgba(0, 229, 255, 0.55),
+    inset 0 0 14px rgba(0, 229, 255, 0.2);
+}
+
+.consent-btn:focus-visible {
+  outline: 2px solid var(--light, #ffffff);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .consent-btn {
+    transition: none;
+  }
+
+  .consent-btn:hover {
+    transform: none;
+  }
+}

@@ -29,14 +29,16 @@ import { Handlers } from '$fresh/server.ts';
 import { z } from 'zod';
 import { verifyQuestionnaireJWT } from '../../../lib/jwt.ts';
 import {
-  getSessionByToken,
-  updateSessionProgress,
-  updateSessionIndex,
   completeSession,
+  getSessionByToken,
+  getSessionPubkey,
+  updateSessionIndex,
+  updateSessionProgress,
 } from '../../../lib/questionnaire-session.ts';
 import { parseQuestionOrder } from '../../../lib/questionnaire.ts';
 import { increment } from '../../../lib/metrics.ts';
 import { storeEncryptedAnswer } from '../../../lib/gate-client.ts';
+import { breakglassRecipient } from '../../../lib/session-keys.ts';
 
 // Proust questionnaire questions (canonical order, indices 0-34)
 const QUESTIONS = [
@@ -83,6 +85,38 @@ const AnswerSchema = z.object({
   skipped: z.boolean(),
 });
 
+/**
+ * Recipients for a session's answers.
+ *
+ * A session minted after per-session keys shipped always has a pubkey --
+ * gate-submit fails closed, so one cannot exist without it -- and its answers
+ * go to that key plus the offline break-glass key.
+ *
+ * A NULL pubkey means the session predates this feature. Those return an empty
+ * list, which storeEncryptedAnswer sends as `recipients: []` and the gate reads
+ * as "use my configured default": exactly the behaviour the session started
+ * under. Throwing instead would break every questionnaire in flight at deploy
+ * time, mid-run, at whichever question the respondent happened to be on.
+ *
+ * Such sessions stay readable by the global identity and simply never become
+ * PDF-eligible -- /api/responses/deliver checks session_pubkey before offering
+ * a copy, so nobody is promised a document that cannot be rendered.
+ *
+ * This branch is temporary. `sessions.legacy_recipients` counts every use; once
+ * it reads zero for longer than a session can live, delete the branch and make
+ * a missing pubkey an error again.
+ */
+export function recipientsForSession(sessionPubkey: string | null, breakglass: () => string): string[] {
+  if (!sessionPubkey) {
+    increment('sessions.legacy_recipients');
+    return [];
+  }
+  // A thunk, not a string: breakglassRecipient() throws when unconfigured, and
+  // an eagerly-evaluated argument would throw on the legacy path too -- turning
+  // a missing env var into a failure for sessions that never needed the key.
+  return [sessionPubkey, breakglass()];
+}
+
 function getCookie(cookieHeader: string | null, name: string): string | null {
   if (!cookieHeader) return null;
   const match = cookieHeader.match(new RegExp(`(?:^|;\\s*)${name}=([^;]*)`));
@@ -111,7 +145,7 @@ export const handler: Handlers = {
             'Content-Type': 'application/json',
             'X-Request-ID': requestId,
           },
-        }
+        },
       );
     }
 
@@ -137,7 +171,7 @@ export const handler: Handlers = {
             'Content-Type': 'application/json',
             'X-Request-ID': requestId,
           },
-        }
+        },
       );
     }
 
@@ -159,7 +193,7 @@ export const handler: Handlers = {
               'Content-Type': 'application/json',
               'X-Request-ID': requestId,
             },
-          }
+          },
         );
       }
     } catch (error) {
@@ -176,7 +210,7 @@ export const handler: Handlers = {
             'Content-Type': 'application/json',
             'X-Request-ID': requestId,
           },
-        }
+        },
       );
     }
 
@@ -198,7 +232,7 @@ export const handler: Handlers = {
             'Content-Type': 'application/json',
             'X-Request-ID': requestId,
           },
-        }
+        },
       );
     }
 
@@ -216,7 +250,7 @@ export const handler: Handlers = {
             'Content-Type': 'application/json',
             'X-Request-ID': requestId,
           },
-        }
+        },
       );
     }
 
@@ -224,7 +258,9 @@ export const handler: Handlers = {
     if (jwtPayload.session_id !== session.sessionId) {
       increment('errors.4xx');
       increment('questions.session_mismatch');
-      console.warn(`[answer:${requestId}] Session mismatch: JWT=${jwtPayload.session_id}, Session=${session.sessionId}`);
+      console.warn(
+        `[answer:${requestId}] Session mismatch: JWT=${jwtPayload.session_id}, Session=${session.sessionId}`,
+      );
       return new Response(
         JSON.stringify({
           error: 'Session token mismatch',
@@ -236,7 +272,7 @@ export const handler: Handlers = {
             'Content-Type': 'application/json',
             'X-Request-ID': requestId,
           },
-        }
+        },
       );
     }
 
@@ -257,7 +293,7 @@ export const handler: Handlers = {
             'Content-Type': 'application/json',
             'X-Request-ID': requestId,
           },
-        }
+        },
       );
     }
 
@@ -280,13 +316,20 @@ export const handler: Handlers = {
             'Content-Type': 'application/json',
             'X-Request-ID': requestId,
           },
-        }
+        },
       );
     }
 
     const { questionIndex, answer, skipped } = parsed.data;
 
-    // Store answer via Rust Gate (age-encrypted)
+    // Store answer via Rust Gate (age-encrypted).
+    //
+    // Recipients are resolved per session: the respondent's own key plus the
+    // offline break-glass key, so only they (via Romania) and a deliberate
+    // recovery ceremony can ever read it. A session predating this feature
+    // resolves to [], which the gate reads as its configured default.
+    const sessionPubkey = await getSessionPubkey(session.sessionId);
+
     try {
       await storeEncryptedAnswer({
         sessionId: session.sessionId,
@@ -294,6 +337,7 @@ export const handler: Handlers = {
         questionIndex,
         answer: skipped ? '' : answer,
         skipped,
+        recipients: recipientsForSession(sessionPubkey, breakglassRecipient),
       });
     } catch (error) {
       console.error(`[answer:${requestId}] Error storing encrypted response`);
@@ -338,7 +382,7 @@ export const handler: Handlers = {
               'X-Request-ID': requestId,
               'X-Response-Time': `${responseTime}ms`,
             },
-          }
+          },
         );
       }
 
@@ -361,7 +405,7 @@ export const handler: Handlers = {
             'X-Request-ID': requestId,
             'X-Response-Time': `${responseTime}ms`,
           },
-        }
+        },
       );
     } catch (error) {
       console.error(`[answer:${requestId}] Failed to update session:`, error);
@@ -378,7 +422,7 @@ export const handler: Handlers = {
             'Content-Type': 'application/json',
             'X-Request-ID': requestId,
           },
-        }
+        },
       );
     }
   },

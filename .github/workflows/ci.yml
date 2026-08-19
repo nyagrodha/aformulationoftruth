@@ -85,7 +85,15 @@ jobs:
 
       - name: Type check
         run: |
+          # main.ts is the production entrypoint: if it does not type check, the
+          # service cannot boot. It was missing from this list when e27764a merged
+          # `import { initPool } from './lib/db.ts'` — a symbol lib/db.ts has never
+          # exported. Nothing caught it, and nothing could: the deployed process had
+          # started before that commit was checked out, so it kept serving old code
+          # and the break stayed invisible for two days, until a routine restart
+          # crash-looped the site into 502. Keep main.ts first in this list.
           deno check \
+            main.ts \
             data/shop.ts \
             components/PageShell.tsx \
             routes/about.tsx \

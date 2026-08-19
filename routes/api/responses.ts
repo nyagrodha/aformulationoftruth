@@ -34,7 +34,7 @@ export const handler: Handlers = {
       increment('errors.4xx');
       return new Response(
         JSON.stringify({ error: 'Invalid JSON body' }),
-        { status: 400, headers: { 'Content-Type': 'application/json' } }
+        { status: 400, headers: { 'Content-Type': 'application/json' } },
       );
     }
 
@@ -44,7 +44,7 @@ export const handler: Handlers = {
       increment('errors.4xx');
       return new Response(
         JSON.stringify({ error: 'Invalid request format' }),
-        { status: 400, headers: { 'Content-Type': 'application/json' } }
+        { status: 400, headers: { 'Content-Type': 'application/json' } },
       );
     }
 
@@ -65,7 +65,7 @@ export const handler: Handlers = {
           `INSERT INTO fresh_responses (email_hash, answers)
            VALUES ($1, $2)
            RETURNING id, email_hash, created_at`,
-          [emailHash, JSON.stringify(answers)]
+          [emailHash, JSON.stringify(answers)],
         );
         return rows[0];
       });
@@ -78,7 +78,7 @@ export const handler: Handlers = {
           id: result.id,
           created_at: result.created_at.toISOString(),
         }),
-        { status: 201, headers: { 'Content-Type': 'application/json' } }
+        { status: 201, headers: { 'Content-Type': 'application/json' } },
       );
     } catch (_error) {
       console.error('[responses] Submission failed');
@@ -86,7 +86,7 @@ export const handler: Handlers = {
 
       return new Response(
         JSON.stringify({ error: 'Submission failed' }),
-        { status: 500, headers: { 'Content-Type': 'application/json' } }
+        { status: 500, headers: { 'Content-Type': 'application/json' } },
       );
     }
   },

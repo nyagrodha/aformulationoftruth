@@ -97,7 +97,7 @@ export const handler: Handlers = {
             'Content-Type': 'application/json',
             'X-Request-ID': requestId,
           },
-        }
+        },
       );
     }
 
@@ -120,7 +120,7 @@ export const handler: Handlers = {
             'Content-Type': 'application/json',
             'X-Request-ID': requestId,
           },
-        }
+        },
       );
     }
 
@@ -138,7 +138,7 @@ export const handler: Handlers = {
             'Content-Type': 'application/json',
             'X-Request-ID': requestId,
           },
-        }
+        },
       );
     }
 
@@ -163,7 +163,7 @@ export const handler: Handlers = {
             'Content-Type': 'application/json',
             'X-Request-ID': requestId,
           },
-        }
+        },
       );
     }
 
@@ -184,7 +184,7 @@ export const handler: Handlers = {
             'Content-Type': 'application/json',
             'X-Request-ID': requestId,
           },
-        }
+        },
       );
     }
 
@@ -210,7 +210,7 @@ export const handler: Handlers = {
           'Cache-Control': 'private, no-cache, no-store, must-revalidate',
           'X-Request-ID': requestId,
         },
-      }
+      },
     );
   },
 };

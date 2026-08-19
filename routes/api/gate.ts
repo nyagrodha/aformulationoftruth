@@ -33,7 +33,7 @@ export const handler: Handlers = {
       increment('errors.4xx');
       return new Response(
         JSON.stringify({ error: 'Invalid JSON' }),
-        { status: 400, headers: { 'Content-Type': 'application/json' } }
+        { status: 400, headers: { 'Content-Type': 'application/json' } },
       );
     }
 
@@ -42,7 +42,7 @@ export const handler: Handlers = {
       increment('errors.4xx');
       return new Response(
         JSON.stringify({ error: 'Invalid request format' }),
-        { status: 400, headers: { 'Content-Type': 'application/json' } }
+        { status: 400, headers: { 'Content-Type': 'application/json' } },
       );
     }
 
@@ -65,7 +65,7 @@ export const handler: Handlers = {
         increment('errors.5xx');
         return new Response(
           JSON.stringify({ error: 'Unable to securely store your answer right now.' }),
-          { status: 503, headers: { 'Content-Type': 'application/json' } }
+          { status: 503, headers: { 'Content-Type': 'application/json' } },
         );
       }
 
@@ -73,14 +73,14 @@ export const handler: Handlers = {
       await withConnection(async (client) => {
         const { rows: existing } = await client.queryObject<{ id: number }>(
           `SELECT id FROM fresh_gate_responses WHERE gate_token = $1`,
-          [gateToken]
+          [gateToken],
         );
 
         if (existing.length === 0) {
           await client.queryObject(
             `INSERT INTO fresh_gate_responses (gate_token, q0_answer, q1_answer)
              VALUES ($1, NULL, NULL)`,
-            [gateToken]
+            [gateToken],
           );
         }
       });
@@ -89,7 +89,7 @@ export const handler: Handlers = {
 
       return new Response(
         JSON.stringify({ ok: true }),
-        { status: 200, headers: { 'Content-Type': 'application/json' } }
+        { status: 200, headers: { 'Content-Type': 'application/json' } },
       );
     } catch (error) {
       console.error('[gate] Failed to store response');
@@ -97,7 +97,7 @@ export const handler: Handlers = {
 
       return new Response(
         JSON.stringify({ error: 'Storage failed' }),
-        { status: 500, headers: { 'Content-Type': 'application/json' } }
+        { status: 500, headers: { 'Content-Type': 'application/json' } },
       );
     }
   },

@@ -12,7 +12,7 @@
 
 import { Handlers, PageProps } from '$fresh/server.ts';
 import { verifyQuestionnaireJWT } from '../lib/jwt.ts';
-import { getSessionById, updateSessionProgress, updateSessionIndex } from '../lib/questionnaire-session.ts';
+import { getSessionById, updateSessionIndex, updateSessionProgress } from '../lib/questionnaire-session.ts';
 import { parseQuestionOrder } from '../lib/questionnaire.ts';
 import { increment } from '../lib/metrics.ts';
 
@@ -255,21 +255,21 @@ export default function QuestionnairePage({ data }: PageProps<QuestionnaireData>
   // table (Tamil ௦-௯ / Kannada ೦-೯); device system fonts supply the glyphs.
   const TA = ['௦', '௧', '௨', '௩', '௪', '௫', '௬', '௭', '௮', '௯'];
   const KN = ['೦', '೧', '೨', '೩', '೪', '೫', '೬', '೭', '೮', '೯'];
-  const toGlyphs = (n: number, digits: string[]) =>
-    String(n).split('').map((d) => digits[Number(d)]).join('');
+  const toGlyphs = (n: number, digits: string[]) => String(n).split('').map((d) => digits[Number(d)]).join('');
   const isFive = questionNumber === 5;
   const bigNumeral = toGlyphs(questionNumber, isFive ? KN : TA);
   const pad2 = (n: number) => String(n).padStart(2, '0');
 
   return (
-    <html lang="en">
+    <html lang='en'>
       <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta charset='UTF-8' />
+        <meta name='viewport' content='width=device-width, initial-scale=1.0' />
         <title>a formulation of truth</title>
-        <meta name="description" content="An apparatus for attention. Self-inquiry through the Proust Questionnaire." />
-        <link rel="stylesheet" href="/css/main.css" />
-        <style>{`
+        <meta name='description' content='An apparatus for attention. Self-inquiry through the Proust Questionnaire.' />
+        <link rel='stylesheet' href='/css/main.css' />
+        <style>
+          {`
           body {
             background: #000;
             color: #ccc;
@@ -448,6 +448,19 @@ export default function QuestionnairePage({ data }: PageProps<QuestionnaireData>
             padding: 2rem;
             text-align: center;
           }
+          .resume-hint {
+            margin-top: 1.25rem;
+            font-size: 0.72rem;
+            line-height: 1.6;
+            color: #555;
+            max-width: 46ch;
+          }
+          .resume-hint a {
+            color: #777;
+            text-decoration: underline;
+            text-underline-offset: 2px;
+          }
+          .resume-hint a:hover { color: #aaa; }
           .footer-links {
             display: flex;
             justify-content: center;
@@ -464,65 +477,96 @@ export default function QuestionnairePage({ data }: PageProps<QuestionnaireData>
             font-size: 0.7rem;
             color: #333;
           }
-        `}</style>
+        `}
+        </style>
       </head>
       <body>
         <nav>
-          <a href="/" class="logo">A4T</a>        </nav>
+          <a href='/' class='logo'>A4T</a>
+        </nav>
 
         <main>
-          <div class="questionnaire-container">
-            <div class="progress-bar">
+          <div class='questionnaire-container'>
+            <div class='progress-bar'>
               <div
-                class="progress-fill"
+                class='progress-fill'
                 style={`width: ${(questionNumber / totalQuestions) * 100}%`}
-              ></div>
+              >
+              </div>
             </div>
 
-            <div class="q-numeral" aria-label={`question ${questionNumber} of ${totalQuestions}`}>
-              <span class="q-glyph" lang={isFive ? 'kn' : 'ta'}>{bigNumeral}</span>
+            <div class='q-numeral' aria-label={`question ${questionNumber} of ${totalQuestions}`}>
+              <span class='q-glyph' lang={isFive ? 'kn' : 'ta'}>{bigNumeral}</span>
             </div>
 
-            <h1 class="question-text">{currentQuestion}</h1>
+            <h1 class='question-text'>{currentQuestion}</h1>
 
-            <form method="POST" action="/questionnaire" class="answer-form">
+            <form method='POST' action='/questionnaire' class='answer-form'>
               <textarea
-                name="answer"
-                aria-label="Your answer"
-              ></textarea>
+                name='answer'
+                aria-label='Your answer'
+              >
+              </textarea>
 
-              <div class="button-group">
+              <div class='button-group'>
                 {currentIndex >= 1 && (
-                  <button type="submit" name="action" value="back" class="btn-back" formNoValidate>
+                  <button type='submit' name='action' value='back' class='btn-back' formNoValidate>
                     ← Previous
                   </button>
                 )}
-                <button type="submit" name="action" value="continue" class="btn-primary">
+                <button type='submit' name='action' value='continue' class='btn-primary'>
                   Continue
                 </button>
-                <button type="submit" name="action" value="skip" class="btn-secondary">
+                <button type='submit' name='action' value='skip' class='btn-secondary'>
                   Skip
                 </button>
               </div>
             </form>
 
-            <p class="voice-hint">
-              For voice input, use <a href="https://github.com/cjpais/Handy" target="_blank" rel="noopener">Handy</a> — free offline speech-to-text
+            <p class='voice-hint'>
+              For voice input, use <a href='https://github.com/cjpais/Handy' target='_blank' rel='noopener'>Handy</a>
+              {' '}
+              — free offline speech-to-text
+            </p>
+
+            {
+              /*
+              Persistent rather than shown on exit: this page works without
+              JavaScript, so there is no way to detect someone leaving. Quiet
+              enough to ignore while answering, present when it matters.
+
+              The thirty days is real and measured from the LAST visit, not the
+              first — it is the same clock the key box uses to expire session
+              identities (romania/keystore.ts) and the one
+              cleanupExpiredSessions now uses. Every return resets it.
+
+              After that the key is gone and the questionnaire cannot be
+              resumed, but the answers themselves are not lost: they are also
+              encrypted to the offline break-glass key, so recovery is a
+              deliberate ceremony rather than an impossibility. The copy says
+              "write to the webmaster" for that reason and does not claim the
+              work is destroyed.
+            */
+            }
+            <p class='resume-hint'>
+              You can stop here and come back. Your place is kept for thirty days from your last visit, and returning
+              resets the clock. After that the thread is let go and you would need to write to the{' '}
+              <a href='mailto:formitselfisemptiness@aformulationoftruth.com'>webmaster</a>.
             </p>
           </div>
         </main>
 
-        <span class="q-roman" aria-hidden="true">
-          {pad2(questionNumber)} <span class="q-roman-sep">of</span> {totalQuestions}
+        <span class='q-roman' aria-hidden='true'>
+          {pad2(questionNumber)} <span class='q-roman-sep'>of</span> {totalQuestions}
         </span>
 
         <footer>
-          <div class="footer-links">
-            <a href="/about">About</a>
-            <a href="/contact.html">Contact</a>
-            <a href="/privacy">Privacy</a>
+          <div class='footer-links'>
+            <a href='/about'>About</a>
+            <a href='/contact.html'>Contact</a>
+            <a href='/privacy'>Privacy</a>
           </div>
-          <p class="footer-copy">
+          <p class='footer-copy'>
             Encrypted &amp; hosted in Iceland
           </p>
         </footer>

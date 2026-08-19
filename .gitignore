@@ -9,6 +9,9 @@ yarn-error.log*
 .env
 .env.save
 .env.*
+# Redundant against .env.* above, but stated outright: the template is a local
+# reference only and is deliberately not tracked.
+.env.example
 .env.local
 .env.*.local
 .env.development.local
@@ -140,6 +143,14 @@ docker/pyaz/
 !README.md
 !DATABASE_SETUP.md
 !public/SHUFFLE-IMPLEMENTATION.md
+!Inhibition_copy.md
+
+# Superpowers specs and plans are the design record and are always tracked.
+# Without this, the blanket *.md above silently swallows them: the three specs
+# committed before 2026-08-10 each had to be forced past it with `git add -f`,
+# and a spec that is merely *written* looks identical to one that is committed
+# until you go looking for it.
+!docs/superpowers/**/*.md
 
 # Allow project configuration tracked in this repository
 !package.json

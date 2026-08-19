@@ -32,78 +32,89 @@ export const handler: Handlers<LoginData> = {
 
 export default function LoginPage({ data }: PageProps<LoginData>) {
   return (
-    <html lang="en">
+    <html lang='en'>
       <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta charset='UTF-8' />
+        <meta name='viewport' content='width=device-width, initial-scale=1.0' />
         <title>a formulation of truth</title>
-        <meta name="description" content="An apparatus for attention. Self-inquiry through the Proust Questionnaire." />
-        <link rel="stylesheet" href="/css/main.css" />
+        <meta name='description' content='An apparatus for attention. Self-inquiry through the Proust Questionnaire.' />
+        <link rel='stylesheet' href='/css/main.css' />
       </head>
       <body>
         <nav>
-          <a href="/" class="logo">A4T</a>        </nav>
+          <a href='/' class='logo'>A4T</a>
+        </nav>
 
         <main>
-          <section class="section gate-section" style="min-height: 100vh; display: flex; align-items: center;">
-            <div class="gate-content">
-              <div class="gate-icon">@</div>
+          <section class='section gate-section' style='min-height: 100vh; display: flex; align-items: center;'>
+            <div class='gate-content'>
+              <div class='gate-icon'>@</div>
 
-              <h2 class="gate-title">so here we are, at a new beginning</h2>
+              <h2 class='gate-title'>so here we are, at a new beginning</h2>
 
-              <p class="gate-description">
-                Enter your email to receive an authenticated link.
-                We'll notify you when it's time to return.
+              <p class='gate-description'>
+                Enter your email to receive an authenticated link. We'll notify you when it's time to return.
               </p>
 
-              {data.sent ? (
-                <div class="message message-success">
-                  <p style="font-size: 1.1rem; margin-bottom: 0.5rem;">check your email</p>
-                  <p style="font-size: 0.85rem;">We've sent an authentication link. Click it to continue.</p>
-                </div>
-              ) : (
-                <>
-                  {data.error && <div class="message message-error">{data.error}</div>}
+              {data.sent
+                ? (
+                  <div class='message message-success'>
+                    <p style='font-size: 1.1rem; margin-bottom: 0.5rem;'>check your email</p>
+                    <p style='font-size: 0.85rem;'>We've sent an authentication link. Click it to continue.</p>
+                  </div>
+                )
+                : (
+                  <>
+                    {data.error && <div class='message message-error'>{data.error}</div>}
 
-                  <form id="login-form" class="gate-form">
-                    <input type="hidden" name="gate_token" value={data.gateToken || ''} />
+                    <form id='login-form' class='gate-form'>
+                      <input type='hidden' name='gate_token' value={data.gateToken || ''} />
 
-                    <div class="form-group">
-                      <label for="email">Your email</label>
-                      <input
-                        type="email"
-                        id="email"
-                        name="email"
-                        placeholder="you@example.com"
-                        required
-                        autocomplete="email"
-                      />
-                    </div>
+                      <div class='form-group'>
+                        <label for='email'>Your email</label>
+                        <input
+                          type='email'
+                          id='email'
+                          name='email'
+                          placeholder='you@example.com'
+                          required
+                          autocomplete='email'
+                        />
+                      </div>
 
-                    <button type="submit" class="cta cta-primary" style="width: 100%;">
-                      Send Magic Link
-                    </button>
-                  </form>
-                </>
-              )}
+                      <button type='submit' class='cta cta-primary' style='width: 100%;'>
+                        Send Magic Link
+                      </button>
+                    </form>
+                  </>
+                )}
             </div>
           </section>
         </main>
 
         <footer>
-          <div class="footer-inner">
-            <div class="footer-links">
-              <a href="/about">About</a>
-              <a href="/contact.html">Contact</a>
-              <a href="/privacy">Privacy</a>
+          <div class='footer-inner'>
+            <div class='footer-links'>
+              <a href='/about'>About</a>
+              <a href='/contact.html'>Contact</a>
+              <a href='/privacy'>Privacy</a>
             </div>
-            <p class="footer-copy">
-              Encrypted database hosted in Iceland by <a href="https://fobdongle.com" target="_blank" rel="noopener" style="color: var(--neon-emerald); text-decoration: none;">FlokiNET</a>
+            <p class='footer-copy'>
+              Encrypted database hosted in Iceland by{' '}
+              <a
+                href='https://fobdongle.com'
+                target='_blank'
+                rel='noopener'
+                style='color: var(--neon-emerald); text-decoration: none;'
+              >
+                FlokiNET
+              </a>
             </p>
           </div>
         </footer>
 
-        <script>{`
+        <script>
+          {`
           document.getElementById('login-form')?.addEventListener('submit', async (e) => {
             e.preventDefault();
             const email = document.getElementById('email').value;
@@ -141,7 +152,8 @@ export default function LoginPage({ data }: PageProps<LoginData>) {
               button.textContent = 'Send Magic Link';
             }
           });
-        `}</script>
+        `}
+        </script>
       </body>
     </html>
   );

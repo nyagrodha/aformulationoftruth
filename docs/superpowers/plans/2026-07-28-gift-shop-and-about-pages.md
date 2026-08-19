@@ -27,10 +27,12 @@
 ### Task 1: Shop catalog data module
 
 **Files:**
+
 - Create: `data/shop.ts`
 - Test: `data/shop_test.ts`
 
 **Interfaces:**
+
 - Consumes: nothing.
 - Produces: `type ShopItem`, `type RetailerLink`, `const AMAZON_TAG: string`, `buildAmazonUrl(isbn: string): string`, `buildPenguinUrl(isbn: string): string`, `const BOOKS: ShopItem[]`, `const OWN_ITEMS: ShopItem[]`, `const SHOP_ITEMS: ShopItem[]`.
 
@@ -40,14 +42,7 @@ Create `data/shop_test.ts`:
 
 ```ts
 import { assertEquals, assertStringIncludes } from '$std/assert/mod.ts';
-import {
-  AMAZON_TAG,
-  BOOKS,
-  buildAmazonUrl,
-  buildPenguinUrl,
-  OWN_ITEMS,
-  SHOP_ITEMS,
-} from './shop.ts';
+import { AMAZON_TAG, BOOKS, buildAmazonUrl, buildPenguinUrl, OWN_ITEMS, SHOP_ITEMS } from './shop.ts';
 
 Deno.test('buildAmazonUrl omits the tag parameter when AMAZON_TAG is empty', () => {
   assertEquals(AMAZON_TAG, '');
@@ -170,14 +165,48 @@ function book(
 }
 
 export const BOOKS: ShopItem[] = [
-  book('Swann’s Way', '9780142437964', 'Where it begins: the madeleine, Combray, and the long descent into involuntary memory.', { translator: 'Lydia Davis', volume: 1 }),
-  book('In the Shadow of Young Girls in Flower', '9780143039075', 'Balbec, the sea, and the first serious education of desire.', { translator: 'James Grieve', volume: 2 }),
-  book('The Guermantes Way', '9780143039228', 'The salon as a machine for sorting people; the narrator learns its grammar.', { translator: 'Mark Treharne', volume: 3 }),
-  book('Sodom and Gomorrah', '9780143039310', 'The novel turns and looks directly at what it had been circling.', { translator: 'John Sturrock', volume: 4 }),
-  book('The Prisoner', '9780143133599', 'Love as surveillance. The most claustrophobic volume, and the most honest about jealousy.', { translator: 'Carol Clark', volume: 5 }),
-  book('The Fugitive', '9780143133704', 'Absence does its work. Grief arrives late and out of order.', { translator: 'Peter Collier', volume: 6 }),
-  book('Finding Time Again', '9780143133711', 'The recognition scene the whole sequence was built toward.', { translator: 'Ian Patterson', volume: 7 }),
-  book('How Proust Can Change Your Life', '9780679779155', 'De Botton reads Proust as a practical guide — unserious in tone, serious in effect.', { author: 'Alain de Botton' }),
+  book(
+    'Swann’s Way',
+    '9780142437964',
+    'Where it begins: the madeleine, Combray, and the long descent into involuntary memory.',
+    { translator: 'Lydia Davis', volume: 1 },
+  ),
+  book(
+    'In the Shadow of Young Girls in Flower',
+    '9780143039075',
+    'Balbec, the sea, and the first serious education of desire.',
+    { translator: 'James Grieve', volume: 2 },
+  ),
+  book(
+    'The Guermantes Way',
+    '9780143039228',
+    'The salon as a machine for sorting people; the narrator learns its grammar.',
+    { translator: 'Mark Treharne', volume: 3 },
+  ),
+  book('Sodom and Gomorrah', '9780143039310', 'The novel turns and looks directly at what it had been circling.', {
+    translator: 'John Sturrock',
+    volume: 4,
+  }),
+  book(
+    'The Prisoner',
+    '9780143133599',
+    'Love as surveillance. The most claustrophobic volume, and the most honest about jealousy.',
+    { translator: 'Carol Clark', volume: 5 },
+  ),
+  book('The Fugitive', '9780143133704', 'Absence does its work. Grief arrives late and out of order.', {
+    translator: 'Peter Collier',
+    volume: 6,
+  }),
+  book('Finding Time Again', '9780143133711', 'The recognition scene the whole sequence was built toward.', {
+    translator: 'Ian Patterson',
+    volume: 7,
+  }),
+  book(
+    'How Proust Can Change Your Life',
+    '9780679779155',
+    'De Botton reads Proust as a practical guide — unserious in tone, serious in effect.',
+    { author: 'Alain de Botton' },
+  ),
 ];
 
 export const OWN_ITEMS: ShopItem[] = [
@@ -217,10 +246,12 @@ git commit -m "feat(shop): typed catalog with per-book Penguin and Amazon links"
 ### Task 2: PageShell component
 
 **Files:**
+
 - Create: `components/PageShell.tsx`
 - Test: `components/PageShell_test.tsx`
 
 **Interfaces:**
+
 - Consumes: nothing.
 - Produces: `PageShell(props: { title: string; description: string; children: preact.ComponentChildren }): JSX.Element` and `Ornament(): JSX.Element`.
 
@@ -246,7 +277,11 @@ Deno.test('PageShell renders a full document with the madras theme', () => {
 });
 
 Deno.test('PageShell footer links to about, contact and privacy', () => {
-  const html = render(<PageShell title='t' description='d'><span /></PageShell>);
+  const html = render(
+    <PageShell title='t' description='d'>
+      <span />
+    </PageShell>,
+  );
   assertStringIncludes(html, 'href="/about"');
   assertStringIncludes(html, 'href="/contact.html"');
   assertStringIncludes(html, 'href="/privacy.html"');
@@ -369,10 +404,12 @@ git commit -m "feat(ui): PageShell for madras-themed prose pages"
 ### Task 3: The /shop route
 
 **Files:**
+
 - Create: `routes/shop.tsx`
 - Test: `routes/shop_test.tsx`
 
 **Interfaces:**
+
 - Consumes: `SHOP_ITEMS`, `BOOKS`, `OWN_ITEMS`, `ShopItem` from `data/shop.ts`; `PageShell`, `Ornament` from `components/PageShell.tsx`.
 - Produces: default-exported `ShopPage()`.
 
@@ -484,14 +521,14 @@ export default function ShopPage() {
 
       <div class='about-content'>
         <p class='lead'>
-          Some of these are books. Some are shirts. All of them are here because they belong
-          to the same preoccupation.
+          Some of these are books. Some are shirts. All of them are here because they belong to the same preoccupation.
         </p>
 
         <p class='shop-disclosure'>
-          <strong>Disclosure:</strong> book links are affiliate links. If you buy through them,
-          this site earns a small commission at no additional cost to you. Both retailers are
-          offered for every title so you can choose; neither is preferred on your behalf.
+          <strong>Disclosure:</strong>{' '}
+          book links are affiliate links. If you buy through them, this site earns a small commission at no additional
+          cost to you. Both retailers are offered for every title so you can choose; neither is preferred on your
+          behalf.
         </p>
 
         <Ornament />
@@ -499,10 +536,13 @@ export default function ShopPage() {
         <h2>In Search of Lost Time</h2>
 
         <p>
-          The Penguin Classics Deluxe edition, under Christopher Prendergast’s general
-          editorship — a different translation from the Moncrieff <em>Remembrance of Things
-          Past</em> many people met first. Seven volumes, each with its own translator, the
-          last three of which reached American readers only recently.
+          The Penguin Classics Deluxe edition, under Christopher Prendergast’s general editorship — a different
+          translation from the Moncrieff{' '}
+          <em>
+            Remembrance of Things Past
+          </em>{' '}
+          many people met first. Seven volumes, each with its own translator, the last three of which reached American
+          readers only recently.
         </p>
 
         {BOOKS.filter((b) => b.kind === 'affiliate' && b.volume !== undefined).map((item) => (
@@ -545,6 +585,7 @@ git commit -m "feat(shop): /shop route with affiliate books and Stripe tees"
 ### Task 4: Promote about to a route
 
 **Files:**
+
 - Create: `routes/about.tsx`
 - Delete: `public/about.html`
 - Modify: `routes/login.tsx`, `routes/index.tsx`, `routes/profile-choice.tsx`, `routes/questionnaire.tsx`, `routes/check-email.tsx`, `routes/profile-create.tsx`, `routes/completion.tsx`, `routes/gate.tsx`
@@ -552,6 +593,7 @@ git commit -m "feat(shop): /shop route with affiliate books and Stripe tees"
 - Test: `routes/about_test.tsx`
 
 **Interfaces:**
+
 - Consumes: `PageShell`, `Ornament`.
 - Produces: default-exported `AboutPage()`.
 
@@ -659,10 +701,12 @@ git commit -m "feat(about): promote about to /about route, 301 the old .html"
 ### Task 5: Victorian confession albums essay
 
 **Files:**
+
 - Create: `routes/about/confession-albums.tsx`
 - Test: `routes/about/confession-albums_test.tsx`
 
 **Interfaces:**
+
 - Consumes: `PageShell`, `Ornament` from `../../components/PageShell.tsx`.
 - Produces: default-exported `ConfessionAlbumsPage()`.
 
@@ -701,7 +745,7 @@ Create `routes/about/confession-albums.tsx` using `PageShell` with title
 
 Cover, in the register of `about.html` (essayistic, lowercase headers, `Ornament` between sections):
 
-1. The confession album as a parlour pastime of the 1860s–1890s, descended from the *album amicorum* — the friendship album passed between acquaintances for inscription.
+1. The confession album as a parlour pastime of the 1860s–1890s, descended from the _album amicorum_ — the friendship album passed between acquaintances for inscription.
 2. Printed volumes with pre-printed prompts, circulated among friends and family, the answers accumulating as a group portrait.
 3. **Proust did not invent the questionnaire.** He answered an existing one — once as an adolescent in Antoinette Faure's album, and again as a young man. The attribution is retrospective; the form predates him and he was one respondent among many.
 4. The resurfacing and 2003 auction of the manuscript, which is much of why his name attached to a form he merely filled in.
@@ -727,10 +771,12 @@ git commit -m "feat(about): essay on Victorian confession albums"
 ### Task 6: Contemporary respondents essay
 
 **Files:**
+
 - Create: `routes/about/respondents.tsx`
 - Test: `routes/about/respondents_test.tsx`
 
 **Interfaces:**
+
 - Consumes: `PageShell`, `Ornament` from `../../components/PageShell.tsx`.
 - Produces: default-exported `RespondentsPage()`.
 
@@ -766,9 +812,10 @@ Expected: FAIL — module not found.
 - [ ] **Step 3: Research, then write**
 
 Verify before writing:
-- Bernard Pivot's *Apostrophes* (1975–1990) and *Bouillon de Culture*, and his own condensed closing questionnaire.
-- James Lipton's use of Pivot's variant on *Inside the Actors Studio* — the route by which most English-speaking audiences met the form.
-- *Vanity Fair*'s back-page Proust Questionnaire, running from 1993.
+
+- Bernard Pivot's _Apostrophes_ (1975–1990) and _Bouillon de Culture_, and his own condensed closing questionnaire.
+- James Lipton's use of Pivot's variant on _Inside the Actors Studio_ — the route by which most English-speaking audiences met the form.
+- _Vanity Fair_'s back-page Proust Questionnaire, running from 1993.
 
 Then write `routes/about/respondents.tsx` with `PageShell`, title
 `'Who has answered — a formulation of truth'`, tracing the line from parlour album to broadcast to magazine feature, and closing on what changes when the form is answered publicly by a famous person rather than privately among friends — which is the question this site is actually interested in.
@@ -790,9 +837,11 @@ git commit -m "feat(about): essay on contemporary respondents"
 ### Task 7: Regenerate the manifest and verify the whole suite
 
 **Files:**
+
 - Modify: `fresh.gen.ts`
 
 **Interfaces:**
+
 - Consumes: all four new route modules.
 - Produces: a manifest registering `/about`, `/about/confession-albums`, `/about/respondents`, `/shop`.
 
@@ -812,10 +861,10 @@ import * as $shop from './routes/shop.tsx';
 and the matching entries in the `routes` object:
 
 ```ts
-    './routes/about.tsx': $about,
-    './routes/about/confession-albums.tsx': $about_confession_albums,
-    './routes/about/respondents.tsx': $about_respondents,
-    './routes/shop.tsx': $shop,
+'./routes/about.tsx': $about,
+'./routes/about/confession-albums.tsx': $about_confession_albums,
+'./routes/about/respondents.tsx': $about_respondents,
+'./routes/shop.tsx': $shop,
 ```
 
 - [ ] **Step 2: Verify the manifest registers all four**

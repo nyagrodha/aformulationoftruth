@@ -23,6 +23,14 @@ import { createQuestionnaireJWT } from '../../lib/jwt.ts';
 import { increment } from '../../lib/metrics.ts';
 import { sendMagicLinkEmail } from '../../lib/email.ts';
 import { GATE_QUESTIONS, storeEncryptedAnswer } from '../../lib/gate_encrypt.ts';
+import { ageEncryptTo } from '../../lib/age-encrypt.ts';
+import {
+  breakglassRecipient,
+  generateSessionKeypair,
+  IdentityPushFailed,
+  pushIdentity,
+  shredRemoteIdentity,
+} from '../../lib/session-keys.ts';
 
 const GateSubmitSchema = z.object({
   email: z.string().email(),
@@ -66,7 +74,7 @@ export const handler: Handlers = {
       if (wantsJson) {
         return new Response(
           JSON.stringify({ error }),
-          { status, headers: { 'Content-Type': 'application/json' } }
+          { status, headers: { 'Content-Type': 'application/json' } },
         );
       }
       // No-JS form path: bounce back to the gate with an error flag (no PII in URL).
@@ -94,23 +102,69 @@ export const handler: Handlers = {
       // Step 1: Generate server-side gate token
       const gateToken = crypto.randomUUID();
 
-      // Step 2: Age-encrypt each answer via the Rust gate, which holds the only
-      // write path for answer text. The plaintext columns q0_answer/q1_answer
-      // are deliberately left NULL — nothing reads them, and storing plaintext
-      // would break the promise the gate form makes to the visitor.
+      // Step 1b: Provision this session's keypair BEFORE anything is stored.
       //
-      // This fails closed: if the gate is down, storeEncryptedAnswer throws and
-      // we abort the submission rather than persist anything in the clear.
+      // break-glass is read first because it is local and throws when
+      // unconfigured; doing it after the push would strand a key on the key box
+      // for a submission we then refuse over a missing env var.
+      //
+      // Fails closed: a session whose identity never reached the key box is one
+      // whose PDF could never be produced, so storing its answers would be
+      // storing an unreadable orphan.
+      let recipients: string[];
+      let pushed = false;
+      try {
+        const breakglass = breakglassRecipient();
+        const keypair = await generateSessionKeypair();
+        await pushIdentity(gateToken, keypair.identity);
+        pushed = true;
+        recipients = [keypair.recipient, breakglass];
+      } catch (e) {
+        // An ambiguous failure may still have left a key behind: ssh is killed
+        // at its deadline and `cat > file` can produce a complete or truncated
+        // key indistinguishably from here. Withdraw before refusing.
+        if (e instanceof IdentityPushFailed && e.ambiguous) {
+          await shredRemoteIdentity(gateToken);
+        }
+        console.error('[gate-submit] Session key provisioning failed; submission refused');
+        increment('errors.5xx');
+        return fail(503, 'Unable to securely store your answers right now. Please try again.', 'server');
+      }
+
       const q0 = answer1.trim();
       const q1 = answer2.trim();
 
+      // Ordering note. Everything below is arranged so the one step that CANNOT
+      // be undone happens last. The Rust gate exposes /api/store and no delete,
+      // so once an answer is written there it stays; the Postgres row and the
+      // pushed identity can both be withdrawn. Writing answers first — as this
+      // route used to — meant a later failure left ciphertext behind for a
+      // session that was refused and has no key.
       try {
+        // The Postgres row carries the session's PUBLIC key and the address
+        // encrypted to it. Neither is readable here: this process holds
+        // recipients, never identities.
+        const encryptedEmail = await ageEncryptTo(email, recipients);
+
+        await withConnection(async (client) => {
+          await client.queryObject(
+            `INSERT INTO fresh_gate_responses (gate_token, q0_answer, q1_answer, session_pubkey, encrypted_email)
+             VALUES ($1, NULL, NULL, $2, $3)`,
+            [gateToken, recipients[0], encryptedEmail],
+          );
+        });
+
+        // Last, and unrecoverable. Encrypted to this session's key plus
+        // break-glass rather than the gate's global recipient. The plaintext
+        // columns q0_answer/q1_answer stay NULL — nothing reads them, and
+        // storing plaintext would break the promise the gate form makes.
         await storeEncryptedAnswer({
           sessionId: gateToken,
           questionIndex: 0,
           questionText: GATE_QUESTIONS[0],
           answer: q0,
           skipped: q0.length === 0,
+          recipients,
         });
         await storeEncryptedAnswer({
           sessionId: gateToken,
@@ -118,23 +172,21 @@ export const handler: Handlers = {
           questionText: GATE_QUESTIONS[1],
           answer: q1,
           skipped: q1.length === 0,
+          recipients,
         });
       } catch {
+        // Unwind what can be unwound. Best-effort: we are already refusing the
+        // submission and must not fail differently because cleanup failed.
+        if (pushed) await shredRemoteIdentity(gateToken);
+        await withConnection(async (client) => {
+          await client.queryObject('DELETE FROM fresh_gate_responses WHERE gate_token = $1', [gateToken]);
+        }).catch(() => {});
+
         // Category only — the thrown error is never logged, it could carry text.
         console.error('[gate-submit] Gate encryption unavailable; submission refused');
         increment('errors.5xx');
         return fail(503, 'Unable to securely store your answers right now. Please try again.', 'server');
       }
-
-      // The Postgres row exists only for linkage (gate_token -> session). It
-      // carries no answer text.
-      await withConnection(async (client) => {
-        await client.queryObject(
-          `INSERT INTO fresh_gate_responses (gate_token, q0_answer, q1_answer)
-           VALUES ($1, NULL, NULL)`,
-          [gateToken]
-        );
-      });
 
       console.log('[gate-submit] Gate answers encrypted and stored');
 
@@ -222,7 +274,7 @@ export const handler: Handlers = {
           message: 'Magic link sent',
           expiresAt: expiresAt.toISOString(),
         }),
-        { status: 200, headers: { 'Content-Type': 'application/json' } }
+        { status: 200, headers: { 'Content-Type': 'application/json' } },
       );
     } catch {
       // Category only. The error object can carry the submitted answers or the

@@ -26,17 +26,21 @@ import type { VNode } from 'preact';
 import Nav, { type NavItem } from '../islands/Nav.tsx';
 import Spheroid from '../islands/Spheroid.tsx';
 import { WordmarkGlyphs } from '../components/Wordmark.tsx';
+import { NAV_NOSCRIPT_CSS } from '../components/nav-shared.ts';
 
 /*
  * The landing page is one long page, so its nav is fragment anchors that scroll
- * it — #about is the footer, #begin the gate form. The gift shop is the one
- * item that leaves the page: it is a route, not a section.
+ * it — #about is the footer, #begin the gate form. These bare fragments are why
+ * items is a prop: they resolve only on this document, and PAGE_NAV carries the
+ * '/#begin' form every other page needs.
+ *
+ * Messaging and the gift shop are the two that leave the page.
  */
 const LANDING_NAV: NavItem[] = [
-  { label: 'Introduction', href: '#prolegomenon' },
-  { label: 'Gate', href: '#begin' },
-  { label: 'Gift Shop', href: '/shop' },
-  { label: 'About', href: '#about' },
+  { label: 'begin', href: '#begin' },
+  { label: 'about', href: '#about' },
+  { label: 'messaging', href: '/contact.html' },
+  { label: 'gift shop', href: '/shop' },
 ];
 
 interface IndexData {
@@ -131,9 +135,10 @@ export default function Home({ data }: PageProps<IndexData>) {
         <link rel='manifest' href='/manifest.json' />
 
         <link rel='stylesheet' href='/css/prolegomenon.css' />
+        <link rel='stylesheet' href='/css/nav-mark.css' />
         {/* The toggle is inert without JS, so leave the menu open instead. */}
         <noscript>
-          <style>{'.nav-list[hidden]{display:flex}.nav-arrow{display:none}'}</style>
+          <style>{NAV_NOSCRIPT_CSS}</style>
         </noscript>
       </head>
       <body>
@@ -146,7 +151,7 @@ export default function Home({ data }: PageProps<IndexData>) {
           <section class='hero' id='top' aria-labelledby='prolegomenon'>
             <div class='hero-copy'>
               <p class='hero-title'>
-                Every reader find themselves. The writer’s work is merely a kind of optical instrument that makes it
+                Every reader finds themselves. The writer’s work is merely a kind of optical instrument that makes it
                 possible for the reader to discern what, without this book, readers would perhaps never have seen in
                 themselves.
               </p>
@@ -276,26 +281,8 @@ export default function Home({ data }: PageProps<IndexData>) {
               <p class='gate-eyebrow'>a gate:</p>
               <h2 class='gate-title'>we meet @ this gate:</h2>
               <p class='gate-description'>
-                Often a thought or memory or fantasy floats into awareness only to be censored by merely the
-                anticipation of scolding, punishment, shame, or rejection. Inhibition causes us to shy away from that
-                prohibitive act. Human beings are ruled by inhibition. On measure we like this — I wanted to kill my
-                boyfriend the other night! But I didn’t. Not because homicide is impossible but because inhibition is
-                properly functioning in this fleshy mess.
-              </p>
-              <p class='gate-description'>
-                Lo, the many a spontaneous wish that inner dictator crushes. Merely anticipating punishment, shame, etc.
-                keeps me away from the spontaneous fantasy, thought, etc. Imposed ‘shoulds’ overpower legit desire.
-                Inhibition censors speech, inhibition delays action, making avoidance appear prudent even when no danger
-                is present.
-              </p>
-              <p class='gate-description'>
-                Inhibition rules a human being. For what follows, at least, don’t should on yourself. Compose what first
-                comes to mind. Be it simple something or more complex a memory, privacy and total control of your data
-                here mean to suggest the elephant in the room.
-              </p>
-              <p class='gate-description'>
-                What follow are not intended to be polite questions. Consider this an ice-breaker, and these are holes
-                in the ice. Answer honestly, spontaneously and something cold touches the feet.
+                What follow are not polite questions. These are holes in the ice. Answer honestly and something cold
+                touches the feet.
               </p>
 
               {error && (

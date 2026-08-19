@@ -35,6 +35,12 @@ interface StoreAnswerArgs {
   /** Plaintext. Leaves this process only over loopback, to the gate. */
   answer: string;
   skipped?: boolean;
+  /**
+   * age recipients to encrypt to. Omitted or empty means "use the gate's own
+   * configured recipient", which is how every answer worked before per-session
+   * keys and how pre-existing sessions still work.
+   */
+  recipients?: string[];
 }
 
 /**
@@ -42,7 +48,7 @@ interface StoreAnswerArgs {
  * failure, so callers fail the whole submission rather than persist plaintext.
  */
 export async function storeEncryptedAnswer(args: StoreAnswerArgs): Promise<void> {
-  const { sessionId, questionIndex, questionText, answer, skipped = false } = args;
+  const { sessionId, questionIndex, questionText, answer, skipped = false, recipients = [] } = args;
 
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
@@ -58,6 +64,7 @@ export async function storeEncryptedAnswer(args: StoreAnswerArgs): Promise<void>
         question_text: questionText,
         answer,
         skipped,
+        recipients,
       }),
       signal: controller.signal,
     });

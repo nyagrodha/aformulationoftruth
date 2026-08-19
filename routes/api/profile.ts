@@ -28,10 +28,32 @@ const HANDLE_RE = /^[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?$/;
 
 // Routes and asset prefixes a handle must not shadow.
 const RESERVED_HANDLES = new Set([
-  'about', 'contact', 'privacy', 'api', 'auth', 'admin', 'p', 'profile',
-  'profiles', 'login', 'logout', 'questionnaire', 'completion', 'gate',
-  'index', 'check-email', 'profile-choice', 'profile-create', 'static',
-  'css', 'js', 'images', 'assets', 'fonts', 'favicon', 'uploads',
+  'about',
+  'contact',
+  'privacy',
+  'api',
+  'auth',
+  'admin',
+  'p',
+  'profile',
+  'profiles',
+  'login',
+  'logout',
+  'questionnaire',
+  'completion',
+  'gate',
+  'index',
+  'check-email',
+  'profile-choice',
+  'profile-create',
+  'static',
+  'css',
+  'js',
+  'images',
+  'assets',
+  'fonts',
+  'favicon',
+  'uploads',
 ]);
 
 const ProfileSchema = z.object({

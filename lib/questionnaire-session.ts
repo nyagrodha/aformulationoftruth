@@ -21,9 +21,9 @@ import { generateResumeToken, hashResumeToken } from './crypto.ts';
 import { generateQuestionOrderString, parseQuestionOrder } from './questionnaire.ts';
 
 export interface QuestionnaireSession {
-  sessionId: string;               // HMAC hash of opaque token
+  sessionId: string; // HMAC hash of opaque token
   emailHash: string;
-  questionOrder: string;           // Comma-separated indices
+  questionOrder: string; // Comma-separated indices
   answeredQuestions: number[];
   currentIndex: number;
   createdAt: Date;
@@ -32,10 +32,10 @@ export interface QuestionnaireSession {
 }
 
 export interface SessionCreationResult {
-  opaqueToken: string;            // Send to client (never stored)
-  sessionId: string;              // Hash of token (stored in DB)
-  emailHash: string;              // For JWT creation
-  questionOrder: string;          // For initial state
+  opaqueToken: string; // Send to client (never stored)
+  sessionId: string; // Hash of token (stored in DB)
+  emailHash: string; // For JWT creation
+  questionOrder: string; // For initial state
 }
 
 // Database row types for queryObject
@@ -67,7 +67,7 @@ interface StatsRow {
  */
 export async function createQuestionnaireSession(
   emailHash: string,
-  gateToken?: string
+  gateToken?: string,
 ): Promise<SessionCreationResult> {
   // Step 1: Generate opaque token (32 bytes = 256 bits)
   const opaqueToken = generateResumeToken();
@@ -87,7 +87,7 @@ export async function createQuestionnaireSession(
       const { rows } = await client.queryObject<{ count: string }>(
         `SELECT COUNT(*) as count FROM fresh_gate_responses
          WHERE gate_token = $1`,
-        [gateToken]
+        [gateToken],
       );
       hasGateAnswers = Number(rows[0]?.count ?? 0) > 0;
     }
@@ -100,7 +100,7 @@ export async function createQuestionnaireSession(
       `SELECT session_id FROM fresh_questionnaire_sessions
        WHERE email_hash = $1 AND completed_at IS NULL
        ORDER BY created_at DESC LIMIT 1`,
-      [emailHash]
+      [emailHash],
     );
 
     if (existing.length > 0) {
@@ -109,7 +109,7 @@ export async function createQuestionnaireSession(
         `UPDATE fresh_questionnaire_sessions
          SET completed_at = NOW()
          WHERE session_id = $1`,
-        [existing[0].session_id]
+        [existing[0].session_id],
       );
     }
 
@@ -118,7 +118,7 @@ export async function createQuestionnaireSession(
       `INSERT INTO fresh_questionnaire_sessions
        (session_id, email_hash, question_order, answered_questions, current_index)
        VALUES ($1, $2, $3, $4, $5)`,
-      [sessionId, emailHash, questionOrder, [], 0]
+      [sessionId, emailHash, questionOrder, [], 0],
     );
 
     // Link gate responses if provided
@@ -127,7 +127,7 @@ export async function createQuestionnaireSession(
         `UPDATE fresh_gate_responses
          SET linked_session_id = $1
          WHERE gate_token = $2`,
-        [sessionId, gateToken]
+        [sessionId, gateToken],
       );
     }
   });
@@ -148,7 +148,7 @@ export async function createQuestionnaireSession(
  * @returns Session if found and not completed
  */
 export async function getSessionByToken(
-  opaqueToken: string
+  opaqueToken: string,
 ): Promise<QuestionnaireSession | null> {
   const sessionId = await hashResumeToken(opaqueToken);
   return await getSessionById(sessionId);
@@ -162,7 +162,7 @@ export async function getSessionByToken(
  * @returns Session if found and not completed
  */
 export async function getSessionById(
-  sessionId: string
+  sessionId: string,
 ): Promise<QuestionnaireSession | null> {
   return await withConnection(async (client) => {
     const { rows } = await client.queryObject<SessionRow>(
@@ -170,7 +170,7 @@ export async function getSessionById(
               current_index, created_at, updated_at, completed_at
        FROM fresh_questionnaire_sessions
        WHERE session_id = $1 AND completed_at IS NULL`,
-      [sessionId]
+      [sessionId],
     );
 
     if (rows.length === 0) return null;
@@ -197,7 +197,7 @@ export async function getSessionById(
  * @returns Active session if exists
  */
 export async function findActiveSession(
-  emailHash: string
+  emailHash: string,
 ): Promise<QuestionnaireSession | null> {
   return await withConnection(async (client) => {
     const { rows } = await client.queryObject<SessionRow>(
@@ -206,7 +206,7 @@ export async function findActiveSession(
        FROM fresh_questionnaire_sessions
        WHERE email_hash = $1 AND completed_at IS NULL
        ORDER BY created_at DESC LIMIT 1`,
-      [emailHash]
+      [emailHash],
     );
 
     if (rows.length === 0) return null;
@@ -233,10 +233,38 @@ export async function findActiveSession(
  * @param questionIndex - Index of question that was answered
  * @param newCurrentIndex - New position in question order
  */
+/**
+ * The age recipient this session's answers must be encrypted to, or null for a
+ * session that predates per-session keys.
+ *
+ * Deliberately a separate query rather than a column added to the SELECTs in
+ * getSessionByToken / getSessionById / findActiveSession. Those three run on
+ * every answer submission and every resume; widening them means touching the
+ * hot path of a live questionnaire, and a mistake there breaks people mid-run.
+ * This is additive -- if the join is wrong it returns null and the caller falls
+ * back to the gate default, which is the same behaviour as a legacy session.
+ *
+ * The gate row is the authority because the keypair is minted in
+ * /api/gate-submit, before a session exists; linked_session_id (migration 002)
+ * is what ties the two together afterwards.
+ */
+export async function getSessionPubkey(sessionId: string): Promise<string | null> {
+  return await withConnection(async (client) => {
+    const result = await client.queryObject<{ session_pubkey: string | null }>(
+      `SELECT session_pubkey
+         FROM fresh_gate_responses
+        WHERE linked_session_id = $1
+        LIMIT 1`,
+      [sessionId],
+    );
+    return result.rows[0]?.session_pubkey ?? null;
+  });
+}
+
 export async function updateSessionProgress(
   sessionId: string,
   questionIndex: number,
-  newCurrentIndex: number
+  newCurrentIndex: number,
 ): Promise<void> {
   await withConnection(async (client) => {
     await client.queryObject(
@@ -245,7 +273,7 @@ export async function updateSessionProgress(
            current_index = $2,
            updated_at = NOW()
        WHERE session_id = $3`,
-      [questionIndex, newCurrentIndex, sessionId]
+      [questionIndex, newCurrentIndex, sessionId],
     );
   });
 }
@@ -259,7 +287,7 @@ export async function updateSessionProgress(
  */
 export async function updateSessionIndex(
   sessionId: string,
-  newCurrentIndex: number
+  newCurrentIndex: number,
 ): Promise<void> {
   await withConnection(async (client) => {
     await client.queryObject(
@@ -267,7 +295,7 @@ export async function updateSessionIndex(
        SET current_index = $1,
            updated_at = NOW()
        WHERE session_id = $2`,
-      [newCurrentIndex, sessionId]
+      [newCurrentIndex, sessionId],
     );
   });
 }
@@ -284,7 +312,7 @@ export async function completeSession(sessionId: string): Promise<void> {
       `UPDATE fresh_questionnaire_sessions
        SET completed_at = NOW(), updated_at = NOW()
        WHERE session_id = $1`,
-      [sessionId]
+      [sessionId],
     );
   });
 }
@@ -303,14 +331,14 @@ export async function deleteSession(sessionId: string): Promise<void> {
         `UPDATE fresh_gate_responses
          SET linked_session_id = NULL
          WHERE linked_session_id = $1`,
-        [sessionId]
+        [sessionId],
       );
 
       // Then delete the session
       await client.queryObject(
         `DELETE FROM fresh_questionnaire_sessions
          WHERE session_id = $1`,
-        [sessionId]
+        [sessionId],
       );
     });
     console.log('[session] Session deleted');
@@ -329,7 +357,7 @@ export async function deleteSession(sessionId: string): Promise<void> {
  */
 export async function storeSessionAnswers(
   sessionId: string,
-  answers: Record<string, unknown>
+  answers: Record<string, unknown>,
 ): Promise<number> {
   return await withConnection(async (client) => {
     const session = await getSessionById(sessionId);
@@ -341,7 +369,7 @@ export async function storeSessionAnswers(
       `INSERT INTO fresh_responses (email_hash, answers, question_order, session_id)
        VALUES ($1, $2, $3, $4)
        RETURNING id`,
-      [session.emailHash, JSON.stringify(answers), session.questionOrder, sessionId]
+      [session.emailHash, JSON.stringify(answers), session.questionOrder, sessionId],
     );
 
     return rows[0].id;
@@ -356,13 +384,15 @@ export async function storeSessionAnswers(
  * @returns Next question details or null if completed
  */
 export async function getNextQuestion(
-  sessionId: string
-): Promise<{
-  questionIndex: number;
-  currentIndex: number;
-  totalQuestions: number;
-  completed: boolean;
-} | null> {
+  sessionId: string,
+): Promise<
+  {
+    questionIndex: number;
+    currentIndex: number;
+    totalQuestions: number;
+    completed: boolean;
+  } | null
+> {
   const session = await getSessionById(sessionId);
   if (!session) {
     return null;
@@ -401,11 +431,16 @@ export async function getNextQuestion(
 export async function cleanupExpiredSessions(): Promise<number> {
   return await withConnection(async (client) => {
     const { rows } = await client.queryObject<{ count: number }>(
+      // updated_at, NOT created_at. The questionnaire page promises thirty
+      // days from a respondent's LAST VISIT, and the key box expires session
+      // identities on the same basis (romania/keystore.ts shredExpired).
+      // Measuring from creation would delete the session of someone still
+      // working on it, making that promise false the moment this is scheduled.
       `WITH deleted AS (
          DELETE FROM fresh_questionnaire_sessions
-         WHERE created_at < NOW() - INTERVAL '30 days'
+         WHERE updated_at < NOW() - INTERVAL '30 days'
          RETURNING 1
-       ) SELECT COUNT(*) as count FROM deleted`
+       ) SELECT COUNT(*) as count FROM deleted`,
     );
 
     return Number(rows[0]?.count ?? 0);
@@ -429,7 +464,7 @@ export async function getSessionStats(): Promise<{
          COUNT(*) FILTER (WHERE completed_at IS NOT NULL) as completed,
          AVG(current_index) FILTER (WHERE completed_at IS NULL) as avg_progress
        FROM fresh_questionnaire_sessions
-       WHERE created_at > NOW() - INTERVAL '30 days'`
+       WHERE created_at > NOW() - INTERVAL '30 days'`,
     );
 
     const row = rows[0];
