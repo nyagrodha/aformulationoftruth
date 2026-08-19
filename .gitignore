@@ -9,6 +9,9 @@ yarn-error.log*
 .env
 .env.save
 .env.*
+# Redundant against .env.* above, but stated outright: the template is a local
+# reference only and is deliberately not tracked.
+.env.example
 .env.local
 .env.*.local
 .env.development.local
