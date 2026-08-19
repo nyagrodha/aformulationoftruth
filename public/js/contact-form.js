@@ -34,8 +34,8 @@ function init() {
 
   form.addEventListener('submit', (event) => {
     event.preventDefault();
-    submit().catch((err) => {
-      console.error('[contact-form] unexpected error', err);
+    submit().catch(() => {
+      console.error('[contact-form] unexpected error');
       setStatus('Something went wrong. Please try again.', 'error');
       setBusy(false);
     });
@@ -75,8 +75,8 @@ async function submit() {
   let payload;
   try {
     payload = pgpEncrypted ? await pgpEncrypt(raw) : raw;
-  } catch (err) {
-    console.error('[contact-form] PGP encryption failed', err);
+  } catch {
+    console.error('[contact-form] PGP encryption failed');
     setStatus(
       'PGP encryption failed; nothing was sent. Untick the PGP option or retry once your network can reach the key.',
       'error',
@@ -92,8 +92,8 @@ async function submit() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ message: payload, pgpEncrypted }),
     });
-  } catch (err) {
-    console.error('[contact-form] network error', err);
+  } catch {
+    console.error('[contact-form] network error');
     setStatus('Network error. Please try again.', 'error');
     setBusy(false);
     return;

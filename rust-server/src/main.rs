@@ -279,7 +279,7 @@ async fn main() -> anyhow::Result<()> {
     let recipient: age::x25519::Recipient = recipient_str
         .parse()
         .map_err(|e| anyhow::anyhow!("AGE_RECIPIENT parse: {e}"))?;
-    info!(recipient = %recipient.to_string(), "age recipient loaded");
+    info!("age recipient loaded");
 
     let pool = PgPoolOptions::new()
         .max_connections(8)
