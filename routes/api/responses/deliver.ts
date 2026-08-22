@@ -17,6 +17,7 @@ import { increment } from '../../../lib/metrics.ts';
 import { ageEncryptTo } from '../../../lib/age-encrypt.ts';
 import { breakglassRecipient } from '../../../lib/session-keys.ts';
 import { getSessionByToken } from '../../../lib/questionnaire-session.ts';
+import { authenticateRequest, isAuthenticated } from '../../../lib/session-auth.ts';
 import { type DeliveryBundle, KeyboxUnavailableError, pushBundle } from '../../../lib/romania-client.ts';
 import { GATE_QUESTIONS } from '../../../lib/gate_encrypt.ts';
 import { QUESTIONS as TAMIL_QUESTIONS } from '../../../lib/questions_dakshinaparvanuvadam.ts';
@@ -161,17 +162,50 @@ export const handler: Handlers = {
     }
 
     try {
+      // getSessionByToken no longer filters on completed_at, which is the whole
+      // point: this endpoint is reached from /completion, so every legitimate
+      // caller has just finished. The old reader refused finished sessions,
+      // so the consent form answered "Session not found or already closed" to
+      // precisely the people who had earned a copy.
       const session = await getSessionByToken(resumeToken);
       if (!session) {
         increment('errors.4xx');
         return done(404, 'Session not found or already closed.', 'copy=nosession');
       }
 
+      // Mailing something to an address is only safe once somebody has shown
+      // they can read mail there. Since /api/gate-submit began admitting people
+      // to the questionnaire immediately, a session can exist for an address
+      // typed by anyone at all -- and without this check the site would post a
+      // PDF to a stranger on the say-so of whoever typed their address. The
+      // link in the email is that proof, and clicking it is what sets via.
+      // Through authenticateRequest rather than reading the jwt cookie alone.
+      // Reading only the cookie meant a respondent who HAD opened their link,
+      // and whose 24-hour JWT had since expired, was refused -- even though the
+      // thirty-day resume token in their browser is itself proof the address is
+      // theirs, and even though that is exactly the case session-auth exists to
+      // rescue. Someone finishing a questionnaire the day after starting it
+      // would have been told to go and click a link they had already clicked.
+      const proof = await authenticateRequest(req);
+      if (!isAuthenticated(proof) || proof.via !== 'link') {
+        increment('delivery.unverified_address');
+        return done(
+          403,
+          'Open the link we emailed you first, then ask again -- that is how we know the address is yours.',
+          'copy=verify',
+        );
+      }
+
       const row = await withConnection(async (client) => {
-        const r = await client.queryObject<{ session_pubkey: string | null; encrypted_email: string | null }>(
-          `SELECT session_pubkey, encrypted_email
+        const r = await client.queryObject<
+          { gate_token: string; session_pubkey: string | null; encrypted_email: string | null }
+        >(
+          // Ordered: a resumed session can be pointed at by more than one gate
+          // row, and the key the answers were encrypted to is the first one.
+          `SELECT gate_token, session_pubkey, encrypted_email
              FROM fresh_gate_responses
             WHERE linked_session_id = $1
+            ORDER BY created_at ASC
             LIMIT 1`,
           [session.sessionId],
         );
@@ -201,13 +235,19 @@ export const handler: Handlers = {
       const password = raw.normalize('NFC');
       const encryptedPassword = password.length > 0 ? await ageEncryptTo(password, recipients) : null;
 
+      // TWO ids, and this is why the first two answers were blank in every PDF
+      // ever produced. Q0 and Q1 are written by /api/gate-submit before a
+      // session exists, so they are filed under the gate_token; everything from
+      // question 3 onward is filed under the session id. Selecting only the
+      // latter found 33 rows, and buildBundle then synthesised the missing two
+      // as empty and skipped, which the renderer printed as blank.
       const rows = await withConnection(async (client) => {
         const r = await client.queryObject<AnswerRow>(
           `SELECT question_index, question_text, ciphertext, skipped
              FROM gate_encrypted_answers
-            WHERE session_id = $1
+            WHERE session_id = $1 OR session_id = $2
             ORDER BY question_index`,
-          [session.sessionId],
+          [session.sessionId, row.gate_token],
         );
         return r.rows;
       });

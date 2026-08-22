@@ -31,91 +31,26 @@ import { verifyQuestionnaireJWT } from '../../../lib/jwt.ts';
 import {
   completeSession,
   getSessionByToken,
-  getSessionPubkey,
   updateSessionIndex,
   updateSessionProgress,
 } from '../../../lib/questionnaire-session.ts';
 import { parseQuestionOrder } from '../../../lib/questionnaire.ts';
 import { increment } from '../../../lib/metrics.ts';
-import { storeEncryptedAnswer } from '../../../lib/gate-client.ts';
-import { breakglassRecipient } from '../../../lib/session-keys.ts';
+import { recordAnswer } from '../../../lib/answers.ts';
 
-// Proust questionnaire questions (canonical order, indices 0-34)
-const QUESTIONS = [
-  'What is your idea of perfect happiness?',
-  'What is your greatest fear?',
-  'What is the trait you most deplore in yourself?',
-  'What is the trait you most deplore in others?',
-  'Which living person do you most admire?',
-  'What is your greatest extravagance?',
-  'What is your current state of mind?',
-  'What do you consider the most overrated virtue?',
-  'On what occasion do you lie?',
-  'What do you most dislike about your appearance?',
-  'Which living person do you most despise?',
-  'What is the quality you most like in a man?',
-  'What is the quality you most like in a woman?',
-  'Which words or phrases do you most overuse?',
-  'What or who is the greatest love of your life?',
-  'When and where were you happiest?',
-  'Which talent would you most like to have?',
-  'If you could change one thing about yourself, what would it be?',
-  'What do you consider your greatest achievement?',
-  'If you were to die and come back as a person or a thing, what would it be?',
-  'Where would you most like to live?',
-  'What is your most treasured possession?',
-  'What do you regard as the lowest depth of misery?',
-  'What is your favorite occupation?',
-  'What is your most marked characteristic?',
-  'What do you most value in your friends?',
-  'Who are your favorite writers?',
-  'Who is your hero of fiction?',
-  'Which historical figure do you most identify with?',
-  'Who are your heroes in real life?',
-  'What are your favorite names?',
-  'What is it that you most dislike?',
-  'What is your greatest regret?',
-  'How would you like to die?',
-  'What is your motto?',
-];
+// Re-exported for tests/answer_recipients_test.ts, which has imported it from
+// this module since before it moved to lib/answers.ts.
+export { recipientsForSession } from '../../../lib/answers.ts';
+
+// The question texts come from lib/questions_dakshinaparvanuvadam.ts via
+// lib/answers.ts. A verbatim copy of all 35 lived here and another in
+// routes/questionnaire.tsx; see the note in lib/answers.ts.
 
 const AnswerSchema = z.object({
   questionIndex: z.number().int().min(0).max(34),
   answer: z.string().max(20000),
   skipped: z.boolean(),
 });
-
-/**
- * Recipients for a session's answers.
- *
- * A session minted after per-session keys shipped always has a pubkey --
- * gate-submit fails closed, so one cannot exist without it -- and its answers
- * go to that key plus the offline break-glass key.
- *
- * A NULL pubkey means the session predates this feature. Those return an empty
- * list, which storeEncryptedAnswer sends as `recipients: []` and the gate reads
- * as "use my configured default": exactly the behaviour the session started
- * under. Throwing instead would break every questionnaire in flight at deploy
- * time, mid-run, at whichever question the respondent happened to be on.
- *
- * Such sessions stay readable by the global identity and simply never become
- * PDF-eligible -- /api/responses/deliver checks session_pubkey before offering
- * a copy, so nobody is promised a document that cannot be rendered.
- *
- * This branch is temporary. `sessions.legacy_recipients` counts every use; once
- * it reads zero for longer than a session can live, delete the branch and make
- * a missing pubkey an error again.
- */
-export function recipientsForSession(sessionPubkey: string | null, breakglass: () => string): string[] {
-  if (!sessionPubkey) {
-    increment('sessions.legacy_recipients');
-    return [];
-  }
-  // A thunk, not a string: breakglassRecipient() throws when unconfigured, and
-  // an eagerly-evaluated argument would throw on the legacy path too -- turning
-  // a missing env var into a failure for sessions that never needed the key.
-  return [sessionPubkey, breakglass()];
-}
 
 function getCookie(cookieHeader: string | null, name: string): string | null {
   if (!cookieHeader) return null;
@@ -196,8 +131,9 @@ export const handler: Handlers = {
           },
         );
       }
-    } catch (error) {
-      console.error(`[answer:${requestId}] JWT verification failed:`, error);
+    } catch {
+      // Category only. A verification error can echo the token it failed on.
+      console.error(`[answer:${requestId}] JWT verification failed`);
       increment('errors.5xx');
       return new Response(
         JSON.stringify({
@@ -218,8 +154,10 @@ export const handler: Handlers = {
     let session;
     try {
       session = await getSessionByToken(resumeToken);
-    } catch (error) {
-      console.error(`[answer:${requestId}] Session lookup failed:`, error);
+    } catch {
+      // Category only: a driver error can quote the failing statement and its
+      // parameters, which here are the resume token and the email hash.
+      console.error(`[answer:${requestId}] Session lookup failed`);
       increment('errors.5xx');
       return new Response(
         JSON.stringify({
@@ -254,13 +192,36 @@ export const handler: Handlers = {
       );
     }
 
+    // getSessionByToken returns finished sessions now, because the delivery
+    // endpoint needs them. This one does not: answering a questionnaire that
+    // has already ended would write past its own conclusion.
+    if (session.completedAt) {
+      increment('errors.4xx');
+      increment('questions.session_completed');
+      return new Response(
+        JSON.stringify({
+          error: 'This questionnaire is already complete',
+          requestId,
+        }),
+        {
+          status: 409,
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Request-ID': requestId,
+          },
+        },
+      );
+    }
+
     // Verify JWT session_id matches session
     if (jwtPayload.session_id !== session.sessionId) {
       increment('errors.4xx');
       increment('questions.session_mismatch');
-      console.warn(
-        `[answer:${requestId}] Session mismatch: JWT=${jwtPayload.session_id}, Session=${session.sessionId}`,
-      );
+      // The two session IDs were printed here. A session ID is a bearer
+      // credential for someone's answers and CLAUDE.md names it outright; the
+      // counter above says a mismatch happened, which is the whole of what an
+      // operator can act on.
+      console.warn(`[answer:${requestId}] Session token mismatch`);
       return new Response(
         JSON.stringify({
           error: 'Session token mismatch',
@@ -300,7 +261,11 @@ export const handler: Handlers = {
     const parsed = AnswerSchema.safeParse(body);
     if (!parsed.success) {
       increment('errors.4xx');
-      console.warn(`[answer:${requestId}] Validation failed:`, parsed.error.issues);
+      // Field names only. parsed.error.issues carries the rejected value,
+      // which for this schema is the respondent's answer.
+      console.warn(
+        `[answer:${requestId}] Validation failed for: ${parsed.error.issues.map((i) => i.path.join('.')).join(', ')}`,
+      );
       return new Response(
         JSON.stringify({
           error: 'Invalid request format',
@@ -328,19 +293,38 @@ export const handler: Handlers = {
     // offline break-glass key, so only they (via Romania) and a deliberate
     // recovery ceremony can ever read it. A session predating this feature
     // resolves to [], which the gate reads as its configured default.
-    const sessionPubkey = await getSessionPubkey(session.sessionId);
-
+    //
+    // A failure here MUST abort. This block used to catch, log and fall
+    // through to the progress update below, so a gate outage advanced the
+    // session and returned `success: true` for an answer that was never
+    // written. Answering again would then be impossible: the question had
+    // already gone by.
     try {
-      await storeEncryptedAnswer({
+      await recordAnswer({
         sessionId: session.sessionId,
-        questionText: QUESTIONS[questionIndex] || `Question ${questionIndex}`,
         questionIndex,
-        answer: skipped ? '' : answer,
+        answer,
         skipped,
-        recipients: recipientsForSession(sessionPubkey, breakglassRecipient),
       });
-    } catch (error) {
-      console.error(`[answer:${requestId}] Error storing encrypted response`);
+    } catch {
+      increment('errors.5xx');
+      increment('answers.store_failed');
+      // No error detail: it carries the gate's response body, which can quote
+      // the answer back at us.
+      console.error(`[answer:${requestId}] Answer storage failed; session not advanced`);
+      return new Response(
+        JSON.stringify({
+          error: 'Answer could not be stored; nothing was advanced. Please retry.',
+          requestId,
+        }),
+        {
+          status: 503,
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Request-ID': requestId,
+          },
+        },
+      );
     }
 
     try {
@@ -407,8 +391,8 @@ export const handler: Handlers = {
           },
         },
       );
-    } catch (error) {
-      console.error(`[answer:${requestId}] Failed to update session:`, error);
+    } catch {
+      console.error(`[answer:${requestId}] Failed to update session`);
       increment('errors.5xx');
 
       return new Response(

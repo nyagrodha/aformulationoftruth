@@ -196,13 +196,29 @@ export async function sendEmail(options: SendEmailOptions): Promise<SendEmailRes
 export async function sendMagicLinkEmail(email: string, magicLinkUrl: string): Promise<SendEmailResult> {
   const subject = Deno.env.get('EMAIL_SUBJECT') || 'Your link to a formulation of truth';
 
+  // The two sentences this used to carry -- "expires in 15 minutes" and "can
+  // only be used once" -- were both untrue. Nothing enforced the fifteen
+  // minutes (the function that would have, verifyMagicLink, had no callers and
+  // has since been deleted) and nothing consumed the link, so it in fact lasted
+  // the JWT's twenty-four hours and worked as often as you liked. The harm was
+  // not pedantic: someone who believed they had missed the window submitted the
+  // gate again, and until migration 012 that abandoned the very session the
+  // link in their hand pointed at. The instructions broke the thing they were
+  // instructions for.
   const text = `
-You requested access to a formulation of truth.
+Your questionnaire is open in the browser you started it in.
 
-Click here to continue your questionnaire:
+This link brings you back to it -- on another device, or on this one once the
+browser has forgotten you:
 ${magicLinkUrl}
 
-This link expires in 15 minutes and can only be used once.
+It works for 24 hours and as many times as you need within them. It is also how
+we know this address is yours, so open it at least once if you would like a copy
+of your answers sent to you at the end.
+
+After 24 hours, enter the same address at the gate and we will send another. Your
+answers are kept for thirty days from your last visit, and returning resets the
+clock.
 
 If you didn't request this, you can safely ignore this email.
 
@@ -282,14 +298,16 @@ https://aformulationoftruth.com
     <p>You requested access to continue your questionnaire.</p>
 
     <p>
-      <a href="${magicLinkUrl}" class="button">Continue Questionnaire</a>
+      <a href="${magicLinkUrl}" class="button">Back to your questionnaire</a>
     </p>
 
     <p>Or copy this link:</p>
     <p class="link">${magicLinkUrl}</p>
 
     <p style="color: #666; font-size: 13px;">
-      This link expires in 15 minutes and can only be used once.
+      It works for 24 hours and as many times as you need within them. It is also how we know this
+      address is yours, so open it at least once if you would like a copy of your answers at the end.
+      After that, enter the same address at the gate for another.
     </p>
 
     <div class="footer">

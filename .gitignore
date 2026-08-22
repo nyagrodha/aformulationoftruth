@@ -157,3 +157,7 @@ docker/pyaz/
 !package-lock.json
 .playwright-mcp/
 **/.playwright-mcp/
+
+# Python bytecode -- was tracked by accident
+__pycache__/
+*.pyc

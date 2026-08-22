@@ -8,6 +8,7 @@
  */
 
 import { Handlers, PageProps } from '$fresh/server.ts';
+import { increment } from '../lib/metrics.ts';
 
 interface CompletionData {
   resumeToken: string;
@@ -21,6 +22,11 @@ function getCookie(cookieHeader: string | null, name: string): string | null {
 
 export const handler: Handlers<CompletionData> = {
   GET(req, ctx) {
+    // Last step of the funnel. It was allowlisted for the client-side
+    // increment endpoint and nothing ever called it, so the funnel's final
+    // figure was 0 on days when people plainly reached this page.
+    increment('funnel.completion.viewed');
+
     // The page needs to say WHICH session a copy is being requested for. The
     // opaque resume token is already the client's handle on its session, so it
     // is threaded through the form rather than inventing a second identifier.

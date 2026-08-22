@@ -11,51 +11,18 @@
  */
 
 import { Handlers, PageProps } from '$fresh/server.ts';
-import { verifyQuestionnaireJWT } from '../lib/jwt.ts';
-import { getSessionById, updateSessionIndex, updateSessionProgress } from '../lib/questionnaire-session.ts';
-import { parseQuestionOrder } from '../lib/questionnaire.ts';
-import { increment } from '../lib/metrics.ts';
+import { completeSession, updateSessionIndex, updateSessionProgress } from '../lib/questionnaire-session.ts';
+import { authenticateRequest, isAuthenticated, jwtCookie } from '../lib/session-auth.ts';
+import { interstitialResponse } from '../components/Interstitial.tsx';
+import { presentationOrder } from '../lib/questionnaire.ts';
+import { increment, trackLatency } from '../lib/metrics.ts';
+import { questionTextFor, recordAnswer } from '../lib/answers.ts';
 
-// The 35 Proust questionnaire questions
-const QUESTIONS = [
-  // Gate questions (0-1) - already answered
-  'What is your idea of perfect happiness?',
-  'What is your greatest fear?',
-  // Shuffled questions (2-34)
-  'What is the trait you most deplore in yourself?',
-  'What is the trait you most deplore in others?',
-  'Which living person do you most admire?',
-  'What is your greatest extravagance?',
-  'What is your current state of mind?',
-  'What do you consider the most overrated virtue?',
-  'On what occasion do you lie?',
-  'What do you most dislike about your appearance?',
-  'Which living person do you most despise?',
-  'What is the quality you most like in a man?',
-  'What is the quality you most like in a woman?',
-  'Which words or phrases do you most overuse?',
-  'What or who is the greatest love of your life?',
-  'When and where were you happiest?',
-  'Which talent would you most like to have?',
-  'If you could change one thing about yourself, what would it be?',
-  'What do you consider your greatest achievement?',
-  'If you were to die and come back as a person or a thing, what would it be?',
-  'Where would you most like to live?',
-  'What is your most treasured possession?',
-  'What do you regard as the lowest depth of misery?',
-  'What is your favorite occupation?',
-  'What is your most marked characteristic?',
-  'What do you most value in your friends?',
-  'Who are your favorite writers?',
-  'Who is your hero of fiction?',
-  'Which historical figure do you most identify with?',
-  'Who are your heroes in real life?',
-  'What are your favorite names?',
-  'What is it that you most dislike?',
-  'What is your greatest regret?',
-  'How would you like to die?',
-  'What is your motto?',
-];
+// The question texts live in lib/questions_dakshinaparvanuvadam.ts, which is
+// the module that owns them. A verbatim copy of all 35 strings used to sit here
+// and a second copy in routes/api/questions/answer.ts — three places to edit,
+// two of which would be forgotten, and the stored question text would then
+// disagree with the question actually put to the respondent.
 
 interface QuestionnaireData {
   authenticated: boolean;
@@ -67,120 +34,141 @@ interface QuestionnaireData {
   totalQuestions: number;
 }
 
-function getCookie(cookieHeader: string | null, name: string): string | null {
-  if (!cookieHeader) return null;
-  const match = cookieHeader.match(new RegExp(`(?:^|;\\s*)${name}=([^;]*)`));
-  return match ? decodeURIComponent(match[1]) : null;
+/**
+ * Minimal escaping for the one place this file builds HTML by hand: the 503
+ * page below, which quotes the respondent's own answer back at them. Everything
+ * else on this route goes through JSX, which escapes for us.
+ */
+function escapeHtml(value: string): string {
+  return value
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;');
 }
 
 export const handler: Handlers<QuestionnaireData> = {
   async GET(req, ctx) {
     increment('requests.api');
 
-    const cookies = req.headers.get('Cookie');
-    const jwtToken = getCookie(cookies, 'jwt');
+    // One helper for all three of the checks this used to make by hand, and it
+    // adds the one that was missing: a respondent holding only the thirty-day
+    // resume_token cookie is let in and given a fresh JWT, instead of being
+    // bounced to the landing page as though they had never been here.
+    const auth = await authenticateRequest(req);
+    if (!isAuthenticated(auth)) {
+      return interstitialResponse(auth.failure);
+    }
+    const { session, refreshedJwt } = auth;
 
-    // Verify JWT authentication
-    if (!jwtToken) {
-      console.log('[questionnaire] No JWT cookie, redirecting to login');
-      return new Response(null, {
-        status: 302,
-        headers: { Location: '/' },
-      });
+    // Finished sessions are readable now -- getSessionRecord does not filter
+    // them out -- so say where they lead rather than treating them as a
+    // failure to authenticate.
+    if (session.completedAt) {
+      return new Response(null, { status: 302, headers: { Location: '/completion' } });
     }
 
-    const jwtPayload = await verifyQuestionnaireJWT(jwtToken);
-    if (!jwtPayload) {
-      console.log('[questionnaire] Invalid JWT, redirecting to login');
-      return new Response(null, {
-        status: 302,
-        headers: { Location: '/' },
-      });
-    }
-
-    // Get session from database using session_id from JWT
-    const session = await getSessionById(jwtPayload.session_id);
-    if (!session) {
-      console.log('[questionnaire] Session not found, redirecting to login');
-      return new Response(null, {
-        status: 302,
-        headers: { Location: '/' },
-      });
-    }
-
-    // Parse question order from session
-    const questionOrder = parseQuestionOrder(session.questionOrder);
-
-    // Questions 2-34 (33 questions total after gate)
-    const remainingQuestions = questionOrder.slice(2);
-    const totalQuestions = remainingQuestions.length;
+    // The stored order IS the presentation order, so it is used whole.
+    //
+    // This used to be `.slice(2)`, on the belief that the first two entries
+    // were the gate questions. They are not. generateQuestionOrder() already
+    // EXCLUDES Q0 and Q1 when the gate has been answered, returning 33 entries
+    // (2,196 of the sessions on record); slicing two off that dropped two real
+    // questions from every one of them, unasked and unnoticed. For the
+    // 35-entry order used when the gate was skipped, the gate questions are
+    // shuffled into the list rather than sitting at the front, so the slice
+    // discarded whichever two questions happened to land first.
+    //
+    // It also disagreed with routes/api/questions/answer.ts, which never
+    // sliced: the page called the questionnaire finished two questions before
+    // the API did.
+    const { order: questionOrder, answeredAtGate, total } = presentationOrder(
+      session.questionOrder,
+    );
     const currentIndex = session.currentIndex;
 
     // Check if completed
-    if (currentIndex >= totalQuestions) {
+    if (currentIndex >= questionOrder.length) {
       return new Response(null, {
         status: 302,
         headers: { Location: '/completion' },
       });
     }
 
-    const questionNum = remainingQuestions[currentIndex];
-    const currentQuestion = QUESTIONS[questionNum];
-    const overallNum = currentIndex + 3; // +2 for gate questions, +1 for 1-indexing
+    const questionNum = questionOrder[currentIndex];
+    const currentQuestion = questionTextFor(questionNum);
+
+    // Position in the respondent's whole run: a 33-entry order had its two gate
+    // questions answered at /gate, so they are counted back in to keep
+    // "question N of 35" honest.
+    const overallNum = answeredAtGate + currentIndex + 1;
 
     increment('questionnaire.viewed');
+
+    // When the resume token did the work, hand back a JWT so the next request
+    // does not repeat the lookup. Only the jwt cookie is rewritten: the resume
+    // token in the browser is still valid and re-sending it would only reset
+    // its clock, which updateSessionProgress already does server-side.
+    const headers = new Headers();
+    if (refreshedJwt) {
+      headers.append('Set-Cookie', jwtCookie(refreshedJwt));
+    }
 
     return ctx.render({
       authenticated: true,
       sessionId: session.sessionId,
-      questionOrder: remainingQuestions,
+      questionOrder,
       currentIndex,
       currentQuestion,
       questionNumber: overallNum,
-      totalQuestions: 35, // Total including gate questions
-    });
+      totalQuestions: total,
+    }, { headers });
   },
 
-  async POST(req, ctx) {
+  async POST(req, _ctx) {
     increment('requests.api');
 
-    const cookies = req.headers.get('Cookie');
-    const jwtToken = getCookie(cookies, 'jwt');
-
-    // Verify JWT authentication
-    if (!jwtToken) {
-      return new Response(null, {
-        status: 302,
-        headers: { Location: '/' },
-      });
-    }
-
-    const jwtPayload = await verifyQuestionnaireJWT(jwtToken);
-    if (!jwtPayload) {
-      return new Response(null, {
-        status: 302,
-        headers: { Location: '/' },
-      });
-    }
-
-    // Get session from database
-    const session = await getSessionById(jwtPayload.session_id);
-    if (!session) {
-      return new Response(null, {
-        status: 302,
-        headers: { Location: '/' },
-      });
-    }
-
-    // Parse form data
+    // Read the body BEFORE authenticating. The order matters more than it
+    // looks: this handler used to verify the JWT first and redirect to the
+    // landing page on failure, which threw away whatever the respondent had
+    // just written, unread and unmentioned. A session lasts 24 hours and people
+    // sit with these questions, so the expiry lands mid-answer as a matter of
+    // course. Reading first means the text still exists when we discover we
+    // cannot store it, and can be handed back.
     const formData = await req.formData();
     const answer = formData.get('answer')?.toString() || '';
     const action = formData.get('action')?.toString() || 'continue';
 
-    const questionOrder = parseQuestionOrder(session.questionOrder);
-    const remainingQuestions = questionOrder.slice(2);
+    const auth = await authenticateRequest(req);
+    if (!isAuthenticated(auth)) {
+      increment('answers.lost_to_auth');
+      return interstitialResponse(auth.failure, answer);
+    }
+    const { session, refreshedJwt } = auth;
+
+    if (session.completedAt) {
+      return new Response(null, { status: 302, headers: { Location: '/completion' } });
+    }
+
+    // Whole, for the reason given in the GET handler above.
+    const { order: questionOrder } = presentationOrder(session.questionOrder);
     const currentIndex = session.currentIndex;
-    const questionNum = remainingQuestions[currentIndex];
+
+    // The GET handler bails out here; this one did not, and the asymmetry was
+    // a way to write an answer filed under `undefined`. A session can sit at
+    // current_index === questionOrder.length with completed_at still unset --
+    // that is the state every session finished under the old `.slice(2)`
+    // accounting was left in, because the page thought it was done two
+    // questions before the API did and never stamped the finish. Posting from
+    // such a session indexes past the end of the order, and the resulting
+    // `undefined` went straight into recordAnswer as the question index and
+    // was encrypted and stored under it.
+    if (currentIndex >= questionOrder.length) {
+      await completeSession(session.sessionId);
+      return new Response(null, { status: 302, headers: { Location: '/completion' } });
+    }
+
+    const questionNum = questionOrder[currentIndex];
 
     // Back navigation: step to the previous question without storing anything.
     // Answers are age-encrypted at rest, so the field is not pre-filled —
@@ -188,37 +176,76 @@ export const handler: Handlers<QuestionnaireData> = {
     if (action === 'back') {
       const prevIndex = Math.max(0, currentIndex - 1);
       await updateSessionIndex(session.sessionId, prevIndex);
-      return new Response(null, {
-        status: 302,
-        headers: { Location: '/questionnaire' },
-      });
+      const headers = new Headers({ Location: '/questionnaire' });
+      if (refreshedJwt) headers.append('Set-Cookie', jwtCookie(refreshedJwt));
+      return new Response(null, { status: 302, headers });
     }
 
-    // Store the answer
     const skipped = action === 'skip' || answer.trim() === '';
 
-    try {
-      // Store answer via API
-      const baseUrl = new URL(req.url).origin;
-      const storeRes = await fetch(`${baseUrl}/api/questions/answer`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Cookie': `jwt=${jwtToken}`,
-        },
-        body: JSON.stringify({
-          questionIndex: questionNum,
-          answer: skipped ? '' : answer,
-          skipped,
-        }),
-      });
-
-      if (!storeRes.ok) {
-        console.error('[questionnaire] Failed to store response:', await storeRes.text());
+    // Every exit from here is a redirect, and any of them may need to carry a
+    // JWT minted from the resume token during this request. Built once so no
+    // branch can forget it and quietly send the respondent round the loop
+    // re-authenticating on every answer.
+    const redirect = (location: string): Response => {
+      const headers = new Headers({ Location: location });
+      if (refreshedJwt) {
+        headers.append('Set-Cookie', jwtCookie(refreshedJwt));
       }
+      return new Response(null, { status: 302, headers });
+    };
+
+    // How long this answer took, bucketed. updatedAt is the last time this
+    // session was touched, so for the first answer after a gap it measures the
+    // gap rather than the thinking -- the buckets are coarse enough to survive
+    // that, and it needs no client state, no hidden field, and nothing stored.
+    // trackLatency has existed since the metrics module was written and had no
+    // caller, so the report's TIME TAKEN PER ANSWER section has never rendered.
+    trackLatency(session.updatedAt.getTime());
+
+    // Store the answer, then advance — in that order, and only on success.
+    //
+    // This used to POST to our own /api/questions/answer over HTTP, forwarding
+    // the `jwt` cookie and nothing else. That endpoint reads its JWT from an
+    // `Authorization: Bearer` header and needs a resume token besides, so every
+    // such call returned 401. The failure was logged and then ignored: the
+    // session advanced regardless, the next question appeared, and the answer
+    // was gone. That is how a live questionnaire recorded zero answers for its
+    // entire existence while looking perfectly well from the outside.
+    //
+    // A 5xx here is the correct outcome. Losing what someone wrote is worse
+    // than making them submit it again.
+    try {
+      await recordAnswer({
+        sessionId: session.sessionId,
+        questionIndex: questionNum,
+        answer,
+        skipped,
+      });
     } catch {
       increment('errors.5xx');
-      console.error('[questionnaire] Error storing response');
+      increment('answers.store_failed');
+      // No detail: the thrown error carries the gate's response body, which
+      // can quote the answer back at us.
+      console.error('[questionnaire] Answer storage failed; session not advanced');
+      // Hand the answer back rather than telling them to press Back and hope.
+      // A browser returning to a POSTed page may re-render it from cache with
+      // an empty textarea, so "submit it again" was advice that could not
+      // always be followed. The session is intact and NOT advanced, so
+      // resubmitting the same question is exactly the right thing.
+      return new Response(
+        `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">` +
+          `<meta name="viewport" content="width=device-width, initial-scale=1.0">` +
+          `<title>a formulation of truth</title><link rel="stylesheet" href="/css/main.css"></head>` +
+          `<body><main><section class="section gate-section"><div class="gate-content">` +
+          `<h2 class="gate-title">that could not be saved</h2>` +
+          `<p class="gate-description">The encryption service did not answer, so nothing was stored and ` +
+          `your place has not moved. Your answer is below. Copy it, then try the question again.</p>` +
+          `<div class="form-group"><textarea readonly rows="10">${escapeHtml(answer)}</textarea></div>` +
+          `<div class="form-actions"><a href="/questionnaire" class="cta cta-primary">Back to the question</a></div>` +
+          `</div></section></main></body></html>`,
+        { status: 503, headers: { 'Content-Type': 'text/html; charset=utf-8' } },
+      );
     }
 
     // Advance to next question
@@ -232,18 +259,17 @@ export const handler: Handlers<QuestionnaireData> = {
     }
 
     // Check if completed
-    if (nextIndex >= remainingQuestions.length) {
-      return new Response(null, {
-        status: 302,
-        headers: { Location: '/completion' },
-      });
+    if (nextIndex >= questionOrder.length) {
+      // Stamp the finish here. Previously the page just redirected and left
+      // completed_at unset, so a finished questionnaire was indistinguishable
+      // from an abandoned one until the same address happened to start again.
+      await completeSession(session.sessionId);
+      increment('questionnaire.completed');
+      return redirect('/completion');
     }
 
     // Redirect back to questionnaire (will show next question)
-    return new Response(null, {
-      status: 302,
-      headers: { Location: '/questionnaire' },
-    });
+    return redirect('/questionnaire');
   },
 };
 
@@ -414,6 +440,25 @@ export default function QuestionnairePage({ data }: PageProps<QuestionnaireData>
             transform: translateY(-2px);
             box-shadow: 0 4px 20px rgba(127, 212, 232, 0.28);
           }
+          .skip-row {
+            margin-top: 0.25rem;
+          }
+          .btn-quiet {
+            background: transparent;
+            border: none;
+            padding: 0.25rem;
+            color: #4a4a4a;
+            font-family: 'Georgia', serif;
+            font-size: 0.78rem;
+            letter-spacing: 0.04em;
+            text-transform: none;
+            text-decoration: underline;
+            text-underline-offset: 3px;
+            cursor: pointer;
+          }
+          .btn-quiet:hover {
+            color: #7a7a7a;
+          }
           .btn-secondary {
             background: transparent;
             border: 1px solid #333;
@@ -502,8 +547,23 @@ export default function QuestionnairePage({ data }: PageProps<QuestionnaireData>
             <h1 class='question-text'>{currentQuestion}</h1>
 
             <form method='POST' action='/questionnaire' class='answer-form'>
+              {
+                /*
+                autofocus so the cursor is already where the answer goes. Every
+                question used to begin with a click or a tab before a single
+                character could be typed, thirty-three times over.
+                One word is a complete answer, and the placeholder says so:
+                people stall on these questions believing a paragraph is owed.
+              */
+              }
               <textarea
+                id='answer'
                 name='answer'
+                rows={8}
+                maxLength={20000}
+                autofocus
+                spellcheck
+                placeholder='One word is an answer.'
                 aria-label='Your answer'
               >
               </textarea>
@@ -517,11 +577,41 @@ export default function QuestionnairePage({ data }: PageProps<QuestionnaireData>
                 <button type='submit' name='action' value='continue' class='btn-primary'>
                   Continue
                 </button>
-                <button type='submit' name='action' value='skip' class='btn-secondary'>
-                  Skip
+              </div>
+
+              {
+                /*
+                Skip stays a submit button -- a link cannot carry the `action`
+                field, and this page has to work with JavaScript off -- but it
+                no longer sits beside Continue as its equal. It was styled as a
+                peer, which made passing on a question exactly as easy as
+                answering one.
+              */
+              }
+              <div class='skip-row'>
+                <button type='submit' name='action' value='skip' class='btn-quiet' formNoValidate>
+                  leave this one unanswered
                 </button>
               </div>
             </form>
+
+            {
+              /*
+              Cmd/Ctrl+Enter to submit. A bare inline script rather than an
+              island: no manifest entry, no hydration, and with JavaScript off
+              the page behaves exactly as it did before. The same pattern is
+              already used on /login.
+            */
+            }
+            <script
+              // deno-lint-ignore react-no-danger
+              dangerouslySetInnerHTML={{
+                __html: `document.getElementById('answer').addEventListener('keydown',function(e){` +
+                  `if((e.metaKey||e.ctrlKey)&&e.key==='Enter'){` +
+                  `e.preventDefault();this.form.querySelector('.btn-primary').click();}});`,
+              }}
+            >
+            </script>
 
             <p class='voice-hint'>
               For voice input, use <a href='https://github.com/cjpais/Handy' target='_blank' rel='noopener'>Handy</a>

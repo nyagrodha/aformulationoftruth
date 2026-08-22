@@ -18,9 +18,11 @@ import { z } from 'zod';
 import { withConnection } from '../../lib/db.ts';
 import { createMagicLink } from '../../lib/auth.ts';
 import { hashEmail } from '../../lib/crypto.ts';
-import { createQuestionnaireSession, findActiveSession } from '../../lib/questionnaire-session.ts';
+import { findActiveSession, markLinkSent, mayResend, startOrResumeSession } from '../../lib/questionnaire-session.ts';
+import { jwtCookie } from '../../lib/session-auth.ts';
+import { verifyAddressDeliverable } from '../../lib/email-address.ts';
 import { createQuestionnaireJWT } from '../../lib/jwt.ts';
-import { increment } from '../../lib/metrics.ts';
+import { increment, trackFunnelQuestion } from '../../lib/metrics.ts';
 import { sendMagicLinkEmail } from '../../lib/email.ts';
 import { GATE_QUESTIONS, storeEncryptedAnswer } from '../../lib/gate_encrypt.ts';
 import { ageEncryptTo } from '../../lib/age-encrypt.ts';
@@ -98,7 +100,86 @@ export const handler: Handlers = {
 
     const { email, answer1, answer2 } = parsed.data;
 
+    // Zod confirms the address is well-formed; this asks whether anything is
+    // listening at the other end. It matters more than it used to: since the
+    // gate began admitting people straight into the questionnaire, a mistyped
+    // domain means the link that would bring them back goes nowhere and their
+    // place quietly lapses when the 24-hour token does.
+    //
+    // Deliverability only -- never who the provider is. Throwaway and
+    // privacy-focused addresses are welcome here and cock.li and maildrop.cc
+    // are recommended by name on the front page. See lib/email-address.ts.
+    const address = await verifyAddressDeliverable(email);
+    if (!address.ok) {
+      increment('errors.4xx');
+      return fail(
+        400,
+        address.reason === 'syntax'
+          ? 'That address does not look like an address.'
+          : 'That domain does not appear to accept mail. Check the spelling, or use another address.',
+        'email',
+      );
+    }
+
     try {
+      // Step 0: Who is this address, and does it already have a questionnaire?
+      //
+      // Hashed up here rather than halfway down, because the answer decides
+      // almost everything that follows. Anyone can type anyone's address into
+      // this form -- nothing has been proved at this point -- so a submission
+      // naming an address that ALREADY has an unfinished session is treated as
+      // a request to resend that session's link, and nothing else. It does not
+      // provision a key, does not write a gate row, does not overwrite the
+      // answers already stored, and above all does not set cookies. The link
+      // goes to the address; whoever asked for it gains nothing unless they can
+      // read that mailbox.
+      //
+      // A brand-new address has no one to harm, so it is let straight in.
+      const emailHash = await hashEmail(email);
+      const existing = await findActiveSession(emailHash);
+
+      if (existing) {
+        increment('funnel.gate.resend');
+
+        // Cooldown before rotating again. Each resend mints a new resume token
+        // and invalidates whatever one is in a browser, and the request is
+        // unproven -- anybody can type this address. Inside the window the
+        // honest answer is that a working link was already sent, because one
+        // was: it lasts 24 hours and can be opened as often as needed.
+        if (!await mayResend(emailHash)) {
+          increment('funnel.gate.resend_throttled');
+          if (!wantsJson) {
+            return new Response(null, { status: 303, headers: { Location: '/check-email' } });
+          }
+          return new Response(
+            JSON.stringify({ message: 'A link was sent recently and is still valid', resumed: true }),
+            { status: 200, headers: { 'Content-Type': 'application/json' } },
+          );
+        }
+
+        const { opaqueToken, sessionId } = await startOrResumeSession(emailHash);
+        const jwt = await createQuestionnaireJWT(emailHash, sessionId, 'link');
+        const baseUrl = Deno.env.get('BASE_URL') || 'http://localhost:8000';
+        const resendUrl = `${baseUrl}/auth/verify?token=${jwt}&resume=${opaqueToken}`;
+
+        const resend = await sendMagicLinkEmail(email, resendUrl);
+        if (!resend.success) {
+          console.error('[gate-submit] Resend delivery failed');
+          increment('errors.email');
+          return fail(500, 'Failed to send your link. Please try again.', 'send');
+        }
+        increment('auth.magiclink.sent');
+        await markLinkSent(sessionId);
+
+        if (!wantsJson) {
+          return new Response(null, { status: 303, headers: { Location: '/check-email' } });
+        }
+        return new Response(
+          JSON.stringify({ message: 'Link sent', resumed: true }),
+          { status: 200, headers: { 'Content-Type': 'application/json' } },
+        );
+      }
+
       // Step 1: Generate server-side gate token
       const gateToken = crypto.randomUUID();
 
@@ -174,6 +255,15 @@ export const handler: Handlers = {
           skipped: q1.length === 0,
           recipients,
         });
+
+        // Funnel steps, counted only once the answers are actually stored.
+        // trackFunnelQuestion() has existed since the funnel was written and
+        // had no caller anywhere, so every step after 'gate viewed' reported 0
+        // forever -- which read as total drop-off at the first question on a
+        // gate that was in fact converting.
+        trackFunnelQuestion(0);
+        trackFunnelQuestion(1);
+        increment('funnel.gate.email_entered');
       } catch {
         // Unwind what can be unwound. Best-effort: we are already refusing the
         // submission and must not fail differently because cleanup failed.
@@ -192,9 +282,6 @@ export const handler: Handlers = {
 
       // Step 3: Create magic link
       const { token: magicToken, expiresAt } = await createMagicLink(email);
-
-      // Step 4: Hash email immediately
-      const emailHash = await hashEmail(email);
 
       // Step 4b: If this entry began at a wearable's QR (/w/:token planted
       // the cookie), record the encounter -- pseudonymous, hash only.
@@ -225,56 +312,81 @@ export const handler: Handlers = {
         console.error('[gate-submit] Encounter recording failed (non-fatal):', encounterErr);
       }
 
-      // Step 5: Create or resume questionnaire session with gateToken
-      let sessionResult;
-      const existingSession = await findActiveSession(emailHash);
+      // Step 5: Create or resume the questionnaire session with gateToken.
+      // These used to be two branches that did the same thing in both arms.
+      const { opaqueToken, sessionId } = await startOrResumeSession(emailHash, gateToken);
 
-      if (existingSession) {
-        console.log('[gate-submit] User resuming questionnaire');
-        sessionResult = await createQuestionnaireSession(emailHash, gateToken);
-      } else {
-        sessionResult = await createQuestionnaireSession(emailHash, gateToken);
-      }
+      // Step 6: Create JWT.
+      //
+      // via: 'gate' -- this person typed an address and was believed. It is
+      // enough to answer questions with, and deliberately not enough to have a
+      // copy posted anywhere; /api/responses/deliver requires the 'link'
+      // claim, which only clicking the emailed link can produce.
+      const jwt = await createQuestionnaireJWT(emailHash, sessionId, 'gate');
 
-      const { opaqueToken, sessionId } = sessionResult;
-
-      // Step 6: Create JWT
-      const jwt = await createQuestionnaireJWT(emailHash, sessionId);
-
-      // Step 7: Build magic link URL
+      // Step 7: Build the link. It is now the way BACK -- to another device, or
+      // to this one after the cookies are gone -- rather than the way in.
       const baseUrl = Deno.env.get('BASE_URL') || 'http://localhost:8000';
       const magicLinkUrl = `${baseUrl}/auth/verify?token=${jwt}&resume=${opaqueToken}`;
 
-      // Step 8: Send magic link email
+      // Step 8: Send it. Failure here is no longer fatal.
+      //
+      // This used to return 500 and turn the respondent away, having already
+      // stored their two answers and provisioned a key -- so a momentary SMTP
+      // fault cost the site the person AND kept what they had written. Now they
+      // are already going to the first question; the mail is a convenience they
+      // can do without for this sitting, and they can ask for it again by
+      // entering the same address.
       const emailResult = await sendMagicLinkEmail(email, magicLinkUrl);
-
-      if (!emailResult.success) {
+      if (emailResult.success) {
+        increment('auth.magiclink.sent');
+        await markLinkSent(sessionId);
+        console.log('[gate-submit] Magic link sent, expires:', expiresAt.toISOString());
+      } else {
         // Status only — the error may carry the recipient address (CLAUDE.md).
-        console.error('[gate-submit] Email delivery failed');
+        console.error('[gate-submit] Email delivery failed; admitting anyway');
         increment('errors.email');
-        return fail(500, 'Failed to send magic link email. Please try again.', 'send');
       }
 
-      increment('auth.magiclink.sent');
       increment('questionnaire.started');
 
-      console.log('[gate-submit] Magic link sent, expires:', expiresAt.toISOString());
+      // Step 9: Put them in the questionnaire, here, now.
+      //
+      // The email round trip used to sit between the gate and the first
+      // question, and it is where this site lost nearly everyone: of the clicks
+      // that came back at all, roughly half landed on an error page, and the
+      // ones that never came back cannot be counted. Answering starts in the
+      // same tab, on the same gesture that submitted the gate.
+      // ONLY the 24-hour jwt cookie. Not the resume token -- see
+      // resumeCookie() in lib/session-auth.ts. Setting both here would let
+      // anyone who typed a stranger's address delete the jwt cookie, reload,
+      // and have the resume token mint a `via: 'link'` JWT for them, which is
+      // the exact claim that authorises the site to post a PDF to that
+      // address. The durable credential is delivered by email, through the
+      // mailbox, which is the only thing that proves anything.
+      //
+      // The cost is that a respondent who never opens the email has 24 hours
+      // rather than 30 days. That is the correct trade: the 30 days is a
+      // promise about an address, and until the link is opened nobody has
+      // shown the address is theirs.
+      const headers = new Headers();
+      headers.append('Set-Cookie', jwtCookie(jwt));
+      headers.set('Cache-Control', 'no-store, no-cache, must-revalidate');
 
-      // Native form path: 303-redirect to the no-JS success page.
-      // JSON clients get the structured response.
       if (!wantsJson) {
-        return new Response(null, {
-          status: 303,
-          headers: { Location: '/check-email' },
-        });
+        headers.set('Location', '/questionnaire');
+        return new Response(null, { status: 303, headers });
       }
 
+      headers.set('Content-Type', 'application/json');
       return new Response(
         JSON.stringify({
-          message: 'Magic link sent',
+          message: 'Questionnaire started',
+          next: '/questionnaire',
+          emailSent: emailResult.success,
           expiresAt: expiresAt.toISOString(),
         }),
-        { status: 200, headers: { 'Content-Type': 'application/json' } },
+        { status: 200, headers },
       );
     } catch {
       // Category only. The error object can carry the submitted answers or the

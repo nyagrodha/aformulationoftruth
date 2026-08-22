@@ -11,6 +11,7 @@
 
 import { hashEmail, randomToken, sha256 } from './crypto.ts';
 import { withConnection, withTransaction } from './db.ts';
+import { increment } from './metrics.ts';
 
 // Token validity period: 15 minutes
 const TOKEN_VALIDITY_MS = 15 * 60 * 1000;
@@ -55,9 +56,18 @@ export async function createMagicLink(email: string): Promise<MagicLinkResult> {
   const expiresAt = new Date(Date.now() + TOKEN_VALIDITY_MS);
 
   await withConnection(async (client) => {
-    // Invalidate any existing tokens for this email hash
+    // Retire any outstanding links for this address.
+    //
+    // DELETE, not `SET used_at = NOW()`. That update is what made used_at
+    // useless: it marked a link "used" when a newer one replaced it, so the
+    // column counted resubmissions rather than opens. 1,180 of the 2,768 rows
+    // on record were stamped that way -- almost exactly the 1,183 repeat
+    // sessions -- and the daily report has been publishing that number as
+    // "Magic links opened" ever since. Nothing reads these rows besides the
+    // report, so removing them loses nothing and leaves used_at free to mean
+    // the one thing worth knowing: somebody clicked.
     await client.queryObject(
-      `UPDATE fresh_magic_links SET used_at = NOW() WHERE email_hash = $1 AND used_at IS NULL`,
+      `DELETE FROM fresh_magic_links WHERE email_hash = $1 AND used_at IS NULL`,
       [emailHash],
     );
 
@@ -73,8 +83,10 @@ export async function createMagicLink(email: string): Promise<MagicLinkResult> {
   const cleanup = async (): Promise<void> => {
     try {
       await withConnection(async (client) => {
+        // Same reasoning as above: a link that was never sent was never
+        // opened, and marking it used would inflate the open count.
         await client.queryObject(
-          `UPDATE fresh_magic_links SET used_at = NOW() WHERE token_hash = $1`,
+          `DELETE FROM fresh_magic_links WHERE token_hash = $1`,
           [tokenHash],
         );
       });
@@ -89,35 +101,41 @@ export async function createMagicLink(email: string): Promise<MagicLinkResult> {
 }
 
 /**
- * Verify and consume a magic link token.
+ * Record that a link issued to this address was opened.
  *
- * Returns the email hash if valid (for session creation).
- * Token is marked as used atomically to prevent replay.
+ * This replaces verifyMagicLink(), which was removed on 2026-08-22. That
+ * function consumed a token atomically and was, on paper, what enforced the
+ * fifteen-minute expiry and the single use the email promises. It had no
+ * callers anywhere in the application and never had: /auth/verify authenticates
+ * on the JWT in the link, so the fifteen minutes was never enforced, the link
+ * was never single-use, and it in fact lasted the JWT's twenty-four hours.
+ * Both halves of the sentence in the email were false, and the people who
+ * believed them and resubmitted were the ones whose sessions got abandoned.
+ *
+ * Wiring it up instead was the obvious repair and the wrong one: consuming the
+ * token would break returning on a second device, which is a thing people
+ * legitimately do with a link that lasts a day.
+ *
+ * So the row's only remaining job is measurement. Keyed by address rather than
+ * by token because /auth/verify never sees the magic token -- the link carries
+ * a JWT and a resume token, not this one. Best effort: a failure here must
+ * never stop someone getting into their questionnaire.
+ *
+ * @param emailHash - SHA-256 hash of the address the link was sent to
  */
-export async function verifyMagicLink(token: string): Promise<string | null> {
-  const tokenHash = await sha256(token);
-
-  return await withTransaction(async (client) => {
-    // Find and consume token atomically
-    const { rows } = await client.queryObject<{
-      email_hash: string;
-      expires_at: Date;
-    }>(
-      `UPDATE fresh_magic_links
-       SET used_at = NOW()
-       WHERE token_hash = $1
-         AND used_at IS NULL
-         AND expires_at > NOW()
-       RETURNING email_hash, expires_at`,
-      [tokenHash],
-    );
-
-    if (rows.length === 0) {
-      return null;
-    }
-
-    return rows[0].email_hash;
-  });
+export async function markMagicLinkOpened(emailHash: string): Promise<void> {
+  try {
+    await withConnection(async (client) => {
+      await client.queryObject(
+        `UPDATE fresh_magic_links
+            SET used_at = NOW()
+          WHERE email_hash = $1 AND used_at IS NULL`,
+        [emailHash],
+      );
+    });
+  } catch {
+    increment('errors.db.query');
+  }
 }
 
 /**

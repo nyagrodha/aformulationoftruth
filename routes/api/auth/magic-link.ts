@@ -26,7 +26,7 @@ import { Handlers } from '$fresh/server.ts';
 import { z } from 'zod';
 import { createMagicLink } from '../../../lib/auth.ts';
 import { hashEmail } from '../../../lib/crypto.ts';
-import { createQuestionnaireSession, findActiveSession } from '../../../lib/questionnaire-session.ts';
+import { startOrResumeSession } from '../../../lib/questionnaire-session.ts';
 import { createQuestionnaireJWT } from '../../../lib/jwt.ts';
 import { increment } from '../../../lib/metrics.ts';
 import { sendMagicLinkEmail } from '../../../lib/email.ts';
@@ -71,18 +71,13 @@ export const handler: Handlers = {
 
       // Step 3: Create or resume questionnaire session
       // Check if user has an existing incomplete session
-      let sessionResult;
-      const existingSession = await findActiveSession(emailHash);
-
-      if (existingSession) {
-        // User is resuming - create new opaque token for existing session
-        // (Old token is not retrievable, so we create a new session)
-        console.log('[auth] User resuming questionnaire, creating new session');
-        sessionResult = await createQuestionnaireSession(emailHash, gateToken);
-      } else {
-        // New session
-        sessionResult = await createQuestionnaireSession(emailHash, gateToken);
-      }
+      // Resuming and starting are the same call now. They used to be these two
+      // branches, which tested findActiveSession and then did exactly the same
+      // thing in both arms -- the comment claimed a new session was created
+      // "because the old token is not retrievable", and that was true, but it
+      // also abandoned the old session and everything stored under it.
+      // startOrResumeSession keeps the row and rotates only the token.
+      const sessionResult = await startOrResumeSession(emailHash, gateToken);
 
       const { opaqueToken, sessionId } = sessionResult;
 

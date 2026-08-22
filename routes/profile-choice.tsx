@@ -9,39 +9,29 @@
 import { Handlers } from '$fresh/server.ts';
 import Nav from '../islands/Nav.tsx';
 import { NAV_NOSCRIPT_CSS, PAGE_NAV } from '../components/nav-shared.ts';
-import { verifyQuestionnaireJWT } from '../lib/jwt.ts';
-import { getSessionById } from '../lib/questionnaire-session.ts';
+import { authenticateRequest, isAuthenticated } from '../lib/session-auth.ts';
+import { interstitialResponse } from '../components/Interstitial.tsx';
 import { increment } from '../lib/metrics.ts';
-
-function getCookie(cookieHeader: string | null, name: string): string | null {
-  if (!cookieHeader) return null;
-  const match = cookieHeader.match(new RegExp(`(?:^|;\\s*)${name}=([^;]*)`));
-  return match ? decodeURIComponent(match[1]) : null;
-}
 
 /**
  * Gate the profile pages behind the same magic-link session the
  * questionnaire uses: a valid `jwt` cookie whose session_id resolves to
- * an active session. Any failure redirects to the gate at `/`, matching
- * routes/questionnaire.tsx. No PII is read or logged.
+ * a session -- finished or not. Any failure renders an interstitial saying so,
+ * matching routes/questionnaire.tsx. No PII is read or logged.
  */
 export const handler: Handlers = {
   async GET(req, ctx) {
     increment('requests.api');
 
-    const jwtToken = getCookie(req.headers.get('Cookie'), 'jwt');
-    if (!jwtToken) {
-      return new Response(null, { status: 302, headers: { Location: '/' } });
-    }
-
-    const jwtPayload = await verifyQuestionnaireJWT(jwtToken);
-    if (!jwtPayload) {
-      return new Response(null, { status: 302, headers: { Location: '/' } });
-    }
-
-    const session = await getSessionById(jwtPayload.session_id);
-    if (!session) {
-      return new Response(null, { status: 302, headers: { Location: '/' } });
+    // getSessionRecord, not getSessionById: this page is reached FROM
+    // /completion, so by definition the session has finished. Asking for an
+    // unfinished one -- which is what the old code did, via a reader that
+    // filters on completed_at -- meant the "Create a profile" button on the
+    // completion page redirected everyone who had genuinely completed the
+    // questionnaire straight back to the front of the site.
+    const auth = await authenticateRequest(req);
+    if (!isAuthenticated(auth)) {
+      return interstitialResponse(auth.failure);
     }
 
     return ctx.render();
