@@ -1,4 +1,4 @@
-import { Head } from "$fresh/runtime.ts";
+import { Head } from '$fresh/runtime.ts';
 
 export default function LottoPage() {
   return (
@@ -25,55 +25,53 @@ export default function LottoPage() {
         </style>
       </Head>
       <main>
-        <a class="pill" href="/">← home</a>
-        <p class="eyebrow">publicly auditable · private entries</p>
+        <a class='pill' href='/'>← home</a>
+        <p class='eyebrow'>publicly auditable · private entries</p>
         <h1>zk lotto</h1>
         <p>
-          Commit locally, reveal only when you choose, and verify inclusion
-          against a Merkle anchor. The Deno endpoint accepts 32-byte commitment
-          hashes; draw finality is tied to a drand round.
+          Commit locally, reveal only when you choose, and verify inclusion against a Merkle anchor. The Deno endpoint
+          accepts 32-byte commitment hashes; draw finality is tied to a drand round.
         </p>
-        <div class="grid">
+        <div class='grid'>
           <section>
             <h2>1 · make commitment</h2>
-            <label for="secret">secret phrase</label>
-            <input id="secret" placeholder="keep this private" />
-            <label for="salt">salt</label>
-            <input id="salt" placeholder="random salt" />
-            <button id="commit" type="button">hash commitment</button>
+            <label for='secret'>secret phrase</label>
+            <input id='secret' placeholder='keep this private' />
+            <label for='salt'>salt</label>
+            <input id='salt' placeholder='random salt' />
+            <button id='commit' type='button'>hash commitment</button>
             <label>commitment</label>
-            <output id="commitment"></output>
-            <button id="submit" type="button">submit commitment</button>
+            <output id='commitment'></output>
+            <button id='submit' type='button'>submit commitment</button>
             <label>receipt</label>
-            <output id="receipt"></output>
+            <output id='receipt'></output>
           </section>
           <section>
             <h2>2 · verify proof</h2>
-            <label for="verifyCommitment">commitment</label>
-            <input id="verifyCommitment" placeholder="64 hex characters" />
-            <label for="proof">proof hashes, one per line</label>
-            <textarea id="proof"></textarea>
-            <label for="leafIndex">leaf index</label>
-            <input id="leafIndex" type="number" min="0" value="0" />
-            <label for="root">merkle root</label>
-            <input id="root" placeholder="64 hex characters" />
-            <button id="verify" type="button">verify inclusion</button>
+            <label for='verifyCommitment'>commitment</label>
+            <input id='verifyCommitment' placeholder='64 hex characters' />
+            <label for='proof'>proof hashes, one per line</label>
+            <textarea id='proof'></textarea>
+            <label for='leafIndex'>leaf index</label>
+            <input id='leafIndex' type='number' min='0' value='0' />
+            <label for='root'>merkle root</label>
+            <input id='root' placeholder='64 hex characters' />
+            <button id='verify' type='button'>verify inclusion</button>
             <label>verification</label>
-            <output id="verification"></output>
+            <output id='verification'></output>
           </section>
           <section>
             <h2>3 · audit recipe</h2>
             <pre>{`anchor_hash = sha256(merkle_root + ':' + entry_count + ':' + drand_round)
 winner_index = int(drand_randomness, 16) % entry_count`}</pre>
             <p>
-              Operator close is served by{" "}
-              <code>/api/lotto/close</code>; membership is checked at{" "}
+              Operator close is served by <code>/api/lotto/close</code>; membership is checked at{' '}
               <code>/api/lotto/verify</code>.
             </p>
           </section>
         </div>
       </main>
-      <script src="/js/lotto.js"></script>
+      <script src='/js/lotto.js'></script>
     </>
   );
 }

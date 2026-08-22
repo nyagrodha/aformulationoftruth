@@ -44,9 +44,13 @@ ALTER TABLE fresh_questionnaire_sessions
   ADD COLUMN IF NOT EXISTS link_sent_at TIMESTAMPTZ;
 
 -- Finding the unverified sessions eligible for cleanup is the one query that
--- runs over the whole table on a schedule.
+-- runs over the whole table on a schedule. Keyed on updated_at, not created_at,
+-- because that is what the predicate ranges over: cleanupUnverifiedSessions
+-- measures from the last visit rather than from creation, so that someone still
+-- answering is not swept up. An index on created_at would satisfy the partial
+-- WHERE and then leave the planner to test updated_at row by row.
 CREATE INDEX IF NOT EXISTS idx_qsessions_unverified
-  ON fresh_questionnaire_sessions (created_at)
+  ON fresh_questionnaire_sessions (updated_at)
   WHERE verified_at IS NULL;
 
 COMMENT ON COLUMN fresh_questionnaire_sessions.verified_at IS

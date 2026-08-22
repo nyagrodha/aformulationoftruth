@@ -119,6 +119,19 @@ export async function startOrResumeSession(
   let reused = false;
 
   await withTransaction(async (client) => {
+    // Serialize on the address for the life of this transaction.
+    //
+    // The lookup below takes no lock and, for a first-time address, looks for a
+    // row that does not exist yet -- so under READ COMMITTED two submissions
+    // arriving together both read zero rows and both INSERT. Neither collides:
+    // each uses its own token hash as the primary key. The address ends up with
+    // two live sessions, one of which is invisible to findActiveSession, and
+    // the "one active session per email_hash" invariant this whole change rests
+    // on is quietly false. An advisory lock is enough and needs no schema:
+    // hashtext is deterministic, and the lock is released when the transaction
+    // ends however it ends.
+    await client.queryObject('SELECT pg_advisory_xact_lock(hashtext($1))', [emailHash]);
+
     // An address has at most one unfinished session. Ordered because "the
     // latest" has to be deterministic; historically several rows could pile up
     // per address and only one of them is the live one.
@@ -371,19 +384,7 @@ export async function findActiveSession(
       [emailHash],
     );
 
-    if (rows.length === 0) return null;
-
-    const row = rows[0];
-    return {
-      sessionId: row.session_id,
-      emailHash: row.email_hash,
-      questionOrder: row.question_order,
-      answeredQuestions: row.answered_questions || [],
-      currentIndex: row.current_index || 0,
-      createdAt: new Date(row.created_at),
-      updatedAt: new Date(row.updated_at),
-      completedAt: row.completed_at ? new Date(row.completed_at) : undefined,
-    };
+    return rows.length === 0 ? null : rowToSession(rows[0]);
   });
 }
 
@@ -575,21 +576,40 @@ export async function getNextQuestion(
  * @returns Number of sessions deleted
  */
 export async function cleanupExpiredSessions(): Promise<number> {
-  return await withConnection(async (client) => {
-    const { rows } = await client.queryObject<{ count: number }>(
+  return await withTransaction(async (client) => {
+    const { rows } = await client.queryObject<{ session_id: string }>(
       // updated_at, NOT created_at. The questionnaire page promises thirty
       // days from a respondent's LAST VISIT, and the key box expires session
       // identities on the same basis (romania/keystore.ts shredExpired).
       // Measuring from creation would delete the session of someone still
       // working on it, making that promise false the moment this is scheduled.
-      `WITH deleted AS (
-         DELETE FROM fresh_questionnaire_sessions
-         WHERE updated_at < NOW() - INTERVAL '30 days'
-         RETURNING 1
-       ) SELECT COUNT(*) as count FROM deleted`,
+      `SELECT session_id FROM fresh_questionnaire_sessions
+        WHERE updated_at < NOW() - INTERVAL '30 days'`,
     );
 
-    return Number(rows[0]?.count ?? 0);
+    if (rows.length === 0) return 0;
+
+    // Unlink before deleting, for the same reason as cleanupUnverifiedSessions:
+    // fresh_gate_responses and fresh_responses both reference this table with
+    // NO ACTION, so a session with a gate row -- which is every session created
+    // through the gate -- cannot be deleted while the reference stands. This
+    // function has had that fault since it was written; it has simply never
+    // been scheduled, so the violation was never raised.
+    const ids = rows.map((r) => r.session_id);
+    await client.queryObject(
+      `UPDATE fresh_gate_responses SET linked_session_id = NULL WHERE linked_session_id = ANY($1::text[])`,
+      [ids],
+    );
+    await client.queryObject(
+      `DELETE FROM fresh_responses WHERE session_id = ANY($1::text[])`,
+      [ids],
+    );
+    await client.queryObject(
+      `DELETE FROM fresh_questionnaire_sessions WHERE session_id = ANY($1::text[])`,
+      [ids],
+    );
+
+    return ids.length;
   });
 }
 
@@ -617,18 +637,40 @@ const UNVERIFIED_SESSION_TTL_DAYS = 7;
  * @returns How many were discarded
  */
 export async function cleanupUnverifiedSessions(): Promise<number> {
-  return await withConnection(async (client) => {
-    const { rows } = await client.queryObject<{ count: number }>(
-      `WITH deleted AS (
-         DELETE FROM fresh_questionnaire_sessions
-         WHERE verified_at IS NULL
-           AND updated_at < NOW() - ($1::int * INTERVAL '1 day')
-         RETURNING 1
-       ) SELECT COUNT(*) as count FROM deleted`,
+  return await withTransaction(async (client) => {
+    // Unlink first, or the DELETE cannot run at all.
+    //
+    // fresh_gate_responses.linked_session_id and fresh_responses.session_id both
+    // reference this table with NO ACTION, so deleting a session that any gate
+    // row points at raises a foreign-key violation -- and every session created
+    // through the gate has exactly such a row. Setting the reference to NULL
+    // keeps the gate row, which is deliberate: it holds session_pubkey and
+    // encrypted_email, and the ciphertext it corresponds to lives in the Rust
+    // gate keyed by gate_token, not by session id. Removing the session
+    // withdraws the claim on the address without destroying anything encrypted.
+    const doomed = await client.queryObject<{ session_id: string }>(
+      `SELECT session_id FROM fresh_questionnaire_sessions
+        WHERE verified_at IS NULL
+          AND updated_at < NOW() - ($1::int * INTERVAL '1 day')`,
       [UNVERIFIED_SESSION_TTL_DAYS],
     );
+    if (doomed.rows.length === 0) return 0;
 
-    return Number(rows[0]?.count ?? 0);
+    const ids = doomed.rows.map((r) => r.session_id);
+    await client.queryObject(
+      `UPDATE fresh_gate_responses SET linked_session_id = NULL WHERE linked_session_id = ANY($1::text[])`,
+      [ids],
+    );
+    await client.queryObject(
+      `DELETE FROM fresh_responses WHERE session_id = ANY($1::text[])`,
+      [ids],
+    );
+    await client.queryObject(
+      `DELETE FROM fresh_questionnaire_sessions WHERE session_id = ANY($1::text[])`,
+      [ids],
+    );
+
+    return ids.length;
   });
 }
 

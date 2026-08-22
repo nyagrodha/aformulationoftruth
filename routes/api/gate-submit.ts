@@ -384,7 +384,13 @@ export const handler: Handlers = {
           message: 'Questionnaire started',
           next: '/questionnaire',
           emailSent: emailResult.success,
-          expiresAt: expiresAt.toISOString(),
+          // Deliberately NOT expiresAt from createMagicLink. That is the
+          // fresh_magic_links row's 15-minute lifetime, and nothing
+          // authenticates against that row -- the link carries a JWT good for
+          // 24 hours. Publishing the 15 minutes here would reintroduce, in
+          // machine-readable form, the same false claim this change removes
+          // from the email body.
+          sessionExpiresInHours: 24,
         }),
         { status: 200, headers },
       );

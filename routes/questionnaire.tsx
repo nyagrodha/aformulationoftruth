@@ -146,8 +146,20 @@ export const handler: Handlers<QuestionnaireData> = {
     }
     const { session, refreshedJwt } = auth;
 
+    // Built before the early exits, not after: a request authenticated by the
+    // resume token mints a JWT, and EVERY branch that leaves this handler has
+    // to carry it. Otherwise someone resuming pays a fresh database lookup on
+    // every question forever, having been handed a token nothing ever stored.
+    const redirect = (location: string): Response => {
+      const headers = new Headers({ Location: location });
+      if (refreshedJwt) {
+        headers.append('Set-Cookie', jwtCookie(refreshedJwt));
+      }
+      return new Response(null, { status: 302, headers });
+    };
+
     if (session.completedAt) {
-      return new Response(null, { status: 302, headers: { Location: '/completion' } });
+      return redirect('/completion');
     }
 
     // Whole, for the reason given in the GET handler above.
@@ -165,7 +177,7 @@ export const handler: Handlers<QuestionnaireData> = {
     // was encrypted and stored under it.
     if (currentIndex >= questionOrder.length) {
       await completeSession(session.sessionId);
-      return new Response(null, { status: 302, headers: { Location: '/completion' } });
+      return redirect('/completion');
     }
 
     const questionNum = questionOrder[currentIndex];
@@ -176,24 +188,10 @@ export const handler: Handlers<QuestionnaireData> = {
     if (action === 'back') {
       const prevIndex = Math.max(0, currentIndex - 1);
       await updateSessionIndex(session.sessionId, prevIndex);
-      const headers = new Headers({ Location: '/questionnaire' });
-      if (refreshedJwt) headers.append('Set-Cookie', jwtCookie(refreshedJwt));
-      return new Response(null, { status: 302, headers });
+      return redirect('/questionnaire');
     }
 
     const skipped = action === 'skip' || answer.trim() === '';
-
-    // Every exit from here is a redirect, and any of them may need to carry a
-    // JWT minted from the resume token during this request. Built once so no
-    // branch can forget it and quietly send the respondent round the loop
-    // re-authenticating on every answer.
-    const redirect = (location: string): Response => {
-      const headers = new Headers({ Location: location });
-      if (refreshedJwt) {
-        headers.append('Set-Cookie', jwtCookie(refreshedJwt));
-      }
-      return new Response(null, { status: 302, headers });
-    };
 
     // How long this answer took, bucketed. updatedAt is the last time this
     // session was touched, so for the first answer after a gap it measures the

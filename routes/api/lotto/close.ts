@@ -1,4 +1,4 @@
-import { Handlers } from "$fresh/server.ts";
+import { Handlers } from '$fresh/server.ts';
 import {
   buildMerkleRoot,
   computeAnchorHash,
@@ -7,16 +7,16 @@ import {
   parseInteger,
   readJsonObject,
   requireOperator,
-} from "../../../lib/lotto.ts";
+} from '../../../lib/lotto.ts';
 
 function normalizeCommitmentList(value: unknown): string[] {
-  if (typeof value === "string") {
+  if (typeof value === 'string') {
     return value.split(/\n+/).map((item) => item.trim()).filter(Boolean).map((
       item,
-    ) => normalizeHashHex(item, "commitment"));
+    ) => normalizeHashHex(item, 'commitment'));
   }
   if (Array.isArray(value)) {
-    return value.map((item) => normalizeHashHex(item, "commitment"));
+    return value.map((item) => normalizeHashHex(item, 'commitment'));
   }
   return [];
 }
@@ -30,12 +30,12 @@ export const handler: Handlers = {
       const merkleRoot = await buildMerkleRoot(commitments);
       const drandRound = parseInteger(
         payload.drand_round ??
-          Deno.env.get("LOTTO_DEFAULT_DRAND_ROUND_TARGET") ?? 0,
-        "drand_round",
+          Deno.env.get('LOTTO_DEFAULT_DRAND_ROUND_TARGET') ?? 0,
+        'drand_round',
       );
       const claimWindowDays = parseInteger(
-        Deno.env.get("LOTTO_CLAIM_WINDOW_DAYS") ?? 7,
-        "LOTTO_CLAIM_WINDOW_DAYS",
+        Deno.env.get('LOTTO_CLAIM_WINDOW_DAYS') ?? 7,
+        'LOTTO_CLAIM_WINDOW_DAYS',
       );
       const claimDeadline = new Date(Date.now() + claimWindowDays * 86_400_000)
         .toISOString();
@@ -54,7 +54,7 @@ export const handler: Handlers = {
       });
     } catch (error) {
       if (error instanceof Response) return error;
-      return json({ error: "Invalid JSON payload" }, { status: 400 });
+      return json({ error: 'Invalid JSON payload' }, { status: 400 });
     }
   },
 };

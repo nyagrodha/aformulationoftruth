@@ -10,11 +10,7 @@
  */
 
 import { assertEquals } from 'https://deno.land/std@0.208.0/assert/mod.ts';
-import {
-  generateQuestionOrderString,
-  isValidQuestionOrder,
-  presentationOrder,
-} from '../lib/questionnaire.ts';
+import { generateQuestionOrderString, isValidQuestionOrder, presentationOrder } from '../lib/questionnaire.ts';
 
 Deno.test('presentationOrder - a gate-answered order is presented whole', () => {
   const stored = generateQuestionOrderString(true);

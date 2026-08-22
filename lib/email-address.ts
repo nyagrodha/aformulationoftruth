@@ -76,7 +76,20 @@ export type AddressVerdict =
 export function domainOf(email: string): string | null {
   const at = email.lastIndexOf('@');
   if (at <= 0 || at === email.length - 1) return null;
-  return email.slice(at + 1).trim().toLowerCase().replace(/\.$/, '');
+  const raw = email.slice(at + 1).trim().replace(/\.$/, '');
+  if (raw === '') return null;
+
+  // Through the URL parser, which applies IDNA and hands back punycode. Without
+  // it a domain written in its own script -- and the whole point of an
+  // internationalised domain is that people write them that way -- fails the
+  // ASCII test in looksAddressable and is rejected as malformed, which is both
+  // wrong and the kind of wrong nobody reports.
+  try {
+    const host = new URL(`http://${raw}`).hostname;
+    return host === '' ? null : host.toLowerCase();
+  } catch {
+    return null;
+  }
 }
 
 /**
@@ -105,6 +118,31 @@ function looksAddressable(domain: string): boolean {
   );
 }
 
+/**
+ * How long any one DNS question may take.
+ *
+ * Unauthenticated callers choose the domain, and a nameserver that accepts
+ * packets and never answers produces neither a record nor an error -- so the
+ * fail-open design, which depends on the resolver replying one way or the
+ * other, would instead hold the request open for as long as the system
+ * resolver keeps retrying. A deadline turns that silence into the same
+ * fail-open path as any other resolver fault.
+ */
+const DNS_TIMEOUT_MS = 3000;
+
+/** A DNS query that cannot outlast its deadline. */
+async function resolveWithin<T>(query: Promise<T>): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const deadline = new Promise<never>((_, reject) => {
+    timer = setTimeout(() => reject(new Error('dns timeout')), DNS_TIMEOUT_MS);
+  });
+  try {
+    return await Promise.race([query, deadline]);
+  } finally {
+    if (timer !== undefined) clearTimeout(timer);
+  }
+}
+
 function isCockliMx(exchange: string): boolean {
   const host = exchange.toLowerCase().replace(/\.$/, '');
   return host === COCKLI_MX_SUFFIX || host.endsWith(`.${COCKLI_MX_SUFFIX}`);
@@ -129,7 +167,7 @@ export async function verifyAddressDeliverable(email: string): Promise<AddressVe
   }
 
   try {
-    const mx = await Deno.resolveDns(domain, 'MX');
+    const mx = await resolveWithin(Deno.resolveDns(domain, 'MX'));
     if (mx.length > 0) {
       // Reported distinctly so the guarantee is observable rather than
       // asserted: every live cock.li domain routes through mx1/mx2.cock.li,
@@ -155,7 +193,7 @@ export async function verifyAddressDeliverable(email: string): Promise<AddressVe
   // missing MX alone is not an answer.
   for (const kind of ['A', 'AAAA'] as const) {
     try {
-      const records = await Deno.resolveDns(domain, kind);
+      const records = await resolveWithin(Deno.resolveDns(domain, kind));
       if (records.length > 0) {
         increment('address.accepted.implicit_a');
         return { ok: true, checked: 'implicit-a' };
