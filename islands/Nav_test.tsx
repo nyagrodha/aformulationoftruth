@@ -115,5 +115,5 @@ Deno.test('PAGE_NAV points at nothing that does not exist', () => {
   assertEquals(hrefs.includes('/lotto.html'), false);
   /* Bare fragments resolve only on the landing document. */
   assertEquals(hrefs.some((h) => h.startsWith('#')), false);
-  assertEquals(hrefs, ['/#begin', '/about', '/contact.html', '/shop']);
+  assertEquals(hrefs, ['/#begin', '/about', '/messenger', '/shop']);
 });
