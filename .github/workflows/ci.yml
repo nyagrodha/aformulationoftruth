@@ -1,51 +1,4 @@
 name: CI
-##claude/repository-streamlining-myjlam
-
-on:
-  push:
-    branches: [main, dev, prod]
-  pull_request:
-    branches: [main, dev, prod]
-
-jobs:
-  deno:
-    runs-on: ubuntu-latest
-
-    services:
-      postgres:
-        image: postgres:15
-        env:
-          POSTGRES_USER: postgres
-          # Ephemeral localhost-only CI database: trust auth, no password to
-          # hardcode (avoids committing a credential-looking literal).
-          POSTGRES_HOST_AUTH_METHOD: trust
-          POSTGRES_DB: test_db
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
-    env:
-      # Local Postgres service (TLS auto-disabled for localhost in lib/db.ts)
-      DATABASE_URL: postgres://postgres@localhost:5432/test_db
-      PORT: '8393'
-      TEST_BASE_URL: http://localhost:8393
-      BASE_URL: http://localhost:8393
-      DENO_ENV: test
-      # Non-secret CI-only dummy values (no real credentials)
-      JWT_SECRET: ci-only-jwt-secret-not-for-production-0
-      RESUME_TOKEN_SECRET: ci-only-resume-secret-not-for-production
-      SESSION_SECRET: ci-only-session-secret-not-for-production
-      ENCRYPTION_KEY: ci-only-encryption-key-32bytes-padding0
-      GATE_URL: http://localhost:8787
-      GATE_API_KEY: ci-only-gate-key
-
-    steps:
-      - name: Checkout code
-=======
 
 # The site is a Deno Fresh application. The previous pipeline ran `npm ci`
 # against an Express server (`backend/`) that has since been deleted, watched
@@ -67,7 +20,6 @@ jobs:
 
     steps:
       - name: Checkout
- main
         uses: actions/checkout@v4
 
       - name: Setup Deno
