@@ -1,0 +1,59 @@
+.callback-inline-001 {
+  font-family: 'Noto Sans Tamil', sans-serif; font-size: clamp(2rem, 5vw, 3rem); font-weight: 700; text-align: center; margin-bottom: 0.5rem; color: var(--accent-1); text-shadow: 0 0 10px var(--glow-1);
+}
+
+.callback-inline-002 {
+  font-family: 'Orbitron', monospace; font-size: clamp(8rem, 15vw, 12rem); font-weight: 700; text-align: center; margin: 2rem auto; color: var(--accent-1); text-shadow: 0 0 20px var(--glow-1), 0 0 40px var(--glow-1); line-height: 1; opacity: 0.9;
+}
+
+.callback-inline-003 {
+  max-width: 800px; margin: 2rem auto; padding: 0 1rem;
+}
+
+.callback-inline-004 {
+  margin-bottom: 1rem;
+}
+
+.callback-inline-005 {
+  margin-top: 1rem;
+}
+
+.callback-inline-006 {
+  width: 100%; padding: 0.75rem; border: 1px solid var(--accent-1); background: var(--bg-color); color: var(--text-color); border-radius: 4px; margin-bottom: 0.75rem; font-family: 'Orbitron', monospace;
+}
+
+.callback-inline-007 {
+  width: 100%; padding: 0.75rem; background: transparent; color: var(--accent-1); border: 2px solid var(--accent-1); border-radius: 4px; font-family: 'Orbitron', monospace; font-weight: 600; cursor: pointer; transition: all 0.4s ease;
+}
+
+.callback-inline-008 {
+  margin-top: 1rem; padding: 0.75rem; border-radius: 4px; display: none;
+}
+
+.callback-inline-009 {
+  margin-bottom: 1rem;
+}
+
+.callback-inline-010 {
+  font-size: 0.85rem; opacity: 0.8; margin-bottom: 1rem;
+}
+
+.callback-inline-011 {
+  margin-top: 1rem;
+}
+
+.callback-inline-012 {
+  width: 100%; padding: 0.75rem; border: 1px solid var(--accent-1); background: var(--bg-color); color: var(--text-color); border-radius: 4px; margin-bottom: 0.75rem; font-family: 'Orbitron', monospace;
+}
+
+.callback-inline-013 {
+  width: 100%; padding: 0.75rem; background: transparent; color: var(--accent-2); border: 2px solid var(--accent-2); border-radius: 4px; font-family: 'Orbitron', monospace; font-weight: 600; cursor: pointer; transition: all 0.4s ease;
+}
+
+.callback-inline-014 {
+  margin-top: 1rem; padding: 0.75rem; border-radius: 4px; display: none;
+}
+
+.callback-inline-015 {
+  margin-top: 2rem; font-style: italic; opacity: 0.9; max-width: 700px; padding: 0 1rem;
+}

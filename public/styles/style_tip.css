@@ -1,0 +1,213 @@
+.tip-option {
+            background: var(--bg-secondary);
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            padding: 2rem;
+            margin: 1.5rem 0;
+            transition: all 0.3s ease;
+        }
+
+        .tip-option:hover {
+            border-color: var(--accent-1);
+            box-shadow: 0 0 20px var(--glow-1);
+            transform: translateY(-2px);
+        }
+
+        .tip-option h3 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.3rem;
+            color: var(--accent-1);
+            margin-bottom: 1rem;
+            text-shadow: 0 0 10px var(--glow-1);
+        }
+
+        .tip-option .crypto-address {
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            background: var(--bg-primary);
+            padding: 1rem;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            word-break: break-all;
+            color: var(--accent-3);
+            margin: 1rem 0;
+        }
+
+        .copy-button {
+            padding: 0.5rem 1rem;
+            font-size: 0.9rem;
+            font-family: 'Orbitron', sans-serif;
+            border: 2px solid var(--accent-2);
+            border-radius: 6px;
+            background: transparent;
+            color: var(--accent-2);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .copy-button:hover {
+            background: var(--accent-2);
+            color: var(--bg-primary);
+            box-shadow: 0 0 15px var(--glow-2);
+        }
+
+        .copy-button:disabled {
+            opacity: 0.55;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .tip-note {
+            background: rgba(255, 215, 0, 0.1);
+            border-left: 4px solid #d4af37;
+            padding: 1rem;
+            margin: 1.5rem 0;
+            border-radius: 4px;
+            font-style: italic;
+        }
+
+        .thank-you-box {
+            text-align: center;
+            padding: 2rem;
+            background: linear-gradient(135deg, rgba(0, 255, 255, 0.1), rgba(255, 0, 255, 0.1));
+            border: 2px solid var(--accent-1);
+            border-radius: 16px;
+            margin: 2rem 0;
+            box-shadow: 0 0 30px var(--glow-1);
+        }
+
+        .thank-you-box h3 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.5rem;
+            color: var(--accent-1);
+            margin-bottom: 1rem;
+            text-shadow: 0 0 15px var(--glow-1);
+        }
+
+        .qr-code {
+            width: 200px;
+            height: 200px;
+            margin: 1rem auto;
+            background: var(--bg-primary);
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            display: block;
+            padding: 0.5rem;
+        }
+
+        .qr-code.hidden {
+            display: none;
+        }
+
+        .qr-placeholder {
+            width: 200px;
+            height: 200px;
+            margin: 1rem auto;
+            background: var(--bg-primary);
+            border: 2px dashed var(--border-color);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            text-align: center;
+            padding: 1rem;
+        }
+
+        .hero-image {
+            width: 100%;
+            max-width: 600px;
+            height: auto;
+            margin: 2rem auto;
+            display: block;
+            border-radius: 12px;
+            border: 2px solid var(--border-color);
+            box-shadow: 0 0 20px var(--glow-1);
+        }
+
+        .hero-image.hidden {
+            display: none;
+        }
+
+        .hero-placeholder {
+            width: 100%;
+            max-width: 600px;
+            height: 300px;
+            margin: 2rem auto;
+            background: linear-gradient(135deg, rgba(0, 255, 255, 0.05), rgba(255, 0, 255, 0.05));
+            border: 2px dashed var(--border-color);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+            font-size: 1rem;
+            text-align: center;
+            padding: 2rem;
+        }
+
+.tip-inline-001 {
+  color: var(--text-secondary);
+}
+
+.tip-inline-002 {
+  opacity: 0.7;
+}
+
+.tip-inline-003 {
+  font-style: italic; color: var(--text-secondary); margin: 1.5rem 0;
+}
+
+.tip-inline-004 {
+  background: white; padding: 1rem;
+}
+
+.tip-inline-005 {
+  color: var(--text-secondary); font-style: italic; margin: 1rem 0;
+}
+
+.tip-inline-006 {
+  color: var(--text-secondary); font-style: italic; margin: 1rem 0;
+}
+
+.tip-inline-007 {
+  display: inline-block; background: linear-gradient(135deg, #f4b728, #d4a017); color: #0a0a0a; padding: 1rem 2rem; border-radius: 8px; text-decoration: none; font-family: 'Orbitron', sans-serif; font-size: 0.9rem; font-weight: 600; margin-top: 0.5rem; transition: all 0.3s ease; box-shadow: 0 0 15px rgba(244, 183, 40, 0.3);
+}
+
+.tip-inline-008 {
+  font-size: 1.1rem; color: var(--text-primary); margin-top: 1rem;
+}
+
+.tip-inline-009 {
+  margin-top: 2rem; font-style: italic; opacity: 0.9; text-align: center;
+}
+
+.tip-inline-010 {
+  margin-top: 1rem; font-style: italic; font-size: 0.85rem; text-align: center; color: #f5f5f0; text-shadow: 0 0 8px rgba(255,255,255,0.4), 0 0 12px rgba(255,255,255,0.2); opacity: 0.85;
+}
+
+.tip-inline-011 {
+  text-align: center;
+}
+
+.tip-inline-012 {
+  margin-left: 1rem;
+}
+
+.tip-inline-013 {
+  margin-left: 1rem;
+}
+
+.tip-inline-paypal-link {
+  display: inline-block;
+  background: #0070ba;
+  color: white;
+  padding: 1rem 2.5rem;
+  border-radius: 8px;
+  text-decoration: none;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 1rem;
+  margin-top: 1rem;
+  transition: all 0.3s ease;
+}

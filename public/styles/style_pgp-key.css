@@ -1,0 +1,47 @@
+body {
+            background: #0a0a0a;
+            color: #c8c8c8;
+            font-family: 'Courier New', Courier, monospace;
+            margin: 0;
+            padding: 2rem;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 72ch;
+            margin: 0 auto;
+        }
+        h1 {
+            font-size: 1rem;
+            color: #4de8ff;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            margin-bottom: 0.5rem;
+        }
+        .meta {
+            font-size: 0.8rem;
+            color: #666;
+            margin-bottom: 2rem;
+        }
+        .meta a {
+            color: #4de8ff;
+            text-decoration: none;
+        }
+        pre {
+            background: #111;
+            border: 1px solid #222;
+            padding: 1.5rem;
+            overflow-x: auto;
+            font-size: 0.85rem;
+            line-height: 1.5;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+        .back {
+            display: inline-block;
+            margin-top: 2rem;
+            color: #4de8ff;
+            text-decoration: none;
+            font-size: 0.8rem;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }

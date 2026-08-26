@@ -609,73 +609,111 @@ def averages(hist: list, keys: list) -> Dict[str, Optional[float]]:
     return out
 
 
+def _traffic_window_lines(a: Dict[str, Any]) -> List[str]:
+    """Traffic-bearing closed windows, without treating silence as downtime.
+
+    fresh_audience_windows has no row for a window in which no request arrived,
+    so this is a traffic pattern, not a recorder-health or coverage signal.
+    """
+    closed = a.get('closed_windows', 0)
+    if closed == 0:
+        return line(
+            "Traffic-bearing windows", "none closed yet",
+            "Today's first window closes at 04:00 UTC. The figures above come "
+            "from the window still open.",
+        )
+    return line(
+        "Traffic-bearing windows", f"{a['traffic_windows']} / {closed}",
+        "Closed 4-hour windows containing at least one request, out of the "
+        "windows closed so far. Quiet windows leave no row, so this does not "
+        "measure recorder health or coverage.",
+    )
+
+
 def _audience_lines(a: Dict[str, Any]) -> List[str]:
-    """The audience section, or a fault. A silent 0 is how the old counter hid."""
+    """The audience section, or a database-read fault."""
     if not a.get('available'):
         return ["  COUNTER UNREACHABLE - could not read fresh_audience_windows."]
-    if a.get('windows', 0) == 0:
-        return [
-            "  RECORDER NOT RUNNING - no windows recorded at all.",
-            *_wrap(
-                "The app writes one row per 4-hour UTC window. None today means "
-                "the counter is not running, not that nobody came -- Caddy's "
-                "request figures below will show whether traffic arrived."
-            ),
-        ]
 
     out = line(
         "People (upper bound)", a['visitors'],
-        "Distinct visitors within each 4-hour window, summed over the day. "
-        "Someone who returns in a later window, or after a restart, is counted "
-        "again, so this can only OVER-state. It is a ceiling on how many people "
-        "came, never a count of unique people.",
+        "Distinct visitors per 4-hour window, summed. A return in a later "
+        "window counts again, so this is a ceiling on people, never a tally "
+        "of unique ones.",
     ) + line(
         "Link previews", a['bot_visitors'],
-        "Counted separately, not dropped: requests whose user-agent names a "
-        "crawler or a chat app fetching a preview card. Excluded from the "
+        "Crawlers and chat apps fetching preview cards. Excluded from the "
         "figure above.",
     ) + line(
         "Requests seen", a['requests'],
-        "Every request the counter looked at, including repeats from the same "
-        "person. Not a headcount; it is the denominator for the one above.",
-    ) + line(
-        "Windows recorded", f"{a['windows']} / {a['expected_windows']}",
-        "Recorded versus expected so far today (one per completed 4-hour UTC "
-        "window). Short means the app restarted mid-window or the counter "
-        "stopped; each restart also inflates the People figure.",
-    )
+        "Every request the counter saw, repeats included. The denominator "
+        "above, not a headcount.",
+    ) + _traffic_window_lines(a)
+
+    if a.get('split_windows'):
+        out.extend(line(
+            "Extra runs from restarts", a['split_windows'],
+            "The app restarted mid-window and began counting from empty, so "
+            "People above is inflated by an unrecoverable amount.",
+        ))
 
     if a.get('truncated'):
         out.extend(_wrap(
-            "NOTE: a window hit its 200,000-pseudonym cap. For that window the "
-            "figure stopped rising, so today's People number is a FLOOR rather "
-            "than the usual ceiling."
+            "NOTE: a window hit its 200,000 cap, so today's People figure is "
+            "a FLOOR rather than the usual ceiling."
         ))
     return out
 
 
 def get_audience_stats(target_date: datetime) -> Dict[str, Any]:
-    """Visitor counts from the app-side counter (fresh_audience_windows)."""
+    """Visitor counts from the app-side counter (fresh_audience_windows).
+
+    The people, preview, and request figures are site-specific. The distinct
+    window count spans all sites because it describes when this shared process
+    saw traffic. It deliberately is not recorder health: quiet windows have no
+    fresh_audience_windows row at all.
+    """
     day = target_date.strftime('%Y-%m-%d')
+    span_end = (target_date + timedelta(days=1)).strftime('%Y-%m-%d') + 'T00:00:00+00'
+    now = datetime.now(timezone.utc)
+
+    # Cutoff = the start of the window still open, so `window_start < cutoff`
+    # is exactly the set of closed windows. A finished day has none open.
+    if day == now.strftime('%Y-%m-%d'):
+        expected = now.hour // 4
+        cutoff = f"{day}T{expected * 4:02d}:00:00+00"
+    else:
+        expected = 6
+        cutoff = span_end
+
+    # cutoff/day/span_end are timestamps this function derives from
+    # target_date, never from an HTTP request: target_date is either
+    # datetime.now() or, from main(), sys.argv[1] rejected by
+    # datetime.strptime(..., '%Y-%m-%d') unless it is exactly a calendar
+    # date -- no quote or other SQL metacharacter can survive that parse.
+    # psql's -c mode (unlike -f) does not honor :'var' substitution, so
+    # binding these as query parameters isn't available without switching
+    # _psql's transport; ruff's S608 is a string-construction heuristic
+    # with no attacker-controlled input on this path.
     row = _psql(
-        "SELECT COALESCE(SUM(visitors),0), COALESCE(SUM(bot_visitors),0), "
-        "COALESCE(SUM(requests),0), COALESCE(BOOL_OR(truncated),false), COUNT(DISTINCT window_start), "
-        "COUNT(DISTINCT run_id) "
-        "FROM fresh_audience_windows WHERE site='a4t' "
-        f"AND window_start >= '{day}T00:00:00+00' AND window_start < '{day}T00:00:00+00'::timestamptz + interval '1 day'"
+        "SELECT COALESCE(SUM(visitors) FILTER (WHERE site='a4t'),0), "  # noqa: S608
+        "COALESCE(SUM(bot_visitors) FILTER (WHERE site='a4t'),0), "
+        "COALESCE(SUM(requests) FILTER (WHERE site='a4t'),0), "
+        "COALESCE(BOOL_OR(truncated) FILTER (WHERE site='a4t'),false), "
+        f"COUNT(DISTINCT window_start) FILTER (WHERE window_start < '{cutoff}'), "
+        "COUNT(DISTINCT run_id), "
+        # run_id is part of the primary key, so a restart ADDS a row for the
+        # window it lands in rather than replacing one. The excess of a4t rows
+        # over a4t windows is therefore the number of windows whose People
+        # figure was counted twice from an empty set.
+        "COUNT(*) FILTER (WHERE site='a4t') "
+        "  - COUNT(DISTINCT window_start) FILTER (WHERE site='a4t') "
+        "FROM fresh_audience_windows WHERE "
+        f"window_start >= '{day}T00:00:00+00' AND window_start < '{span_end}'"
     )
     if not row:
         return {'available': False}
-    v, b, r, trunc, windows, runs = (row.split('|') + [''] * 6)[:6]
-
-    # Expected windows: six in a whole day, fewer when the report runs part-way
-    # through one. Comparing against a flat 6 made the 08:00 report accuse a
-    # perfectly healthy counter of having stopped.
-    now = datetime.now(timezone.utc)
-    if target_date.strftime('%Y-%m-%d') == now.strftime('%Y-%m-%d'):
-        expected = now.hour // 4 + 1
-    else:
-        expected = 6
+    v, b, r, trunc, traffic_windows, runs, split = (row.split('|') + [''] * 7)[:7]
 
     return {
         'available': True,
@@ -683,9 +721,10 @@ def get_audience_stats(target_date: datetime) -> Dict[str, Any]:
         'bot_visitors': int(b or 0),
         'requests': int(r or 0),
         'truncated': (trunc or 'f') == 't',
-        'windows': int(windows or 0),
+        'traffic_windows': int(traffic_windows or 0),
         'runs': int(runs or 0),
-        'expected_windows': expected,
+        'split_windows': int(split or 0),
+        'closed_windows': expected,
     }
 
 
@@ -1065,12 +1104,9 @@ def generate_report(
         "",
     ] + [
         l.strip() for l in _wrap(
-            "This report runs three times a day and each run restates the day "
-            "so far, so the same date appears three times with rising numbers. "
-            "'since last report' is the change since the previous run, not "
-            "since yesterday. Under every figure is a sentence saying what it "
-            "counts; where a number looks wrong, that sentence is where the "
-            "explanation lives."
+            "Three runs a day, each restating the day so far. 'Since last "
+            "report' means since the previous run, not since yesterday. Every "
+            "figure carries a line saying what it counts."
         )
     ] + [
         "",
@@ -1087,24 +1123,22 @@ def generate_report(
         "the database -- durable, unaffected by deploys",
     ) + line(
         "Addresses submitted", q_stats['gate_submissions_today'],
-        "People who answered both gate questions and handed over an address "
-        "today. Only a SHA-256 hash and an age-encrypted copy are stored; the "
-        "address itself is never written down.",
+        "Both gate questions answered and an address given. Only a hash and "
+        "an encrypted copy are kept.",
     ) + line(
         "Distinct addresses", q_stats['distinct_addresses_today'],
         "How many different addresses those submissions came from.",
     ) + line(
         "Repeat submissions", q_stats['repeat_submissions_today'],
-        "Submissions from an address that had already submitted today -- "
-        "usually someone who did not get the mail and tried again. Each repeat "
-        "abandons the previous session; see 'Abandoned' below.",
+        "An address submitting again, usually because the mail never came. "
+        "Each repeat abandons the previous session.",
     ) + line(
         "Gate answers stored", q_stats['gate_answers_today'],
-        "Encrypted answer rows written. Two per submission is healthy: less "
-        "means the gate handed back a token while dropping the answers.",
+        "Encrypted rows written. Two per submission is healthy; fewer means "
+        "answers are being dropped.",
     ) + line(
         "Running total", q_stats['gate_submissions_total'],
-        "Every address ever submitted, all time.",
+        "Every address ever submitted.",
     ) + [
         "",
         delta_line("Change since last report", q_stats['gate_submissions_today'], _prev.get('gate_submissions_today')),
@@ -1112,42 +1146,33 @@ def generate_report(
         "",
     ] + heading(
         "THE QUESTIONNAIRE",
-        "the database -- read the note under 'Finished' before quoting these",
+        "the database",
     ) + line(
         "Finished today", q_stats['finished_today'],
-        "Sessions that reached the end AFTER making some progress. This is the "
-        "real completion count. Until 2026-08-20 this line reported ~70 a day "
-        "by also counting the 'Abandoned' figure below, which is not a "
-        "completion of anything.",
+        "Sessions that reached the end after answering something. The real "
+        "completion count.",
     ) + line(
         "Abandoned today", q_stats['superseded_today'],
-        "Sessions closed without a single question answered, because the same "
-        "address submitted the gate again and the newer session replaced the "
-        "older one. The database marks these with the same completed_at column "
-        "as a genuine finish, which is why they were conflated.",
+        "Closed with nothing answered, replaced when the same address "
+        "submitted the gate again. Not finishes.",
     ) + line(
         "Still open", q_stats['in_progress'],
-        "Sessions with no end stamp at all, across all time. Most are simply "
-        "abandoned and will stay open until that address returns.",
+        "No end stamp, all time. Most are abandoned and stay open until that "
+        "address returns.",
     ) + line(
         "Finished, all time", q_stats['finished_total'],
-        "Genuine finishes since the beginning.",
+        "Genuine finishes, all time.",
     ) + line(
         "Answers stored today", q_stats['questionnaire_answers_today'],
-        "Encrypted answers written today for questions BEYOND the two gate "
-        "questions -- i.e. the questionnaire proper.",
+        "Encrypted answers written today, beyond the two gate questions.",
     ) + line(
         "Answers stored, all time", q_stats['questionnaire_answers_total'],
-        "The same, since the beginning. If this is 0 while addresses keep "
-        "arriving, nobody is getting past the gate and no 'finished' figure "
-        "above can be real. It WAS 0, for every session ever recorded, until "
-        "the storage path was fixed on 2026-08-21.",
+        "The same, all time. Zero while addresses keep arriving means nobody "
+        "is getting past the gate.",
     ) + line(
         "Respondents behind that", q_stats['questionnaire_answer_sessions'],
-        "How many different sessions those answers came from. The line above "
-        "can read 35 because one person answered a whole questionnaire and "
-        "nobody else answered anything; this one cannot. Read the two "
-        "together or not at all.",
+        "Distinct sessions behind those answers. Thirty-five answers may be "
+        "one person; this line says which.",
     ) + [
         "",
         "",
@@ -1156,22 +1181,21 @@ def generate_report(
         "the database",
     ) + line(
         "Magic links sent", q_stats['links_sent_today'],
-        "One per gate submission. Sent means handed to the mail server, not "
-        "that it reached an inbox.",
+        "One per gate submission. Handed to the mail server, not proof of "
+        "delivery.",
     ) + line(
         "Magic links opened", q_stats['links_used_today'],
-        "How many of those were actually clicked. A low ratio means "
-        "undelivered, filed as spam, or unwanted -- from here the three are "
-        "indistinguishable, but a sudden drop is a delivery fault.",
+        "How many were clicked. A steady low ratio could be spam or "
+        "indifference; a sudden drop is a delivery fault.",
     ) + (
         line(
             "PDFs delivered", q_stats['pdfs_today'],
-            "Completed questionnaires mailed back as a PDF today.",
+            "Completed questionnaires mailed back today.",
         ) + line("PDFs, all time", q_stats['pdfs_total'], "")
         if q_stats.get('pdf_note') is None
         else line("PDFs delivered", q_stats['pdf_note'],
-                  "The column this counts does not exist yet, so this is not a "
-                  "zero -- it is 'no answer available'.")
+                  "The column does not exist yet. Not a zero -- no answer "
+                  "available.")
     ) + [
         "",
         "",
@@ -1180,14 +1204,13 @@ def generate_report(
         "this script's own history file",
     ) + line(
         "Addresses / report", _fmt_avg(_avgs['gate_submissions_total']),
-        "Mean rise between consecutive reports, not a daily rate: with three "
-        "reports a day, multiply by roughly three for a per-day figure.",
+        "Mean rise between consecutive reports. Multiply by three for a "
+        "daily rate.",
     ) + line(
         "Finishes / report", _fmt_avg(_avgs['finished_total']), "",
     ) + line(
         "PDFs / report", _fmt_avg(_avgs['pdfs_total']),
-        "'building' means fewer than two runs on record, so no change has been "
-        "observed yet. It is not zero.",
+        "'building' means fewer than two runs on record. Not zero.",
     ) + [
         "",
         "",
@@ -1196,9 +1219,8 @@ def generate_report(
         "the database",
     ) + line(
         "Subscribers", newsletter_stats.get('total_subscribers', 'N/A'),
-        "Rows in fresh_newsletter. This table is genuinely empty -- the signup "
-        "form is not wired to it yet, so zero here means 'no route in', not "
-        "'nobody wanted it'.",
+        "Rows in fresh_newsletter. The signup form is not wired to it yet, "
+        "so zero means no route in.",
     ) + line(
         "Confirmed", newsletter_stats.get('confirmed_subscribers', 'N/A'),
         "Subscribers who clicked the confirmation link.",
@@ -1211,8 +1233,8 @@ def generate_report(
         "Confirmed today", newsletter_stats.get('new_confirmed_today', 'N/A'), "",
     ) + line(
         "Legacy (archived)", newsletter_stats.get('legacy_count', 'N/A'),
-        "Still-subscribed rows in the old newsletter_subscribers table, kept "
-        "for history and not written to any more.",
+        "The old newsletter_subscribers table, kept for history, no longer "
+        "written to.",
     ) + [
         "",
         "",
@@ -1224,51 +1246,42 @@ def generate_report(
         "Every request to this site, including images, CSS and fonts.",
     ) + line(
         "Page views", caddy_stats.get('page_views', 'N/A'),
-        "The same figure with static files removed. Still counts one person "
-        "reading five pages as five.",
+        "Static files removed. One person reading five pages still counts "
+        "five.",
     ) + line(
         "API requests", caddy_stats.get('api_requests', 'N/A'),
         "Calls under /api/ -- the site's own front-end talking to itself.",
     ) + line(
         "Questionnaire opened", caddy_stats.get('questionnaire_views', 'N/A'),
-        "Loads of /questionnaire that actually rendered a question (status "
-        "200). Compare against 'Answers stored' above: opened but nothing "
-        "stored means people arrive and stop.",
+        "Loads of /questionnaire that rendered a question. Opened with "
+        "nothing stored means people arrive and stop.",
     ) + line(
         "Questionnaire bounced", caddy_stats.get('questionnaire_bounces', 'N/A'),
-        "Arrivals at /questionnaire that were redirected to the landing page "
-        "instead -- no JWT cookie, an expired one, or a session that could not "
-        "be found. The respondent sees the front page and is told nothing. "
-        "Until 2026-08-22 these were counted in the line above, so a bounce "
-        "and an arrival were the same number.",
+        "Arrivals redirected to the landing page instead: no cookie, an "
+        "expired one, or a missing session. They are told nothing.",
     ) + line(
         "Magic link worked", caddy_stats.get('verify_ok', 'N/A'),
         "Clicks on an emailed link that reached the questionnaire.",
     ) + line(
         "Magic link refused", caddy_stats.get('verify_error', 'N/A'),
-        "Clicks that landed on the verification error page instead. /auth/verify "
-        "renders that page with status 200 and only redirects on success, so "
-        "this is exact. The usual cause is that the respondent submitted the "
-        "gate again while waiting, which used to abandon the session the first "
-        "link pointed at.",
+        "Clicks that landed on the verification error page. Usually the gate "
+        "was submitted again while waiting.",
     ) + line(
         "Gate posts", caddy_stats.get('gate_submissions', 'N/A'),
-        "Gate submissions as Caddy saw them. This should match 'Addresses "
-        "submitted' at the top; a gap means submissions failed before reaching "
-        "the database.",
+        "As Caddy saw them. A gap against 'Addresses submitted' means posts "
+        "never reached the database.",
     ) + [
         "",
     ] + line(
         "Other sites on this box", caddy_stats.get('other_host_requests', 'N/A'),
-        "Requests to unrelated sites sharing this server's access log. "
-        "Excluded from every figure above; shown so that traffic never simply "
-        "disappears.",
+        "Unrelated sites sharing this access log. Excluded above, shown so "
+        "no traffic vanishes.",
     ) + [
         f"  {'  ' + h + ':':<28}{n:>{VAL_W}}"
         for h, n in sorted(caddy_stats.get('sibling_host_requests', {}).items())
     ] + (
-        _wrap("Those are our own subdomains, served from a different root, and "
-              "deliberately not counted as this site.")
+        _wrap("Our own subdomains, served from a different root, and not "
+              "counted as this site.")
         if caddy_stats.get('sibling_host_requests') else []
     ) + [
         "",
@@ -1281,18 +1294,15 @@ def generate_report(
         "Our fault, always. Anything but 0 wants looking at.",
     ) + line(
         "Broken links (404)", caddy_stats.get('errors_404_site', 0),
-        "Requests for pages that should plausibly exist -- our own dead links "
-        "and mistyped paths.",
+        "Our own dead links and mistyped paths.",
     ) + line(
         "Other 4xx", caddy_stats.get('errors_4xx_other', 0),
         "Rejected requests that were not 404s: wrong method, bad token, "
         "expired link.",
     ) + line(
         "Scanner probes (404)", caddy_stats.get('errors_404_probe', 0),
-        "Automated hunts for WordPress, .env files and admin panels. Constant "
-        "background noise on any public address, harmless against this site, "
-        "and split out here because lumping it in made the error line look "
-        "alarming every single day.",
+        "Automated hunts for WordPress, .env files and admin panels. Harmless "
+        "background noise, split out so it stops alarming the line above.",
     ) + [
         "",
         "",
@@ -1300,10 +1310,9 @@ def generate_report(
         "IN-PROCESS COUNTERS",
         "/api/metrics -- RESET TO ZERO BY EVERY DEPLOY OR RESTART",
     ) + _wrap(
-        "These are memory counters, not database totals. After a restart they "
-        "begin again from zero, so a low number here beside a healthy figure "
-        "above means the app was restarted, not that activity stopped. Where "
-        "the two disagree, the database is right."
+        "Memory counters, zeroed by every restart -- a low figure here beside "
+        "a healthy one above means a restart, not a lull. Where the two "
+        "disagree, the database is right."
     ) + [""] + line(
         "Magic links sent", metrics_stats.get('magic_links_sent', 'N/A'), "",
     ) + line(
@@ -1315,19 +1324,16 @@ def generate_report(
         "Questionnaires completed", metrics_stats.get('questionnaires_completed', 'N/A'), "",
     ) + line(
         "Answers stored (app)", metrics_stats.get('answers_stored', 'N/A'),
-        "The application's own count of encrypted answers written, against the "
-        "database's figure above. They measure the same thing by different "
-        "routes; if they disagree by more than a restart explains, one of them "
-        "is lying and it is worth finding out which.",
+        "The app's own count of the database figure above. A gap wider than "
+        "a restart explains is worth chasing.",
     ) + line(
         "Answers that failed to store", metrics_stats.get('answers_store_failed', 'N/A'),
-        "The gate refused or was unreachable. The respondent was shown their "
-        "answer and asked to try again, and their place did not move.",
+        "The gate refused or was unreachable. The answer was handed back and "
+        "their place held.",
     ) + line(
         "Answers lost to expiry", metrics_stats.get('answers_lost_to_auth', 'N/A'),
-        "Someone pressed Continue on a session that had run out. Their answer "
-        "is handed back on screen to copy, but it could not be stored. This "
-        "used to be a silent redirect that discarded the text unread.",
+        "Continue pressed on a session that had run out. The answer is shown "
+        "to copy but could not be stored.",
     ) + line(
         "Questions answered", metrics_stats.get('questions_answered', 'N/A'),
         "Individual answers submitted since the last restart.",
@@ -1358,10 +1364,8 @@ def generate_report(
             funnel.get(k, 0) for k in ('gate_q1', 'gate_q2', 'email_entered')
         ):
             report_lines.extend(_wrap(
-                "WARNING: the gate is being viewed but none of the steps after "
-                "it are incrementing. Those counters are not wired up, so this "
-                "funnel cannot be read as a drop-off -- use 'Addresses "
-                "submitted' at the top instead, which comes from the database."
+                "WARNING: the post-view counters are not wired up, so this is "
+                "not a drop-off. Use 'Addresses submitted' at the top."
             ))
         report_lines.append("")
 
@@ -1374,8 +1378,7 @@ def generate_report(
             "/api/metrics -- same restart caveat as above",
         ) + _wrap(
             "Arrivals at a questionnaire page that could not be let straight "
-            "through. Every one of these used to be a silent redirect to the "
-            "front page, so none of it was visible here."
+            "through."
         ) + [""] + line(
             "No cookie at all", inter.get('nocookie', 0),
             "A new browser, a private window, or cookies refused.",
@@ -1390,9 +1393,8 @@ def generate_report(
             "Sent on to the completion page rather than a question.",
         ) + line(
             "Rescued by resume token", inter.get('resume_redeemed', 0),
-            "Arrivals whose session had expired but whose thirty-day resume "
-            "token was still good, so they were let back in and given a fresh "
-            "one. Before this existed every one of these was turned away.",
+            "Expired sessions whose thirty-day resume token still held, let "
+            "back in with a fresh one.",
         ) + [""])
 
     # Per-question drop-off: where in the questionnaire people stop.
@@ -1403,10 +1405,9 @@ def generate_report(
             "WHERE PEOPLE STOP",
             "/api/metrics -- same restart caveat as above",
         ) + _wrap(
-            "Answers stored at each position, 3 through 35. Counted since the "
-            "last restart, not since midnight, so read the SHAPE and not the "
-            "totals: a cliff at one number is a question people will not "
-            "answer, and a smooth decline is ordinary attrition."
+            "Answers at each position, 3 to 35, since the last restart. Read "
+            "the shape, not the totals: a cliff is a question people refuse, "
+            "a slope is ordinary attrition."
         ) + [""] + [
             f"  {('q' + str(n)):<6}{('#' * max(1, (v * 40) // peak)) if v else '':<41}{v:>5}"
             for n, v in sorted(fq.items()) if v
@@ -1420,8 +1421,8 @@ def generate_report(
             "TIME TAKEN PER ANSWER",
             "/api/metrics -- same restart caveat as above",
         ) + _wrap(
-            "How long people sat with each question before answering. Buckets, "
-            "not an average, so one very long pause cannot skew it."
+            "How long people sat with each question. Buckets, not an average, "
+            "so one long pause cannot skew it."
         ) + [""] + [
             f"  {'Under 30s':<28}{latency.get('fast', 0):>{VAL_W}}  ({latency.get('fast', 0)*100//total_responses:>2}%)",
             f"  {'30s to 2m':<28}{latency.get('moderate', 0):>{VAL_W}}  ({latency.get('moderate', 0)*100//total_responses:>2}%)",
@@ -1438,7 +1439,7 @@ def generate_report(
             "/api/metrics -- same restart caveat as above",
         ) + line(
             "Skip used", features.get('skip_used', 0),
-            "Times a reader passed on a question rather than answering it.",
+            "A question passed over rather than answered.",
         ) + line(
             "Newsletter CTA clicked", features.get('newsletter_cta', 0), "",
         ) + [""])
@@ -1467,9 +1468,8 @@ def generate_report(
             report_lines.append(f"  {hour:02d}:00 | {count:>5} {'#' * bar_len}")
         if is_today and now_utc.hour < 23:
             report_lines.extend(_wrap(
-                "Hours after the time at the top of this report are empty "
-                "because they have not happened yet, not because traffic "
-                "stopped."
+                "Hours after the time at the top are empty because they have "
+                "not happened yet."
             ))
         report_lines.append("")
 
@@ -1511,10 +1511,6 @@ def generate_report(
         'distinct': q_stats.get('distinct_addresses_today'),
         'finished': q_stats.get('finished_today'),
         'abandoned': q_stats.get('superseded_today'),
-        'windows_complete': (
-            audience_stats.get('windows') >= audience_stats.get('expected_windows')
-            if audience_stats.get('available') else False
-        ),
     }
 
     return "\n".join(report_lines), summary, metrics_stats
@@ -1563,7 +1559,7 @@ def send_report(
     people = summary.get('visitors')
     addresses = summary.get('addresses')
     if isinstance(people, int) and isinstance(addresses, int) and people > 0:
-        if addresses > people or not summary.get('windows_complete', True):
+        if addresses > people:
             # The audience counter is a ceiling on people, so a ratio over 100%
             # is not a triumph -- it means the counter missed part of the day
             # (it started mid-day, or the app restarted). Printing "709%" once

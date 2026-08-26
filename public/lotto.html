@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>lotto — gated preview</title>
+  
+    <link rel="stylesheet" href="styles/style_lotto.css">
+</head>
+<body>
+  <main class="shell">
+    <header>
+      <span class="badge">private • rust gate</span>
+      <h1>lotto draw (read-only)</h1>
+    </header>
+    <p class="lede">This page mirrors the original lotto flow but is served behind an Argon2-gated Rust edge. The content is static for now; wire it to the FastAPI endpoints when you are ready to run a live round.</p>
+
+    <section class="grid">
+      <div class="card">
+        <div class="label">Minimum participants</div>
+        <div class="value">15</div>
+        <div class="label">Commit window</div>
+        <div class="value">21 days</div>
+      </div>
+      <div class="card">
+        <div class="label">Claim window</div>
+        <div class="value">7 days</div>
+        <div class="label">Hash gating</div>
+        <div class="value">Argon2id (env)</div>
+      </div>
+      <div class="card">
+        <div class="label">Round status</div>
+        <div class="value">pending / offline demo</div>
+        <div class="label">Access</div>
+        <div class="value">local-only session token</div>
+      </div>
+    </section>
+
+    <section class="steps">
+      <div class="card step">
+        <h3>1. Register</h3>
+        <div class="label">Client computes Poseidon commitment &amp; posts to /lotto/commit.</div>
+        <pre>secret = random()
+nullifier = Poseidon(secret, "nullify")
+C = Poseidon(secret, nullifier)
+POST /lotto/commit { commitment: C }</pre>
+      </div>
+      <div class="card step">
+        <h3>2. Close</h3>
+        <div class="label">Operator signs anchor for sorted Merkle root + drand target.</div>
+        <pre>root R = Merkle(sorted(C_i))
+anchor = H(R, N, drand_round_target)
+signature = Sign_operator(anchor)</pre>
+      </div>
+      <div class="card step">
+        <h3>3. Draw</h3>
+        <div class="label">Public recomputation with drand beacon.</div>
+        <pre>B = drand(round_target)
+winner_idx = H(R, B) mod N</pre>
+      </div>
+      <div class="card step">
+        <h3>4. Claim</h3>
+        <div class="label">Winner reveals material and Merkle proof within claim window.</div>
+        <pre>POST /lotto/claim
+{ round_id, commitment, nullifier, leaf_index, merkle_proof[] }</pre>
+      </div>
+      <div class="card step">
+        <h3>5. Audit</h3>
+        <div class="label">Full transparency: commitments, roots, nullifiers.</div>
+        <pre>GET /lotto/audit/{round_id}</pre>
+      </div>
+    </section>
+
+    <section class="snapshot">
+      <h3>Latest round snapshot</h3>
+      <div class="pill-row">
+        <span class="pill">Merkle root: pending</span>
+        <span class="pill">Anchor hash: pending</span>
+        <span class="pill">Entries: 0 (demo)</span>
+        <span class="pill">Winner: pending</span>
+      </div>
+      <p class="lede lotto-inline-001">When the FastAPI lotto service is wired up, these fields will hydrate from the upstream audit endpoint. Until then, this page is a gated preview only.</p>
+    </section>
+
+    <div class="cta">
+      <strong>Session note:</strong> your `/lotto` access token is issued by the Rust gate and stored in an HttpOnly cookie. To clear it, POST to <code>/lotto/logout</code> or close the browser.
+    </div>
+  </main>
+</body>
+</html>

@@ -1,0 +1,212 @@
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background: #08090d;
+}
+
+body {
+  min-height: 100vh;
+  margin: 0;
+  background:
+    radial-gradient(circle at 12% 0%, rgba(255, 105, 180, 0.14), transparent 28rem),
+    radial-gradient(circle at 88% 12%, rgba(0, 255, 136, 0.1), transparent 26rem),
+    #08090d;
+  color: #eef1f6;
+  font-family: ui-serif, Georgia, "Times New Roman", serif;
+}
+
+.privacy-container {
+  width: min(100% - 2rem, 1120px);
+  margin: 0 auto;
+  padding: clamp(3rem, 7vw, 6rem) 0;
+}
+
+.privacy-header {
+  display: grid;
+  grid-template-columns: minmax(0, 0.95fr) minmax(15rem, 0.55fr);
+  gap: clamp(1.5rem, 4vw, 4rem);
+  align-items: end;
+  margin: 0 0 clamp(2rem, 5vw, 4rem);
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid rgba(238, 241, 246, 0.18);
+}
+
+.privacy-header h1 {
+  margin: 0;
+  color: #ffffff;
+  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: clamp(2.75rem, 8vw, 6rem);
+  line-height: 0.95;
+  letter-spacing: 0;
+  text-shadow: 0 0 28px rgba(255, 105, 180, 0.16);
+}
+
+.privacy-inline-001 {
+  margin: 0;
+  color: #c9d1dd;
+  font-size: clamp(1.05rem, 2vw, 1.3rem);
+  line-height: 1.55;
+  font-style: italic;
+}
+
+.privacy-content {
+  display: grid;
+  gap: clamp(1rem, 2vw, 1.5rem);
+}
+
+.privacy-lede,
+.privacy-wide {
+  display: grid;
+  grid-template-columns: minmax(0, 0.78fr) minmax(18rem, 0.52fr);
+  gap: clamp(1.25rem, 3vw, 2.5rem);
+  align-items: start;
+  padding: clamp(1.2rem, 3vw, 2rem);
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  background: rgba(255, 255, 255, 0.055);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.035);
+}
+
+.privacy-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(1rem, 2vw, 1.5rem);
+}
+
+.privacy-grid-small {
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+}
+
+.privacy-card {
+  min-width: 0;
+  padding: clamp(1.1rem, 2.5vw, 1.65rem);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(12, 15, 22, 0.82);
+}
+
+.privacy-card-accent {
+  border-color: rgba(255, 105, 180, 0.34);
+  background:
+    linear-gradient(135deg, rgba(255, 105, 180, 0.12), rgba(0, 255, 136, 0.045)),
+    rgba(12, 15, 22, 0.86);
+}
+
+.privacy-content h2 {
+  margin: 0 0 0.85rem;
+  color: #ffffff;
+  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: clamp(1.4rem, 3vw, 2.1rem);
+  line-height: 1.12;
+  letter-spacing: 0;
+}
+
+.privacy-content h3 {
+  margin: 1.2rem 0 0.45rem;
+  color: #ffd84d;
+  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 1rem;
+  line-height: 1.35;
+}
+
+.privacy-content p,
+.privacy-content li {
+  color: #e8edf5;
+  font-size: clamp(1rem, 1.35vw, 1.12rem);
+  line-height: 1.68;
+}
+
+.privacy-content p {
+  margin: 0 0 0.85rem;
+}
+
+.privacy-content ul {
+  margin: 0.3rem 0 0;
+  padding-left: 1.15rem;
+}
+
+.privacy-content li {
+  margin: 0.46rem 0;
+  padding-left: 0.15rem;
+}
+
+.privacy-content strong {
+  color: #ffffff;
+}
+
+.privacy-content a {
+  color: #6ee7ff;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.2em;
+}
+
+.privacy-content a:hover,
+.privacy-content a:focus {
+  color: #ff69b4;
+}
+
+.highlight-box {
+  margin: 0;
+  padding: 1.1rem 1.25rem;
+  border-left: 4px solid #ff69b4;
+  background: rgba(255, 255, 255, 0.065);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+
+.highlight-box em {
+  color: #ffffff;
+}
+
+.privacy-inline-002 {
+  margin-top: 1rem;
+  color: #c9d1dd;
+  font-style: italic;
+}
+
+.privacy-inline-003 {
+  color: #6ee7ff;
+}
+
+.privacy-inline-004 {
+  margin-top: 1.25rem;
+}
+
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;
+  padding: 0.7rem 1.1rem;
+  border: 1px solid rgba(255, 105, 180, 0.55);
+  color: #ffffff;
+  background: rgba(255, 105, 180, 0.1);
+  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 0.86rem;
+  letter-spacing: 0;
+  text-decoration: none;
+}
+
+.back-link:hover,
+.back-link:focus {
+  background: rgba(255, 105, 180, 0.2);
+  box-shadow: 0 0 22px rgba(255, 105, 180, 0.22);
+}
+
+@media (max-width: 760px) {
+  .privacy-container {
+    width: min(100% - 1.25rem, 1120px);
+    padding: 2.25rem 0 3.5rem;
+  }
+
+  .privacy-header,
+  .privacy-lede,
+  .privacy-wide,
+  .privacy-grid,
+  .privacy-grid-small {
+    grid-template-columns: 1fr;
+  }
+
+  .privacy-content p,
+  .privacy-content li {
+    line-height: 1.72;
+  }
+}

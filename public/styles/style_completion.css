@@ -1,0 +1,7 @@
+.completion-inline-001 {
+  text-align: center; margin: 3rem 0; padding: 2rem; background: rgba(139, 69, 19, 0.1); border-radius: 8px; border: 2px solid var(--border-color);
+}
+
+.completion-inline-002 {
+  font-style: italic; color: var(--text-muted); margin: 0;
+}
