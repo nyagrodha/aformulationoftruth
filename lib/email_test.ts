@@ -103,23 +103,24 @@ Deno.test('send_mail.py reports failure on one PII-free line', async () => {
 
 Deno.test('a failed send returns rather than throwing', async () => {
   const saved = Deno.env.toObject();
-  const set = (k: string, v: string) => Deno.env.set(k, v);
-  set('SMTP_HOST', '127.0.0.1');
-  set('SMTP_PORT', '1');
-  set('SMTP_SECURE', 'false');
-  set('SMTP_USER', 'nobody');
-  set('SMTP_PASS', 'nothing');
-  set('FROM_EMAIL', CANARY);
-
-  // Three attempts against a refused port, with the production backoff.
-  const result = await sendEmail({
-    to: CANARY,
-    subject: 'contract test',
-    text: 'body',
-    html: '<p>body</p>',
-  });
 
   try {
+    const set = (k: string, v: string) => Deno.env.set(k, v);
+    set('SMTP_HOST', '127.0.0.1');
+    set('SMTP_PORT', '1');
+    set('SMTP_SECURE', 'false');
+    set('SMTP_USER', 'nobody');
+    set('SMTP_PASS', 'nothing');
+    set('FROM_EMAIL', CANARY);
+
+    // Three attempts against a refused port, with the production backoff.
+    const result = await sendEmail({
+      to: CANARY,
+      subject: 'contract test',
+      text: 'body',
+      html: '<p>body</p>',
+    });
+
     assertEquals(result.success, false);
     assertEquals(result.statusCode, undefined, 'a transport failure has no reply code');
     // Callers put this in HTTP responses; it must be a fixed string.

@@ -19,6 +19,15 @@ import { fromFileUrl } from '$std/path/mod.ts';
  */
 const SENDER = fromFileUrl(new URL('./send_mail.py', import.meta.url));
 
+/**
+ * How long one send_mail.py attempt may run before it is killed.
+ *
+ * smtplib's own `timeout=` bounds individual socket operations, not the whole
+ * SMTP session, so a server that stalls mid-conversation can otherwise hold
+ * the subprocess -- and the request awaiting sendEmail -- open indefinitely.
+ */
+const SEND_DEADLINE_MS = 20_000;
+
 interface SendEmailOptions {
   to: string;
   subject: string;
@@ -82,6 +91,14 @@ async function runSender(
     return { success: false, kind: error instanceof Error ? error.name : 'Unknown' };
   }
 
+  // Neither Deno.Command nor smtplib's own `timeout=` bounds the whole child
+  // process: smtplib's timeout is per socket operation, so a server that
+  // accepts the connection and then stalls mid-conversation can hold the
+  // subprocess open indefinitely, and every caller of sendEmail awaits it.
+  // The signal below is what turns that into a bounded, retryable failure.
+  const controller = new AbortController();
+  const deadline = setTimeout(() => controller.abort(), SEND_DEADLINE_MS);
+
   try {
     await Deno.writeTextFile(`${dir}/mail.json`, JSON.stringify(spec), { mode: 0o600 });
 
@@ -91,15 +108,18 @@ async function runSender(
       env: { PATH: '/usr/bin:/bin', ...smtpEnv },
       stdout: 'piped',
       stderr: 'null',
+      signal: controller.signal,
     }).output();
 
     if (result.success) return { success: true, kind: 'none' };
     return { success: false, ...parseSenderOutcome(new TextDecoder().decode(result.stdout)) };
   } catch (error) {
-    // Spawn failed — python3 missing, temp directory unwritable. The class
-    // name is safe; the message could name a path we would rather not print.
+    // Spawn failed — python3 missing, temp directory unwritable, or the
+    // deadline above fired and killed the child. The class name is safe; the
+    // message could name a path we would rather not print.
     return { success: false, kind: error instanceof Error ? error.name : 'Unknown' };
   } finally {
+    clearTimeout(deadline);
     await Deno.remove(dir, { recursive: true }).catch(() => {});
   }
 }
