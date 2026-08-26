@@ -131,16 +131,20 @@ export function isAuthenticated(
 /**
  * Cookie flags, in one place.
  *
- * `Secure` is conditional. /auth/verify hardcoded it, which is harmless there
- * because that route is only ever reached over https from an email, but the
- * same header sent from the gate on http://localhost:8000 would be dropped
- * silently by the browser and the whole flow would die in development with no
- * error anywhere.
+ * `Secure` is conditional, but fails closed: it is included unless BASE_URL
+ * says plainly that the scheme is plaintext http. /auth/verify hardcoded it,
+ * which is harmless there because that route is only ever reached over https
+ * from an email, but the same header sent from the gate on
+ * http://localhost:8000 would be dropped silently by the browser and the
+ * whole flow would die in development with no error anywhere -- so the one
+ * case that omits Secure is an explicit, unambiguous http:// BASE_URL. An
+ * unset or unrecognised BASE_URL gets Secure, because that is safe in
+ * production and merely inconvenient (not silently broken) if ever hit in a
+ * local setup that has not exported BASE_URL as http://...
  */
 function cookieOptions(): string {
   const baseUrl = Deno.env.get('BASE_URL') || '';
-  const isProd = Deno.env.get('DENO_ENV') === 'production' || Deno.env.get('NODE_ENV') === 'production';
-  const secure = (baseUrl.startsWith('https:') || isProd) ? '; Secure' : '';
+  const secure = baseUrl.startsWith('http://') ? '' : '; Secure';
   return `HttpOnly${secure}; SameSite=Lax; Path=/`;
 }
 

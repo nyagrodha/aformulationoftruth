@@ -18,7 +18,7 @@
  */
 
 import { assert, assertEquals, assertThrows } from 'https://deno.land/std@0.208.0/assert/mod.ts';
-import { buildBundle, CANONICAL_COUNT } from '../routes/api/responses/deliver.ts';
+import { ANSWER_QUERY, buildBundle, CANONICAL_COUNT } from '../routes/api/responses/deliver.ts';
 
 interface Row {
   question_index: number;
@@ -138,24 +138,35 @@ Deno.test({
  * The three tests above characterise buildBundle, and buildBundle is byte-for-
  * byte unchanged by the fix: it filled gaps before and it fills them now. Feed
  * it 35 rows and it emits 35 answers whichever SELECT produced them, so none of
- * them can tell a widened query from a narrow one. The fix lives entirely in
- * the SQL, and the SQL is inline in the POST handler behind withConnection --
- * unexported and uninjectable, so the only thing a pure test can hold onto is
- * the source text. Coarse, but it fails if the WHERE clause is ever narrowed
- * back, which is precisely the regression the rest of this file cannot see.
+ * them can tell a widened query from a narrow one. The fix lives in the SQL,
+ * now exported as ANSWER_QUERY, so this asserts a value rather than searching
+ * formatted source text -- which would fail on a reflow that changes nothing.
  */
 Deno.test({
-  name: 'deliver - the answer SELECT still spans both the session id and the gate token',
+  name: 'deliver - the answer query still spans both the session id and the gate token',
+  fn() {
+    const flat = ANSWER_QUERY.replace(/\s+/g, ' ');
+    assert(
+      /WHERE session_id = \$[12] OR session_id = \$[12]/.test(flat),
+      'the answer query must select both ids, or questions 0 and 1 go blank again',
+    );
+  },
+});
+
+/**
+ * The bind order is not visible in ANSWER_QUERY itself -- $1 and $2 are
+ * positional -- so this stays a source check for the call site, which is
+ * still unexported. Narrower than the query text: it looks only at how the
+ * two ids are bound, not at formatting around them.
+ */
+Deno.test({
+  name: 'deliver - the answer query binds the session id and the gate token, in that order',
   sanitizeResources: false,
   sanitizeOps: false,
   async fn() {
     const source = await Deno.readTextFile(new URL('../routes/api/responses/deliver.ts', import.meta.url));
     const flat = source.replace(/\s+/g, ' ');
 
-    assert(
-      flat.includes('WHERE session_id = $1 OR session_id = $2'),
-      'the answer query must select both ids, or questions 0 and 1 go blank again',
-    );
     assert(
       flat.includes('[session.sessionId, row.gate_token]'),
       'the second bind must be the gate token the gate answers were filed under',

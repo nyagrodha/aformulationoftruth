@@ -9,7 +9,7 @@
 import { Handlers } from '$fresh/server.ts';
 import Nav from '../islands/Nav.tsx';
 import { NAV_NOSCRIPT_CSS, PAGE_NAV } from '../components/nav-shared.ts';
-import { authenticateRequest, isAuthenticated } from '../lib/session-auth.ts';
+import { authenticateRequest, isAuthenticated, jwtCookie } from '../lib/session-auth.ts';
 import { interstitialResponse } from '../components/Interstitial.tsx';
 import { increment } from '../lib/metrics.ts';
 
@@ -34,7 +34,14 @@ export const handler: Handlers = {
       return interstitialResponse(auth.failure);
     }
 
-    return ctx.render();
+    // When the resume token did the work, hand back a JWT so the next request
+    // does not repeat the lookup -- matching routes/questionnaire.tsx.
+    const headers = new Headers();
+    if (auth.refreshedJwt) {
+      headers.append('Set-Cookie', jwtCookie(auth.refreshedJwt));
+    }
+
+    return ctx.render(undefined, { headers });
   },
 };
 
