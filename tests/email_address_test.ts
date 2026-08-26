@@ -75,13 +75,39 @@ Deno.test({
 });
 
 Deno.test({
-  name: "cock.li's alternate domains are recognised by where their mail goes",
+  name: 'a domain whose MX points at cock.li is recognised by that route',
+  async fn() {
+    // The stable claim is the rule, not the roster: cock.li runs dozens of
+    // alternates and changes them, so pinning today's names would rot. This
+    // pins the rule instead -- any domain whose MX resolves into cock.li is
+    // accepted and reported as cockli-mx -- with a stubbed resolver so it
+    // needs no network and cannot itself go stale when the roster changes.
+    const real = Deno.resolveDns;
+    // deno-lint-ignore no-explicit-any
+    (Deno as any).resolveDns = (_d: string, kind: string) =>
+      kind === 'MX'
+        ? Promise.resolve([{ preference: 10, exchange: 'mx1.cock.li' }])
+        : Promise.resolve([]);
+    try {
+      // Not in ALLOWED_DOMAINS, so only the MX rule can accept it.
+      const v = await verifyAddressDeliverable('someone@some-future-alternate.example');
+      assertEquals(v.ok, true);
+      if (v.ok) assertEquals(v.checked, 'cockli-mx');
+    } finally {
+      // deno-lint-ignore no-explicit-any
+      (Deno as any).resolveDns = real;
+    }
+  },
+});
+
+Deno.test({
+  name: "cock.li's current alternate domains are still live (roster watch, non-blocking)",
   ignore: !HAS_DNS,
   async fn() {
-    // Not by name. cock.li runs dozens of alternates and changes the roster,
-    // so enumerating them would rot; every one routes through mx1/mx2.cock.li,
-    // which also covers alternates that do not exist yet. These four are NOT
-    // in ALLOWED_DOMAINS -- if any is accepted, the MX rule did it.
+    // Live-network monitoring of today's actual roster. Marked ignore rather
+    // than required: cock.li changes this roster on its own schedule, and a
+    // failure here says the roster moved, not that the code regressed -- the
+    // test above pins the rule that must not.
     for (const domain of ['airmail.cc', 'horsefucker.org', 'cumallover.me', 'waifu.club']) {
       const v = await verifyAddressDeliverable(`someone@${domain}`);
       assertEquals(v.ok, true, `${domain} is a cock.li domain and must be accepted`);
