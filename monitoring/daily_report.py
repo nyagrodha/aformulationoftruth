@@ -40,6 +40,7 @@ import re
 import logging
 import subprocess
 import smtplib
+import ssl
 from email.message import EmailMessage
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
@@ -98,14 +99,19 @@ if not CONFIG['database_url']:
 
 # Which vhosts this report is about. The access log is shared by every site on
 # the box, so without this the traffic numbers are a meaningless sum.
+_REPORT_HOSTS_DEFAULT = 'aformulationoftruth.com,www.aformulationoftruth.com,app.aformulationoftruth.com'
 REPORT_HOSTS = {
     h.strip().lower()
-    for h in os.environ.get(
-        'REPORT_HOSTS',
-        'aformulationoftruth.com,www.aformulationoftruth.com,app.aformulationoftruth.com',
-    ).split(',')
+    for h in os.environ.get('REPORT_HOSTS', _REPORT_HOSTS_DEFAULT).split(',')
     if h.strip()
 }
+if not REPORT_HOSTS:
+    # An empty allowlist files every request under "other host" and prints a
+    # REQUESTS section of zeros indistinguishable from a dead site -- the
+    # exact failure mode this file documents elsewhere. REPORT_HOSTS='' or
+    # REPORT_HOSTS=',' both land here.
+    logger.warning("REPORT_HOSTS resolved to an empty set; using the built-in default")
+    REPORT_HOSTS = {h.strip().lower() for h in _REPORT_HOSTS_DEFAULT.split(',')}
 
 # Static resources to exclude from visitor counts
 STATIC_EXTENSIONS = {'.js', '.css', '.png', '.jpg', '.jpeg', '.gif', '.svg', '.ico', '.woff', '.woff2', '.ttf', '.eot', '.map'}
@@ -234,15 +240,22 @@ def send_email_report(subject: str, body: str) -> bool:
     msg.set_content(body)
 
     try:
+        # Explicit context: smtplib's own default (context=None) falls back to
+        # ssl._create_stdlib_context, which does not verify the certificate or
+        # the hostname -- unverified even on 3.12. create_default_context is
+        # what actually turns this connection on, matching romania/send_mail.py.
+        tls_context = ssl.create_default_context()
         if CONFIG['smtp_secure']:
             # Implicit TLS, port 465.
-            with smtplib.SMTP_SSL(CONFIG['smtp_host'], CONFIG['smtp_port'], timeout=30) as smtp:
+            with smtplib.SMTP_SSL(
+                CONFIG['smtp_host'], CONFIG['smtp_port'], timeout=30, context=tls_context,
+            ) as smtp:
                 smtp.login(CONFIG['smtp_user'], CONFIG['smtp_pass'])
                 smtp.send_message(msg)
         else:
             # STARTTLS, port 587 -- Apple's submission default.
             with smtplib.SMTP(CONFIG['smtp_host'], CONFIG['smtp_port'], timeout=30) as smtp:
-                smtp.starttls()
+                smtp.starttls(context=tls_context)
                 smtp.login(CONFIG['smtp_user'], CONFIG['smtp_pass'])
                 smtp.send_message(msg)
         return True
@@ -371,8 +384,21 @@ def _psql(query: str) -> Optional[str]:
             ['psql', '-h', host, '-p', port, '-U', user, '-d', database, '-t', '-A', '-c', query],
             capture_output=True, text=True, env=env, timeout=15,
         )
-        return r.stdout.strip() if r.returncode == 0 else None
-    except Exception:
+        if r.returncode != 0:
+            # Without this, every one of the report's N/A-seeded figures looks
+            # identical whether the table is missing, the role lacks a grant,
+            # or the query has a typo -- and the only way to tell them apart
+            # used to be running the query by hand.
+            logger.warning(
+                "psql query failed (exit %s): %s", r.returncode, r.stderr.strip()[:500],
+            )
+            return None
+        return r.stdout.strip()
+    except subprocess.TimeoutExpired:
+        logger.warning("psql query timed out after 15s")
+        return None
+    except Exception as exc:
+        logger.warning("psql query raised %s: %s", type(exc).__name__, exc)
         return None
 
 
@@ -455,8 +481,14 @@ def get_questionnaire_stats(target_date: datetime) -> Dict[str, Any]:
 
     # The two gate questions, stored encrypted. Two rows per submission is the
     # healthy shape; anything less means the encryption path is dropping answers
-    # while the gate still hands back a token.
-    v = _psql(f"SELECT COUNT(*) FROM gate_encrypted_answers WHERE created_at::date = '{d}'")
+    # while the gate still hands back a token. gate_encrypted_answers also
+    # holds questionnaire rows at indices 2-34 -- filtered out here, or
+    # ordinary questionnaire activity inflates this figure and hides a real
+    # gate-encryption drop.
+    v = _psql(
+        f"SELECT COUNT(*) FROM gate_encrypted_answers "
+        f"WHERE created_at::date = '{d}' AND question_index <= 1"
+    )
     if v is not None and v.isdigit():
         stats['gate_answers_today'] = int(v)
 
@@ -671,9 +703,15 @@ def get_audience_stats(target_date: datetime) -> Dict[str, Any]:
     # Expected windows: six in a whole day, fewer when the report runs part-way
     # through one. Comparing against a flat 6 made the 08:00 report accuse a
     # perfectly healthy counter of having stopped.
+    #
+    # Counts only COMPLETED windows: recordVisit only opens a window after a
+    # request lands in it, and persist skips an empty window, so at an exact
+    # 4-hour boundary (e.g. 08:00:00) the window that just started has no row
+    # yet. now.hour // 4 + 1 would require that row to exist a moment before
+    # it can, reporting 2/3 for a counter that has not missed anything.
     now = datetime.now(timezone.utc)
     if target_date.strftime('%Y-%m-%d') == now.strftime('%Y-%m-%d'):
-        expected = now.hour // 4 + 1
+        expected = now.hour // 4
     else:
         expected = 6
 
