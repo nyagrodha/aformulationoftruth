@@ -22,6 +22,33 @@ const unb64 = (text) => Uint8Array.from(atob(text), (c) => c.charCodeAt(0));
  * envelope is pasted in from whatever channel the message travelled through,
  * and the passphrase is whatever is in the box when the button is clicked.
  */
+const MAX_SALT_BYTES = 64;
+const MAX_IV_BYTES = 16;
+const MAX_CIPHERTEXT_BYTES = 1048576;
+
+/*
+ * unb64 allocates before anything inspects the input, so an envelope field is
+ * decoded at whatever size it arrives. Bound each one first.
+ *
+ * Base64 carries 3 bytes per 4 characters, so the decoded size is known from
+ * the string length alone — checking it before atob is the whole point, since
+ * checking after has already done the allocation being guarded against.
+ *
+ * Bounded by maximum rather than pinned to the exact 16 and 12 this page
+ * writes: the format is published on the page as a spec, so an implementation
+ * that picks a 32-byte salt is legitimate and should still open. The limit
+ * refuses what is absurd, not what merely differs.
+ */
+function decodeField(name, text, maxBytes) {
+  if (typeof text !== 'string' || text.length === 0) {
+    throw new Error(`envelope is missing ${name}`);
+  }
+  if ((text.length * 3) / 4 > maxBytes + 3) {
+    throw new Error(`envelope ${name} is larger than the ${maxBytes} bytes this page will decode`);
+  }
+  return unb64(text);
+}
+
 const DEFAULT_ITERATIONS = 250000;
 const MAX_ITERATIONS = 1000000;
 
@@ -105,13 +132,13 @@ document.getElementById('decrypt').onclick = async () => {
     const envelope = JSON.parse(sealedEl.value);
     const key = await keyFromPassphrase(
       checkedPassphrase(openPassphraseEl.value),
-      unb64(envelope.salt),
+      decodeField('salt', envelope.salt, MAX_SALT_BYTES),
       checkedIterations(envelope.iterations),
     );
     const plaintext = await crypto.subtle.decrypt(
-      { name: 'AES-GCM', iv: unb64(envelope.iv) },
+      { name: 'AES-GCM', iv: decodeField('iv', envelope.iv, MAX_IV_BYTES) },
       key,
-      unb64(envelope.data),
+      decodeField('data', envelope.data, MAX_CIPHERTEXT_BYTES),
     );
     openedEl.textContent = dec.decode(plaintext);
   } catch (err) {
