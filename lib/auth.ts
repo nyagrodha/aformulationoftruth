@@ -126,10 +126,20 @@ export async function createMagicLink(email: string): Promise<MagicLinkResult> {
 export async function markMagicLinkOpened(emailHash: string): Promise<void> {
   try {
     await withConnection(async (client) => {
+      // Only the newest unused row. The schema has no constraint limiting
+      // unused rows to one per email_hash, so a resend before this link was
+      // opened can leave more than one -- marking all of them used would
+      // still be measurement-only (see the docstring above), but it would
+      // inflate "links opened" past what was actually clicked once.
       await client.queryObject(
         `UPDATE fresh_magic_links
             SET used_at = NOW()
-          WHERE email_hash = $1 AND used_at IS NULL`,
+          WHERE id = (
+            SELECT id FROM fresh_magic_links
+             WHERE email_hash = $1 AND used_at IS NULL
+             ORDER BY created_at DESC, id DESC
+             LIMIT 1
+          )`,
         [emailHash],
       );
     });

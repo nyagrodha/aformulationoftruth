@@ -79,6 +79,14 @@ export function domainOf(email: string): string | null {
   const raw = email.slice(at + 1).trim().replace(/\.$/, '');
   if (raw === '') return null;
 
+  // A domain has no port, path, query, or fragment -- so reject anything
+  // shaped like one before it ever reaches the URL parser. Left unguarded,
+  // `new URL('http://' + raw).hostname` silently drops a suffix like this
+  // and returns the bare host, so `example.com/x`, `example.com:443`, and
+  // `example.com?x` would each pass as plain `example.com` instead of being
+  // rejected as the malformed domains they are.
+  if (/[/:?#]/.test(raw)) return null;
+
   // Through the URL parser, which applies IDNA and hands back punycode. Without
   // it a domain written in its own script -- and the whole point of an
   // internationalised domain is that people write them that way -- fails the

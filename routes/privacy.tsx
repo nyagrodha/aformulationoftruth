@@ -130,8 +130,8 @@ export default function PrivacyPage() {
           discarded the same way.
         </p>
         <p>
-          We count how many people visit, and nothing else. No identifier for you is kept — what is written down is a
-          number. We do not track.
+          We keep an aggregate estimate of visits, and nothing else. No identifier for you is kept — what is written
+          down is a number. We do not track.
         </p>
         <p>These logs are never used for tracking or profiling and are retained only for operational security.</p>
 

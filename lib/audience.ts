@@ -36,11 +36,14 @@
  *
  * ## What the number means
  *
- * An UPPER BOUND on people, not an estimate. A visitor at 09:00 and again at
- * 20:00 spans two windows and is counted twice; a process restart opens a new
- * window and counts them again. The scheme can split one person into several
- * but can never merge two people into one, so it only ever over-counts. Report
- * it as a bound or it is a wrong number wearing a right number's clothes.
+ * An aggregate of process-local IP-and-user-agent pseudonyms, not a count of
+ * people. A visitor at 09:00 and again at 20:00 spans two windows and is
+ * counted twice; a process restart opens a new window and counts them again --
+ * so the scheme can split one person into several. It can also merge two
+ * people into one: anyone sharing both an IP and a user agent with someone
+ * else in the same window -- two people behind the same NAT on the same
+ * browser build, say -- produces the same digest and is counted once. Report
+ * it as an estimate, not a bound.
  *
  * ## Single-process assumption
  *
@@ -104,13 +107,17 @@ interface Counters {
   seen: Set<string>;
   botSeen: Set<string>;
   requests: number;
+  /**
+   * This site's tracked set hit MAX_TRACKED. Per-site: one bucket filling up
+   * says nothing about any other site's count.
+   */
+  truncated: boolean;
 }
 
 interface OpenWindow {
   start: number;
   key: CryptoKey;
   bySite: Map<Site, Counters>;
-  truncated: boolean;
 }
 
 let open: OpenWindow | null = null;
@@ -146,7 +153,7 @@ export function audienceHash(key: CryptoKey, ip: string, userAgent: string): Pro
 }
 
 function emptyCounters(): Counters {
-  return { seen: new Set(), botSeen: new Set(), requests: 0 };
+  return { seen: new Set(), botSeen: new Set(), requests: 0, truncated: false };
 }
 
 /**
@@ -161,7 +168,7 @@ async function mint(start: number): Promise<OpenWindow> {
   const raw = randomBytes(32);
   const key = await hmacKey(raw);
   raw.fill(0);
-  return { start, key, bySite: new Map(), truncated: false };
+  return { start, key, bySite: new Map() };
 }
 
 /**
@@ -206,8 +213,8 @@ export async function recordVisit(
   const bucket = isBotUserAgent(userAgent) ? counters.botSeen : counters.seen;
 
   if (bucket.size >= MAX_TRACKED && !bucket.has(digest)) {
-    if (!open.truncated) {
-      open.truncated = true;
+    if (!counters.truncated) {
+      counters.truncated = true;
       increment('visits.set_capped');
     }
     return;
@@ -232,7 +239,7 @@ async function persist(w: OpenWindow): Promise<void> {
                requests     = EXCLUDED.requests,
                truncated    = EXCLUDED.truncated,
                updated_at   = NOW()`,
-        [startedAt, site, RUN_ID, c.seen.size, c.botSeen.size, c.requests, w.truncated],
+        [startedAt, site, RUN_ID, c.seen.size, c.botSeen.size, c.requests, c.truncated],
       );
     }
   });
