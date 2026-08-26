@@ -365,9 +365,10 @@ export default function Home({ data }: PageProps<IndexData>) {
                     <a href='https://age-encryption.org' target='_blank' rel='noopener noreferrer'>age encryption</a>
                     {' '}
                     before it is stored, to a key held on another machine — so what sits in this database cannot be read
-                    here, by us or by anyone who takes it. Your address is used to deliver your link and then kept only
-                    as a SHA-256 hash. There is no tracking, no profiling, no analytics, and nothing is shared with
-                    anyone beyond that delivery.
+                    here, by us or by anyone who takes it. Your address is used to deliver your link, kept as a
+                    SHA-256 hash, and also kept age-encrypted to that same key so a copy of your answers can be sent
+                    to it later if you ask for one. There is no tracking, no profiling, no analytics, and nothing is
+                    shared with anyone beyond that delivery.
                   </p>
                   <p class='privacy-notice'>
                     We would rather not know who you are, so use an address that does not say. Anything works, including

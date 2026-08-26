@@ -604,7 +604,7 @@ export default function QuestionnairePage({ data }: PageProps<QuestionnaireData>
             <script
               // deno-lint-ignore react-no-danger
               dangerouslySetInnerHTML={{
-                __html: `document.getElementById('answer').addEventListener('keydown',function(e){` +
+                __html: `document.getElementById('answer')?.addEventListener('keydown',function(e){` +
                   `if((e.metaKey||e.ctrlKey)&&e.key==='Enter'){` +
                   `e.preventDefault();this.form.querySelector('.btn-primary').click();}});`,
               }}
