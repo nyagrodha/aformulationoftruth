@@ -130,16 +130,20 @@ document.getElementById('encrypt').onclick = async () => {
 document.getElementById('decrypt').onclick = async () => {
   try {
     const envelope = JSON.parse(sealedEl.value);
-    const key = await keyFromPassphrase(
-      checkedPassphrase(openPassphraseEl.value),
-      decodeField('salt', envelope.salt, MAX_SALT_BYTES),
-      checkedIterations(envelope.iterations),
-    );
-    const plaintext = await crypto.subtle.decrypt(
-      { name: 'AES-GCM', iv: decodeField('iv', envelope.iv, MAX_IV_BYTES) },
-      key,
-      decodeField('data', envelope.data, MAX_CIPHERTEXT_BYTES),
-    );
+    /*
+     * Validate every field first, then derive. Deriving first would spend the
+     * full PBKDF2 — up to MAX_ITERATIONS of it — before noticing that iv or
+     * data was never going to be accepted, which hands back most of the work
+     * the bound exists to prevent.
+     */
+    const salt = decodeField('salt', envelope.salt, MAX_SALT_BYTES);
+    const iv = decodeField('iv', envelope.iv, MAX_IV_BYTES);
+    const data = decodeField('data', envelope.data, MAX_CIPHERTEXT_BYTES);
+    const iterations = checkedIterations(envelope.iterations);
+    const passphrase = checkedPassphrase(openPassphraseEl.value);
+
+    const key = await keyFromPassphrase(passphrase, salt, iterations);
+    const plaintext = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, data);
     openedEl.textContent = dec.decode(plaintext);
   } catch (err) {
     openedEl.textContent = `decryption failed: ${err.message}`;
