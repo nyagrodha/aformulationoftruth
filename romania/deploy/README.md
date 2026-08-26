@@ -68,10 +68,11 @@ nothing in the code will notice.**
 ## The callback comes back down the tunnel
 
 `a4t-keybox-tunnel.service` on gimbal opens **two** forwards on one
-authenticated ssh channel:
+authenticated ssh channel. ssh runs on gimbal and connects to the key box, so
+the key box is the ssh *server* and `-R` binds there:
 
-    -L 127.0.0.1:8793:127.0.0.1:8791   gimbal -> here, to push bundles
-    -R 127.0.0.1:8794:127.0.0.1:7268   here -> gimbal, to confirm delivery
+    -L 127.0.0.1:8793:127.0.0.1:8791   binds on gimbal   -> key box render service, to push bundles
+    -R 127.0.0.1:8794:127.0.0.1:7268   binds on key box  -> gimbal web tier, to confirm delivery
 
 So the confirmation never crosses the public internet. It used to: the key box
 posted to `https://aformulationoftruth.com` from a public IP, through Caddy,
