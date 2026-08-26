@@ -46,3 +46,78 @@ Deno.test('messenger script cannot transmit: plaintext never leaves the browser'
     assertEquals(source.includes(sink), false, `messenger.js must not reach the network, found: ${sink}`);
   }
 });
+
+/*
+ * messenger.js calls document.getElementById at module scope, so it cannot be
+ * imported here. The two guards are pure though, so lift them out of the source
+ * and exercise them for real rather than asserting the file merely mentions a
+ * constant. The slice is bounded by the first function that touches WebCrypto,
+ * so reordering the file fails this loudly instead of silently testing nothing.
+ */
+function loadGuards() {
+  const src = Deno.readTextFileSync(new URL('../public/js/messenger.js', import.meta.url));
+  const start = src.indexOf('const DEFAULT_ITERATIONS');
+  const end = src.indexOf('async function keyFromPassphrase');
+  if (start < 0 || end < 0 || end <= start) throw new Error('guards not found in messenger.js');
+  return new Function(
+    `${src.slice(start, end)}; return { checkedIterations, checkedPassphrase };`,
+  )() as {
+    checkedIterations: (v: unknown) => number;
+    checkedPassphrase: (v: unknown) => string;
+  };
+}
+
+/*
+ * The envelope is pasted in from wherever the message travelled, so iterations
+ * is attacker-controlled. deriveKey runs PBKDF2 on the main thread: 1e12 would
+ * freeze the tab outright, with no error and nothing to cancel.
+ */
+Deno.test('a hostile iteration count is refused rather than run', () => {
+  const { checkedIterations } = loadGuards();
+  for (const hostile of [1e12, 1_000_001, 0, -1, 1.5, NaN, Infinity, '250000', true, {}]) {
+    let threw = false;
+    try {
+      checkedIterations(hostile);
+    } catch {
+      threw = true;
+    }
+    assertEquals(threw, true, `iterations ${hostile} should be refused`);
+  }
+});
+
+/* Absent stays 250000: v1 envelopes omit the field entirely. */
+Deno.test('a legitimate iteration count still opens', () => {
+  const { checkedIterations } = loadGuards();
+  assertEquals(checkedIterations(undefined), 250000);
+  assertEquals(checkedIterations(null), 250000);
+  assertEquals(checkedIterations(250000), 250000);
+  assertEquals(checkedIterations(1_000_000), 1_000_000);
+});
+
+/*
+ * An empty passphrase derives a key anyone can rederive while the envelope
+ * still looks sealed — the exact failure the page's promise rules out.
+ */
+Deno.test('an empty passphrase is refused before anything is sealed', () => {
+  const { checkedPassphrase } = loadGuards();
+  for (const empty of ['', '   ', '\t\n', undefined, null]) {
+    let threw = false;
+    try {
+      checkedPassphrase(empty);
+    } catch {
+      threw = true;
+    }
+    assertEquals(threw, true, `passphrase ${JSON.stringify(empty)} should be refused`);
+  }
+});
+
+/*
+ * Validated on the trimmed value, derived from the raw one. Trimming before
+ * derivation would change the key, so a passphrase with deliberate padding
+ * would seal envelopes it could never reopen.
+ */
+Deno.test('a padded passphrase is passed through untouched', () => {
+  const { checkedPassphrase } = loadGuards();
+  assertEquals(checkedPassphrase(' pad '), ' pad ');
+  assertEquals(checkedPassphrase('secret'), 'secret');
+});

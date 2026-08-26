@@ -17,6 +17,43 @@ const b64 = (bytes) => {
 };
 const unb64 = (text) => Uint8Array.from(atob(text), (c) => c.charCodeAt(0));
 
+/*
+ * Everything below reaches these functions from somewhere untrusted: the
+ * envelope is pasted in from whatever channel the message travelled through,
+ * and the passphrase is whatever is in the box when the button is clicked.
+ */
+const DEFAULT_ITERATIONS = 250000;
+const MAX_ITERATIONS = 1000000;
+
+/*
+ * deriveKey runs PBKDF2 on the main thread, so a hostile {"iterations":1e12}
+ * freezes the tab with nothing to cancel and no error -- the page just stops.
+ * Bound it instead of trusting it. The ceiling is 4x what this page writes, so
+ * an envelope hardened elsewhere still opens while a hostile one fails fast
+ * with a message. Absent stays 250000: v1 envelopes omit the field entirely.
+ */
+function checkedIterations(value) {
+  if (value === undefined || value === null) return DEFAULT_ITERATIONS;
+  if (!Number.isInteger(value) || value < 1 || value > MAX_ITERATIONS) {
+    throw new Error(`iterations must be a whole number from 1 to ${MAX_ITERATIONS}, got ${value}`);
+  }
+  return value;
+}
+
+/*
+ * An empty passphrase seals nothing: it derives a key anyone can rederive, and
+ * the envelope still looks sealed, which is the failure the page's own promise
+ * -- "only the holder of the passphrase should read" -- rules out.
+ *
+ * Validate on the trimmed value but derive from the raw one. Trimming before
+ * derivation would silently change the key, so a passphrase with deliberate
+ * leading or trailing spaces would seal envelopes it could never reopen.
+ */
+function checkedPassphrase(value) {
+  if (!value || !value.trim()) throw new Error('a passphrase is required');
+  return value;
+}
+
 async function keyFromPassphrase(passphrase, salt, iterations) {
   const material = await crypto.subtle.importKey(
     'raw',
@@ -38,8 +75,8 @@ document.getElementById('encrypt').onclick = async () => {
   try {
     const salt = crypto.getRandomValues(new Uint8Array(16));
     const iv = crypto.getRandomValues(new Uint8Array(12));
-    const iterations = 250000;
-    const key = await keyFromPassphrase(passphraseEl.value, salt, iterations);
+    const iterations = DEFAULT_ITERATIONS;
+    const key = await keyFromPassphrase(checkedPassphrase(passphraseEl.value), salt, iterations);
     const data = await crypto.subtle.encrypt(
       { name: 'AES-GCM', iv },
       key,
@@ -67,9 +104,9 @@ document.getElementById('decrypt').onclick = async () => {
   try {
     const envelope = JSON.parse(sealedEl.value);
     const key = await keyFromPassphrase(
-      openPassphraseEl.value,
+      checkedPassphrase(openPassphraseEl.value),
       unb64(envelope.salt),
-      envelope.iterations || 250000,
+      checkedIterations(envelope.iterations),
     );
     const plaintext = await crypto.subtle.decrypt(
       { name: 'AES-GCM', iv: unb64(envelope.iv) },
