@@ -609,40 +609,31 @@ def averages(hist: list, keys: list) -> Dict[str, Optional[float]]:
     return out
 
 
-def _coverage_lines(a: Dict[str, Any]) -> List[str]:
-    """The "was the counter up" figure, closed windows against closed windows.
+def _traffic_window_lines(a: Dict[str, Any]) -> List[str]:
+    """Traffic-bearing closed windows, without treating silence as downtime.
 
-    Kept apart from _audience_lines because the honest reading changes shape
-    before 04:00 UTC, when no window has closed and a ratio would be 0 / 0 --
-    a number that looks like a fault and is not one.
+    fresh_audience_windows has no row for a window in which no request arrived,
+    so this is a traffic pattern, not a recorder-health or coverage signal.
     """
-    expected = a.get('expected_windows', 0)
-    if expected == 0:
+    closed = a.get('closed_windows', 0)
+    if closed == 0:
         return line(
-            "Windows recorded", "none closed yet",
+            "Traffic-bearing windows", "none closed yet",
             "Today's first window closes at 04:00 UTC. The figures above come "
             "from the window still open.",
         )
     return line(
-        "Windows recorded", f"{a['windows']} / {expected}",
-        "Closed 4-hour windows recorded, against those that have closed. The "
-        "open window is excluded from both sides. Short means the counter was "
-        "down for a whole window; restarts show below, not here.",
+        "Traffic-bearing windows", f"{a['traffic_windows']} / {closed}",
+        "Closed 4-hour windows containing at least one request, out of the "
+        "windows closed so far. Quiet windows leave no row, so this does not "
+        "measure recorder health or coverage.",
     )
 
 
 def _audience_lines(a: Dict[str, Any]) -> List[str]:
-    """The audience section, or a fault. A silent 0 is how the old counter hid."""
+    """The audience section, or a database-read fault."""
     if not a.get('available'):
         return ["  COUNTER UNREACHABLE - could not read fresh_audience_windows."]
-    if not a.get('any_rows'):
-        return [
-            "  RECORDER NOT RUNNING - no windows recorded at all.",
-            *_wrap(
-                "One row per 4-hour window is expected. None means the counter "
-                "is down, not that nobody came -- see Requests below."
-            ),
-        ]
 
     out = line(
         "People (upper bound)", a['visitors'],
@@ -657,7 +648,7 @@ def _audience_lines(a: Dict[str, Any]) -> List[str]:
         "Requests seen", a['requests'],
         "Every request the counter saw, repeats included. The denominator "
         "above, not a headcount.",
-    ) + _coverage_lines(a)
+    ) + _traffic_window_lines(a)
 
     if a.get('split_windows'):
         out.extend(line(
@@ -677,22 +668,10 @@ def _audience_lines(a: Dict[str, Any]) -> List[str]:
 def get_audience_stats(target_date: datetime) -> Dict[str, Any]:
     """Visitor counts from the app-side counter (fresh_audience_windows).
 
-    Two questions are asked of one table and they need different scopes.
-
-    The FIGURES -- people, previews, requests -- are about this site, so they
-    stay filtered to site='a4t'. COVERAGE, meaning "was the counter running",
-    is a property of the process, and the process counts every host it serves:
-    a four-hour stretch in which only gimbal.fobdongle.com was hit is a window
-    the counter recorded, not a hole in it. Coverage is therefore asked across
-    all sites, and a quiet stretch on a4t no longer reads as an outage.
-
-    Coverage counts CLOSED windows, on both sides of the comparison. The report
-    runs at 08:00 UTC, which is itself a window boundary: the window opening at
-    that instant has no row yet -- the app's flush timer reaches it up to a
-    minute later -- so counting it as expected made the morning report accuse a
-    healthy counter of having stopped every single day, and, through
-    windows_complete, drop the Telegram gate-conversion line along with it.
-    Closed against closed, and the boundary stops mattering.
+    The people, preview, and request figures are site-specific. The distinct
+    window count spans all sites because it describes when this shared process
+    saw traffic. It deliberately is not recorder health: quiet windows have no
+    fresh_audience_windows row at all.
     """
     day = target_date.strftime('%Y-%m-%d')
     span_end = (target_date + timedelta(days=1)).strftime('%Y-%m-%d') + 'T00:00:00+00'
@@ -719,14 +698,13 @@ def get_audience_stats(target_date: datetime) -> Dict[str, Any]:
         # over a4t windows is therefore the number of windows whose People
         # figure was counted twice from an empty set.
         "COUNT(*) FILTER (WHERE site='a4t') "
-        "  - COUNT(DISTINCT window_start) FILTER (WHERE site='a4t'), "
-        "COUNT(*) "
+        "  - COUNT(DISTINCT window_start) FILTER (WHERE site='a4t') "
         "FROM fresh_audience_windows WHERE "
         f"window_start >= '{day}T00:00:00+00' AND window_start < '{span_end}'"
     )
     if not row:
         return {'available': False}
-    v, b, r, trunc, windows, runs, split, rows = (row.split('|') + [''] * 8)[:8]
+    v, b, r, trunc, traffic_windows, runs, split = (row.split('|') + [''] * 7)[:7]
 
     return {
         'available': True,
@@ -734,14 +712,10 @@ def get_audience_stats(target_date: datetime) -> Dict[str, Any]:
         'bot_visitors': int(b or 0),
         'requests': int(r or 0),
         'truncated': (trunc or 'f') == 't',
-        'windows': int(windows or 0),
+        'traffic_windows': int(traffic_windows or 0),
         'runs': int(runs or 0),
         'split_windows': int(split or 0),
-        # Any row at all, the open window included. The "not running" fault
-        # keys on this rather than on closed-window coverage, which is
-        # legitimately zero on every report run before 04:00 UTC.
-        'any_rows': int(rows or 0) > 0,
-        'expected_windows': expected,
+        'closed_windows': expected,
     }
 
 
@@ -1528,10 +1502,6 @@ def generate_report(
         'distinct': q_stats.get('distinct_addresses_today'),
         'finished': q_stats.get('finished_today'),
         'abandoned': q_stats.get('superseded_today'),
-        'windows_complete': (
-            audience_stats.get('windows') >= audience_stats.get('expected_windows')
-            if audience_stats.get('available') else False
-        ),
     }
 
     return "\n".join(report_lines), summary, metrics_stats
@@ -1580,7 +1550,7 @@ def send_report(
     people = summary.get('visitors')
     addresses = summary.get('addresses')
     if isinstance(people, int) and isinstance(addresses, int) and people > 0:
-        if addresses > people or not summary.get('windows_complete', True):
+        if addresses > people:
             # The audience counter is a ceiling on people, so a ratio over 100%
             # is not a triumph -- it means the counter missed part of the day
             # (it started mid-day, or the app restarted). Printing "709%" once
