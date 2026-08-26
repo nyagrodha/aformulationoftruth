@@ -686,8 +686,17 @@ def get_audience_stats(target_date: datetime) -> Dict[str, Any]:
         expected = 6
         cutoff = span_end
 
+    # cutoff/day/span_end are timestamps this function derives from
+    # target_date, never from an HTTP request: target_date is either
+    # datetime.now() or, from main(), sys.argv[1] rejected by
+    # datetime.strptime(..., '%Y-%m-%d') unless it is exactly a calendar
+    # date -- no quote or other SQL metacharacter can survive that parse.
+    # psql's -c mode (unlike -f) does not honor :'var' substitution, so
+    # binding these as query parameters isn't available without switching
+    # _psql's transport; ruff's S608 is a string-construction heuristic
+    # with no attacker-controlled input on this path.
     row = _psql(
-        "SELECT COALESCE(SUM(visitors) FILTER (WHERE site='a4t'),0), "
+        "SELECT COALESCE(SUM(visitors) FILTER (WHERE site='a4t'),0), "  # noqa: S608
         "COALESCE(SUM(bot_visitors) FILTER (WHERE site='a4t'),0), "
         "COALESCE(SUM(requests) FILTER (WHERE site='a4t'),0), "
         "COALESCE(BOOL_OR(truncated) FILTER (WHERE site='a4t'),false), "
