@@ -33,7 +33,14 @@ function getJwtSecret(): string {
   return secret;
 }
 
-const JWT_VALIDITY_HOURS = 24;
+/**
+ * Exported so callers that report a credential's lifetime to a client -- in a
+ * response body, a log line -- derive it from here rather than from
+ * createMagicLink's unrelated fresh_magic_links row expiry (15 minutes, and
+ * nothing authenticates against that row). Keeping one number in one place is
+ * what stops the two from drifting apart again.
+ */
+export const JWT_VALIDITY_HOURS = 24;
 
 export interface JWTPayload {
   email_hash: string; // For client-side encryption key derivation

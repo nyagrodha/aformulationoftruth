@@ -27,7 +27,7 @@ import { z } from 'zod';
 import { createMagicLink } from '../../../lib/auth.ts';
 import { hashEmail } from '../../../lib/crypto.ts';
 import { startOrResumeSession } from '../../../lib/questionnaire-session.ts';
-import { createQuestionnaireJWT } from '../../../lib/jwt.ts';
+import { createQuestionnaireJWT, JWT_VALIDITY_HOURS } from '../../../lib/jwt.ts';
 import { increment } from '../../../lib/metrics.ts';
 import { sendMagicLinkEmail } from '../../../lib/email.ts';
 
@@ -64,7 +64,7 @@ export const handler: Handlers = {
       const { email, gateToken } = parsed.data;
 
       // Step 1: Create magic link (for email delivery verification)
-      const { token: magicToken, expiresAt } = await createMagicLink(email);
+      const { expiresAt } = await createMagicLink(email);
 
       // Step 2: Hash email immediately
       const emailHash = await hashEmail(email);
@@ -108,7 +108,13 @@ export const handler: Handlers = {
       return new Response(
         JSON.stringify({
           message: 'Magic link sent',
-          expiresAt: expiresAt.toISOString(),
+          // NOT expiresAt from createMagicLink -- that names the
+          // fresh_magic_links row's 15-minute lifetime, and nothing
+          // authenticates against that row. The link carries a JWT good for
+          // JWT_VALIDITY_HOURS; publishing the row's shorter figure here
+          // would tell a caller the credential expires four times sooner
+          // than it does.
+          expiresAt: new Date(Date.now() + JWT_VALIDITY_HOURS * 60 * 60 * 1000).toISOString(),
           // Development only - remove in production
           ...(Deno.env.get('DENO_ENV') !== 'production' && {
             _devLink: magicLinkUrl,

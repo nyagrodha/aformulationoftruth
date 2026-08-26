@@ -21,7 +21,7 @@ import { hashEmail } from '../../lib/crypto.ts';
 import { findActiveSession, markLinkSent, mayResend, startOrResumeSession } from '../../lib/questionnaire-session.ts';
 import { jwtCookie } from '../../lib/session-auth.ts';
 import { verifyAddressDeliverable } from '../../lib/email-address.ts';
-import { createQuestionnaireJWT } from '../../lib/jwt.ts';
+import { createQuestionnaireJWT, JWT_VALIDITY_HOURS } from '../../lib/jwt.ts';
 import { increment, trackFunnelQuestion } from '../../lib/metrics.ts';
 import { sendMagicLinkEmail } from '../../lib/email.ts';
 import { GATE_QUESTIONS, storeEncryptedAnswer } from '../../lib/gate_encrypt.ts';
@@ -281,7 +281,7 @@ export const handler: Handlers = {
       console.log('[gate-submit] Gate answers encrypted and stored');
 
       // Step 3: Create magic link
-      const { token: magicToken, expiresAt } = await createMagicLink(email);
+      const { expiresAt } = await createMagicLink(email);
 
       // Step 4b: If this entry began at a wearable's QR (/w/:token planted
       // the cookie), record the encounter -- pseudonymous, hash only.
@@ -387,10 +387,10 @@ export const handler: Handlers = {
           // Deliberately NOT expiresAt from createMagicLink. That is the
           // fresh_magic_links row's 15-minute lifetime, and nothing
           // authenticates against that row -- the link carries a JWT good for
-          // 24 hours. Publishing the 15 minutes here would reintroduce, in
-          // machine-readable form, the same false claim this change removes
-          // from the email body.
-          sessionExpiresInHours: 24,
+          // JWT_VALIDITY_HOURS. Publishing the 15 minutes here would
+          // reintroduce, in machine-readable form, the same false claim this
+          // change removes from the email body.
+          sessionExpiresInHours: JWT_VALIDITY_HOURS,
         }),
         { status: 200, headers },
       );
