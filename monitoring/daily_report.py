@@ -652,7 +652,7 @@ def _audience_lines(a: Dict[str, Any]) -> List[str]:
 
     if a.get('split_windows'):
         out.extend(line(
-            "Windows split by a restart", a['split_windows'],
+            "Extra runs from restarts", a['split_windows'],
             "The app restarted mid-window and began counting from empty, so "
             "People above is inflated by an unrecoverable amount.",
         ))
