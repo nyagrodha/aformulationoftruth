@@ -16,6 +16,11 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://aformulationoftruth.com/messenger</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://aformulationoftruth.com/privacy</loc>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
