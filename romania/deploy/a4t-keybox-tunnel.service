@@ -1,0 +1,47 @@
+[Unit]
+Description=SSH tunnel to the key box render service (Romania)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=ahamahamahakaha
+# Hardening: this unit only ever opens an outbound ssh channel with a private
+# key. It writes nothing to disk, needs no elevated capability, and has no
+# business touching the rest of the filesystem or /home.
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=read-only
+# Two forwards on one authenticated channel, in opposite directions.
+#
+#   -L 8793 -> the key box's render service. The web tier pushes bundles here.
+#   -R 8794 -> back to this box's web tier. The key box posts delivery
+#              confirmations here, so that callback never crosses the public
+#              internet: before this it went to https://aformulationoftruth.com,
+#              through Caddy, from a public IP, guarded by a bearer token alone.
+#
+# Both ends bind 127.0.0.1 only. ExitOnForwardFailure is what makes that a
+# guarantee rather than a hope -- if either forward cannot be established the
+# ssh exits and systemd retries, instead of running half a tunnel and leaving
+# one direction silently dead.
+#
+# UpdateHostKeys=no: the key box's host key must be provisioned into
+# ~ahamahamahakaha/.ssh/known_hosts out of band and verified independently
+# (e.g. compared against a key fingerprint recorded at provisioning time), not
+# learned from whatever the server presents. With StrictHostKeyChecking=yes
+# and BatchMode=yes, a known_hosts file that does not already contain that key
+# is not a soft failure -- ssh refuses to connect and the unit sits in a
+# restart loop, which is the correct failure mode for a channel a private key
+# and a delivery callback both depend on.
+ExecStart=/usr/bin/ssh -N -T \
+  -o BatchMode=yes -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes \
+  -o UpdateHostKeys=no \
+  -o ExitOnForwardFailure=yes -o ServerAliveInterval=30 -o ServerAliveCountMax=3 \
+  -i /home/ahamahamahakaha/.ssh/keybox_ed25519 -p 2078 \
+  -L 127.0.0.1:8793:127.0.0.1:8791 \
+  -R 127.0.0.1:8794:127.0.0.1:7268 liar@aformulationiontruth.com
+Restart=always
+RestartSec=10s
+
+[Install]
+WantedBy=multi-user.target

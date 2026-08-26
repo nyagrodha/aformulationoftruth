@@ -146,8 +146,10 @@ export const handler: Handlers = {
     const questionOrder = parseQuestionOrder(session.questionOrder);
     const totalQuestions = questionOrder.length;
 
-    // Check if completed
-    if (session.currentIndex >= totalQuestions) {
+    // Completed either by having run out of questions or by a stamped
+    // completed_at -- the second is newly reachable here because
+    // getSessionByToken no longer hides finished sessions from its callers.
+    if (session.completedAt || session.currentIndex >= totalQuestions) {
       increment('questions.completed');
       return new Response(
         JSON.stringify({

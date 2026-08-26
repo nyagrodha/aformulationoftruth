@@ -33,13 +33,37 @@ function getJwtSecret(): string {
   return secret;
 }
 
-const JWT_VALIDITY_HOURS = 24;
+/**
+ * Exported so callers that report a credential's lifetime to a client -- in a
+ * response body, a log line -- derive it from here rather than from
+ * createMagicLink's unrelated fresh_magic_links row expiry (15 minutes, and
+ * nothing authenticates against that row). Keeping one number in one place is
+ * what stops the two from drifting apart again.
+ */
+export const JWT_VALIDITY_HOURS = 24;
 
 export interface JWTPayload {
   email_hash: string; // For client-side encryption key derivation
   session_id: string; // HMAC hash of opaque token
   iat: number; // Issued at (Unix timestamp)
   exp: number; // Expiration (Unix timestamp)
+  /**
+   * How the holder proved they may use this session.
+   *
+   * 'link' means they clicked a link delivered to the address -- proof that
+   * they control the mailbox. 'gate' means they merely typed the address into
+   * the gate form and were let straight in, which proves nothing: anyone can
+   * type anyone's address.
+   *
+   * Answering questions is fine either way. Asking for a copy to be MAILED is
+   * not, because that turns the site into a way to send unsolicited post to a
+   * stranger, so /api/responses/deliver requires 'link'.
+   *
+   * Optional, and read as 'link' when absent: tokens minted before this claim
+   * existed all came from an emailed link, and there were 2,768 of them
+   * outstanding when it was added.
+   */
+  via?: 'gate' | 'link';
 }
 
 /**
@@ -61,11 +85,13 @@ function getFutureTimestamp(seconds: number): number {
  *
  * @param emailHash - SHA-256 hash of email (for client-side encryption)
  * @param sessionId - HMAC hash of opaque token (session identifier)
+ * @param via - How the holder proved they may use this session; see JWTPayload
  * @returns JWT token string
  */
 export async function createQuestionnaireJWT(
   emailHash: string,
   sessionId: string,
+  via: 'gate' | 'link' = 'link',
 ): Promise<string> {
   const secret = getJwtSecret();
 
@@ -84,6 +110,7 @@ export async function createQuestionnaireJWT(
     session_id: sessionId,
     iat: getCurrentTimestamp(),
     exp: getFutureTimestamp(JWT_VALIDITY_HOURS * 60 * 60),
+    via,
   };
 
   // Create JWT header
@@ -170,6 +197,14 @@ export async function verifyQuestionnaireJWT(
     if (!payload.email_hash || !payload.session_id) {
       console.error('[jwt] Missing required fields');
       return null;
+    }
+
+    // A token minted before the `via` claim existed came from an emailed link,
+    // because that was the only way in. Defaulting it here rather than at each
+    // reader keeps the 24-hour overlap after deploy from silently downgrading
+    // people who are mid-questionnaire.
+    if (payload.via !== 'gate' && payload.via !== 'link') {
+      payload.via = 'link';
     }
 
     return payload;

@@ -54,8 +54,36 @@ nothing in the code will notice.**
     RENDER_PORT             default 8791
     KEYBOX_KEY_DIR          default /home/liar/keybox (0700)
     RENDER_WORK_ROOT        default /tmp (tmpfs + PrivateTmp)
-    RENDER_CALLBACK_URL     web tier, to stamp pdf_delivered_at
-    RENDER_CALLBACK_TOKEN
+    RENDER_CALLBACK_URL     web tier, to stamp pdf_delivered_at. The service
+                            POSTs to `$RENDER_CALLBACK_URL/delivered`, so the
+                            path segment matters — the origin alone gives a
+                            404, which is exactly how this went unnoticed until
+                            2026-08-19. Set it to
+                            `http://127.0.0.1:8794/api/responses`: see
+                            "The callback comes back down the tunnel" below.
+    RENDER_CALLBACK_TOKEN   must equal RENDER_CALLBACK_TOKEN in the web tier's
+                            .env, or the callback 401s and the shred clock
+                            never starts
+
+## The callback comes back down the tunnel
+
+`a4t-keybox-tunnel.service` on gimbal opens **two** forwards on one
+authenticated ssh channel. ssh runs on gimbal and connects to the key box, so
+the key box is the ssh *server* and `-R` binds there:
+
+    -L 127.0.0.1:8793:127.0.0.1:8791   binds on gimbal   -> key box render service, to push bundles
+    -R 127.0.0.1:8794:127.0.0.1:7268   binds on key box  -> gimbal web tier, to confirm delivery
+
+So the confirmation never crosses the public internet. It used to: the key box
+posted to `https://aformulationoftruth.com` from a public IP, through Caddy,
+protected by a bearer token alone. Now both directions ride the same channel,
+both ends bind loopback only, and `ExitOnForwardFailure=yes` means a tunnel
+that cannot establish *both* forwards exits and retries rather than running
+half-open with one direction silently dead.
+
+Plain HTTP on 8794 is correct, not an oversight — ssh is the transport
+security, and terminating TLS inside an already-encrypted tunnel would buy
+nothing.
     SMTP_HOST/PORT/SECURE/USER/PASS, FROM_EMAIL
 
 Port 465 is blocked outbound from some hosts in this fleet; 587/STARTTLS works.

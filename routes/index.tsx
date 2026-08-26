@@ -299,6 +299,20 @@ export default function Home({ data }: PageProps<IndexData>) {
                 enctype='application/x-www-form-urlencoded'
                 autocomplete='off'
               >
+                {
+                  /*
+                  These two placeholders used to carry the instructions for the
+                  whole questionnaire -- how to answer over several sittings,
+                  and what happens if you come back. Placeholder text vanishes
+                  at the first keystroke, so the guidance was gone precisely
+                  when it became relevant, and it made the empty form look
+                  pre-filled. One of the two also promised that "the site
+                  enforces a period of waiting between submissions", which
+                  nothing in the code has ever done -- the only rate limiter
+                  here is on /api/contact. It is now said once, below, as
+                  standing text.
+                */
+                }
                 <div class='form-group'>
                   <label for='answer1'>What is your idea of perfect happiness?</label>
                   <textarea
@@ -306,7 +320,7 @@ export default function Home({ data }: PageProps<IndexData>) {
                     name='answer1'
                     rows={4}
                     maxLength={20000}
-                    placeholder='You may respond to all the questions in one session, or complete the questionnaire over the course of days... When you return simply enter the same email address you use today to login.'
+                    placeholder='One word is an answer.'
                     aria-describedby='accessibility-hint'
                   >
                   </textarea>
@@ -319,7 +333,7 @@ export default function Home({ data }: PageProps<IndexData>) {
                     name='answer2'
                     rows={4}
                     maxLength={20000}
-                    placeholder="You may only submit one questionnaire. The site enforces a period of waiting between submissions and the application will contact you via email when you're able to submit another set of responses."
+                    placeholder='One word is an answer.'
                     aria-describedby='accessibility-hint'
                   >
                   </textarea>
@@ -347,12 +361,30 @@ export default function Home({ data }: PageProps<IndexData>) {
                     placeholder='your.email@example.com'
                   />
                   <p class='privacy-notice'>
-                    All what you type is age-encrypted before storage. Your address is used once, to deliver your link
-                    through Apple's mail servers, and is never itself stored — the database keeps only a SHA-256 hash of
-                    it. We don't care to see your email address. There is no tracking, no profiling, no analytics, and
-                    nothing is shared with anyone beyond that delivery.
+                    Everything you write is encrypted with{' '}
+                    <a href='https://age-encryption.org' target='_blank' rel='noopener noreferrer'>age encryption</a>
+                    {' '}
+                    before it is stored, to a key held on another machine — so what sits in this database cannot be read
+                    here, by us or by anyone who takes it. Your address is used to deliver your link, kept as a
+                    SHA-256 hash, and also kept age-encrypted to that same key so a copy of your answers can be sent
+                    to it later if you ask for one. There is no tracking, no profiling, no analytics, and nothing is
+                    shared with anyone beyond that delivery.
+                  </p>
+                  <p class='privacy-notice'>
+                    We would rather not know who you are, so use an address that does not say. Anything works, including
+                    a throwaway: <a href='https://cock.li' target='_blank' rel='noopener noreferrer'>cock.li</a>{' '}
+                    if you want one that lasts, or{' '}
+                    <a href='https://maildrop.cc' target='_blank' rel='noopener noreferrer'>maildrop.cc</a>{' '}
+                    if you want one that does not. We only check that the domain accepts mail, never who runs it.
                   </p>
                 </div>
+
+                <p class='privacy-notice'>
+                  Answering these two takes you straight to the rest — thirty-three more, in a shuffled order that is
+                  yours alone. You can answer them all now or over several days; your place is kept for thirty days from
+                  your last visit, and returning resets the clock. The link we email is how you come back, on this
+                  device or another.
+                </p>
 
                 <button type='submit' id='gate-submit-btn' class='gate-submit'>
                   Begin

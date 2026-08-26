@@ -9,38 +9,23 @@
 import { Handlers } from '$fresh/server.ts';
 import Nav from '../islands/Nav.tsx';
 import { NAV_NOSCRIPT_CSS, PAGE_NAV } from '../components/nav-shared.ts';
-import { verifyQuestionnaireJWT } from '../lib/jwt.ts';
-import { getSessionById } from '../lib/questionnaire-session.ts';
+import { authenticateRequest, isAuthenticated } from '../lib/session-auth.ts';
+import { interstitialResponse } from '../components/Interstitial.tsx';
 import { increment } from '../lib/metrics.ts';
 
-function getCookie(cookieHeader: string | null, name: string): string | null {
-  if (!cookieHeader) return null;
-  const match = cookieHeader.match(new RegExp(`(?:^|;\\s*)${name}=([^;]*)`));
-  return match ? decodeURIComponent(match[1]) : null;
-}
-
 /**
- * Same magic-link session gate as /profile-choice: a valid `jwt` cookie
- * resolving to an active session, else redirect to the gate at `/`.
- * No PII is read or logged.
+ * Same session gate as /profile-choice, and finished sessions pass it. This
+ * page is only ever reached after the questionnaire is over, so requiring an
+ * UNfinished session -- which is what it used to do -- turned it away from
+ * exactly the people it exists for. No PII is read or logged.
  */
 export const handler: Handlers = {
   async GET(req, ctx) {
     increment('requests.api');
 
-    const jwtToken = getCookie(req.headers.get('Cookie'), 'jwt');
-    if (!jwtToken) {
-      return new Response(null, { status: 302, headers: { Location: '/' } });
-    }
-
-    const jwtPayload = await verifyQuestionnaireJWT(jwtToken);
-    if (!jwtPayload) {
-      return new Response(null, { status: 302, headers: { Location: '/' } });
-    }
-
-    const session = await getSessionById(jwtPayload.session_id);
-    if (!session) {
-      return new Response(null, { status: 302, headers: { Location: '/' } });
+    const auth = await authenticateRequest(req);
+    if (!isAuthenticated(auth)) {
+      return interstitialResponse(auth.failure);
     }
 
     return ctx.render();

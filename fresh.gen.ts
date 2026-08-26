@@ -6,6 +6,7 @@ import * as $_4m from './routes/4m.tsx';
 import * as $WillyStCo_op from './routes/WillyStCo-op.tsx';
 import * as $WillyStCoop from './routes/WillyStCoop.tsx';
 import * as $_404 from './routes/_404.tsx';
+import * as $_middleware from './routes/_middleware.ts';
 import * as $about from './routes/about.tsx';
 import * as $about_confession_albums from './routes/about/confession-albums.tsx';
 import * as $about_respondents from './routes/about/respondents.tsx';
@@ -49,6 +50,7 @@ const manifest = {
     './routes/WillyStCo-op.tsx': $WillyStCo_op,
     './routes/WillyStCoop.tsx': $WillyStCoop,
     './routes/_404.tsx': $_404,
+    './routes/_middleware.ts': $_middleware,
     './routes/about.tsx': $about,
     './routes/about/confession-albums.tsx': $about_confession_albums,
     './routes/about/respondents.tsx': $about_respondents,

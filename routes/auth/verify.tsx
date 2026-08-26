@@ -22,10 +22,12 @@
  */
 
 import { Handlers, PageProps } from '$fresh/server.ts';
-import { verifyQuestionnaireJWT } from '../../lib/jwt.ts';
+import { createQuestionnaireJWT, verifyQuestionnaireJWT } from '../../lib/jwt.ts';
 import { hashResumeToken } from '../../lib/crypto.ts';
-import { getSessionById } from '../../lib/questionnaire-session.ts';
+import { getSessionRecord, markSessionVerified } from '../../lib/questionnaire-session.ts';
 import { increment } from '../../lib/metrics.ts';
+import { sessionCookieHeaders } from '../../lib/session-auth.ts';
+import { markMagicLinkOpened } from '../../lib/auth.ts';
 
 interface VerifyData {
   success: boolean;
@@ -82,12 +84,18 @@ export const handler: Handlers<VerifyData> = {
         });
       }
 
-      // Step 4: Verify session exists and is active
-      const session = await getSessionById(sessionId);
+      // Step 4: Verify the session exists. Deliberately getSessionRecord and
+      // not getSessionById: a finished session's link must keep working, because
+      // that link is how someone comes back to collect the copy the completion
+      // page offers them.
+      const session = await getSessionRecord(sessionId);
       if (!session) {
         increment('errors.4xx');
         increment('auth.verify.session_not_found');
-        console.warn(`[auth:${requestId}] Session not found: ${sessionId}`);
+        // Category only. This used to interpolate the session id, which
+        // /var/www/CLAUDE.md names outright in its forbidden list -- the
+        // pre-commit hook does not catch template literals like that one.
+        console.warn(`[auth:${requestId}] Session not found`);
         return ctx.render({
           success: false,
           error: 'Session not found or expired',
@@ -110,26 +118,29 @@ export const handler: Handlers<VerifyData> = {
       // Success! Set cookies and redirect
       increment('auth.magiclink.verified');
 
-      const cookieOptions = [
-        'HttpOnly',
-        'Secure',
-        'SameSite=Lax',
-        'Path=/',
-      ].filter(Boolean).join('; ');
+      // Record that a link was actually opened. Nothing did this before: the
+      // used_at column was written only when a NEWER link superseded an older
+      // one, so the report's "Magic links opened" figure was a count of
+      // resubmissions -- 1,180 of them, against 1,183 repeat sessions. It has
+      // never once measured someone clicking a link.
+      await markMagicLinkOpened(jwtPayload.email_hash);
+
+      // Durable proof that somebody can read mail at this address. The `via`
+      // claim below authorises THIS request; this records it for good, which is
+      // what keeps an unverified session from squatting an address forever.
+      await markSessionVerified(sessionId);
+
+      // A FRESH token rather than the one from the URL, carrying via: 'link'.
+      // The URL token was minted at the gate, before anyone had proved they
+      // could read mail at this address; clicking the link is that proof, and
+      // this is where it gets recorded. /api/responses/deliver requires it
+      // before it will post anything to anyone.
+      const sessionJwt = await createQuestionnaireJWT(jwtPayload.email_hash, sessionId, 'link');
 
       const headers = new Headers();
-
-      // Set JWT cookie (24 hour expiry)
-      headers.append(
-        'Set-Cookie',
-        `jwt=${jwtToken}; ${cookieOptions}; Max-Age=86400`,
-      );
-
-      // Set resume token cookie (30 day expiry for long-term resumption)
-      headers.append(
-        'Set-Cookie',
-        `resume_token=${resumeToken}; ${cookieOptions}; Max-Age=2592000`,
-      );
+      for (const cookie of sessionCookieHeaders(sessionJwt, resumeToken)) {
+        headers.append('Set-Cookie', cookie);
+      }
 
       // Redirect to questionnaire
       headers.set('Location', '/questionnaire');
@@ -197,7 +208,18 @@ export default function VerifyPage({ data }: PageProps<VerifyData>) {
           <h1>Verification Failed</h1>
           <p>{data.error || 'An error occurred'}</p>
           <p>
-            <a href='/login'>Request a new magic link</a>
+            {
+              /*
+              This pointed at /login, which is a dead end in two ways: the form
+              there has no method and no action, so without JavaScript the
+              button does nothing at all; and when it does run it submits an
+              empty gate token, producing a session with no keypair, a
+              35-question order, and no way ever to be sent a copy. 66 people
+              reached this page in a day and a half and that was the only exit
+              offered them. /#begin is the live gate.
+            */
+            }
+            <a href='/#begin'>Begin again</a>
           </p>
         </div>
       </body>

@@ -43,7 +43,7 @@ export default function CheckEmail() {
               <div class='at-symbol' aria-hidden='true'>@</div>
               <h1 class='title'>
                 check your inbox
-                <span class='title-truth'>to begin</span>
+                <span class='title-truth'>to continue</span>
               </h1>
               <p class='icelandic-subtitle'>
                 Look for a message from <em>formitselfisemptiness@aformulationoftruth.com</em>.
@@ -53,9 +53,24 @@ export default function CheckEmail() {
 
           <section class='section'>
             <div class='section-inner' style='text-align: center;'>
+              {
+                /*
+                This page is no longer the doorway. A new address goes straight
+                into the questionnaire from the gate; you land here when that
+                address already had a questionnaire open, in which case the
+                honest thing to say is that the link is a way back to it rather
+                than a way to start. The previous copy also promised a link that
+                expired in fifteen minutes and worked once, neither of which was
+                ever true, and which pushed people into resubmitting -- the one
+                action that used to abandon the session they were waiting on.
+              */
+              }
               <p class='section-text'>
-                We've sent you a one-time link. Click it within 15 minutes to launch your questionnaire. The link can be
-                used once.
+                You already have a questionnaire open, so we've sent you a link back to it rather than starting a new
+                one. Nothing you wrote before has been lost.
+              </p>
+              <p class='section-text'>
+                The link works for 24 hours, and as many times as you need within them.
               </p>
               <p class='section-text' style='opacity: 0.7;'>
                 Not in your inbox? Check spam, or wait a minute — iCloud sometimes takes a moment.

@@ -10,7 +10,23 @@
  * - Minimal data in email body
  */
 
-import { SMTPClient } from 'https://deno.land/x/denomailer@1.6.0/mod.ts';
+import { fromFileUrl } from '$std/path/mod.ts';
+
+/**
+ * fromFileUrl, not URL.pathname: pathname keeps percent-encoding, so an
+ * installation path containing a space would hand python3 a literal "%20" and
+ * the script would not be found.
+ */
+const SENDER = fromFileUrl(new URL('./send_mail.py', import.meta.url));
+
+/**
+ * How long one send_mail.py attempt may run before it is killed.
+ *
+ * smtplib's own `timeout=` bounds individual socket operations, not the whole
+ * SMTP session, so a server that stalls mid-conversation can otherwise hold
+ * the subprocess -- and the request awaiting sendEmail -- open indefinitely.
+ */
+const SEND_DEADLINE_MS = 20_000;
 
 interface SendEmailOptions {
   to: string;
@@ -25,37 +41,94 @@ export interface EmailResult {
   error?: string;
 }
 
-/**
- * Pull the SMTP reply code out of a thrown error, when there is one.
- *
- * Only the integer is ever returned — never the surrounding message, which can
- * echo the envelope and therefore the recipient. The patterns are anchored
- * deliberately: a bare /\d{3}/ search would happily match digits inside an
- * address, and three digits of a recipient is still a fingerprint under the
- * zero-logging policy. Better to report no code than to guess one.
- *
- * Transport failures (refused connection, TLS handshake, timeout) carry no
- * reply code at all — those surface as a kind instead, see smtpFailureKind.
- */
-function smtpReplyCode(error: unknown): number | undefined {
-  const message = error instanceof Error ? error.message : '';
-  const match = /^\s*([2-5]\d{2})[\s-]/.exec(message) ||
-    /\bgot\s+([2-5]\d{2})\b/i.exec(message) ||
-    /\bcode[:=\s]+([2-5]\d{2})\b/i.exec(message);
-  return match ? Number(match[1]) : undefined;
+/** What one invocation of send_mail.py reported. */
+export interface SenderOutcome {
+  success: boolean;
+  /** The SMTP reply code, when the failure carried one. */
+  code?: number;
+  /** Exception class name — 'SMTPAuthenticationError', 'TimeoutError', 'Unknown'. */
+  kind: string;
 }
 
 /**
- * The error's class name — 'ConnectionRefused', 'TimedOut', 'Error'. A
- * constructor name carries no user data, so it is safe to log verbatim and
- * tells transport failures apart from server rejections.
+ * Read the sender's one-line failure summary.
+ *
+ * send_mail.py prints `code=<int|none> kind=<ClassName>` and nothing else, so
+ * this parses a contract rather than guessing at prose. It is deliberately
+ * strict: anything that does not match that exact shape yields no code at all,
+ * because a wrong code is worse than none — a fabricated 5xx would stop the
+ * retry that a transient fault needs.
  */
-function smtpFailureKind(error: unknown): string {
-  return error instanceof Error && error.name ? error.name : 'Unknown';
+export function parseSenderOutcome(stdout: string): Omit<SenderOutcome, 'success'> {
+  const match = /^code=(none|[2-5]\d{2}) kind=(\w+)$/m.exec(stdout.trim());
+  if (!match) return { kind: 'Unknown' };
+  return {
+    code: match[1] === 'none' ? undefined : Number(match[1]),
+    kind: match[2],
+  };
+}
+
+/**
+ * Hand one message to send_mail.py.
+ *
+ * The recipient and the body go in a 0600 file in a private temp directory,
+ * removed in a `finally`; the path is the only argument, because
+ * /proc/<pid>/cmdline is world-readable. Credentials go in the child's
+ * environment, which is not — and the environment is cleared first, so a
+ * mail subprocess never inherits DATABASE_URL or the JWT secret.
+ *
+ * stderr is discarded rather than captured. A Python traceback can hold the
+ * envelope, and there is no safe way to log a fragment of one.
+ */
+async function runSender(
+  spec: Record<string, string>,
+  smtpEnv: Record<string, string>,
+): Promise<SenderOutcome> {
+  let dir: string;
+  try {
+    dir = await Deno.makeTempDir({ prefix: 'a4t-mail-' });
+  } catch (error) {
+    return { success: false, kind: error instanceof Error ? error.name : 'Unknown' };
+  }
+
+  // Neither Deno.Command nor smtplib's own `timeout=` bounds the whole child
+  // process: smtplib's timeout is per socket operation, so a server that
+  // accepts the connection and then stalls mid-conversation can hold the
+  // subprocess open indefinitely, and every caller of sendEmail awaits it.
+  // The signal below is what turns that into a bounded, retryable failure.
+  const controller = new AbortController();
+  const deadline = setTimeout(() => controller.abort(), SEND_DEADLINE_MS);
+
+  try {
+    await Deno.writeTextFile(`${dir}/mail.json`, JSON.stringify(spec), { mode: 0o600 });
+
+    const result = await new Deno.Command('python3', {
+      args: [SENDER, `${dir}/mail.json`],
+      clearEnv: true,
+      env: { PATH: '/usr/bin:/bin', ...smtpEnv },
+      stdout: 'piped',
+      stderr: 'null',
+      signal: controller.signal,
+    }).output();
+
+    if (result.success) return { success: true, kind: 'none' };
+    return { success: false, ...parseSenderOutcome(new TextDecoder().decode(result.stdout)) };
+  } catch (error) {
+    // Spawn failed — python3 missing, temp directory unwritable, or the
+    // deadline above fired and killed the child. The class name is safe; the
+    // message could name a path we would rather not print.
+    return { success: false, kind: error instanceof Error ? error.name : 'Unknown' };
+  } finally {
+    clearTimeout(deadline);
+    await Deno.remove(dir, { recursive: true }).catch(() => {});
+  }
 }
 
 /**
  * Send email via Apple iCloud SMTP.
+ *
+ * Delegates to send_mail.py — see that file for why this is a subprocess and
+ * not a Deno SMTP client.
  *
  * Reads connection settings from the environment:
  *   SMTP_HOST, SMTP_PORT, SMTP_SECURE, SMTP_USER, SMTP_PASS, FROM_EMAIL
@@ -84,74 +157,65 @@ export async function sendEmail(options: SendEmailOptions): Promise<EmailResult>
     return { success: false, error: 'Email service not configured' };
   }
 
+  const spec = {
+    to: options.to,
+    from: `${fromName} <${fromEmail}>`,
+    subject: options.subject,
+    text: options.text,
+    html: options.html,
+  };
+  const smtpEnv = {
+    SMTP_HOST: hostname,
+    SMTP_PORT: String(port),
+    SMTP_SECURE: implicitTls ? 'true' : 'false',
+    SMTP_USER: username,
+    SMTP_PASS: password,
+  };
+
   // Apple intermittently drops or throttles connections: roughly 1-7 sends a
   // day failed with kind=TimedOut and no reply code, against a far larger
-  // number that succeeded. A fresh client per attempt with a short backoff
+  // number that succeeded. A fresh subprocess per attempt with a short backoff
   // clears it; the failure is transient, not a misconfiguration.
   const MAX_ATTEMPTS = 3;
-  let lastError: unknown;
+  let outcome: SenderOutcome = { success: false, kind: 'Unknown' };
 
   for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
-    const client = new SMTPClient({
-      connection: {
-        hostname,
-        port,
-        tls: implicitTls,
-        auth: { username, password },
-      },
-    });
+    outcome = await runSender(spec, smtpEnv);
 
-    try {
-      await client.send({
-        from: `${fromName} <${fromEmail}>`,
-        to: options.to,
-        subject: options.subject,
-        content: options.text,
-        html: options.html,
-      });
+    if (outcome.success) {
       // Log successes too. Without this the journal shows only failures, which
       // makes "3 failures out of 3" indistinguishable from "3 out of 300" —
       // and those call for opposite responses. A bare count carries no PII, so
       // the zero-logging policy never required this silence.
       console.log(`[email] sent attempt=${attempt}`);
       return { success: true, statusCode: 250 };
-    } catch (error) {
-      lastError = error;
-      const code = smtpReplyCode(error);
-      const kind = smtpFailureKind(error);
-
-      // A permanent rejection (5xx) will fail identically every time; only
-      // retry transport-level faults and Apple's 4xx "try later" codes.
-      const worthRetrying = code === undefined || code < 500;
-      if (attempt < MAX_ATTEMPTS && worthRetrying) {
-        console.error(`[email] retrying after code=${code ?? 'none'} kind=${kind} attempt=${attempt}`);
-        await new Promise((r) => setTimeout(r, 500 * 2 ** (attempt - 1)));
-        continue;
-      }
-      break;
-    } finally {
-      try {
-        await client.close();
-      } catch { /* already closed */ }
     }
+
+    // A permanent rejection (5xx) will fail identically every time; only
+    // retry transport-level faults and Apple's 4xx "try later" codes.
+    const worthRetrying = outcome.code === undefined || outcome.code < 500;
+    if (attempt < MAX_ATTEMPTS && worthRetrying) {
+      console.error(
+        `[email] retrying after code=${outcome.code ?? 'none'} kind=${outcome.kind} attempt=${attempt}`,
+      );
+      await new Promise((r) => setTimeout(r, 500 * 2 ** (attempt - 1)));
+      continue;
+    }
+    break;
   }
 
-  {
-    const error = lastError;
-    // Zero-logging: never surface the recipient or full error (may echo the
-    // envelope). A reply code and an error class name are both PII-free, and
-    // they are the difference between "mail broke" and "Apple threw 421 at us
-    // for sending too fast" — which is the whole of the diagnosis.
-    const statusCode = smtpReplyCode(error);
-    console.error(
-      `[email] SMTP send failed code=${statusCode ?? 'none'} kind=${smtpFailureKind(error)}`,
-    );
-    return {
-      success: false,
-      statusCode,
-      error: error instanceof Error ? error.message : 'SMTP send failed',
-    };
-  }
+  // Zero-logging: never surface the recipient or a raw error (either may echo
+  // the envelope). A reply code and an exception class name are both PII-free,
+  // and they are the difference between "mail broke" and "Apple threw 421 at
+  // us for sending too fast" — which is the whole of the diagnosis.
+  console.error(`[email] SMTP send failed code=${outcome.code ?? 'none'} kind=${outcome.kind}`);
+  return {
+    success: false,
+    statusCode: outcome.code,
+    // A fixed string, never the underlying message: callers put this in
+    // responses, and the message can carry the address.
+    error: 'SMTP send failed',
+  };
 }
 
 /**
@@ -160,13 +224,29 @@ export async function sendEmail(options: SendEmailOptions): Promise<EmailResult>
 export async function sendMagicLinkEmail(email: string, magicLinkUrl: string): Promise<EmailResult> {
   const subject = Deno.env.get('EMAIL_SUBJECT') || 'Your link to a formulation of truth';
 
+  // The two sentences this used to carry -- "expires in 15 minutes" and "can
+  // only be used once" -- were both untrue. Nothing enforced the fifteen
+  // minutes (the function that would have, verifyMagicLink, had no callers and
+  // has since been deleted) and nothing consumed the link, so it in fact lasted
+  // the JWT's twenty-four hours and worked as often as you liked. The harm was
+  // not pedantic: someone who believed they had missed the window submitted the
+  // gate again, and until migration 012 that abandoned the very session the
+  // link in their hand pointed at. The instructions broke the thing they were
+  // instructions for.
   const text = `
-You requested access to a formulation of truth.
+Your questionnaire is open in the browser you started it in.
 
-Click here to continue your questionnaire:
+This link brings you back to it -- on another device, or on this one once the
+browser has forgotten you:
 ${magicLinkUrl}
 
-This link expires in 15 minutes and can only be used once.
+It works for 24 hours and as many times as you need within them. It is also how
+we know this address is yours, so open it at least once if you would like a copy
+of your answers sent to you at the end.
+
+After 24 hours, enter the same address at the gate and we will send another. Your
+answers are kept for thirty days from your last visit, and returning resets the
+clock.
 
 If you didn't request this, you can safely ignore this email.
 
@@ -246,14 +326,16 @@ https://aformulationoftruth.com
     <p>You requested access to continue your questionnaire.</p>
 
     <p>
-      <a href="${magicLinkUrl}" class="button">Continue Questionnaire</a>
+      <a href="${magicLinkUrl}" class="button">Back to your questionnaire</a>
     </p>
 
     <p>Or copy this link:</p>
     <p class="link">${magicLinkUrl}</p>
 
     <p style="color: #666; font-size: 13px;">
-      This link expires in 15 minutes and can only be used once.
+      It works for 24 hours and as many times as you need within them. It is also how we know this
+      address is yours, so open it at least once if you would like a copy of your answers at the end.
+      After that, enter the same address at the gate for another.
     </p>
 
     <div class="footer">
@@ -280,7 +362,11 @@ export async function sendNewsletterConfirmationEmail(
   email: string,
   confirmUrl: string,
   unsubscribeUrl: string,
-): Promise<SendEmailResult> {
+  // EmailResult, not SendEmailResult. main renamed the interface and updated
+  // two of its three uses; this one was missed, so `deno check` has been
+  // failing on main since that rename. Repaired here rather than carried
+  // forward -- a branch that does not typecheck cannot be reviewed honestly.
+): Promise<EmailResult> {
   const subject = 'Confirm your subscription to a formulation of truth';
 
   const text = `

@@ -1,14 +1,8 @@
-import { Handlers } from "$fresh/server.ts";
-import {
-  json,
-  normalizeHashHex,
-  parseInteger,
-  readJsonObject,
-  verifyMerkleProof,
-} from "../../../lib/lotto.ts";
+import { Handlers } from '$fresh/server.ts';
+import { json, normalizeHashHex, parseInteger, readJsonObject, verifyMerkleProof } from '../../../lib/lotto.ts';
 
 function normalizeProof(value: unknown): string[] {
-  if (typeof value === "string") {
+  if (typeof value === 'string') {
     return value.split(/\n+/).map((item) => item.trim()).filter(Boolean);
   }
   if (Array.isArray(value)) return value.map((item) => String(item));
@@ -19,9 +13,9 @@ export const handler: Handlers = {
   async POST(req) {
     try {
       const payload = await readJsonObject(req);
-      const commitment = normalizeHashHex(payload.commitment, "commitment");
-      const leafIndex = parseInteger(payload.leaf_index, "leaf_index");
-      const merkleRoot = normalizeHashHex(payload.merkle_root, "merkle_root");
+      const commitment = normalizeHashHex(payload.commitment, 'commitment');
+      const leafIndex = parseInteger(payload.leaf_index, 'leaf_index');
+      const merkleRoot = normalizeHashHex(payload.merkle_root, 'merkle_root');
       const valid = await verifyMerkleProof(
         commitment,
         normalizeProof(payload.proof),
@@ -31,7 +25,7 @@ export const handler: Handlers = {
       return json({ ok: true, valid });
     } catch (error) {
       if (error instanceof Response) return error;
-      return json({ error: "Invalid JSON payload" }, { status: 400 });
+      return json({ error: 'Invalid JSON payload' }, { status: 400 });
     }
   },
 };

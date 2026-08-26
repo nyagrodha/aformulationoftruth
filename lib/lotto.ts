@@ -14,17 +14,17 @@ export function normalizeToken(
   field: string,
   maxLength = 256,
 ): string {
-  const token = String(value ?? "").trim();
+  const token = String(value ?? '').trim();
   if (!token) {
     throw new Response(JSON.stringify({ error: `${field} is required` }), {
       status: 400,
-      headers: { "content-type": "application/json; charset=utf-8" },
+      headers: { 'content-type': 'application/json; charset=utf-8' },
     });
   }
   if (token.length > maxLength) {
     throw new Response(JSON.stringify({ error: `${field} is too long` }), {
       status: 400,
-      headers: { "content-type": "application/json; charset=utf-8" },
+      headers: { 'content-type': 'application/json; charset=utf-8' },
     });
   }
   return token;
@@ -37,11 +37,11 @@ export function normalizeHashHex(value: unknown, field: string): string {
       JSON.stringify({ error: `${field} must be 32-byte hex` }),
       {
         status: 400,
-        headers: { "content-type": "application/json; charset=utf-8" },
+        headers: { 'content-type': 'application/json; charset=utf-8' },
       },
     );
   }
-  return hash.startsWith("0x") ? hash.slice(2) : hash;
+  return hash.startsWith('0x') ? hash.slice(2) : hash;
 }
 
 export function parseInteger(value: unknown, field: string): number {
@@ -51,7 +51,7 @@ export function parseInteger(value: unknown, field: string): number {
       JSON.stringify({ error: `${field} must be an integer` }),
       {
         status: 400,
-        headers: { "content-type": "application/json; charset=utf-8" },
+        headers: { 'content-type': 'application/json; charset=utf-8' },
       },
     );
   }
@@ -61,12 +61,12 @@ export function parseInteger(value: unknown, field: string): number {
 export async function hashBytes(data: Uint8Array): Promise<Uint8Array> {
   const buffer = new ArrayBuffer(data.byteLength);
   new Uint8Array(buffer).set(data);
-  return new Uint8Array(await crypto.subtle.digest("SHA-256", buffer));
+  return new Uint8Array(await crypto.subtle.digest('SHA-256', buffer));
 }
 
 export function bytesToHex(bytes: Uint8Array): string {
-  return Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join(
-    "",
+  return Array.from(bytes, (byte) => byte.toString(16).padStart(2, '0')).join(
+    '',
   );
 }
 
@@ -80,9 +80,9 @@ async function leafHash(commitment: string): Promise<Uint8Array> {
 
 export async function buildMerkleRoot(commitments: string[]): Promise<string> {
   if (commitments.length === 0) {
-    throw new Response(JSON.stringify({ error: "No commitments available" }), {
+    throw new Response(JSON.stringify({ error: 'No commitments available' }), {
       status: 400,
-      headers: { "content-type": "application/json; charset=utf-8" },
+      headers: { 'content-type': 'application/json; charset=utf-8' },
     });
   }
 
@@ -114,7 +114,7 @@ export async function verifyMerkleProof(
   let index = leafIndex;
 
   for (const proofHash of proofHashes) {
-    const sibling = hexToBytes(normalizeHashHex(proofHash, "proof_hash"));
+    const sibling = hexToBytes(normalizeHashHex(proofHash, 'proof_hash'));
     const pair = new Uint8Array(current.length + sibling.length);
     if (index % 2 === 0) {
       pair.set(current);
@@ -127,7 +127,7 @@ export async function verifyMerkleProof(
     index = Math.floor(index / 2);
   }
 
-  return bytesToHex(current) === normalizeHashHex(merkleRoot, "merkle_root");
+  return bytesToHex(current) === normalizeHashHex(merkleRoot, 'merkle_root');
 }
 
 export async function computeAnchorHash(
@@ -141,17 +141,17 @@ export async function computeAnchorHash(
 export async function fetchDrandRandomness(
   roundNumber: number,
 ): Promise<string> {
-  const template = Deno.env.get("LOTTO_DRAND_URL_TEMPLATE") ??
-    "https://api.drand.sh/public/{round}";
+  const template = Deno.env.get('LOTTO_DRAND_URL_TEMPLATE') ??
+    'https://api.drand.sh/public/{round}';
   const response = await fetch(
-    template.replace("{round}", String(roundNumber)),
+    template.replace('{round}', String(roundNumber)),
   );
   if (!response.ok) {
     throw new Response(
-      JSON.stringify({ error: "Unable to fetch drand randomness" }),
+      JSON.stringify({ error: 'Unable to fetch drand randomness' }),
       {
         status: 502,
-        headers: { "content-type": "application/json; charset=utf-8" },
+        headers: { 'content-type': 'application/json; charset=utf-8' },
       },
     );
   }
@@ -159,10 +159,10 @@ export async function fetchDrandRandomness(
   const randomness = beacon.randomness?.trim().toLowerCase();
   if (!randomness) {
     throw new Response(
-      JSON.stringify({ error: "drand response missing randomness" }),
+      JSON.stringify({ error: 'drand response missing randomness' }),
       {
         status: 502,
-        headers: { "content-type": "application/json; charset=utf-8" },
+        headers: { 'content-type': 'application/json; charset=utf-8' },
       },
     );
   }
@@ -175,10 +175,10 @@ export function chooseWinnerIndex(
 ): number {
   if (entryCount <= 0) {
     throw new Response(
-      JSON.stringify({ error: "entry_count must be positive" }),
+      JSON.stringify({ error: 'entry_count must be positive' }),
       {
         status: 400,
-        headers: { "content-type": "application/json; charset=utf-8" },
+        headers: { 'content-type': 'application/json; charset=utf-8' },
       },
     );
   }
@@ -186,24 +186,24 @@ export function chooseWinnerIndex(
 }
 
 export function requireOperator(req: Request): void {
-  const configured = Deno.env.get("LOTTO_OPERATOR_TOKEN") ?? "";
+  const configured = Deno.env.get('LOTTO_OPERATOR_TOKEN') ?? '';
   if (!configured) {
     throw new Response(
-      JSON.stringify({ error: "lotto operator token not configured" }),
+      JSON.stringify({ error: 'lotto operator token not configured' }),
       {
         status: 503,
-        headers: { "content-type": "application/json; charset=utf-8" },
+        headers: { 'content-type': 'application/json; charset=utf-8' },
       },
     );
   }
-  const supplied = (req.headers.get("x-lotto-operator-token") ??
-    req.headers.get("authorization")?.replace(/^Bearer\s+/i, "") ?? "").trim();
+  const supplied = (req.headers.get('x-lotto-operator-token') ??
+    req.headers.get('authorization')?.replace(/^Bearer\s+/i, '') ?? '').trim();
   if (supplied !== configured) {
     throw new Response(
-      JSON.stringify({ error: "operator authorization failed" }),
+      JSON.stringify({ error: 'operator authorization failed' }),
       {
         status: 403,
-        headers: { "content-type": "application/json; charset=utf-8" },
+        headers: { 'content-type': 'application/json; charset=utf-8' },
       },
     );
   }
@@ -213,12 +213,12 @@ export async function readJsonObject(
   req: Request,
 ): Promise<Record<string, unknown>> {
   const payload = await req.json();
-  if (!payload || Array.isArray(payload) || typeof payload !== "object") {
+  if (!payload || Array.isArray(payload) || typeof payload !== 'object') {
     throw new Response(
-      JSON.stringify({ error: "JSON payload must be an object" }),
+      JSON.stringify({ error: 'JSON payload must be an object' }),
       {
         status: 400,
-        headers: { "content-type": "application/json; charset=utf-8" },
+        headers: { 'content-type': 'application/json; charset=utf-8' },
       },
     );
   }
@@ -229,7 +229,7 @@ export function json(data: unknown, init: ResponseInit = {}): Response {
   return new Response(JSON.stringify(data), {
     ...init,
     headers: {
-      "content-type": "application/json; charset=utf-8",
+      'content-type': 'application/json; charset=utf-8',
       ...init.headers,
     },
   });

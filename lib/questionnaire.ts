@@ -98,3 +98,30 @@ export function canonicalizeAnswers(
 
   return canonical;
 }
+
+/**
+ * How a stored question order should be presented.
+ *
+ * Added 2026-08-21 to give the `.slice(2)` bug somewhere to be tested.
+ * routes/questionnaire.tsx sliced two entries off the stored order on the
+ * belief that they were the gate questions Q0 and Q1. They are not:
+ * generateQuestionOrder() already excludes them when the gate has been
+ * answered, so the slice silently dropped two REAL questions from each of the
+ * 2,196 such sessions on record — and for the 35-entry order used when the gate
+ * was skipped, where Q0 and Q1 are shuffled in rather than sitting at the
+ * front, it dropped whichever two happened to come first.
+ *
+ * The stored order is the presentation order, whole. The only thing that varies
+ * is how many questions were answered before it, which is what the respondent's
+ * "question N of 35" counter has to account for.
+ */
+export function presentationOrder(
+  orderString: string,
+): { order: number[]; answeredAtGate: number; total: number } {
+  const order = parseQuestionOrder(orderString);
+  // A 33-entry order is Q2-34: the gate was answered at /gate and those two
+  // answers are already stored, so they count toward the total the respondent
+  // sees but are not presented again.
+  const answeredAtGate = order.length === 33 ? 2 : 0;
+  return { order, answeredAtGate, total: answeredAtGate + order.length };
+}
