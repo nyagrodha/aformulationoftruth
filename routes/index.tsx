@@ -39,6 +39,7 @@ import { NAV_NOSCRIPT_CSS } from '../components/nav-shared.ts';
 const LANDING_NAV: NavItem[] = [
   { label: 'begin', href: '#begin' },
   { label: 'about', href: '#about' },
+  { label: 'people', href: '/people' },
   { label: 'gift shop', href: '/shop' },
 ];
 

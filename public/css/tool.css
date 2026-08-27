@@ -1,0 +1,307 @@
+/*
+ * The tool idiom.
+ *
+ * The site has two visual languages. /css/prolegomenon.css is the letterpress
+ * one -- paper, ink, Georgia, square corners -- and it dresses the prose pages.
+ * This is the other: dark, rounded, gradient, for the pages you operate rather
+ * than read.
+ *
+ * These tokens were an inline <style> block inside routes/messenger.tsx, copied
+ * by hand into routes/lotto.tsx and drifting from it. Now shared, so a change to
+ * the idiom is one edit.
+ *
+ * Single-theme on purpose. This is one committed visual world, not a page that
+ * should follow a system preference, so every colour is stated rather than left
+ * to inherit -- there is no prefers-color-scheme block and none is missing.
+ */
+
+:root {
+  color-scheme: dark;
+
+  --bg: #05070a;
+  --panel: #101820;
+  --panel-2: #16212b;
+  --ink: #eef7f2;
+  --muted: #9fb8ad;
+  --line: #27433a;
+  --green: #65e3ad;
+  --blue: #7ca7ff;
+  --rose: #ff8fa8;
+  --amber: #f0c46a;
+
+  --radius-panel: 24px;
+  --radius-field: 14px;
+  --radius-pill: 999px;
+
+  --font-ui: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font: 16px/1.55 var(--font-ui);
+  color: var(--ink);
+  background:
+    radial-gradient(circle at 80% 5%, #133c4f 0, transparent 34rem),
+    var(--bg);
+}
+
+main {
+  width: min(1040px, calc(100% - 2rem));
+  margin: 0 auto;
+  padding: 3rem 0 5rem;
+}
+
+main.wide { width: min(1240px, calc(100% - 2rem)); }
+
+/* ------------------------------------------------------------ type and chrome */
+
+.eyebrow {
+  color: var(--green);
+  letter-spacing: .24em;
+  text-transform: uppercase;
+  font-weight: 800;
+  font-size: .76rem;
+  margin: 0;
+}
+
+h1 {
+  font-size: clamp(2.2rem, 7vw, 4.4rem);
+  line-height: .95;
+  margin: .5rem 0 1rem;
+  text-wrap: balance;
+}
+
+h2 { font-size: 1.25rem; margin: 0 0 .75rem; }
+
+.lede { color: var(--muted); max-width: 62ch; margin: 0 0 1.5rem; }
+
+a { color: var(--green); }
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 3px;
+}
+
+/* --------------------------------------------------------------- panels, grid */
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+section.panel,
+.panel {
+  background: color-mix(in srgb, var(--panel) 88%, transparent);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-panel);
+  padding: 1.25rem;
+  box-shadow: 0 24px 70px rgb(0 0 0 / .35);
+}
+
+/* -------------------------------------------------------------------- fields */
+
+label {
+  display: block;
+  margin: .75rem 0 .25rem;
+  color: var(--muted);
+  font-size: .78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+}
+
+textarea, input {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-field);
+  background: #071015;
+  color: var(--ink);
+  padding: .85rem;
+  font: 14px var(--font-mono);
+}
+
+textarea { min-height: 7rem; resize: vertical; }
+
+button, a.pill {
+  display: inline-block;
+  margin-top: .9rem;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: linear-gradient(135deg, var(--green), var(--blue));
+  color: #03100b;
+  padding: .8rem 1.15rem;
+  font-weight: 900;
+  cursor: pointer;
+  text-decoration: none;
+  font-family: var(--font-ui);
+}
+
+button[disabled] { opacity: .5; cursor: not-allowed; }
+
+button.quiet {
+  background: transparent;
+  border: 1px solid var(--line);
+  color: var(--muted);
+  font-weight: 700;
+}
+
+output, pre {
+  display: block;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  background: #071015;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-field);
+  padding: 1rem;
+  min-height: 3rem;
+}
+
+/* ------------------------------------------------------------------- status */
+
+.status {
+  min-height: 1.5rem;
+  font-size: .88rem;
+  color: var(--muted);
+  margin: .6rem 0 0;
+}
+
+.status.err { color: var(--rose); }
+.status.ok { color: var(--green); }
+
+/* ---------------------------------------------------------------- directory */
+
+.people {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 1rem;
+  margin-top: 2rem;
+  padding: 0;
+  list-style: none;
+}
+
+.person {
+  background: color-mix(in srgb, var(--panel) 88%, transparent);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-panel);
+  padding: 1.1rem 1.2rem;
+  display: flex;
+  flex-direction: column;
+  gap: .35rem;
+}
+
+.person h3 { margin: 0; font-size: 1.05rem; }
+.person .handle { font-family: var(--font-mono); font-size: .82rem; color: var(--blue); }
+.person .bio { color: var(--muted); font-size: .92rem; margin: .3rem 0 0; }
+.person .foot { margin-top: auto; padding-top: .8rem; }
+.person a.pill { margin-top: 0; font-size: .8rem; padding: .55rem .95rem; }
+
+.closed {
+  font-size: .78rem;
+  color: var(--muted);
+  font-style: italic;
+}
+
+/* ------------------------------------------------------------------ threads */
+
+.messenger {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+@media (min-width: 860px) {
+  .messenger { grid-template-columns: 300px minmax(0, 1fr); align-items: start; }
+}
+
+.thread-list { padding: .5rem; display: flex; flex-direction: column; gap: .25rem; }
+
+.thread-btn {
+  margin: 0;
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-field);
+  color: var(--ink);
+  padding: .75rem .85rem;
+  font-weight: 600;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: .5rem;
+}
+
+.thread-btn:hover { background: var(--panel-2); }
+.thread-btn[aria-current="true"] { border-color: var(--green); background: var(--panel-2); }
+.thread-btn .who { display: flex; flex-direction: column; gap: .15rem; min-width: 0; }
+.thread-btn .sub { font-size: .76rem; color: var(--muted); font-weight: 500; }
+
+.badge {
+  flex: none;
+  background: var(--green);
+  color: #03100b;
+  border-radius: var(--radius-pill);
+  font-size: .7rem;
+  font-weight: 900;
+  padding: .1rem .45rem;
+  font-variant-numeric: tabular-nums;
+}
+
+/* -------------------------------------------------------------- conversation */
+
+.convo { display: flex; flex-direction: column; min-height: 22rem; }
+
+.log {
+  display: flex;
+  flex-direction: column;
+  gap: .6rem;
+  padding: .5rem 0 1rem;
+  overflow-y: auto;
+  max-height: 55vh;
+}
+
+.msg {
+  max-width: 42ch;
+  padding: .6rem .85rem;
+  border-radius: var(--radius-field);
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.msg.mine {
+  align-self: flex-end;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--green) 22%, transparent), color-mix(in srgb, var(--blue) 22%, transparent));
+  border-color: color-mix(in srgb, var(--green) 40%, transparent);
+}
+
+.msg .when {
+  display: block;
+  margin-top: .3rem;
+  font-size: .7rem;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.msg.unreadable { color: var(--amber); font-style: italic; }
+
+.composer { display: flex; flex-direction: column; gap: 0; border-top: 1px solid var(--line); padding-top: .75rem; }
+.composer textarea { min-height: 4.5rem; }
+.composer .row { display: flex; gap: .6rem; align-items: center; }
+.composer button { margin-top: .6rem; }
+
+.empty { color: var(--muted); padding: 2rem 1rem; text-align: center; }
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+}
