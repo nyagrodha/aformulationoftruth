@@ -25,6 +25,5 @@ export const NAV_NOSCRIPT_CSS = '.nav-list[hidden]{display:flex}';
 export const PAGE_NAV: NavItem[] = [
   { label: 'begin', href: '/#begin' },
   { label: 'about', href: '/about' },
-  { label: 'messenger', href: '/messenger' },
   { label: 'gift shop', href: '/shop' },
 ];
