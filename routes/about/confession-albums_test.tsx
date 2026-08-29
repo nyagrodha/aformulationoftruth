@@ -4,7 +4,7 @@ import ConfessionAlbumsPage from './confession-albums.tsx';
 
 Deno.test('page states plainly that Proust did not invent the form', () => {
   const html = render(<ConfessionAlbumsPage />);
-  assertStringIncludes(html, 'come up with the querstions');
+  assertStringIncludes(html, "didn't come up with the questions");
   assertStringIncludes(html, 'The questions have no author on record');
 });
 
