@@ -101,7 +101,9 @@ async function runMigrations() {
         count++;
       } catch (error) {
         await client.queryObject('ROLLBACK');
-        console.error(`[migrate] Failed: ${migration}`, error);
+        /* The migration filename is not PII; the pg error carries the failing SQL
+     * and its bound parameters, which on a data migration is user rows. */
+    console.error(`[migrate] Failed: ${migration}`);
         throw error;
       }
     }

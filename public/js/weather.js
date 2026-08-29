@@ -24,7 +24,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
         } catch (error) {
-            console.error('Weather fetch error:', error);
+            console.error('Weather fetch error:', error?.name);
             if (weatherTemp) {
                 weatherTemp.textContent = '--°';
             }
