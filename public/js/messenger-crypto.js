@@ -31,7 +31,14 @@
  * sent messages without the server keeping a second copy in the clear.
  */
 
-import { b64, checkedPassphrase, DEFAULT_ITERATIONS, keyFromPassphrase, unb64 } from './seal-guards.js';
+import {
+  b64,
+  checkedIterations,
+  checkedPassphrase,
+  DEFAULT_ITERATIONS,
+  keyFromPassphrase,
+  unb64,
+} from './seal-guards.js';
 
 const KEY_ALGO = { name: 'ECDH', namedCurve: 'P-256' };
 
@@ -103,10 +110,18 @@ export async function createIdentity(passphrase) {
 export async function unlockIdentity(record, passphrase) {
   const pass = checkedPassphrase(passphrase);
 
+  /*
+   * The record arrives over the network, so its iteration count is bounded
+   * before PBKDF2 sees it. `|| DEFAULT_ITERATIONS` only replaced a falsy value
+   * and passed everything else through, so a served {"kdfIterations":1e12}
+   * froze the tab on the main thread with nothing to cancel -- the same
+   * argument seal-guards makes about envelopes, against the same primitive.
+   * checkedIterations still returns the default when the field is absent.
+   */
   const wrapKey = await keyFromPassphrase(
     pass,
     unb64(record.kdfSalt),
-    record.kdfIterations || DEFAULT_ITERATIONS,
+    checkedIterations(record.kdfIterations),
   );
 
   let pkcs8;

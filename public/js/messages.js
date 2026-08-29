@@ -179,9 +179,34 @@ async function openThread(thread) {
  * messages too. That symmetry is what lets a sender re-read what they wrote
  * without the server keeping a second copy in the clear.
  */
+/*
+ * Only one loadMessages may be in flight.
+ *
+ * Three callers can start one -- the 8s poll, the visibilitychange handler, and
+ * a send that reloads -- and they overlap in ordinary use: returning to a
+ * backgrounded tab fires visibilitychange and the poll's next tick at
+ * effectively the same moment. Both would read the same `current.cursor`, fetch
+ * the same messages, and append them twice, because the cursor only advances
+ * after the awaited decrypt loop finishes. The duplicates are in the DOM, not
+ * the data, so a reload "fixes" it and the report is unreproducible.
+ *
+ * Later callers return rather than queue: every one of them is asking for the
+ * same thing, and the call already running will deliver it.
+ */
+let loading = false;
+
 async function loadMessages({ replace = false } = {}) {
   if (!current) return;
+  if (loading) return;
+  loading = true;
+  try {
+    await loadMessagesInner({ replace });
+  } finally {
+    loading = false;
+  }
+}
 
+async function loadMessagesInner({ replace }) {
   const after = replace ? 0 : (current.cursor ?? 0);
   const { messages } = await api(
     `/api/messenger/threads?id=${encodeURIComponent(current.id)}${after ? `&after=${after}` : ''}`,

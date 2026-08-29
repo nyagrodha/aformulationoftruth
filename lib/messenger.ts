@@ -58,6 +58,33 @@ export class NoIdentity extends Error {
  */
 export const MAX_CIPHERTEXT_CHARS = 65536;
 
+/*
+ * A rolling window on sending, per sender per recipient.
+ *
+ * Nothing bounded how fast one person could write to another: the size cap
+ * limits a single message and the block list is a decision the recipient has to
+ * make after the fact, so until they made it, one sender could fill their
+ * thread as fast as the network allowed. The recipient cannot even skim what
+ * arrived -- every row is ciphertext they must unlock to read -- so flooding is
+ * cheaper to do than to undo.
+ *
+ * The counter is the messages table itself. A thread IS the sender-recipient
+ * pair, so counting this sender's rows inside it is exactly "per sender per
+ * recipient" with no second table to keep, and nothing retained that outlives
+ * the messages.
+ *
+ * 20 in 10 minutes is well above a conversation and well below a flood.
+ */
+export const SEND_WINDOW_MINUTES = 10;
+export const SEND_WINDOW_MAX = 20;
+
+export class RateLimited extends Error {
+  constructor() {
+    super('Too many messages to this person in a short time.');
+    this.name = 'RateLimited';
+  }
+}
+
 export interface MessengerIdentity {
   emailHash: string;
   publicKey: string;
@@ -160,6 +187,31 @@ export async function getPublicKey(emailHash: string): Promise<string | null> {
       [emailHash],
     );
     return rows.length ? rows[0].public_key : null;
+  });
+}
+
+/**
+ * Public keys for many addresses in one round trip.
+ *
+ * The thread list needs the correspondent's key for every row, and calling
+ * getPublicKey() inside the map issued one query per thread -- the same N+1 the
+ * neighbouring getProfilesFor() exists to avoid, against the same list of
+ * hashes. Absent rows are simply missing from the Map, so a caller reads
+ * `map.get(hash) ?? null` and gets what getPublicKey would have returned.
+ *
+ * @param emailHashes - addresses to resolve; duplicates and blanks are fine
+ * @returns Map from email hash to public key, omitting those with no identity
+ */
+export async function getPublicKeysFor(emailHashes: string[]): Promise<Map<string, string>> {
+  const unique = [...new Set(emailHashes)].filter(Boolean);
+  if (unique.length === 0) return new Map();
+
+  return await withConnection(async (client) => {
+    const { rows } = await client.queryObject<{ email_hash: string; public_key: string }>(
+      'SELECT email_hash, public_key FROM messenger_identities WHERE email_hash = ANY($1)',
+      [unique],
+    );
+    return new Map(rows.map((r) => [r.email_hash, r.public_key]));
   });
 }
 
@@ -346,6 +398,28 @@ export async function sendMessage(params: SendParams): Promise<{ id: number; thr
 
   const threadId = await findOrCreateThread(senderEmailHash, recipientEmailHash);
 
+  /*
+   * Checked after the thread is resolved and before anything is written, so a
+   * refused send leaves no message and does not move last_message_at or the
+   * recipient's unread count.
+   */
+  const recentlySent = await withConnection(async (client) => {
+    const { rows } = await client.queryObject<{ n: bigint }>(
+      `SELECT COUNT(*)::bigint AS n
+         FROM messenger_messages
+        WHERE thread_id = $1
+          AND sender_email_hash = $2
+          AND created_at > NOW() - ($3 || ' minutes')::interval`,
+      [threadId, senderEmailHash, String(SEND_WINDOW_MINUTES)],
+    );
+    return Number(rows[0]?.n ?? 0);
+  });
+
+  if (recentlySent >= SEND_WINDOW_MAX) {
+    increment('messenger.rejected.rate_limited');
+    throw new RateLimited();
+  }
+
   const id = await withTransaction(async (client) => {
     const { rows } = await client.queryObject<{ id: number }>(
       `INSERT INTO messenger_messages
@@ -375,6 +449,28 @@ export async function sendMessage(params: SendParams): Promise<{ id: number; thr
  * The caller MUST have established participation first; this does not check,
  * because it is also used by the polling path where the check already ran.
  */
+interface MessageRow {
+  id: number;
+  thread_id: string;
+  sender_email_hash: string;
+  ciphertext: string;
+  iv: string;
+  created_at: Date;
+  read_at: Date | null;
+}
+
+function toStoredMessage(r: MessageRow): StoredMessage {
+  return {
+    id: r.id,
+    threadId: r.thread_id,
+    senderEmailHash: r.sender_email_hash,
+    ciphertext: r.ciphertext,
+    iv: r.iv,
+    createdAt: r.created_at,
+    readAt: r.read_at,
+  };
+}
+
 export async function listMessages(
   threadId: string,
   opts: { after?: number; limit?: number } = {},
@@ -382,16 +478,37 @@ export async function listMessages(
   const limit = Math.min(Math.max(opts.limit ?? 200, 1), 500);
   const after = opts.after ?? 0;
 
+  /*
+   * With no cursor this is an opening read, and it must return the NEWEST page
+   * rather than the oldest. `id > 0 ORDER BY id ASC LIMIT 200` reads as a
+   * bounded query and is one, but on a thread with more than 200 messages it
+   * hands back the first 200 ever sent -- so a long correspondence opens on its
+   * own beginning, and the most recent message is unreachable until the client
+   * has paged forward through everything before it.
+   *
+   * Cursored reads keep going forward from `after`, which is what the poll and
+   * the incremental tail-fetch both want; only the opening read flips.
+   */
+  if (!opts.after) {
+    return await withConnection(async (client) => {
+      const { rows } = await client.queryObject<MessageRow>(
+        `SELECT id, thread_id, sender_email_hash, ciphertext, iv, created_at, read_at
+           FROM (
+             SELECT id, thread_id, sender_email_hash, ciphertext, iv, created_at, read_at
+               FROM messenger_messages
+              WHERE thread_id = $1
+              ORDER BY id DESC
+              LIMIT $2
+           ) newest
+          ORDER BY id ASC`,
+        [threadId, limit],
+      );
+      return rows.map(toStoredMessage);
+    });
+  }
+
   return await withConnection(async (client) => {
-    const { rows } = await client.queryObject<{
-      id: number;
-      thread_id: string;
-      sender_email_hash: string;
-      ciphertext: string;
-      iv: string;
-      created_at: Date;
-      read_at: Date | null;
-    }>(
+    const { rows } = await client.queryObject<MessageRow>(
       `SELECT id, thread_id, sender_email_hash, ciphertext, iv, created_at, read_at
          FROM messenger_messages
         WHERE thread_id = $1 AND id > $2
@@ -400,15 +517,7 @@ export async function listMessages(
       [threadId, after, limit],
     );
 
-    return rows.map((r) => ({
-      id: r.id,
-      threadId: r.thread_id,
-      senderEmailHash: r.sender_email_hash,
-      ciphertext: r.ciphertext,
-      iv: r.iv,
-      createdAt: r.created_at,
-      readAt: r.read_at,
-    }));
+    return rows.map(toStoredMessage);
   });
 }
 

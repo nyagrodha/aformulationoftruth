@@ -66,8 +66,7 @@ function toProfile(row: ProfileRow): Profile {
   };
 }
 
-const COLUMNS =
-  'email_hash, handle, display_name, bio_public, visibility, accepts_anonymous_mail, created_at';
+const COLUMNS = 'email_hash, handle, display_name, bio_public, visibility, accepts_anonymous_mail, created_at';
 
 /** The profile behind an identity, whether or not it is public. */
 export async function getProfile(emailHash: string): Promise<Profile | null> {
@@ -116,20 +115,40 @@ export async function getProfileByHandle(handle: string): Promise<Profile | null
  * Keyset pagination on (created_at, email_hash) rather than OFFSET: the tie
  * break matters because two profiles created in the same transaction share a
  * timestamp, and an unstable sort silently drops or repeats them across pages.
+ *
+ * The cursor is therefore BOTH columns, and the predicate compares the same
+ * tuple the ORDER BY sorts on. It used to be `created_at < $1` alone, against
+ * an ORDER BY of (created_at, email_hash) -- which is the bug the paragraph
+ * above describes, still present in the code that describes it. With a
+ * timestamp-only cursor, every profile sharing the last row's timestamp is
+ * skipped on the next page: the batch created in one transaction is exactly
+ * the group that vanishes, and it vanishes silently.
  */
+export interface ProfileCursor {
+  createdAt: Date;
+  emailHash: string;
+}
+
 export async function listPublicProfiles(
-  opts: { limit?: number; before?: Date } = {},
+  opts: { limit?: number; before?: ProfileCursor } = {},
 ): Promise<Profile[]> {
   const limit = Math.min(Math.max(opts.limit ?? 50, 1), 100);
 
   return await withConnection(async (client) => {
     const { rows } = opts.before
       ? await client.queryObject<ProfileRow>(
+        /*
+         * Row-value comparison, so the tuple is compared left to right in one
+         * step and matches the ORDER BY exactly. Writing it as
+         * `created_at < $1 OR (created_at = $1 AND email_hash < $2)` means the
+         * same thing and invites the next edit to change one half only.
+         */
         `SELECT ${COLUMNS} FROM fresh_profiles
-          WHERE visibility = 'public' AND handle IS NOT NULL AND created_at < $1
+          WHERE visibility = 'public' AND handle IS NOT NULL
+            AND (created_at, email_hash) < ($1, $2)
           ORDER BY created_at DESC, email_hash DESC
-          LIMIT $2`,
-        [opts.before, limit],
+          LIMIT $3`,
+        [opts.before.createdAt, opts.before.emailHash, limit],
       )
       : await client.queryObject<ProfileRow>(
         `SELECT ${COLUMNS} FROM fresh_profiles

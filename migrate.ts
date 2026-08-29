@@ -62,7 +62,7 @@ async function runMigrations() {
 
     // Get applied migrations
     const { rows: applied } = await client.queryObject<{ name: string }>(
-      'SELECT name FROM _migrations ORDER BY id'
+      'SELECT name FROM _migrations ORDER BY id',
     );
     const appliedNames = new Set(applied.map((r) => r.name));
 
@@ -94,17 +94,24 @@ async function runMigrations() {
         await client.queryObject(sql);
         await client.queryObject(
           'INSERT INTO _migrations (name) VALUES ($1)',
-          [migration]
+          [migration],
         );
         await client.queryObject('COMMIT');
         console.log(`[migrate] Applied: ${migration}`);
         count++;
-      } catch (error) {
+      } catch {
         await client.queryObject('ROLLBACK');
-        /* The migration filename is not PII; the pg error carries the failing SQL
-     * and its bound parameters, which on a data migration is user rows. */
-    console.error(`[migrate] Failed: ${migration}`);
-        throw error;
+        /*
+         * The migration filename is not PII; the pg error carries the failing
+         * SQL and its bound parameters, which on a data migration is user rows.
+         * So it is neither logged nor rethrown -- rethrowing hands the same
+         * object to the runtime's top-level handler, which prints it with the
+         * stack, and the redaction two lines up buys nothing. Exit non-zero
+         * instead: a caller in CI or a deploy script reads the status, not the
+         * trace, and the failing migration is named above.
+         */
+        console.error(`[migrate] Failed: ${migration}`);
+        Deno.exit(1);
       }
     }
 

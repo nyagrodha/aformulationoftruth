@@ -68,9 +68,19 @@ if (compose) {
     return privateKey;
   }
 
+  /*
+   * Disabling the button was not enough: the Enter handler on the passphrase
+   * field calls send() directly, so a keypress during an in-flight send starts
+   * a second one past a control that is already disabled. Two sends seal the
+   * same body twice and the recipient receives it twice.
+   */
+  let sending = false;
+
   async function send() {
+    if (sending) return;
     if (!body.value.trim()) return say('There is nothing to send.', 'err');
 
+    sending = true;
     button.disabled = true;
     try {
       say('Unlocking…');
@@ -96,6 +106,7 @@ if (compose) {
     } catch (err) {
       say(err.message, 'err');
     } finally {
+      sending = false;
       button.disabled = false;
     }
   }

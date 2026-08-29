@@ -20,6 +20,7 @@ import {
   getPublicKey,
   MAX_CIPHERTEXT_CHARS,
   NoIdentity,
+  RateLimited,
   sendMessage,
 } from '../../../lib/messenger.ts';
 
@@ -73,13 +74,27 @@ export const handler: Handlers = {
       return json({ ok: true, threadId }, 201, caller);
     } catch (error) {
       if (error instanceof NoIdentity) {
-        return json({
-          error: 'That profile has not set up messaging yet, so nothing can be sealed to them.',
-        }, 409, caller);
+        return json(
+          {
+            error: 'That profile has not set up messaging yet, so nothing can be sealed to them.',
+          },
+          409,
+          caller,
+        );
       }
       if (error instanceof Blocked) {
         // Same wording as a closed profile, for the same reason.
         return json({ error: 'That profile is not accepting messages.' }, 404, caller);
+      }
+      if (error instanceof RateLimited) {
+        increment('messenger.denied.rate_limited');
+        return json(
+          {
+            error: 'You have sent this person several messages just now. Please give them a moment to reply.',
+          },
+          429,
+          caller,
+        );
       }
       console.error('[messenger] Send failed');
       increment('errors.5xx');
@@ -113,9 +128,13 @@ export const handler: Handlers = {
 
     const publicKey = await getPublicKey(recipient.emailHash);
     if (!publicKey) {
-      return json({
-        error: 'That profile has not set up messaging yet, so nothing can be sealed to them.',
-      }, 409, caller);
+      return json(
+        {
+          error: 'That profile has not set up messaging yet, so nothing can be sealed to them.',
+        },
+        409,
+        caller,
+      );
     }
 
     return json({ publicKey, handle: recipient.handle }, 200, caller);

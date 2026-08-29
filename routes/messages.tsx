@@ -64,9 +64,8 @@ export default function MessagesPage({ data }: PageProps<Data>) {
         <section class='panel' id='setup' hidden={data.hasIdentity}>
           <h2>set up messaging</h2>
           <p class='lede'>
-            Choose a passphrase. It never leaves this browser: your private key is encrypted with it before
-            anything is stored, so nobody here can read your messages — and nobody here can recover them if
-            you forget it.
+            Choose a passphrase. It never leaves this browser: your private key is encrypted with it before anything is
+            stored, so nobody here can read your messages — and nobody here can recover them if you forget it.
           </p>
           <label for='new-passphrase'>passphrase</label>
           <input id='new-passphrase' type='password' autocomplete='new-password' />
@@ -97,7 +96,26 @@ export default function MessagesPage({ data }: PageProps<Data>) {
           <section class='panel convo' id='convo' aria-label='Conversation'>
             <p class='empty' id='convo-empty'>Choose a conversation.</p>
 
-            <div class='log' id='log' role='log' aria-live='polite' aria-label='Messages' hidden></div>
+            {
+              /*
+               * tabindex=0 because the log scrolls: max-height plus overflow-y
+               * in tool.css means a long conversation hides its own history
+               * from anyone without a pointer, since nothing inside it is
+               * focusable -- the bubbles are plain divs. role='log' and the
+               * label are kept over the more generic 'region': this is an
+               * append-only message log and that is what the role says.
+               */
+            }
+            <div
+              class='log'
+              id='log'
+              role='log'
+              tabIndex={0}
+              aria-live='polite'
+              aria-label='Messages'
+              hidden
+            >
+            </div>
 
             <div class='composer' id='composer' hidden>
               <label for='reply'>reply</label>

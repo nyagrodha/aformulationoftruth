@@ -31,6 +31,13 @@ const IdentitySchema = z.object({
   kdfIterations: z.number().int().min(100000).max(1000000),
 });
 
+/* Postgres unique_violation, however the driver chose to wrap it. */
+function isUniqueViolation(error: unknown): boolean {
+  const code = (error as { code?: unknown; fields?: { code?: unknown } })?.code ??
+    (error as { fields?: { code?: unknown } })?.fields?.code;
+  return code === '23505';
+}
+
 export const handler: Handlers = {
   async GET(req, _ctx) {
     increment('requests.api');
@@ -41,15 +48,19 @@ export const handler: Handlers = {
     const identity = await getIdentity(caller.emailHash);
     if (!identity) return json({ identity: null }, 200, caller);
 
-    return json({
-      identity: {
-        publicKey: identity.publicKey,
-        wrappedPrivate: identity.wrappedPrivate,
-        wrapIv: identity.wrapIv,
-        kdfSalt: identity.kdfSalt,
-        kdfIterations: identity.kdfIterations,
+    return json(
+      {
+        identity: {
+          publicKey: identity.publicKey,
+          wrappedPrivate: identity.wrappedPrivate,
+          wrapIv: identity.wrapIv,
+          kdfSalt: identity.kdfSalt,
+          kdfIterations: identity.kdfIterations,
+        },
       },
-    }, 200, caller);
+      200,
+      caller,
+    );
   },
 
   async POST(req, _ctx) {
@@ -80,14 +91,36 @@ export const handler: Handlers = {
      */
     if (await getIdentity(caller.emailHash)) {
       increment('messenger.identity.duplicate');
-      return json({
-        error: 'You already have a messaging identity. Replacing it would make your existing messages unreadable.',
-      }, 409, caller);
+      return json(
+        {
+          error: 'You already have a messaging identity. Replacing it would make your existing messages unreadable.',
+        },
+        409,
+        caller,
+      );
     }
 
     try {
       await createIdentity({ emailHash: caller.emailHash, ...parsed.data });
-    } catch {
+    } catch (error) {
+      /*
+       * The check above is not the last word: two tabs posting at once both
+       * read "no identity" and both insert, and the loser used to be told the
+       * save had failed and to try again -- advice that cannot work, because
+       * the identity it would replace is now there. The primary key is what
+       * actually decides, so a unique violation is the same answer as the
+       * pre-check, arrived at later. 23505 is Postgres's unique_violation.
+       */
+      if (isUniqueViolation(error)) {
+        increment('messenger.identity.duplicate');
+        return json(
+          {
+            error: 'You already have a messaging identity. Replacing it would make your existing messages unreadable.',
+          },
+          409,
+          caller,
+        );
+      }
       console.error('[messenger] Identity creation failed');
       increment('errors.5xx');
       return json({ error: 'Could not save your identity. Please try again.' }, 500, caller);

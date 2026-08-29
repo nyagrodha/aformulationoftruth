@@ -37,7 +37,9 @@
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 }
 
-* { box-sizing: border-box; }
+* {
+  box-sizing: border-box;
+}
 
 body {
   margin: 0;
@@ -55,7 +57,9 @@ main {
   padding: 3rem 0 5rem;
 }
 
-main.wide { width: min(1240px, calc(100% - 2rem)); }
+main.wide {
+  width: min(1240px, calc(100% - 2rem));
+}
 
 /* ------------------------------------------------------------ type and chrome */
 
@@ -75,11 +79,20 @@ h1 {
   text-wrap: balance;
 }
 
-h2 { font-size: 1.25rem; margin: 0 0 .75rem; }
+h2 {
+  font-size: 1.25rem;
+  margin: 0 0 .75rem;
+}
 
-.lede { color: var(--muted); max-width: 62ch; margin: 0 0 1.5rem; }
+.lede {
+  color: var(--muted);
+  max-width: 62ch;
+  margin: 0 0 1.5rem;
+}
 
-a { color: var(--green); }
+a {
+  color: var(--green);
+}
 a:focus-visible,
 button:focus-visible,
 input:focus-visible,
@@ -118,7 +131,8 @@ label {
   letter-spacing: .08em;
 }
 
-textarea, input {
+textarea,
+input {
   width: 100%;
   border: 1px solid var(--line);
   border-radius: var(--radius-field);
@@ -128,9 +142,13 @@ textarea, input {
   font: 14px var(--font-mono);
 }
 
-textarea { min-height: 7rem; resize: vertical; }
+textarea {
+  min-height: 7rem;
+  resize: vertical;
+}
 
-button, a.pill {
+button,
+a.pill {
   display: inline-block;
   margin-top: .9rem;
   border: 0;
@@ -144,7 +162,10 @@ button, a.pill {
   font-family: var(--font-ui);
 }
 
-button[disabled] { opacity: .5; cursor: not-allowed; }
+button[disabled] {
+  opacity: .5;
+  cursor: not-allowed;
+}
 
 button.quiet {
   background: transparent;
@@ -153,7 +174,8 @@ button.quiet {
   font-weight: 700;
 }
 
-output, pre {
+output,
+pre {
   display: block;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
@@ -173,8 +195,12 @@ output, pre {
   margin: .6rem 0 0;
 }
 
-.status.err { color: var(--rose); }
-.status.ok { color: var(--green); }
+.status.err {
+  color: var(--rose);
+}
+.status.ok {
+  color: var(--green);
+}
 
 /* ---------------------------------------------------------------- directory */
 
@@ -197,11 +223,29 @@ output, pre {
   gap: .35rem;
 }
 
-.person h3 { margin: 0; font-size: 1.05rem; }
-.person .handle { font-family: var(--font-mono); font-size: .82rem; color: var(--blue); }
-.person .bio { color: var(--muted); font-size: .92rem; margin: .3rem 0 0; }
-.person .foot { margin-top: auto; padding-top: .8rem; }
-.person a.pill { margin-top: 0; font-size: .8rem; padding: .55rem .95rem; }
+.person h3 {
+  margin: 0;
+  font-size: 1.05rem;
+}
+.person .handle {
+  font-family: var(--font-mono);
+  font-size: .82rem;
+  color: var(--blue);
+}
+.person .bio {
+  color: var(--muted);
+  font-size: .92rem;
+  margin: .3rem 0 0;
+}
+.person .foot {
+  margin-top: auto;
+  padding-top: .8rem;
+}
+.person a.pill {
+  margin-top: 0;
+  font-size: .8rem;
+  padding: .55rem .95rem;
+}
 
 .closed {
   font-size: .78rem;
@@ -219,10 +263,18 @@ output, pre {
 }
 
 @media (min-width: 860px) {
-  .messenger { grid-template-columns: 300px minmax(0, 1fr); align-items: start; }
+  .messenger {
+    grid-template-columns: 300px minmax(0, 1fr);
+    align-items: start;
+  }
 }
 
-.thread-list { padding: .5rem; display: flex; flex-direction: column; gap: .25rem; }
+.thread-list {
+  padding: .5rem;
+  display: flex;
+  flex-direction: column;
+  gap: .25rem;
+}
 
 .thread-btn {
   margin: 0;
@@ -240,10 +292,24 @@ output, pre {
   gap: .5rem;
 }
 
-.thread-btn:hover { background: var(--panel-2); }
-.thread-btn[aria-current="true"] { border-color: var(--green); background: var(--panel-2); }
-.thread-btn .who { display: flex; flex-direction: column; gap: .15rem; min-width: 0; }
-.thread-btn .sub { font-size: .76rem; color: var(--muted); font-weight: 500; }
+.thread-btn:hover {
+  background: var(--panel-2);
+}
+.thread-btn[aria-current="true"] {
+  border-color: var(--green);
+  background: var(--panel-2);
+}
+.thread-btn .who {
+  display: flex;
+  flex-direction: column;
+  gap: .15rem;
+  min-width: 0;
+}
+.thread-btn .sub {
+  font-size: .76rem;
+  color: var(--muted);
+  font-weight: 500;
+}
 
 .badge {
   flex: none;
@@ -258,7 +324,11 @@ output, pre {
 
 /* -------------------------------------------------------------- conversation */
 
-.convo { display: flex; flex-direction: column; min-height: 22rem; }
+.convo {
+  display: flex;
+  flex-direction: column;
+  min-height: 22rem;
+}
 
 .log {
   display: flex;
@@ -267,6 +337,18 @@ output, pre {
   padding: .5rem 0 1rem;
   overflow-y: auto;
   max-height: 55vh;
+}
+
+/*
+ * The log takes focus so it can be scrolled from the keyboard (see the note on
+ * tabIndex in routes/messages.tsx). A focusable element with no focus style is
+ * the worse half of the bargain -- the keyboard user can now reach a thing they
+ * cannot see they have reached -- so it gets a visible ring. :focus-visible, so
+ * a pointer click on a message does not draw one.
+ */
+.log:focus-visible {
+  outline: 2px solid var(--blue, #2563eb);
+  outline-offset: 2px;
 }
 
 .msg {
@@ -281,7 +363,8 @@ output, pre {
 
 .msg.mine {
   align-self: flex-end;
-  background: linear-gradient(135deg, color-mix(in srgb, var(--green) 22%, transparent), color-mix(in srgb, var(--blue) 22%, transparent));
+  background: linear-gradient(135deg, color-mix(in srgb, var(--green) 22%, transparent), color-mix(in srgb, var(--blue)
+    22%, transparent));
   border-color: color-mix(in srgb, var(--green) 40%, transparent);
 }
 
@@ -293,15 +376,39 @@ output, pre {
   font-variant-numeric: tabular-nums;
 }
 
-.msg.unreadable { color: var(--amber); font-style: italic; }
+.msg.unreadable {
+  color: var(--amber);
+  font-style: italic;
+}
 
-.composer { display: flex; flex-direction: column; gap: 0; border-top: 1px solid var(--line); padding-top: .75rem; }
-.composer textarea { min-height: 4.5rem; }
-.composer .row { display: flex; gap: .6rem; align-items: center; }
-.composer button { margin-top: .6rem; }
+.composer {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  border-top: 1px solid var(--line);
+  padding-top: .75rem;
+}
+.composer textarea {
+  min-height: 4.5rem;
+}
+.composer .row {
+  display: flex;
+  gap: .6rem;
+  align-items: center;
+}
+.composer button {
+  margin-top: .6rem;
+}
 
-.empty { color: var(--muted); padding: 2rem 1rem; text-align: center; }
+.empty {
+  color: var(--muted);
+  padding: 2rem 1rem;
+  text-align: center;
+}
 
 @media (prefers-reduced-motion: reduce) {
-  * { transition: none !important; animation: none !important; }
+  * {
+    transition: none !important;
+    animation: none !important;
+  }
 }

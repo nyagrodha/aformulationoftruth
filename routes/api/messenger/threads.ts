@@ -17,7 +17,7 @@ import { Handlers } from '$fresh/server.ts';
 import { increment } from '../../../lib/metrics.ts';
 import { isRefusal, json, requireProvenCaller } from '../../../lib/api-auth.ts';
 import { getProfilesFor, profileLabel } from '../../../lib/profiles.ts';
-import { getPublicKey, isParticipant, listMessages, listThreads, markRead } from '../../../lib/messenger.ts';
+import { getPublicKeysFor, isParticipant, listMessages, listThreads, markRead } from '../../../lib/messenger.ts';
 
 export const handler: Handlers = {
   async GET(req, _ctx) {
@@ -52,22 +52,30 @@ export const handler: Handlers = {
        */
       if (!afterRaw) await markRead(threadId, caller.emailHash);
 
-      return json({
-        messages: messages.map((m) => ({
-          id: m.id,
-          mine: m.senderEmailHash === caller.emailHash,
-          ciphertext: m.ciphertext,
-          iv: m.iv,
-          createdAt: m.createdAt.toISOString(),
-        })),
-      }, 200, caller);
+      return json(
+        {
+          messages: messages.map((m) => ({
+            id: m.id,
+            mine: m.senderEmailHash === caller.emailHash,
+            ciphertext: m.ciphertext,
+            iv: m.iv,
+            createdAt: m.createdAt.toISOString(),
+          })),
+        },
+        200,
+        caller,
+      );
     }
 
     /* ----------------------------------------------------------- every thread */
     const threads = await listThreads(caller.emailHash);
     if (threads.length === 0) return json({ threads: [] }, 200, caller);
 
-    const profiles = await getProfilesFor(threads.map((t) => t.otherEmailHash));
+    const others = threads.map((t) => t.otherEmailHash);
+    const [profiles, publicKeys] = await Promise.all([
+      getProfilesFor(others),
+      getPublicKeysFor(others),
+    ]);
 
     /*
      * The correspondent's public key travels with the thread. Both halves of a
@@ -75,7 +83,7 @@ export const handler: Handlers = {
      * it to open their messages AND to re-open its own -- otherwise a sender
      * cannot read what they themselves sent.
      */
-    const withKeys = await Promise.all(threads.map(async (t) => {
+    const withKeys = threads.map((t) => {
       const profile = profiles.get(t.otherEmailHash);
       return {
         id: t.id,
@@ -83,9 +91,9 @@ export const handler: Handlers = {
         handle: profile?.handle ?? null,
         unread: t.unread,
         lastMessageAt: t.lastMessageAt.toISOString(),
-        publicKey: await getPublicKey(t.otherEmailHash),
+        publicKey: publicKeys.get(t.otherEmailHash) ?? null,
       };
-    }));
+    });
 
     return json({ threads: withKeys }, 200, caller);
   },

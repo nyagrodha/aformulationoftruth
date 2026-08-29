@@ -45,10 +45,26 @@ CREATE TABLE IF NOT EXISTS messenger_identities (
     kdf_salt        TEXT        NOT NULL,          -- base64, 16 bytes
     kdf_iterations  INTEGER     NOT NULL,
     created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    rotated_at      TIMESTAMPTZ,
+    -- The floor is 100000, not 1, and it is the same number
+    -- routes/api/messenger/identity.ts enforces on the way in. A wrapped
+    -- private key at one iteration is a wrapped private key in name only, and
+    -- the two checks disagreeing meant the API's floor was the only one --
+    -- worth nothing against a client that is not ours, which is the only case
+    -- either check exists for. The ceiling matches seal-guards MAX_ITERATIONS.
     CONSTRAINT messenger_identities_iterations_sane
-        CHECK (kdf_iterations BETWEEN 1 AND 1000000)
+        CHECK (kdf_iterations BETWEEN 100000 AND 1000000)
 );
+
+-- There is deliberately no rotated_at, and no rotation.
+--
+-- Each row is the ONE keypair for an address, and every message ever sealed to
+-- that public half is unreadable the moment it is replaced -- with no error at
+-- the moment of loss, because the ciphertext is still perfectly well-formed.
+-- A schema that carries a rotation timestamp invites the write that destroys
+-- the archive. routes/api/messenger/identity.ts refuses to replace for the
+-- same reason; createIdentity is INSERT-only. Offering rotation means
+-- versioning keys and stamping every message with the version it was sealed
+-- under, which is a different schema than this one -- not a column.
 
 -- ---------------------------------------------------------------------------
 -- Threads. One per pair, forever.
@@ -95,6 +111,48 @@ CREATE TABLE IF NOT EXISTS messenger_messages (
 
 CREATE INDEX IF NOT EXISTS idx_messenger_messages_thread
     ON messenger_messages (thread_id, id);
+
+-- Supports the per-sender rolling window in sendMessage(). Without it the
+-- count falls back to the index above and reads the whole thread -- which is
+-- longest in exactly the case the limit exists to stop.
+CREATE INDEX IF NOT EXISTS idx_messenger_messages_sender_window
+    ON messenger_messages (thread_id, sender_email_hash, created_at DESC);
+
+-- ---------------------------------------------------------------------------
+-- The sender of a message must be one of the two people in its thread.
+--
+-- sendMessage() gets this right by construction: it resolves the thread from
+-- the sender and the recipient, so the sender is a participant or the thread
+-- does not exist. That is an argument about one function, and the constraint
+-- it rests on is not written down anywhere the database can see -- any later
+-- INSERT that takes thread_id from a request rather than deriving it would put
+-- a stranger's hash in someone else's conversation, and every read path here
+-- trusts sender_email_hash to decide whose message it is.
+--
+-- A foreign key cannot say this: the sender must match a_email_hash OR
+-- b_email_hash, and an FK names one column set. Hence a trigger.
+-- ---------------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION messenger_messages_sender_in_thread()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM messenger_threads t
+         WHERE t.id = NEW.thread_id
+           AND NEW.sender_email_hash IN (t.a_email_hash, t.b_email_hash)
+    ) THEN
+        RAISE EXCEPTION
+            'sender % is not a participant in thread %',
+            NEW.sender_email_hash, NEW.thread_id
+            USING ERRCODE = 'check_violation';
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trg_messenger_messages_sender_in_thread ON messenger_messages;
+CREATE TRIGGER trg_messenger_messages_sender_in_thread
+    BEFORE INSERT OR UPDATE OF thread_id, sender_email_hash ON messenger_messages
+    FOR EACH ROW EXECUTE FUNCTION messenger_messages_sender_in_thread();
 
 -- ---------------------------------------------------------------------------
 -- Blocks. Directional: blocking someone does not block you to them.

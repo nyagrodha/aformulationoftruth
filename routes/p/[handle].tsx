@@ -14,7 +14,6 @@ import { Head } from '$fresh/runtime.ts';
 import { Handlers, PageProps } from '$fresh/server.ts';
 import { increment } from '../../lib/metrics.ts';
 import { getProfileByHandle } from '../../lib/profiles.ts';
-import { getPublicKey } from '../../lib/messenger.ts';
 
 interface Data {
   handle: string;
@@ -22,7 +21,6 @@ interface Data {
   bio: string | null;
   acceptsMail: boolean;
   /** False when the owner opted in but never finished setting up messaging. */
-  hasKey: boolean;
 }
 
 export const handler: Handlers<Data> = {
@@ -35,27 +33,33 @@ export const handler: Handlers<Data> = {
     }
 
     /*
-     * The public key is looked up but NOT rendered into the page. The browser
-     * fetches it from /api/messenger/send, which requires a proven caller --
-     * embedding it here would publish who has messaging set up to anyone who
-     * loads a profile, which is the enumeration the opt-in exists to prevent.
-     * All this establishes is whether the compose box can work at all.
+     * Whether this person has a keypair is NOT resolved here, and must not be.
+     *
+     * An earlier version looked it up, kept the key server-side, and passed a
+     * `hasKey` boolean to the page -- on the reasoning that withholding the key
+     * itself was what mattered. It was not: the boolean is the whole of the
+     * fact worth enumerating. Anyone could walk /people, load each profile
+     * unauthenticated, and read off exactly who has messaging set up, which is
+     * the enumeration the opt-in exists to prevent. The key was never the
+     * secret; its existence was.
+     *
+     * The compose box renders from acceptsMail, which its owner published on
+     * purpose. If they accept mail without a keypair, the send attempt fails at
+     * /api/messenger/send -- which requires a proven caller, so the same fact
+     * costs an address someone can read mail at.
      */
-    const hasKey = profile.acceptsMail ? Boolean(await getPublicKey(profile.emailHash)) : false;
-
     increment('profile.view');
     return ctx.render({
       handle: profile.handle,
       displayName: profile.displayName,
       bio: profile.bio,
       acceptsMail: profile.acceptsMail,
-      hasKey,
     });
   },
 };
 
 export default function ProfilePage({ data }: PageProps<Data>) {
-  const { handle, displayName, bio, acceptsMail, hasKey } = data;
+  const { handle, displayName, bio, acceptsMail } = data;
   const name = displayName || handle;
 
   return (
@@ -71,10 +75,17 @@ export default function ProfilePage({ data }: PageProps<Data>) {
         <h1>{name}</h1>
         <p class='lede'>
           <span class='handle'>@{handle}</span>
-          {bio ? <><br />{bio}</> : null}
+          {bio
+            ? (
+              <>
+                <br />
+                {bio}
+              </>
+            )
+            : null}
         </p>
 
-        {acceptsMail && hasKey
+        {acceptsMail
           ? (
             <section class='panel' id='compose' data-handle={handle}>
               <h2>write to {name}</h2>
@@ -96,11 +107,7 @@ export default function ProfilePage({ data }: PageProps<Data>) {
           )
           : (
             <section class='panel'>
-              <p class='empty'>
-                {acceptsMail
-                  ? `${name} has not finished setting up messaging yet, so nothing can be sealed to them.`
-                  : `${name} is not accepting messages.`}
-              </p>
+              <p class='empty'>{`${name} is not accepting messages.`}</p>
             </section>
           )}
 

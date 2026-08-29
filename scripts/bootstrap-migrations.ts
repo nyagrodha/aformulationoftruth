@@ -65,6 +65,21 @@ async function main() {
   // otherwise have tried to apply.
   names.sort();
 
+  /*
+   * An exclusion that matches nothing is a typo, and a silent one is dangerous
+   * in exactly one direction: --exclude 001_initial_schmea.sql spells a file
+   * that is not there, matches nothing, and the generated SQL then marks the
+   * real 001_initial_schema.sql applied -- which is the DROP TABLE tombstone
+   * this script exists to keep migrate.ts from replaying. Failing here costs a
+   * retype; not failing costs the tables.
+   */
+  const unknown = [...excludes].filter((e) => !names.includes(e)).sort();
+  if (unknown.length > 0) {
+    console.error(`[bootstrap] No such migration: ${unknown.join(', ')}`);
+    console.error(`[bootstrap] Known migrations: ${names.join(', ')}`);
+    Deno.exit(2);
+  }
+
   const marked = names.filter((n) => !excludes.has(n));
   const skipped = names.filter((n) => excludes.has(n));
 

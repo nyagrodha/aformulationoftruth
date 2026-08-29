@@ -67,7 +67,17 @@ export function decodeField(name, text, maxBytes) {
   if ((text.length * 3) / 4 > maxBytes + 3) {
     throw new Error(`envelope ${name} is larger than the ${maxBytes} bytes this page will decode`);
   }
-  return unb64(text);
+  try {
+    return unb64(text);
+  } catch {
+    /*
+     * atob throws InvalidCharacterError, which names no field and reads as a
+     * browser fault rather than a malformed envelope. Every other refusal here
+     * says which field was wrong; this one was the exception, and the caller
+     * displaying it had nothing to show the person.
+     */
+    throw new Error(`envelope ${name} is not valid base64`);
+  }
 }
 
 /*
