@@ -86,8 +86,11 @@ export const handler: Handlers = {
 
       const { opaqueToken, sessionId } = sessionResult;
 
-      // Step 4: Create JWT (contains email_hash + session_id)
-      const jwt = await createQuestionnaireJWT(emailHash, sessionId);
+      // Step 4: Create JWT (contains email_hash + session_id + via)
+      //
+      // 'link': this token is only ever delivered by email, and only
+      // /auth/verify turns it into a cookie. See JWTVia.
+      const jwt = await createQuestionnaireJWT(emailHash, sessionId, 'link');
 
       // Step 5: Build magic link URL with JWT + resume token
       // IMPORTANT: NO EMAIL IN URL (gupta-vidya compliant)
