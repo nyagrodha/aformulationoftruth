@@ -74,6 +74,7 @@ draw   = int(drand_randomness, 16)
 window = 2^256 - (2^256 mod entry_count)  # largest exact multiple of the pool
 n      = 0
 while draw >= window:                     # re-drawn, never folded
+    if n == 128: fail                     # bound only; unreachable at 2^256
     draw = int(sha256('lotto/winner/v1:' + drand_randomness + ':' + n), 16)
     n   += 1
 winner_index = draw mod entry_count`}</pre>
