@@ -32,9 +32,35 @@ function parseEnvValue(raw: string): string {
     .replace(/\\t/g, '\t');
 }
 
+/**
+ * Decide whether a value read from the env file may overwrite a variable that
+ * is already present in the real process environment.
+ *
+ * The real environment wins. In production LOTTO_OPERATOR_TOKEN and its
+ * neighbours are supplied by systemd, and a stale .env left in the deploy tree
+ * must not be able to quietly put a development secret back in their place.
+ * Every other dotenv implementation resolves this the same way, so nobody
+ * arriving from Node has to learn a local exception.
+ *
+ * The cost lands in development: export a variable in your shell and it shadows
+ * your edits to the file. Silence is what makes that infuriating to debug, so
+ * the loader names the keys it skipped.
+ *
+ * @param _key     the variable name, e.g. "LOTTO_OPERATOR_TOKEN"
+ * @param existing the value already in the process environment, or undefined
+ * @returns true to let the file value win, false to keep `existing`
+ */
+function shouldOverrideExisting(
+  _key: string,
+  existing: string | undefined,
+): boolean {
+  return existing === undefined;
+}
+
 for (const envFile of envFiles) {
   try {
     const content = await Deno.readTextFile(envFile);
+    const skipped: string[] = [];
     for (const line of content.split('\n')) {
       const trimmed = line.trim();
       if (trimmed && !trimmed.startsWith('#')) {
@@ -43,11 +69,23 @@ for (const envFile of envFiles) {
           const key = trimmed.slice(0, eqIndex).trim();
           const rawValue = trimmed.slice(eqIndex + 1).trim();
           const value = parseEnvValue(rawValue);
-          Deno.env.set(key, value);
+          if (shouldOverrideExisting(key, Deno.env.get(key))) {
+            Deno.env.set(key, value);
+          } else {
+            skipped.push(key);
+          }
         }
       }
     }
     console.log(`[env] Loaded ${envFile}`);
+    if (skipped.length > 0) {
+      // Key names only, never values: this line goes to the journal.
+      console.log(
+        `[env] already set in the environment, file values ignored: ${
+          skipped.join(', ')
+        }`,
+      );
+    }
     break;
   } catch {
     continue;
