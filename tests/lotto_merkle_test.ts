@@ -71,14 +71,14 @@ Deno.test('verifyMerkleProof - a proof for a committed leaf still validates', as
   const root = await buildMerkleRoot([A, B]);
   const siblingLeaf = await buildMerkleRoot([B]);
 
-  assertEquals(await verifyMerkleProof(A, [siblingLeaf], 0, root), true);
+  assertEquals(await verifyMerkleProof(A, [siblingLeaf], 0, 2, root), true);
 });
 
 Deno.test('verifyMerkleProof - a proof for an uncommitted leaf is refused', async () => {
   const root = await buildMerkleRoot([A, B]);
   const siblingLeaf = await buildMerkleRoot([B]);
 
-  assertEquals(await verifyMerkleProof(C, [siblingLeaf], 0, root), false);
+  assertEquals(await verifyMerkleProof(C, [siblingLeaf], 0, 2, root), false);
 });
 
 Deno.test('chooseWinnerIndex - the largest draw is re-drawn rather than folded', async () => {
@@ -112,4 +112,34 @@ Deno.test('chooseWinnerIndex - is deterministic for the same round and pool', as
 
 Deno.test('chooseWinnerIndex - refuses a non-positive entry count', async () => {
   await assertRejects(() => Promise.resolve(chooseWinnerIndex(A, 0)));
+});
+
+Deno.test('verifyMerkleProof - the promoted last leaf of an odd tree can be proven', async () => {
+  // [A,B,C] builds as level1 = [node(lA,lB), lC] with C carried up unpaired,
+  // so C's path spends no hash on the first level. A verifier that halves the
+  // index once per supplied hash loses track of the level it is on and pairs
+  // C against the wrong side.
+  const root = await buildMerkleRoot([A, B, C]);
+  const sibling = await buildMerkleRoot([A, B]); // node(lA, lB)
+
+  assertEquals(await verifyMerkleProof(C, [sibling], 2, 3, root), true);
+});
+
+Deno.test('verifyMerkleProof - a proof carrying leftover hashes is refused', async () => {
+  // The promoted leaf's path spends one hash. Offering a second describes a
+  // taller tree than entry_count allows, so the proof cannot be about this one.
+  const root = await buildMerkleRoot([A, B, C]);
+  const sibling = await buildMerkleRoot([A, B]);
+
+  assertEquals(
+    await verifyMerkleProof(C, [sibling, sibling], 2, 3, root),
+    false,
+  );
+});
+
+Deno.test('verifyMerkleProof - a leaf index outside the pool is refused', async () => {
+  const root = await buildMerkleRoot([A, B, C]);
+  const sibling = await buildMerkleRoot([A, B]);
+
+  assertEquals(await verifyMerkleProof(C, [sibling], 3, 3, root), false);
 });

@@ -55,6 +55,8 @@ export default function LottoPage() {
             <textarea id="proof"></textarea>
             <label for="leafIndex">leaf index</label>
             <input id="leafIndex" type="number" min="0" value="0" />
+            <label for="entryCount">entry count</label>
+            <input id="entryCount" type="number" min="1" value="1" />
             <label for="root">merkle root</label>
             <input id="root" placeholder="64 hex characters" />
             <button id="verify" type="button">verify inclusion</button>
@@ -64,7 +66,17 @@ export default function LottoPage() {
           <section>
             <h2>3 · audit recipe</h2>
             <pre>{`anchor_hash = sha256(merkle_root + ':' + entry_count + ':' + drand_round)
-winner_index = int(drand_randomness, 16) % entry_count`}</pre>
+
+leaf = sha256(0x00 + commitment)          # leaves and nodes are tagged apart
+node = sha256(0x01 + left + right)        # a lone node is carried up unchanged
+
+draw   = int(drand_randomness, 16)
+window = 2^256 - (2^256 mod entry_count)  # largest exact multiple of the pool
+n      = 0
+while draw >= window:                     # re-drawn, never folded
+    draw = int(sha256('lotto/winner/v1:' + drand_randomness + ':' + n), 16)
+    n   += 1
+winner_index = draw mod entry_count`}</pre>
             <p>
               Operator close is served by{" "}
               <code>/api/lotto/close</code>; membership is checked at{" "}

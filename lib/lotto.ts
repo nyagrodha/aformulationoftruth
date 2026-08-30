@@ -74,8 +74,34 @@ export async function hashHex(value: string): Promise<string> {
   return bytesToHex(await hashBytes(new TextEncoder().encode(value)));
 }
 
+/**
+ * Leaves and internal nodes are hashed in separate domains, so a value can
+ * never be mistaken for the other kind. Without the tags a leaf hash is a bare
+ * SHA-256 over 64 bytes and so is an internal node's preimage, and the only
+ * thing standing between the tree and a second-preimage forgery is commit.ts
+ * validating commitments as hex -- security living in a different file from
+ * the thing it secures. The tags follow RFC 6962.
+ */
+const LEAF_TAG = 0x00;
+const NODE_TAG = 0x01;
+
 async function leafHash(commitment: string): Promise<Uint8Array> {
-  return await hashBytes(new TextEncoder().encode(commitment));
+  const body = new TextEncoder().encode(commitment);
+  const tagged = new Uint8Array(1 + body.length);
+  tagged[0] = LEAF_TAG;
+  tagged.set(body, 1);
+  return await hashBytes(tagged);
+}
+
+async function nodeHash(
+  left: Uint8Array,
+  right: Uint8Array,
+): Promise<Uint8Array> {
+  const tagged = new Uint8Array(1 + left.length + right.length);
+  tagged[0] = NODE_TAG;
+  tagged.set(left, 1);
+  tagged.set(right, 1 + left.length);
+  return await hashBytes(tagged);
 }
 
 export async function buildMerkleRoot(commitments: string[]): Promise<string> {
@@ -93,39 +119,70 @@ export async function buildMerkleRoot(commitments: string[]): Promise<string> {
     const nextLevel: Uint8Array[] = [];
     for (let i = 0; i < level.length; i += 2) {
       const left = level[i];
-      const right = level[i + 1] ?? left;
-      const pair = new Uint8Array(left.length + right.length);
-      pair.set(left);
-      pair.set(right, left.length);
-      nextLevel.push(await hashBytes(pair));
+      const right = level[i + 1];
+      // A lone node is carried up unchanged. Duplicating it instead -- the
+      // Bitcoin bug, CVE-2012-2459 -- lets [A,B,C] and [A,B,C,C] agree on a
+      // root, so the root stops pinning down how many entries there were.
+      // winner_index is derived from that count.
+      nextLevel.push(
+        right === undefined ? left : await nodeHash(left, right),
+      );
     }
     level = nextLevel;
   }
   return bytesToHex(level[0]);
 }
 
+/**
+ * Recheck that a commitment sits in the tree under `merkleRoot`.
+ *
+ * The proof is read against the tree's WIDTH, not just its own length. Since a
+ * lone node is carried up unpaired, some levels spend no hash at all, and a
+ * verifier that simply walked the supplied hashes would lose track of which
+ * level it was on and pair the last leaf of an odd tree against the wrong
+ * side -- rejecting a commitment that really is in the tree. Knowing
+ * `entryCount` is what says where those gaps fall. This mirrors RFC 6962,
+ * where an audit path is defined relative to the tree size.
+ */
 export async function verifyMerkleProof(
   commitment: string,
   proofHashes: string[],
   leafIndex: number,
+  entryCount: number,
   merkleRoot: string,
 ): Promise<boolean> {
+  if (
+    !Number.isInteger(entryCount) || entryCount <= 0 ||
+    !Number.isInteger(leafIndex) || leafIndex < 0 || leafIndex >= entryCount
+  ) {
+    return false;
+  }
+
   let current = await leafHash(commitment);
   let index = leafIndex;
+  let width = entryCount;
+  let consumed = 0;
 
-  for (const proofHash of proofHashes) {
-    const sibling = hexToBytes(normalizeHashHex(proofHash, "proof_hash"));
-    const pair = new Uint8Array(current.length + sibling.length);
-    if (index % 2 === 0) {
-      pair.set(current);
-      pair.set(sibling, current.length);
-    } else {
-      pair.set(sibling);
-      pair.set(current, sibling.length);
+  while (width > 1) {
+    // Last node of an odd level: it was carried up untouched, so this level
+    // contributes no sibling and the proof spends nothing here.
+    const promoted = width % 2 === 1 && index === width - 1;
+    if (!promoted) {
+      if (consumed >= proofHashes.length) return false;
+      const sibling = hexToBytes(
+        normalizeHashHex(proofHashes[consumed], "proof_hash"),
+      );
+      consumed += 1;
+      current = index % 2 === 0
+        ? await nodeHash(current, sibling)
+        : await nodeHash(sibling, current);
     }
-    current = await hashBytes(pair);
     index = Math.floor(index / 2);
+    width = Math.ceil(width / 2);
   }
+
+  // Hashes left over describe some other tree, so the proof does not hold.
+  if (consumed !== proofHashes.length) return false;
 
   return bytesToHex(current) === normalizeHashHex(merkleRoot, "merkle_root");
 }
@@ -169,10 +226,30 @@ export async function fetchDrandRandomness(
   return randomness;
 }
 
-export function chooseWinnerIndex(
+/** drand randomness is 32 bytes, so a draw spans [0, 2^256). */
+const DRAW_RANGE = 1n << 256n;
+
+/** A re-draw needs a bound; at 2^256 the loop cannot plausibly reach it. */
+const MAX_REDRAWS = 128;
+
+/**
+ * Pick the winning index from a drand round.
+ *
+ * Folding the draw with a bare modulo tips the odds toward the low indices
+ * whenever the pool size does not divide the range evenly. At 256 bits the
+ * effect is far too small to observe -- but the lotto's whole claim is that a
+ * stranger can recheck it, and "the bias is about n/2^256, so relax" is an
+ * arithmetic argument a reader has to take on faith. Rejecting the draws that
+ * fall outside the largest exact multiple of the pool size costs a branch that
+ * essentially never fires and leaves nothing to take on faith.
+ *
+ * A re-draw is DERIVED, never freshly fetched: a verifier holds only the
+ * published round and must land on the same index we did.
+ */
+export async function chooseWinnerIndex(
   randomnessHex: string,
   entryCount: number,
-): number {
+): Promise<number> {
   if (entryCount <= 0) {
     throw new Response(
       JSON.stringify({ error: "entry_count must be positive" }),
@@ -182,7 +259,27 @@ export function chooseWinnerIndex(
       },
     );
   }
-  return Number(BigInt(`0x${randomnessHex}`) % BigInt(entryCount));
+
+  const normalized = normalizeHashHex(randomnessHex, "randomness");
+  const pool = BigInt(entryCount);
+  const window = DRAW_RANGE - (DRAW_RANGE % pool);
+
+  let draw = BigInt(`0x${normalized}`);
+  for (let redraws = 0; draw >= window; redraws++) {
+    if (redraws >= MAX_REDRAWS) {
+      throw new Response(
+        JSON.stringify({ error: "winner selection failed to converge" }),
+        {
+          status: 500,
+          headers: { "content-type": "application/json; charset=utf-8" },
+        },
+      );
+    }
+    draw = BigInt(
+      `0x${await hashHex(`lotto/winner/v1:${normalized}:${redraws}`)}`,
+    );
+  }
+  return Number(draw % pool);
 }
 
 export function requireOperator(req: Request): void {

@@ -36,6 +36,7 @@ document.getElementById("submit").onclick = async () => {
 document.getElementById("verify").onclick = async () => {
   const verifyCommitmentEl = document.getElementById("verifyCommitment");
   const leafIndexEl = document.getElementById("leafIndex");
+  const entryCountEl = document.getElementById("entryCount");
   const rootEl = document.getElementById("root");
   const proof = document.getElementById("proof").value.split(/\n+/).map((s) =>
     s.trim()
@@ -44,6 +45,9 @@ document.getElementById("verify").onclick = async () => {
     commitment: verifyCommitmentEl.value,
     proof,
     leaf_index: leafIndexEl.value,
+    // The proof is read against the tree's width: a lone node is carried up
+    // unpaired, so entry_count is what says which levels spend no hash.
+    entry_count: entryCountEl.value,
     merkle_root: rootEl.value,
   };
   const res = await fetch("/api/lotto/verify", {

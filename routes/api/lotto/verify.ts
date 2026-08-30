@@ -21,11 +21,13 @@ export const handler: Handlers = {
       const payload = await readJsonObject(req);
       const commitment = normalizeHashHex(payload.commitment, "commitment");
       const leafIndex = parseInteger(payload.leaf_index, "leaf_index");
+      const entryCount = parseInteger(payload.entry_count, "entry_count");
       const merkleRoot = normalizeHashHex(payload.merkle_root, "merkle_root");
       const valid = await verifyMerkleProof(
         commitment,
         normalizeProof(payload.proof),
         leafIndex,
+        entryCount,
         merkleRoot,
       );
       return json({ ok: true, valid });
