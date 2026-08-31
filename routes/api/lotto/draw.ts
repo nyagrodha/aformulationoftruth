@@ -26,7 +26,7 @@ export const handler: Handlers = {
         ok: true,
         drand_round: drandRound,
         randomness,
-        winner_index: chooseWinnerIndex(randomness, entryCount),
+        winner_index: await chooseWinnerIndex(randomness, entryCount),
       });
     } catch (error) {
       if (error instanceof Response) return error;
