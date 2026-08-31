@@ -23,6 +23,14 @@
 
 import { assert, assertEquals, assertStringIncludes } from '$std/assert/mod.ts';
 import { GATE_QUESTIONS } from '../../lib/gate_encrypt.ts';
+import { generateSessionKeypair } from '../../lib/session-keys.ts';
+
+/*
+ * A real age recipient, minted once for the suite. The handler encrypts the
+ * address to it, so a placeholder string would fail inside ageEncryptTo and
+ * look like a break-glass misconfiguration rather than a test fixture.
+ */
+const BREAKGLASS_RECIPIENT = (await generateSessionKeypair()).recipient;
 
 /** One intercepted call to the gate, decoded. */
 interface GateCall {
@@ -36,7 +44,7 @@ interface GateCall {
 
 const originalFetch = globalThis.fetch;
 const originalEnv = Deno.env.toObject();
-const TEST_ENV_KEYS = ['DATABASE_URL', 'JWT_SECRET', 'RESUME_TOKEN_SECRET', 'BASE_URL', 'DENO_ENV', 'EMAIL_TRANSPORT'] as const;
+const TEST_ENV_KEYS = ['DATABASE_URL', 'JWT_SECRET', 'RESUME_TOKEN_SECRET', 'BASE_URL', 'DENO_ENV', 'EMAIL_TRANSPORT', 'BREAKGLASS_AGE_RECIPIENT'] as const;
 
 function setupTestEnv() {
   /*
@@ -53,6 +61,12 @@ function setupTestEnv() {
   Deno.env.set('DENO_ENV', 'test');
   /* lib/email.ts keys its stub transport on this, not on DENO_ENV. */
   Deno.env.set('EMAIL_TRANSPORT', 'stub');
+  /*
+   * breakglassRecipient() throws when unset, and it is read before the gate is
+   * ever touched -- so without this every test here refuses at provisioning
+   * and never exercises the behaviour it names.
+   */
+  Deno.env.set('BREAKGLASS_AGE_RECIPIENT', BREAKGLASS_RECIPIENT);
 }
 
 function restoreEnv() {
@@ -95,8 +109,22 @@ function stubGate(respond: (callIndex: number) => Response | null = () => new Re
 
 /** Load the handler fresh-ish; module caching means env must be set first. */
 async function loadHandler() {
-  const { handler } = await import('./gate-submit.ts');
-  return handler.POST!;
+  const mod = await import('./gate-submit.ts');
+  /*
+   * Set on every load rather than once: the module is cached, so this also has
+   * to hold for the second and later tests. Left unset, pushIdentity falls
+   * through to its ssh transport and the suite depends on the key box being up.
+   */
+  mod.identityTransportForTesting.current = () => Promise.resolve();
+  /*
+   * Stand in for Postgres. DATABASE_URL stays unparseable so nothing can reach
+   * a real database by accident, but the route's own writes must still succeed
+   * -- the gate write is last, so a failing INSERT means the gate is never
+   * called and every assertion about it is vacuous.
+   */
+  mod.dbForTesting.withConnection = (<T,>(handler: (client: never) => Promise<T>) =>
+    handler({ queryObject: () => Promise.resolve({ rows: [] }) } as never)) as typeof mod.dbForTesting.withConnection;
+  return mod.handler.POST!;
 }
 
 function jsonRequest(body: unknown): Request {
@@ -338,9 +366,10 @@ Deno.test({
     assert(insert, 'expected an INSERT INTO fresh_gate_responses in the handler');
     assertStringIncludes(insert[0], 'q0_answer');
     assertStringIncludes(insert[0], 'q1_answer');
-    assertStringIncludes(insert[0], 'VALUES ($1, NULL, NULL)');
+    assertStringIncludes(insert[0], 'VALUES ($1, NULL, NULL, $2, $3)');
 
-    // $1 is the gate token and the only bound parameter — no answer, no email.
-    assertEquals(insert[0].match(/\$\d+/g)?.length, 1, 'only the gate token may be bound');
+    // Three bound parameters: the gate token, this session's public key, and
+    // the address encrypted to it. No answer text, and no plaintext address.
+    assertEquals(insert[0].match(/\$\d+/g)?.length, 3, 'gate token, pubkey and ciphertext only');
   },
 });
