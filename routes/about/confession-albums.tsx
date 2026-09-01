@@ -30,7 +30,7 @@ export default function ConfessionAlbumsPage() {
           <em>An Album to Record Thoughts, Feelings, &amp;c.</em>, which is not a title, it is a job description, and
           the same printed questionnaire ran on every single page of it. Forty-odd pages got filled in between 1884 and
           1887. So what do you do with a book of questions prior to Pablo Neruda's similar{' '}
-          <em>Libro de los Preguntas</em>{' '}
+          <em>El libro de las preguntas</em>{' '}
           published by Losada in 1974. Well Antoinette passed it around to her friends the way you and your pubescent
           friends gossip about Stacy over Snapchat.
         </p>
@@ -49,7 +49,7 @@ export default function ConfessionAlbumsPage() {
 
         <p>
           That fourteen year-old gay boy... he answered it. It's 1886/87 and gay means happy. Today gay means gay and
-          happy means elaited. Nobody thought anything of this remarkably happy 14 year-old's responses to Mrs. Faure,
+          happy means elated. Nobody thought anything of this remarkably happy 14 year-old's responses to Mrs. Faure,
           nee Berge (married name). The née runs backwards there. She was born Antoinette Félix-Faure and she married
           René Berge, a mining engineer, so it is Mme Berge, née Félix-Faure. It was a like a Tuesday sort of
           activity...mundane Tuesday.
@@ -58,7 +58,7 @@ export default function ConfessionAlbumsPage() {
         <Ornament />
 
         <p>
-          Quotidian, if you will. Marx, the Karl of communist renown, answered the same thirty-five quertstions. He did
+          Quotidian, if you will. Marx, the Karl of communist renown, answered the same thirty-five questions. He did
           not, though. Marx got eighteen, in his daughter Jenny's album, at Zaltbommel, first of April 1865, Jenny and
           Laura doing the asking. Same genre, some of the same questions. Idea of happiness: to fight. Idea of misery:
           to submit. Favourite colour: red. Motto:{' '}
@@ -84,7 +84,7 @@ export default function ConfessionAlbumsPage() {
         </p>
 
         <p>
-          Everyone was collecting each other. It was all the rage likr Pokemon and you had to collect 'em all! Without a
+          Everyone was collecting each other. It was all the rage like Pokemon and you had to collect 'em all! Without a
           keyboard, or a cell phone, or a car, or roller blades, or skates... You could ski to the neighbour's place in
           winter if cross country's your jam. But fr who actually cares for flat skiing?
         </p>
@@ -110,7 +110,7 @@ export default function ConfessionAlbumsPage() {
 
         <p>
           So it was a four hundred year old silly habit already by the time SWIM thought to save everyone the trouble
-          and print the questions. SWIM was Gutenburg here. Three hundred and thirty years, if you count it properly.
+          and print the questions. SWIM was Gutenberg here. Three hundred and thirty years, if you count it properly.
           1540s to 1869.
         </p>
 
@@ -145,16 +145,17 @@ export default function ConfessionAlbumsPage() {
         </p>
 
         <p>
-          In 2003 a rich person paid a hundred and two thousand euros for a piece of paper with that gay teenager's
+          In 2003 a rich person paid a hundred and two thousand euros for a piece of paper with that teenager's
           handwriting on it. Twenty-seventh of May, at Drouot in Paris, Beaussant-Lefèvre swinging the hammer, and a
           hundred and twenty thousand two hundred and thirty of them once the house took its cut, roughly four times
           what anyone expected. Both numbers are true, which is why you will find people arguing about it.
         </p>
 
         <p>
-          The faggot had answered the questions the way hung-af line cook Larry answered questions when he was fourteen
-          and had been invited to Antoinette's "parlour" but their older brother served Larry cake. And Larry always
-          prefferred ass to parlour.
+          He had answered the questions the way a fourteen-year-old answers anything handed to him at somebody else's
+          house: invited into Antoinette's "parlour," served cake by her older brother, and writing with one eye on the
+          door. Dutifully. Which is not the same as carefully, and not the same as honestly, and the album cannot tell
+          you which of the three you are reading.
         </p>
 
         <Ornament />
@@ -165,7 +166,7 @@ export default function ConfessionAlbumsPage() {
           Gay people weren't eating Antoinette's older bro's cake yet either. We were just happy back then. We/us gays.
         </p>
 
-        <p>Here is a thing about the printed querstion: It doesn't know you.</p>
+        <p>Here is a thing about the printed question: It doesn't know you.</p>
 
         <p>
           It was set in type in a printing press and bound into a thousand or so like books. Those books then shipped in
@@ -178,12 +179,12 @@ export default function ConfessionAlbumsPage() {
         <p>That sounds like a limitation. It is. Exploiting this limitation is/was the whole trick.</p>
 
         <p>
-          Because a querstion written for nobody in particular is a querstion written for everyone. A quertstion you
-          can't flatter. It has no face to read, only an ass to make out of yourself like when you fart loudly as you
-          shit in the horse-blinder like stalls supposedly providing sufficient separation between you and the next
-          John. You can't tell a question asked of no particular person what it wants to hear. Because it doesn't want
-          anything. It's a form. It just sits there being a form, in a book, nee album, in a parlour, waiting to be
-          filled like Antoinette's brother when he hears line-cook Larry's on the way over for parlour with sissy.
+          Because a question written for nobody in particular is a question written for everyone. A question you can't
+          flatter. It has no face to read, only an ass to make out of yourself like when you fart loudly as you shit in
+          the horse-blinder like stalls supposedly providing sufficient separation between you and the next John. You
+          can't tell a question asked of no particular person what it wants to hear. Because it doesn't want anything.
+          It's a form. It just sits there being a form, in a book, nee album, in a parlour, waiting to be filled -- the
+          same blank lines, in the same order, for whoever next picks up the pen.
         </p>
 
         <p>
@@ -195,9 +196,9 @@ export default function ConfessionAlbumsPage() {
 
         <p>
           Nobody called it the Proust Questionnaire then like we do today. It was just the album, a book of questions
-          well before Neruda's. Marcel, that 14 year-old gay, didn't come up with the querstions. Nobody knows who did.
-          The questions have no author on record. Neither have I! Marcel only dutifully filled one out--all 35
-          querstions--twice between 14 and 21 the way you'd fill out anything handed to you at a party...NOT! Three
+          well before Neruda's. Marcel, all of fourteen, didn't come up with the questions. Nobody knows who did. The
+          questions have no author on record. Neither have I! Marcel only dutifully filled one out--all 35
+          questions--twice between 14 and 21 the way you'd fill out anything handed to you at a party...NOT! Three
           times, as of 2018. A Paris bookseller turned up a six-page booklet dated the twenty-fifth of June 1887 and
           wanted a quarter of a million euros for it. Then Antoinette's album. Then <em>Marcel Proust par lui-même</em>,
           {' '}
@@ -213,20 +214,20 @@ export default function ConfessionAlbumsPage() {
         </p>
 
         <p>
-          The querstions are still the same quertstions. Only not a single one among you cunts who answer will receive
-          them in the same order. Two of them reach everybody the same. The other thirty-three shuffle, which is
-          thirty-three factorial, which is 8,683,317,618,811,886,495,518,194,401,280,000,000 different ways of being
-          asked. Not from here until the Doomsday clock strikes 2:24 A.M. and we're all still here, just as horrified as
-          we are today at 11:58:20. It is 11:58:35 now. Eighty-five seconds, set on the twenty-seventh of January 2026,
-          the closest it has ever been. 11:58:20 was 2020 through 2022, back when a hundred seconds felt like room to
-          move. So just enter your email and answer the querstions.
+          The questions are still the same questions. Only not a single one among you cunts who answer will receive them
+          in the same order. Two of them reach everybody the same. The other thirty-three shuffle, which is thirty-three
+          factorial, which is 8,683,317,618,811,886,495,518,194,401,280,000,000 different ways of being asked. Not from
+          here until the Doomsday clock strikes 2:24 A.M. and we're all still here, just as horrified as we are today at
+          11:58:20. It is 11:58:35 now. Eighty-five seconds, set on the twenty-seventh of January 2026, the closest it
+          has ever been. 11:58:20 was 2020 through 2022, back when a hundred seconds felt like room to move. So just
+          enter your email and answer the questions.
         </p>
 
         <p>
           There is a page here (<a href='/about'>/about</a>) explaining what the creator of this website thinks the
-          querstionnaire does with them, and another (<a href='/about/respondents'>/about/respondents</a>) about who has
+          questionnaire does with them, and another (<a href='/about/respondents'>/about/respondents</a>) about who has
           answered since. Maybe read that respondents one after you read the compelling piece I have penned for y'all to
-          be able to read after the 35th querstion.
+          be able to read after the 35th question.
         </p>
       </div>
     </PageShell>

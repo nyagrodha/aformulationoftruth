@@ -18,13 +18,15 @@ import { assertEquals, assertExists, assertStringIncludes } from '$std/assert/mo
 const originalEnv = Deno.env.toObject();
 
 // Keys that setupTestEnv adds (may not exist in originalEnv)
-const TEST_ENV_KEYS = ['RESUME_TOKEN_SECRET', 'JWT_SECRET', 'BASE_URL', 'DENO_ENV'] as const;
+const TEST_ENV_KEYS = ['RESUME_TOKEN_SECRET', 'JWT_SECRET', 'BASE_URL', 'DENO_ENV', 'EMAIL_TRANSPORT'] as const;
 
 function setupTestEnv() {
   Deno.env.set('RESUME_TOKEN_SECRET', 'test-secret-key-for-hmac-operations');
   Deno.env.set('JWT_SECRET', 'test-jwt-secret-key');
   Deno.env.set('BASE_URL', 'http://localhost:8000');
   Deno.env.set('DENO_ENV', 'test');
+  /* lib/email.ts keys its stub transport on this, not on DENO_ENV. */
+  Deno.env.set('EMAIL_TRANSPORT', 'stub');
 }
 
 function restoreEnv() {

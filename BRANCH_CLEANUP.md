@@ -50,7 +50,11 @@ git push -u origin prod
 
 # 3. dev = branched from prod
 git checkout -B dev prod
-git push -f origin dev        # replaces the stale legacy dev (archived above)
+git push --force-with-lease=dev:$(git rev-parse origin/dev) origin dev
+#   ^ replaces the stale legacy dev (archived above). --force-with-lease,
+#     not -f: the lease refuses the push if origin/dev moved after the
+#     fetch this command's expected value was read from, so a colleague's
+#     commit is a rejection rather than a silent overwrite.
 
 # 4. (GitHub UI or gh) set `prod` as the default branch, then delete `main`,
 #    `a4ot`, `production` once you've confirmed prod builds & deploys.

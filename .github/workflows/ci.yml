@@ -1,51 +1,4 @@
 name: CI
-##claude/repository-streamlining-myjlam
-
-on:
-  push:
-    branches: [main, dev, prod]
-  pull_request:
-    branches: [main, dev, prod]
-
-jobs:
-  deno:
-    runs-on: ubuntu-latest
-
-    services:
-      postgres:
-        image: postgres:15
-        env:
-          POSTGRES_USER: postgres
-          # Ephemeral localhost-only CI database: trust auth, no password to
-          # hardcode (avoids committing a credential-looking literal).
-          POSTGRES_HOST_AUTH_METHOD: trust
-          POSTGRES_DB: test_db
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
-    env:
-      # Local Postgres service (TLS auto-disabled for localhost in lib/db.ts)
-      DATABASE_URL: postgres://postgres@localhost:5432/test_db
-      PORT: '8393'
-      TEST_BASE_URL: http://localhost:8393
-      BASE_URL: http://localhost:8393
-      DENO_ENV: test
-      # Non-secret CI-only dummy values (no real credentials)
-      JWT_SECRET: ci-only-jwt-secret-not-for-production-0
-      RESUME_TOKEN_SECRET: ci-only-resume-secret-not-for-production
-      SESSION_SECRET: ci-only-session-secret-not-for-production
-      ENCRYPTION_KEY: ci-only-encryption-key-32bytes-padding0
-      GATE_URL: http://localhost:8787
-      GATE_API_KEY: ci-only-gate-key
-
-    steps:
-      - name: Checkout code
-=======
 
 # The site is a Deno Fresh application. The previous pipeline ran `npm ci`
 # against an Express server (`backend/`) that has since been deleted, watched
@@ -67,13 +20,26 @@ jobs:
 
     steps:
       - name: Checkout
- main
         uses: actions/checkout@v4
 
       - name: Setup Deno
         uses: denoland/setup-deno@v2
         with:
           deno-version: v2.x
+
+      # The pre-commit hook runs this script with no arguments, which examines
+      # only the lines a commit ADDS. That is a ratchet and cannot see what is
+      # already committed: routes/auth/verify.tsx interpolated two session ids
+      # and a raw error object into console.warn for its entire life while the
+      # hook passed cleanly on every commit, because those lines were never
+      # again part of a diff. --all reads every tracked source file, which is
+      # the only mode that can answer the question CLAUDE.md actually asks.
+      #
+      # No path scoping here, unlike the steps below: a leak is a leak wherever
+      # it is, and the script keeps its own exclusion list for generated
+      # bundles and unshipped trees.
+      - name: Zero-logging policy
+        run: bash scripts/check-zero-logging.sh --all
 
       # Scope note: `deno task test` cannot run repo-wide. `tests/` and `trash/`
       # carry ~449 pre-existing type errors (Jest globals, missing drizzle-orm)
@@ -101,11 +67,29 @@ jobs:
             routes/about/confession-albums.tsx \
             routes/about/respondents.tsx
 
+      # islands/ carries Nav_test, whose `PAGE_NAV points at nothing that does
+      # not exist` case is the guard against a nav link to a page that is not
+      # routed -- the failure a retired menu already shipped once, linking three
+      # routes to a /lotto.html that never existed. It was passing locally and
+      # running nowhere, so the guard could not have stopped a repeat.
+      #
+      # public/js/ carries seal-guards_test, which exercises the envelope bounds
+      # every sealing surface depends on: a hostile iteration count, an oversized
+      # field decoded before it is inspected, an empty passphrase that seals
+      # nothing. They are pure functions, so they run without a DOM.
+      #
+      # Note these are added to the test step ONLY. islands/ is not fmt-clean --
+      # QuaternarySpheroid.tsx and Spheroid.tsx predate the singleQuote setting, so
+      # widening `deno fmt --check` to it would fail on drift no one here
+      # introduced. Format those two, then widen the fmt step separately.
       - name: Test
         run: |
           deno test --allow-env --allow-read --allow-net \
             data/ \
             components/ \
+            islands/ \
+            public/js/ \
+            lib/csrf_test.ts \
             routes/shop_test.tsx \
             routes/about_test.tsx \
             routes/about/
