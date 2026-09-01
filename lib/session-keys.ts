@@ -193,6 +193,18 @@ const scpTransport: IdentityTransport = async (sessionId, identity) => {
       // timeout and a refusal fail identically and neither says why out loud.
       throw new Error('identity transport failed');
     }
+  } catch (e) {
+    // A rejected write or close leaves the child alive, and the finally below
+    // disarms the deadline that would otherwise have killed it -- so the ssh
+    // would outlive the request still holding a pipe an identity was written
+    // to. Kill and reap here, while the child is still ours to clean up.
+    try {
+      child.kill('SIGKILL');
+    } catch {
+      // Already exited; nothing to kill.
+    }
+    await child.status;
+    throw e;
   } finally {
     // Must clear on the success path as well, or the timer holds the event loop
     // open for its full duration after the push has already returned.
@@ -226,7 +238,12 @@ export async function shredRemoteIdentity(
 
   const run = transport ?? (async (id: string) => {
     if (!KEYBOX_SSH || !KEYBOX_KEY_DIR) throw new Error('key box transport not configured');
-    const res = await new Deno.Command('ssh', {
+    // Bounded exactly as the push is, and for the same reason: ConnectTimeout
+    // ends at the handshake, so a far end that accepts and then stalls would
+    // hang this call forever -- and this runs inside the request that gate-submit
+    // is already refusing. stdin is null so the child cannot inherit the
+    // server's.
+    const child = new Deno.Command('ssh', {
       args: [
         '-p',
         KEYBOX_SSH_PORT,
@@ -243,10 +260,23 @@ export async function shredRemoteIdentity(
         KEYBOX_SSH,
         `rm -f '${KEYBOX_KEY_DIR}/${id}.key'`,
       ],
+      stdin: 'null',
       stdout: 'null',
       stderr: 'null',
-    }).output();
-    if (!res.success) throw new Error('identity withdrawal failed');
+    }).spawn();
+    const deadline = setTimeout(() => {
+      try {
+        child.kill('SIGKILL');
+      } catch {
+        // Already gone; nothing to kill.
+      }
+    }, PUSH_DEADLINE_MS);
+    try {
+      const res = await child.output();
+      if (!res.success) throw new Error('identity withdrawal failed');
+    } finally {
+      clearTimeout(deadline);
+    }
   });
 
   try {
