@@ -11,9 +11,22 @@
  * flight, but not the corpus.
  */
 
-const KEYBOX_URL = Deno.env.get('KEYBOX_RENDER_URL') || '';
-const KEYBOX_TOKEN = Deno.env.get('KEYBOX_RENDER_TOKEN') || '';
 const PUSH_TIMEOUT_MS = 20_000;
+
+/**
+ * Read the key-box coordinates on each call, not at import.
+ *
+ * main.ts loads .env after the route manifest, so a top-level read would
+ * observe empty strings at boot and every consent would fail closed as
+ * "unavailable". Same trap lib/jwt.ts already documents.
+ */
+function keyboxUrl(): string {
+  return Deno.env.get('KEYBOX_RENDER_URL') || '';
+}
+
+function keyboxToken(): string {
+  return Deno.env.get('KEYBOX_RENDER_TOKEN') || '';
+}
 
 export interface BundleAnswer {
   questionIndex: number;
@@ -41,7 +54,7 @@ export class KeyboxUnavailableError extends Error {
 }
 
 export function keyboxConfigured(): boolean {
-  return Boolean(KEYBOX_URL && KEYBOX_TOKEN);
+  return Boolean(keyboxUrl() && keyboxToken());
 }
 
 /**
@@ -56,11 +69,11 @@ export async function pushBundle(bundle: DeliveryBundle): Promise<void> {
 
   let res: Response;
   try {
-    res = await fetch(`${KEYBOX_URL}/render`, {
+    res = await fetch(`${keyboxUrl()}/render`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${KEYBOX_TOKEN}`,
+        'Authorization': `Bearer ${keyboxToken()}`,
       },
       body: JSON.stringify(bundle),
       signal: AbortSignal.timeout(PUSH_TIMEOUT_MS),
