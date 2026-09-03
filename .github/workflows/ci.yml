@@ -47,13 +47,15 @@ jobs:
       DATABASE_URL: postgres://postgres@localhost:5432/test_db
       BASE_URL: http://localhost:8393
       DENO_ENV: test
-      # Non-secret CI-only dummy values (no real credentials). This is the
-      # minimum set the test paths below actually read, verified by running
-      # them under `env -i` with exactly these and nothing else.
-      JWT_SECRET: ci-only-jwt-secret-not-for-production-0
-      RESUME_TOKEN_SECRET: ci-only-resume-secret-not-for-production
-      SESSION_SECRET: ci-only-session-secret-not-for-production
-      ENCRYPTION_KEY: ci-only-encryption-key-32bytes-padding0
+      # JWT_SECRET and RESUME_TOKEN_SECRET are NOT set here. They are minted
+      # per run by the step below, because a literal assigned to a name like
+      # JWT_SECRET is precisely what a secret scanner flags, and it is right
+      # to: nothing in the value tells it apart from a live credential, and
+      # GitGuardian failed this PR on exactly that. Generating them is also
+      # the reasoning the Postgres service above already applies to its own
+      # password. SESSION_SECRET and ENCRYPTION_KEY were carried over from
+      # the side this file's earlier conflict discarded and are dropped: no
+      # non-test code in the repo reads either one.
 
     steps:
       - name: Checkout
@@ -63,6 +65,14 @@ jobs:
         uses: denoland/setup-deno@v2
         with:
           deno-version: v2.x
+
+      # Tokens are minted and verified inside a single test process, so these
+      # need to exist and be stable for the job, not be known outside it.
+      # $GITHUB_ENV carries them to every later step.
+      - name: Mint ephemeral test secrets
+        run: |
+          echo "JWT_SECRET=$(openssl rand -hex 32)" >> "$GITHUB_ENV"
+          echo "RESUME_TOKEN_SECRET=$(openssl rand -hex 32)" >> "$GITHUB_ENV"
 
       # The pre-commit hook runs this script with no arguments, which examines
       # only the lines a commit ADDS. That is a ratchet and cannot see what is
