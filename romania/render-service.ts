@@ -32,8 +32,6 @@ const KEY_DIR = Deno.env.get('KEYBOX_KEY_DIR') || '/home/liar/keybox';
  * private, memory-backed /tmp no other process can see. Better on both counts.
  */
 const WORK_ROOT = Deno.env.get('RENDER_WORK_ROOT') || '/tmp';
-const CALLBACK_URL = Deno.env.get('RENDER_CALLBACK_URL') || '';
-const CALLBACK_TOKEN = Deno.env.get('RENDER_CALLBACK_TOKEN') || '';
 
 const SESSION_ID = /^[0-9a-fA-F-]{8,64}$/;
 
@@ -137,12 +135,16 @@ export async function handleBundle(bundle: DeliveryBundle): Promise<void> {
 }
 
 /** Tell the web tier the copy went, so it can stamp pdf_delivered_at. */
-async function notifyDelivered(sessionId: string): Promise<void> {
-  if (!CALLBACK_URL) return;
+export async function notifyDelivered(sessionId: string): Promise<void> {
+  // Read on each call, not at import: tests set these, and a long-running
+  // service that picked up empty strings at eval would stay silent forever.
+  const callbackUrl = Deno.env.get('RENDER_CALLBACK_URL') || '';
+  const callbackToken = Deno.env.get('RENDER_CALLBACK_TOKEN') || '';
+  if (!callbackUrl) return;
   try {
-    const res = await fetch(`${CALLBACK_URL}/delivered`, {
+    const res = await fetch(`${callbackUrl}/delivered`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${CALLBACK_TOKEN}` },
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${callbackToken}` },
       body: JSON.stringify({ sessionId }),
       signal: AbortSignal.timeout(15_000),
     });
