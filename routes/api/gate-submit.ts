@@ -62,6 +62,31 @@ async function readBody(req: Request): Promise<Record<string, unknown> | null> {
   }
 }
 
+/**
+ * The link a respondent receives.
+ *
+ * Both halves are load-bearing and neither is optional: `token` is the JWT the
+ * verifier checks, `resume` is the opaque token whose HMAC IS the session id.
+ * Exported so a test can assert the shape without a mail server, and so the
+ * end-to-end walk can follow the real link rather than a reconstruction of it.
+ */
+export function buildMagicLinkUrl(
+  baseUrl: string,
+  jwt: string,
+  opaqueToken: string,
+): string {
+  return `${baseUrl}/auth/verify?token=${jwt}&resume=${opaqueToken}`;
+}
+
+/**
+ * Test seam: the last magic link this process built.
+ *
+ * Deliberately not a general hook -- it holds a URL that is already leaving via
+ * email, and nothing reads it in production. It exists so the end-to-end test
+ * can complete the flow without a mailbox.
+ */
+export const magicLinkForTesting: { last: string | null } = { last: null };
+
 export const handler: Handlers = {
   async POST(req, _ctx) {
     increment('requests.api');
@@ -244,9 +269,12 @@ export const handler: Handlers = {
 
       // Step 7: Build magic link URL
       const baseUrl = Deno.env.get('BASE_URL') || 'http://localhost:8000';
-      const magicLinkUrl = `${baseUrl}/auth/verify?token=${jwt}&resume=${opaqueToken}`;
+      const magicLinkUrl = buildMagicLinkUrl(baseUrl, jwt, opaqueToken);
 
-      // Step 8: Send magic link email
+      // Step 8: Send magic link email. The URL is handed to the seam below
+      // first, so an end-to-end test can follow exactly the link a respondent
+      // would receive without anything being posted to a mail server.
+      magicLinkForTesting.last = magicLinkUrl;
       const emailResult = await sendMagicLinkEmail(email, magicLinkUrl);
 
       if (!emailResult.success) {
