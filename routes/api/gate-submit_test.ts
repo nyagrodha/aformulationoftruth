@@ -8,21 +8,24 @@
  * than falling back to storing anything in the clear.
  *
  * These tests pin that contract. They are hermetic: `fetch` is stubbed to stand
- * in for the gate, and DATABASE_URL is deliberately left unparseable so that
- * `resolveConfig()` returns null and the first DB touch throws immediately. No
- * Postgres, no gate service, and no socket is opened.
+ * in for the gate, the key-box transport is a no-op, and Postgres is a fake
+ * client that answers every query with empty rows. No ssh, no database, and no
+ * socket is opened.
  *
- * That unconfigured DB is also the load-bearing trick for the fail-closed
- * tests: the handler answers 503 only on the encryption-failure branch, which
- * returns *before* the INSERT. Any code path that reached the database would
- * surface as 500 instead. So `status === 503` is positive evidence that nothing
- * was written.
+ * The handler's order is now: provision a session key, INSERT a row whose
+ * answer columns are NULL, then POST plaintext to the gate (the step that
+ * cannot be undone). Fail-closed tests therefore have to get past the key and
+ * the INSERT so they can observe the gate being refused — an unconfigured DB
+ * would 503 earlier and look identical to an encryption failure.
  *
  *   deno test --allow-net --allow-read --allow-env routes/api/gate-submit_test.ts
  */
 
 import { assert, assertEquals, assertStringIncludes } from '$std/assert/mod.ts';
+import type { PoolClient } from 'postgres';
 import { GATE_QUESTIONS } from '../../lib/gate_encrypt.ts';
+import { setDbClientForTests } from '../../lib/db.ts';
+import { generateSessionKeypair, setIdentityTransportForTests } from '../../lib/session-keys.ts';
 
 /** One intercepted call to the gate, decoded. */
 interface GateCall {
@@ -36,24 +39,42 @@ interface GateCall {
 
 const originalFetch = globalThis.fetch;
 const originalEnv = Deno.env.toObject();
-const TEST_ENV_KEYS = ['DATABASE_URL', 'JWT_SECRET', 'RESUME_TOKEN_SECRET', 'BASE_URL', 'DENO_ENV'] as const;
+const TEST_ENV_KEYS = [
+  'DATABASE_URL',
+  'JWT_SECRET',
+  'RESUME_TOKEN_SECRET',
+  'BASE_URL',
+  'DENO_ENV',
+  'BREAKGLASS_AGE_RECIPIENT',
+] as const;
 
-function setupTestEnv() {
+function fakeDbClient(): PoolClient {
+  return {
+    queryObject: () => Promise.resolve({ rows: [] }),
+    queryArray: () => Promise.resolve({ rows: [] }),
+    release: () => {},
+  } as unknown as PoolClient;
+}
+
+async function setupTestEnv() {
   /*
-   * Unparseable on purpose: `new URL()` throws inside resolveConfig(), which
-   * returns null, so getPool() throws on the first DB touch. This keeps the
-   * suite off Postgres *and* makes 503-vs-500 meaningful. It must be set (not
-   * merely absent) so a real PGHOST/PGDATABASE in the developer's environment
-   * cannot be picked up as a fallback.
+   * Still unparseable so a test that forgets setDbClientForTests cannot
+   * silently open a real pool. The fake client is what actually answers.
    */
   Deno.env.set('DATABASE_URL', '::://not-a-database');
   Deno.env.set('JWT_SECRET', 'test-jwt-secret-key');
   Deno.env.set('RESUME_TOKEN_SECRET', 'test-secret-key-for-hmac-operations');
   Deno.env.set('BASE_URL', 'http://localhost:8000');
   Deno.env.set('DENO_ENV', 'test');
+  const breakglass = await generateSessionKeypair();
+  Deno.env.set('BREAKGLASS_AGE_RECIPIENT', breakglass.recipient);
+  setIdentityTransportForTests(async () => {});
+  setDbClientForTests(fakeDbClient());
 }
 
 function restoreEnv() {
+  setIdentityTransportForTests(null);
+  setDbClientForTests(null);
   for (const [key, value] of Object.entries(originalEnv)) {
     Deno.env.set(key, value);
   }
@@ -121,7 +142,7 @@ function formRequest(fields: Record<string, string>): Request {
 Deno.test({
   name: 'gate-submit: rejects a missing email without calling the gate',
   async fn() {
-    setupTestEnv();
+    await setupTestEnv();
     const gate = stubGate();
     try {
       const post = await loadHandler();
@@ -140,7 +161,7 @@ Deno.test({
 Deno.test({
   name: 'gate-submit: rejects an unparseable body without calling the gate',
   async fn() {
-    setupTestEnv();
+    await setupTestEnv();
     const gate = stubGate();
     try {
       const post = await loadHandler();
@@ -168,7 +189,7 @@ Deno.test({
 Deno.test({
   name: 'gate-submit: sends both answers to the gate for age-encryption before any write',
   async fn() {
-    setupTestEnv();
+    await setupTestEnv();
     const gate = stubGate();
     try {
       const post = await loadHandler();
@@ -220,7 +241,7 @@ Deno.test({
 Deno.test({
   name: 'gate-submit: an empty answer is still routed through the gate, marked skipped',
   async fn() {
-    setupTestEnv();
+    await setupTestEnv();
     const gate = stubGate();
     try {
       const post = await loadHandler();
@@ -249,7 +270,7 @@ Deno.test({
 Deno.test({
   name: 'gate-submit: refuses the submission when the gate rejects an answer',
   async fn() {
-    setupTestEnv();
+    await setupTestEnv();
     // Question 0 encrypts; question 1 is refused.
     const gate = stubGate((i) => new Response(null, { status: i === 1 ? 500 : 200 }));
     try {
@@ -271,7 +292,7 @@ Deno.test({
 Deno.test({
   name: 'gate-submit: refuses the submission when the gate is unreachable',
   async fn() {
-    setupTestEnv();
+    await setupTestEnv();
     const gate = stubGate(() => null); // fetch rejects, as with a down gate
     try {
       const post = await loadHandler();
@@ -293,7 +314,7 @@ Deno.test({
 Deno.test({
   name: 'gate-submit: the no-JS form path fails closed too, and leaks nothing in the redirect',
   async fn() {
-    setupTestEnv();
+    await setupTestEnv();
     const gate = stubGate(() => null);
     try {
       const post = await loadHandler();
@@ -336,9 +357,9 @@ Deno.test({
     assert(insert, 'expected an INSERT INTO fresh_gate_responses in the handler');
     assertStringIncludes(insert[0], 'q0_answer');
     assertStringIncludes(insert[0], 'q1_answer');
-    assertStringIncludes(insert[0], 'VALUES ($1, NULL, NULL)');
-
-    // $1 is the gate token and the only bound parameter — no answer, no email.
-    assertEquals(insert[0].match(/\$\d+/g)?.length, 1, 'only the gate token may be bound');
+    // Answer columns stay SQL NULL. $1 is the gate token, $2 the session
+    // pubkey, $3 the age-encrypted address — never the answer text.
+    assertStringIncludes(insert[0], 'VALUES ($1, NULL, NULL, $2, $3)');
+    assertEquals(insert[0].match(/\$\d+/g)?.length, 3, 'token, pubkey, encrypted address — never the answers');
   },
 });

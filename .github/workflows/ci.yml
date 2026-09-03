@@ -27,11 +27,10 @@ jobs:
         with:
           deno-version: v2.x
 
-      # Scope note: `deno task test` cannot run repo-wide. `tests/` and `trash/`
-      # carry ~449 pre-existing type errors (Jest globals, missing drizzle-orm)
-      # that predate this workflow and fail before any test executes. The paths
-      # below are the maintained Fresh application. Widen them as other areas are
-      # fixed; do not widen to the whole repo without fixing those errors first.
+      # Scope note: do not run `deno task test` repo-wide. tests/questionnaire_e2e_test.ts,
+      # tests/newsletter_test.ts and tests/contact_test.ts open a live server
+      # (TEST_BASE_URL). Everything listed below is hermetic: no Postgres, no
+      # SMTP, no key box. Widen those live suites only with a server fixture.
       - name: Format check
         run: deno fmt --check data/ components/ routes/about.tsx routes/shop.tsx routes/about/
 
@@ -46,6 +45,9 @@ jobs:
           # crash-looped the site into 502. Keep main.ts first in this list.
           deno check \
             main.ts \
+            lib/*.ts \
+            routes/api/*.ts \
+            romania/*.ts \
             data/shop.ts \
             components/PageShell.tsx \
             routes/about.tsx \
@@ -61,17 +63,56 @@ jobs:
       # messenger_test, which pins the messenger's "no server plaintext" claim by
       # asserting its script has no way to reach the network.
       #
-      # Note these are added to the test step ONLY. islands/ is not fmt-clean --
-      # QuaternarySpheroid.tsx and Spheroid.tsx predate the singleQuote setting, so
-      # widening `deno fmt --check` to it would fail on drift no one here
-      # introduced. Format those two, then widen the fmt step separately.
+      # lib/, routes/api/ and romania/ are the encryption and questionnaire
+      # path: age recipients, fail-closed gate submit, session keys, PDF
+      # bundle shape, keystore shred clocks. romania/tests/render_test.ts and
+      # protect_test.ts SKIP (loudly) when typst/qpdf are absent, which they
+      # are on this runner; keystore and validateBundle still run.
+      #
+      # --allow-write/--allow-run: lib/email_test.ts shells out to send_mail.py;
+      # romania/tests/keystore_test.ts writes temp key files.
+      #
+      # Note islands/ is not fmt-clean -- QuaternarySpheroid.tsx and Spheroid.tsx
+      # predate the singleQuote setting, so widening `deno fmt --check` to it
+      # would fail on drift no one here introduced. Format those two, then
+      # widen the fmt step separately.
       - name: Test
         run: |
-          deno test --allow-env --allow-read --allow-net \
+          deno test --allow-env --allow-read --allow-net --allow-write --allow-run \
             data/ \
             components/ \
             islands/ \
+            lib/ \
+            romania/ \
             routes/shop_test.tsx \
             routes/about_test.tsx \
             routes/messenger_test.tsx \
-            routes/about/
+            routes/about/ \
+            routes/api/gate-submit_test.ts \
+            routes/api/auth/magic-link_test.ts \
+            tests/age_encrypt_test.ts \
+            tests/session_keys_test.ts \
+            tests/gate_submit_keys_test.ts \
+            tests/answer_recipients_test.ts \
+            tests/deliver_bundle_test.ts \
+            tests/integration_test.ts \
+            tests/resume_notice_test.tsx \
+            tests/completion_consent_test.tsx
+
+  rust:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      # The gate crate's tests pin multi-recipient age encryption: both the
+      # session identity and the break-glass identity must open the same
+      # ciphertext, and an empty recipient list must be refused. They do not
+      # need Postgres.
+      - name: Test gate
+        working-directory: rust-server
+        run: cargo test --locked

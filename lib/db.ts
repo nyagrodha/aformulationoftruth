@@ -100,13 +100,34 @@ export function isDatabaseConfigured(): boolean {
   return resolveConfig() !== null;
 }
 
+type QueryHandler<T> = (client: PoolClient) => Promise<T>;
+
+/**
+ * Optional stand-in used by hermetic tests so they can exercise the
+ * encrypt-and-store path without opening Postgres.
+ *
+ * Production never sets this. A process that shipped with a fake client
+ * would write answers into the void.
+ */
+let testClient: PoolClient | null = null;
+
+/**
+ * Test-only. Pass `null` to restore the real pool.
+ *
+ * Must not be called from request handlers.
+ */
+export function setDbClientForTests(client: PoolClient | null): void {
+  testClient = client;
+}
+
 /**
  * Execute a database operation with automatic connection management.
  * Connection is released back to pool after handler completes.
  */
 export async function withConnection<T>(
-  handler: (client: PoolClient) => Promise<T>,
+  handler: QueryHandler<T>,
 ): Promise<T> {
+  if (testClient) return await handler(testClient);
   const client = await getPool().connect();
   try {
     return await handler(client);
@@ -120,8 +141,19 @@ export async function withConnection<T>(
  * Automatically commits on success, rolls back on error.
  */
 export async function withTransaction<T>(
-  handler: (client: PoolClient) => Promise<T>,
+  handler: QueryHandler<T>,
 ): Promise<T> {
+  if (testClient) {
+    await testClient.queryObject('BEGIN');
+    try {
+      const result = await handler(testClient);
+      await testClient.queryObject('COMMIT');
+      return result;
+    } catch (error) {
+      await testClient.queryObject('ROLLBACK');
+      throw error;
+    }
+  }
   const client = await getPool().connect();
   try {
     await client.queryObject('BEGIN');

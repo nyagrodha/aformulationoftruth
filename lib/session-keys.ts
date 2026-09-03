@@ -201,6 +201,27 @@ const scpTransport: IdentityTransport = async (sessionId, identity) => {
 };
 
 /**
+ * Default push transport, overridable in tests.
+ *
+ * Production always uses scpTransport. The gate-submit suite replaces this
+ * with a no-op so it can pin encryption without opening ssh to the key box.
+ * `pushIdentity`'s explicit `transport` argument still wins when a caller
+ * passes one — this is only the omitted-argument default.
+ */
+let defaultPushTransport: IdentityTransport = scpTransport;
+
+/**
+ * Test-only. Pass `null` to restore the production default.
+ *
+ * Must not be called from request handlers: a process that shipped with this
+ * pointed at a no-op would accept submissions whose identities never reached
+ * the key box, and those PDFs could never be produced.
+ */
+export function setIdentityTransportForTests(transport: IdentityTransport | null): void {
+  defaultPushTransport = transport ?? scpTransport;
+}
+
+/**
  * Withdraw a session identity from the key box.
  *
  * Called when a submission fails *after* its key was pushed -- including when
@@ -264,7 +285,7 @@ export async function shredRemoteIdentity(
 export async function pushIdentity(
   sessionId: string,
   identity: string,
-  transport: IdentityTransport = scpTransport,
+  transport: IdentityTransport = defaultPushTransport,
 ): Promise<void> {
   // Validated before ANY transport runs, including injected ones. A custom
   // transport is not automatically safer than the default, and this is the

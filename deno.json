@@ -4,6 +4,7 @@
     "dev": "deno run -A --watch=public/,routes/,islands/ dev.ts",
     "start": "deno run --allow-all main.ts",
     "test": "deno test --allow-net --allow-read --allow-write --allow-env",
+    "test:ci": "deno test --allow-net --allow-read --allow-write --allow-env --allow-run data/ components/ islands/ lib/ romania/ routes/shop_test.tsx routes/about_test.tsx routes/messenger_test.tsx routes/about/ routes/api/gate-submit_test.ts routes/api/auth/magic-link_test.ts tests/age_encrypt_test.ts tests/session_keys_test.ts tests/gate_submit_keys_test.ts tests/answer_recipients_test.ts tests/deliver_bundle_test.ts tests/integration_test.ts tests/resume_notice_test.tsx tests/completion_consent_test.tsx",
     "hooks": "git config core.hooksPath hooks"
   },
   "imports": {
