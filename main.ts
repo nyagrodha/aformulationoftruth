@@ -58,6 +58,39 @@ import { start } from '$fresh/server.ts';
 import manifest from './fresh.gen.ts';
 import config from './fresh.config.ts';
 import { isDatabaseConfigured } from './lib/db.ts';
+import { increment } from './lib/metrics.ts';
+
+/*
+ * An HTTP server should not exit because one request leaked a promise.
+ *
+ * Deno's default for an unhandled rejection is to end the process, and until
+ * now nothing here overrode it. That turned a bug in one dependency into a
+ * site-wide outage: denomailer 1.6.0 detached its STARTTLS handshake, the
+ * rejection reached no try/catch, and the unit's Restart=always RestartSec=10
+ * took every visitor down for ten seconds each time -- 156 times over three
+ * days in September 2026, while the questionnaire answers that triggered it
+ * had already been written to the database.
+ *
+ * That dependency is gone (see lib/email.ts), but the property that made it
+ * fatal is not, and it applies to every dependency this app has yet to add.
+ * A leaked rejection is a bug worth fixing; it is not worth an outage.
+ *
+ * Deliberately broad. A matcher narrow enough to name one library would have
+ * to be widened by whoever hits the next one, and they will hit it in
+ * production. The metric is what keeps this from being a silent catch-all:
+ * errors.unhandled_rejection appearing in the counters is the signal that
+ * something is leaking, and the kind says roughly what.
+ *
+ * kind only -- never reason.message, which for a mail or database error can
+ * carry the address or the row that caused it.
+ */
+globalThis.addEventListener('unhandledrejection', (event) => {
+  const reason = (event as PromiseRejectionEvent).reason;
+  const kind = reason instanceof Error && reason.name ? reason.name : 'Unknown';
+  increment('errors.unhandled_rejection');
+  console.error(`[fatal] unhandled rejection survived kind=${kind}`);
+  event.preventDefault();
+});
 
 // The connection pool initializes lazily on first query (see getPool in
 // lib/db.ts), so there is no explicit init step. Warn at boot if the database

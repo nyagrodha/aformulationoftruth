@@ -90,6 +90,7 @@ jobs:
             islands/ \
             public/js/ \
             lib/csrf_test.ts \
+            lib/email_test.ts \
             routes/shop_test.tsx \
             routes/about_test.tsx \
             routes/about/

@@ -4,13 +4,26 @@
  * Delivery goes through smtp.mail.me.com (Apple) via authenticated SMTP.
  * SendGrid is intentionally not used.
  *
+ * The socket is opened by lib/smtp_send.py, not by this process. denomailer
+ * 1.6.0 used to do it here and detached its STARTTLS handshake onto a promise
+ * nobody held (client.ts:335); under Deno 2.9 that promise rejected where no
+ * try/catch could reach it and took the whole server down 156 times in three
+ * days, each time for the unit's RestartSec=10, each time after the answers
+ * had already been stored. 1.6.0 is the latest published version, so there was
+ * nothing to upgrade to. A child process can fail in every way a socket can
+ * and the worst it costs this one is an exit code. See smtp_send.py, and
+ * romania/send_mail.py, which reached the same conclusion first.
+ *
  * gupta-vidya compliance:
  * - Email addresses used only for delivery
  * - No email address or content is ever logged
  * - Minimal data in email body
  */
 
-import { SMTPClient } from 'https://deno.land/x/denomailer@1.6.0/mod.ts';
+// $std/, not the full URL romania/mailer.ts uses: that module runs standalone
+// on the key box, which has no deno.json to resolve an import map. This one
+// runs inside the app and does.
+import { fromFileUrl } from '$std/path/mod.ts';
 
 interface SendEmailOptions {
   to: string;
@@ -55,6 +68,135 @@ function smtpFailureKind(error: unknown): string {
 }
 
 /**
+ * Clamp a failure kind to something that cannot carry an address.
+ *
+ * Everything that reaches the log today is already a class name -- Python's
+ * type(exc).__name__, or an Error's .name. But `kind` is a plain string on the
+ * wire from a subprocess, and the one place it is printed is the one place a
+ * mistake becomes a permanent record. An identifier-shaped value passes
+ * through; anything else is replaced rather than truncated, because half of a
+ * leaked address is still a fingerprint.
+ */
+function safeKind(kind: string): string {
+  return /^[A-Za-z_][A-Za-z0-9_]{0,63}$/.test(kind) ? kind : 'Unprintable';
+}
+
+/** One message, in the shape lib/smtp_send.py reads. */
+export interface MailSpec {
+  to: string;
+  subject: string;
+  text: string;
+  html: string;
+  from_name: string;
+  from_email: string;
+}
+
+/**
+ * The result of one delivery attempt, already stripped of everything that
+ * could identify a recipient -- so the retry loop can log it without having to
+ * think about it, and a test can construct one by hand.
+ */
+export interface TransportOutcome {
+  ok: boolean;
+  kind: string;
+  code?: number;
+}
+
+/**
+ * A transport never rejects. It reports failure in the return value, because a
+ * thrown SMTP error is exactly the thing whose message may echo the envelope.
+ */
+export type MailTransport = (spec: MailSpec) => Promise<TransportOutcome>;
+
+const SENDER = fromFileUrl(new URL('./smtp_send.py', import.meta.url));
+
+// Longer than smtp_send.py's own 45s socket timeout, so an ordinary stall
+// produces structured JSON from the child rather than a SIGKILL with empty
+// stdout. This deadline is for a child that has stopped responding at all.
+const CHILD_DEADLINE_MS = 60_000;
+
+/**
+ * Deliver one message by handing it to lib/smtp_send.py.
+ *
+ * A subprocess rather than an in-process SMTP client because the previous
+ * in-process client took the whole server down with it: see the header of
+ * smtp_send.py. A child can fail in every way a socket can and the worst it
+ * costs the parent is an exit code.
+ *
+ * The pattern -- spawn, race a SIGKILL deadline, clear it in a finally -- is
+ * lib/session-keys.ts:144-200, not romania/mailer.ts, which has no deadline at
+ * all and can wedge on a half-open socket for as long as the kernel allows.
+ */
+const pythonTransport: MailTransport = async (spec) => {
+  // A 0700 directory rather than a bare makeTempFile: writeTextFile's `mode`
+  // is applied at creation and silently ignored on a file that already exists,
+  // so the directory permission is the one that actually holds. The unit sets
+  // no PrivateTmp, so /tmp here is shared with every other process on the box.
+  const dir = await Deno.makeTempDir({ prefix: 'a4t-mail-' });
+  const specPath = `${dir}/spec.json`;
+
+  try {
+    await Deno.writeTextFile(specPath, JSON.stringify(spec), { mode: 0o600 });
+
+    const child = new Deno.Command('python3', {
+      // The spec path is the only argument. Nothing about the message and no
+      // credential goes on argv, because /proc/<pid>/cmdline is world-readable.
+      args: [SENDER, specPath],
+      // Merged with the parent environment, so PATH survives. Named explicitly
+      // rather than inherited silently, so that a future clearEnv turns this
+      // into a visible edit instead of an unconfigured sender.
+      env: {
+        SMTP_HOST: Deno.env.get('SMTP_HOST') ?? '',
+        SMTP_PORT: Deno.env.get('SMTP_PORT') ?? '587',
+        SMTP_SECURE: Deno.env.get('SMTP_SECURE') ?? 'false',
+        SMTP_USER: Deno.env.get('SMTP_USER') ?? '',
+        SMTP_PASS: Deno.env.get('SMTP_PASS') ?? '',
+      },
+      stdin: 'null',
+      stdout: 'piped',
+      // Discarded: a Python traceback can quote the envelope. Everything the
+      // caller needs is on stdout as PII-free JSON, which makes "empty stdout
+      // and a nonzero exit" a distinct and useful signal -- it means the
+      // sender itself is broken, not that Apple refused the mail.
+      stderr: 'null',
+    }).spawn();
+
+    const deadline = setTimeout(() => {
+      // The child may have exited between the timer firing and this running.
+      try {
+        child.kill('SIGKILL');
+      } catch {
+        // Already gone; nothing to kill.
+      }
+    }, CHILD_DEADLINE_MS);
+
+    let out: Deno.CommandOutput;
+    try {
+      out = await child.output();
+    } finally {
+      // Must clear on the success path too, or the timer holds the event loop
+      // open for its full duration after the send has already returned.
+      clearTimeout(deadline);
+    }
+
+    try {
+      const parsed = JSON.parse(new TextDecoder().decode(out.stdout).trim()) as {
+        ok: boolean;
+        kind?: string;
+        code?: number | null;
+      };
+      return { ok: parsed.ok, kind: parsed.kind ?? 'None', code: parsed.code ?? undefined };
+    } catch {
+      // exit 2 (bad invocation), 127 (no python3), SIGKILL from the deadline,
+      // or a crash before the first print. None of these carry a reply code.
+      return { ok: false, kind: out.code === 127 ? 'PythonMissing' : 'SenderFailed' };
+    }
+  } finally {
+    await Deno.remove(dir, { recursive: true }).catch(() => {});
+  }
+};
+
+/**
  * Send email via Apple iCloud SMTP.
  *
  * Reads connection settings from the environment:
@@ -62,7 +204,14 @@ function smtpFailureKind(error: unknown): string {
  * SMTP_SECURE=true selects implicit TLS (port 465); otherwise STARTTLS is
  * used (port 587), which is Apple's default submission port.
  */
-export async function sendEmail(options: SendEmailOptions): Promise<EmailResult> {
+export async function sendEmail(
+  options: SendEmailOptions,
+  // Injected in tests. CI runs `deno test` without --allow-run, so the only
+  // way to exercise the retry ladder and the never-rejects contract is to
+  // substitute the transport -- the same seam as pushIdentity in
+  // lib/session-keys.ts:267.
+  transport: MailTransport = pythonTransport,
+): Promise<EmailResult> {
   /*
    * Stub transport: automated CI/e2e runs have no SMTP server, so delivery is
    * short-circuited and reported as success. This lets end-to-end flows (magic
@@ -81,13 +230,18 @@ export async function sendEmail(options: SendEmailOptions): Promise<EmailResult>
     return { success: true, statusCode: 250 };
   }
 
+  // SMTP_PORT and SMTP_SECURE are not read here: the transport passes them
+  // straight to the child, which is the only thing that opens a socket. These
+  // four are, because they gate the send below.
   const hostname = Deno.env.get('SMTP_HOST');
-  const port = parseInt(Deno.env.get('SMTP_PORT') || '587', 10);
-  const implicitTls = Deno.env.get('SMTP_SECURE') === 'true';
   const username = Deno.env.get('SMTP_USER');
   const password = Deno.env.get('SMTP_PASS');
   const fromEmail = Deno.env.get('FROM_EMAIL') || username;
-  const fromName = Deno.env.get('SMTP_FROM_NAME') || 'a formulation of truth';
+  // FROM_NAME as well as SMTP_FROM_NAME: .env has only ever defined the
+  // former, so every message so far has gone out under the hardcoded fallback.
+  // SMTP_FROM_NAME stays first to avoid changing any host that does set it.
+  const fromName = Deno.env.get('SMTP_FROM_NAME') || Deno.env.get('FROM_NAME') ||
+    'a formulation of truth';
 
   if (!hostname || !username || !password || !fromEmail) {
     console.error('[email] SMTP not configured');
@@ -99,69 +253,72 @@ export async function sendEmail(options: SendEmailOptions): Promise<EmailResult>
   // number that succeeded. A fresh client per attempt with a short backoff
   // clears it; the failure is transient, not a misconfiguration.
   const MAX_ATTEMPTS = 3;
-  let lastError: unknown;
+
+  const spec: MailSpec = {
+    to: options.to,
+    subject: options.subject,
+    text: options.text,
+    html: options.html,
+    from_name: fromName,
+    from_email: fromEmail,
+  };
+
+  let lastCode: number | undefined;
+  let lastKind = 'None';
 
   for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
-    const client = new SMTPClient({
-      connection: {
-        hostname,
-        port,
-        tls: implicitTls,
-        auth: { username, password },
-      },
-    });
-
+    let outcome: TransportOutcome;
     try {
-      await client.send({
-        from: `${fromName} <${fromEmail}>`,
-        to: options.to,
-        subject: options.subject,
-        content: options.text,
-        html: options.html,
-      });
+      outcome = await transport(spec);
+    } catch (error) {
+      // The transport contract says it does not reject, so this is the
+      // transport being unable to start at all rather than a refused message:
+      // NotCapable when --allow-run is missing, ENOSPC on the temp directory.
+      // smtpReplyCode/smtpFailureKind still earn their keep here, on an error
+      // minted by Deno rather than by a mail server.
+      outcome = { ok: false, kind: smtpFailureKind(error), code: smtpReplyCode(error) };
+    }
+
+    if (outcome.ok) {
       // Log successes too. Without this the journal shows only failures, which
       // makes "3 failures out of 3" indistinguishable from "3 out of 300" —
       // and those call for opposite responses. A bare count carries no PII, so
       // the zero-logging policy never required this silence.
       console.log(`[email] sent attempt=${attempt}`);
       return { success: true, statusCode: 250 };
-    } catch (error) {
-      lastError = error;
-      const code = smtpReplyCode(error);
-      const kind = smtpFailureKind(error);
-
-      // A permanent rejection (5xx) will fail identically every time; only
-      // retry transport-level faults and Apple's 4xx "try later" codes.
-      const worthRetrying = code === undefined || code < 500;
-      if (attempt < MAX_ATTEMPTS && worthRetrying) {
-        console.error(`[email] retrying after code=${code ?? 'none'} kind=${kind} attempt=${attempt}`);
-        await new Promise((r) => setTimeout(r, 500 * 2 ** (attempt - 1)));
-        continue;
-      }
-      break;
-    } finally {
-      try {
-        await client.close();
-      } catch { /* already closed */ }
     }
+
+    lastCode = outcome.code;
+    lastKind = outcome.kind;
+
+    // A permanent rejection (5xx) will fail identically every time; only
+    // retry transport-level faults and Apple's 4xx "try later" codes.
+    const worthRetrying = outcome.code === undefined || outcome.code < 500;
+    if (attempt < MAX_ATTEMPTS && worthRetrying) {
+      console.error(
+        `[email] retrying after code=${outcome.code ?? 'none'} kind=${safeKind(outcome.kind)} attempt=${attempt}`,
+      );
+      await new Promise((r) => setTimeout(r, 500 * 2 ** (attempt - 1)));
+      continue;
+    }
+    break;
   }
 
-  {
-    const error = lastError;
-    // Zero-logging: never surface the recipient or full error (may echo the
-    // envelope). A reply code and an error class name are both PII-free, and
-    // they are the difference between "mail broke" and "Apple threw 421 at us
-    // for sending too fast" — which is the whole of the diagnosis.
-    const statusCode = smtpReplyCode(error);
-    console.error(
-      `[email] SMTP send failed code=${statusCode ?? 'none'} kind=${smtpFailureKind(error)}`,
-    );
-    return {
-      success: false,
-      statusCode,
-      error: error instanceof Error ? error.message : 'SMTP send failed',
-    };
-  }
+  // Zero-logging: never surface the recipient or a raw error string (either can
+  // echo the envelope). A reply code and an error class name are both PII-free,
+  // and they are the difference between "mail broke" and "Apple threw 421 at us
+  // for sending too fast" — which is the whole of the diagnosis.
+  console.error(`[email] SMTP send failed code=${lastCode ?? 'none'} kind=${safeKind(lastKind)}`);
+  return {
+    success: false,
+    statusCode: lastCode,
+    // A category, not a message. This used to be `error.message`, and one of
+    // the two branches upstream threw `${cmd.code}: ${cmd.args}` -- where args
+    // on a rejected RCPT TO is the recipient's address. No caller reads this
+    // field (all three check only .success), so narrowing it costs nothing and
+    // closes a leak that had simply never been printed.
+    error: lastCode !== undefined ? 'smtp_rejected' : 'smtp_transport',
+  };
 }
 
 /**
