@@ -50,7 +50,13 @@ Deno.test('buildBundle - refuses duplicate indices', () => {
 Deno.test('buildBundle - refuses an out-of-range index', () => {
   assertThrows(
     () =>
-      buildBundle('sess-1', 'key-1', [{ question_index: 99, question_text: 'q', ciphertext: 'c', skipped: false }], 'e', null),
+      buildBundle(
+        'sess-1',
+        'key-1',
+        [{ question_index: 99, question_text: 'q', ciphertext: 'c', skipped: false }],
+        'e',
+        null,
+      ),
     Error,
     'out of range',
   );
@@ -82,7 +88,13 @@ Deno.test('buildBundle - accepts the bigint the driver actually returns', () => 
 Deno.test('buildBundle - refuses an out-of-range bigint', () => {
   assertThrows(
     () =>
-      buildBundle('sess-1', 'key-1', [{ question_index: 99n, question_text: 'q', ciphertext: 'c', skipped: false }], 'e', null),
+      buildBundle(
+        'sess-1',
+        'key-1',
+        [{ question_index: 99n, question_text: 'q', ciphertext: 'c', skipped: false }],
+        'e',
+        null,
+      ),
     Error,
     'out of range',
   );
