@@ -18,7 +18,7 @@ import { z } from 'zod';
 import { withConnection } from '../../lib/db.ts';
 import { createMagicLink } from '../../lib/auth.ts';
 import { hashEmail } from '../../lib/crypto.ts';
-import { createQuestionnaireSession, findActiveSession } from '../../lib/questionnaire-session.ts';
+import { createQuestionnaireSession } from '../../lib/questionnaire-session.ts';
 import { createQuestionnaireJWT } from '../../lib/jwt.ts';
 import { increment } from '../../lib/metrics.ts';
 import { sendMagicLinkEmail } from '../../lib/email.ts';
@@ -227,14 +227,15 @@ export const handler: Handlers = {
 
       // Step 5: Create or resume questionnaire session with gateToken
       let sessionResult;
-      const existingSession = await findActiveSession(emailHash);
-
-      if (existingSession) {
-        console.log('[gate-submit] User resuming questionnaire');
-        sessionResult = await createQuestionnaireSession(emailHash, gateToken);
-      } else {
-        sessionResult = await createQuestionnaireSession(emailHash, gateToken);
-      }
+      // Only the transaction, holding the advisory lock, can truthfully say
+      // whether this was a resume -- a probe out here is stale by the time it
+      // is read. See planSupersede.
+      sessionResult = await createQuestionnaireSession(emailHash, gateToken);
+      console.log(
+        sessionResult.resuming
+          ? '[gate-submit] Resuming questionnaire; prior answers carried forward'
+          : '[gate-submit] New questionnaire session',
+      );
 
       const { opaqueToken, sessionId } = sessionResult;
 

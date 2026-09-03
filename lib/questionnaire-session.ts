@@ -36,6 +36,8 @@ export interface SessionCreationResult {
   sessionId: string; // Hash of token (stored in DB)
   emailHash: string; // For JWT creation
   questionOrder: string; // For initial state
+  /** True when a prior incomplete session's work was carried into this one. */
+  resuming: boolean;
 }
 
 // Database row types for queryObject
@@ -55,6 +57,81 @@ interface StatsRow {
   active: string | bigint;
   completed: string | bigint;
   avg_progress: number | null;
+}
+
+/** A prior incomplete session, read under lock inside the transaction. */
+export interface PriorSession {
+  sessionId: string;
+  questionOrder: string;
+  answeredQuestions: number[];
+  currentIndex: number;
+  /** gate_token of the row currently linked to this session, or null. */
+  linkedGateToken: string | null;
+}
+
+/** What the transaction should do about a prior session, decided in one place. */
+export interface SupersedePlan {
+  resuming: boolean;
+  /** Session to close, or null for a first-time respondent. */
+  supersededSessionId: string | null;
+  questionOrder: string;
+  answeredQuestions: number[];
+  currentIndex: number;
+  /** Gate row to point at the new session; null links nothing. */
+  gateTokenToLink: string | null;
+  /** Session whose gate_encrypted_answers rows must move; null moves none. */
+  migrateAnswersFrom: string | null;
+}
+
+/**
+ * Decide what a second magic link does to the work already done.
+ *
+ * A fresh link forces a fresh session -- session_id IS the HMAC of the resume
+ * token and the token is never stored, so an issued link cannot be re-derived.
+ * What is not forced is starting over, which is what used to happen: the old
+ * session was closed, its ciphertext stranded under an id nothing reads, and
+ * the respondent restarted at question zero in a new order. Their earlier
+ * answers then reached the PDF as blanks, indistinguishable from questions
+ * they had deliberately skipped.
+ *
+ * Two things travel together and must not be separated. The answers move to
+ * the new session id, and so does the GATE ROW that holds the keypair they are
+ * sealed to. Carrying the ciphertext while linking the freshly minted gate row
+ * would give the key box an identity that opens the newest answers and none of
+ * the older ones -- turning "answers missing" into "answers present and
+ * undecryptable", which is harder to notice and worse to debug.
+ *
+ * `newQuestionOrder` is a thunk so that resuming cannot reshuffle even by
+ * accident: reshuffling re-points current_index at a different question, and
+ * the next answer would be filed against one the respondent never saw.
+ */
+export function planSupersede(
+  prior: PriorSession | null,
+  freshGateToken: string | undefined,
+  newQuestionOrder: () => string,
+): SupersedePlan {
+  if (prior === null) {
+    return {
+      resuming: false,
+      supersededSessionId: null,
+      questionOrder: newQuestionOrder(),
+      answeredQuestions: [],
+      currentIndex: 0,
+      gateTokenToLink: freshGateToken ?? null,
+      migrateAnswersFrom: null,
+    };
+  }
+
+  return {
+    resuming: true,
+    supersededSessionId: prior.sessionId,
+    questionOrder: prior.questionOrder,
+    // Copied, not aliased: the caller must not be able to mutate the row we read.
+    answeredQuestions: [...prior.answeredQuestions],
+    currentIndex: prior.currentIndex,
+    gateTokenToLink: prior.linkedGateToken ?? freshGateToken ?? null,
+    migrateAnswersFrom: prior.sessionId,
+  };
 }
 
 /**
@@ -80,54 +157,136 @@ export async function createQuestionnaireSession(
   // completion before the await resolves; TS cannot see through the closure.
   let questionOrder!: string;
 
+  let resuming = false;
+
   await withTransaction(async (client) => {
-    // Step 3: Check if user went through the gate flow
-    let hasGateAnswers = false;
-    if (gateToken) {
+    // Serialise concurrent link requests for one person. Two clicks on "send
+    // me a link" otherwise race: both read the same prior session, both
+    // supersede it, and the second carries forward from a session the first
+    // already emptied. FOR UPDATE alone is not enough -- under READ COMMITTED
+    // the blocked SELECT re-evaluates `completed_at IS NULL`, finds the row now
+    // closed, and proceeds as though this were a first-time respondent.
+    await client.queryObject(
+      `SELECT pg_advisory_xact_lock(('x' || substr($1, 1, 16))::bit(64)::bigint)`,
+      [emailHash],
+    );
+
+    // The prior session, read under that lock, together with the gate row that
+    // holds the keypair its answers are sealed to.
+    const { rows: existing } = await client.queryObject<{
+      session_id: string;
+      question_order: string;
+      answered_questions: number[] | null;
+      current_index: number | null;
+      linked_gate_token: string | null;
+    }>(
+      `SELECT s.session_id,
+              s.question_order,
+              s.answered_questions,
+              s.current_index,
+              (SELECT g.gate_token
+                 FROM fresh_gate_responses g
+                WHERE g.linked_session_id = s.session_id
+                ORDER BY g.gate_token
+                LIMIT 1) AS linked_gate_token
+         FROM fresh_questionnaire_sessions s
+        WHERE s.email_hash = $1 AND s.completed_at IS NULL
+        ORDER BY s.created_at DESC
+        LIMIT 1
+          FOR UPDATE OF s`,
+      [emailHash],
+    );
+
+    const prior: PriorSession | null = existing.length > 0
+      ? {
+        sessionId: existing[0].session_id,
+        questionOrder: existing[0].question_order,
+        answeredQuestions: existing[0].answered_questions ?? [],
+        currentIndex: existing[0].current_index ?? 0,
+        linkedGateToken: existing[0].linked_gate_token,
+      }
+      : null;
+
+    const plan = planSupersede(prior, gateToken, () => {
+      // Only consulted for a first-time respondent, so the gate probe that
+      // feeds it is only worth running then.
+      return generateQuestionOrderString(false);
+    });
+
+    if (prior === null && gateToken) {
       const { rows } = await client.queryObject<{ count: string }>(
         `SELECT COUNT(*) as count FROM fresh_gate_responses
          WHERE gate_token = $1`,
         [gateToken],
       );
-      hasGateAnswers = Number(rows[0]?.count ?? 0) > 0;
+      if (Number(rows[0]?.count ?? 0) > 0) {
+        plan.questionOrder = generateQuestionOrderString(true);
+      }
     }
 
-    // Step 4: Generate shuffled question order
-    questionOrder = generateQuestionOrderString(hasGateAnswers);
+    resuming = plan.resuming;
+    questionOrder = plan.questionOrder;
 
-    // Step 5: Check for existing incomplete session
-    const { rows: existing } = await client.queryObject<{ session_id: string }>(
-      `SELECT session_id FROM fresh_questionnaire_sessions
-       WHERE email_hash = $1 AND completed_at IS NULL
-       ORDER BY created_at DESC LIMIT 1`,
-      [emailHash],
-    );
-
-    if (existing.length > 0) {
-      // Mark old session as completed (new session supersedes it)
+    // Close the old door first. getSessionByToken filters completed_at IS NULL,
+    // so this is what stops a still-open tab writing another answer into the id
+    // about to be emptied. It narrows that window; it does not close it.
+    if (plan.supersededSessionId) {
       await client.queryObject(
         `UPDATE fresh_questionnaire_sessions
          SET completed_at = NOW()
          WHERE session_id = $1`,
-        [existing[0].session_id],
+        [plan.supersededSessionId],
       );
     }
 
-    // Create new session with session_id as primary key
+    // Mint the new session carrying the work already done.
     await client.queryObject(
       `INSERT INTO fresh_questionnaire_sessions
        (session_id, email_hash, question_order, answered_questions, current_index)
        VALUES ($1, $2, $3, $4, $5)`,
-      [sessionId, emailHash, questionOrder, [], 0],
+      [sessionId, emailHash, plan.questionOrder, plan.answeredQuestions, plan.currentIndex],
     );
 
-    // Link gate responses if provided
-    if (gateToken) {
+    // MOVE the ciphertext -- not a copy. The runtime role holds no DELETE grant
+    // on this table (migration 007), so copy-then-delete could not be unwound,
+    // and a second copy of a respondent's answers contradicts the shred design.
+    // Scoped to the session namespace: questions 0-1 are stored under the gate
+    // token, a different namespace, and are deliberately left alone.
+    //
+    // UNIQUE (session_id, question_index) cannot bite here -- the new id is a
+    // fresh HMAC over 32 random bytes, so no row can already carry it. If it
+    // ever did, 23505 rolls the whole transaction back and nothing is
+    // half-moved, which is the failure we want.
+    if (plan.migrateAnswersFrom) {
+      await client.queryObject(
+        `UPDATE gate_encrypted_answers
+         SET session_id = $1
+         WHERE session_id = $2`,
+        [sessionId, plan.migrateAnswersFrom],
+      );
+    }
+
+    // Carry the key generation with the answers, so one identity opens the
+    // whole bundle.
+    let linked = 0;
+    if (plan.supersededSessionId) {
+      const res = await client.queryObject(
+        `UPDATE fresh_gate_responses
+         SET linked_session_id = $1
+         WHERE linked_session_id = $2`,
+        [sessionId, plan.supersededSessionId],
+      );
+      linked = Number(res.rowCount ?? 0);
+    }
+
+    // First-time respondent, or a resuming one whose prior session had no gate
+    // row at all (the magic-link-only path).
+    if (linked === 0 && plan.gateTokenToLink) {
       await client.queryObject(
         `UPDATE fresh_gate_responses
          SET linked_session_id = $1
          WHERE gate_token = $2`,
-        [sessionId, gateToken],
+        [sessionId, plan.gateTokenToLink],
       );
     }
   });
@@ -137,6 +296,7 @@ export async function createQuestionnaireSession(
     sessionId,
     emailHash,
     questionOrder,
+    resuming,
   };
 }
 

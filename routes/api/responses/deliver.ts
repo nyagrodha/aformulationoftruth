@@ -56,6 +56,7 @@ function canonicalQuestionText(index: number): string {
  */
 export function buildBundle(
   sessionId: string,
+  keyId: string,
   rows: AnswerRow[],
   encryptedEmail: string,
   encryptedPassword: string | null,
@@ -91,7 +92,7 @@ export function buildBundle(
     };
   });
 
-  return { sessionId, answers, encryptedEmail, encryptedPassword };
+  return { sessionId, keyId, answers, encryptedEmail, encryptedPassword };
 }
 
 /**
@@ -168,8 +169,10 @@ export const handler: Handlers = {
       }
 
       const row = await withConnection(async (client) => {
-        const r = await client.queryObject<{ session_pubkey: string | null; encrypted_email: string | null }>(
-          `SELECT session_pubkey, encrypted_email
+        const r = await client.queryObject<
+          { session_pubkey: string | null; encrypted_email: string | null; gate_token: string | null }
+        >(
+          `SELECT session_pubkey, encrypted_email, gate_token
              FROM fresh_gate_responses
             WHERE linked_session_id = $1
             LIMIT 1`,
@@ -212,7 +215,15 @@ export const handler: Handlers = {
         return r.rows;
       });
 
-      const bundle = buildBundle(session.sessionId, rows, row.encrypted_email, encryptedPassword);
+      // The identity is filed under the gate token, not the session id; the render
+      // service opens the bundle with keyId and reports delivery against sessionId.
+      const bundle = buildBundle(
+        session.sessionId,
+        row.gate_token ?? session.sessionId,
+        rows,
+        row.encrypted_email,
+        encryptedPassword,
+      );
 
       try {
         await pushBundle(bundle);
