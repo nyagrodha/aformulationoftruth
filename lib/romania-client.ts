@@ -25,6 +25,19 @@ export interface BundleAnswer {
 
 export interface DeliveryBundle {
   sessionId: string;
+  /**
+   * The id the identity is FILED under on the key box -- the gate token, since
+   * gate-submit mints and pushes the keypair before a session exists. It is not
+   * the session id, and conflating the two is why loadIdentity raised ENOENT on
+   * every render and no PDF was ever produced.
+   *
+   * This is the sending half of the contract validateBundle enforces in
+   * romania/render-service.ts. It was missing here while buildBundle already
+   * returned it, so the field travelled on the wire with nothing in the type
+   * system holding it there: a projection or spread that rebuilt the object
+   * would have dropped it and restored the ENOENT silently.
+   */
+  keyId: string;
   answers: BundleAnswer[];
   encryptedEmail: string;
   /** age-armored, or null when no password was chosen. */

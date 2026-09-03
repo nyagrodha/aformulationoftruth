@@ -56,6 +56,38 @@ Deno.test('buildBundle - refuses an out-of-range index', () => {
   );
 });
 
+// question_index is BIGINT in migration 007, and deno-postgres decodes int8 as
+// a JS bigint -- so every row read from the database arrives as 2n, not 2.
+// Number.isInteger(2n) is false, which made the range guard reject every real
+// answer with "out of range: 2" for an index plainly inside 0..34. Every test
+// above builds rows from number literals, so nothing caught it until the walk
+// crossed the database boundary.
+Deno.test('buildBundle - accepts the bigint the driver actually returns', () => {
+  const fromDriver = [
+    { question_index: 2n, question_text: 'q2', ciphertext: 'ct2', skipped: false },
+    { question_index: 0n, question_text: 'q0', ciphertext: 'ct0', skipped: false },
+  ];
+  const bundle = buildBundle('sess-1', 'key-1', fromDriver, 'enc-email', null);
+  assertEquals(bundle.answers.length, CANONICAL_COUNT);
+  assertEquals(bundle.answers[2].ciphertext, 'ct2');
+  assertEquals(bundle.answers[2].skipped, false);
+  // Normalised on the way out: the bundle is JSON, and bigint does not survive
+  // JSON.stringify -- it throws rather than serialising.
+  assertEquals(typeof bundle.answers[2].questionIndex, 'number');
+  assert(JSON.stringify(bundle).length > 0, 'the bundle must survive serialisation');
+});
+
+// A bigint outside the range is still out of range; widening the type must not
+// widen what counts as a valid index.
+Deno.test('buildBundle - refuses an out-of-range bigint', () => {
+  assertThrows(
+    () =>
+      buildBundle('sess-1', 'key-1', [{ question_index: 99n, question_text: 'q', ciphertext: 'c', skipped: false }], 'e', null),
+    Error,
+    'out of range',
+  );
+});
+
 Deno.test('buildBundle - carries the encrypted password through untouched', () => {
   const bundle = buildBundle('sess-1', 'key-1', rows, 'enc-email', 'AGE-ARMORED-PW');
   assertEquals(bundle.encryptedPassword, 'AGE-ARMORED-PW');

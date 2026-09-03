@@ -178,7 +178,9 @@ Deno.test({
       const r = await client.queryObject<
         { question_index: number; question_text: string; ciphertext: string; skipped: boolean }
       >(
-        `SELECT question_index, question_text, ciphertext, skipped
+        // Mirrors deliver.ts exactly, ::int included -- a test that dropped the
+        // cast would exercise a query production does not run.
+        `SELECT question_index::int AS question_index, question_text, ciphertext, skipped
            FROM gate_encrypted_answers
           WHERE session_id = $1
           ORDER BY question_index`,
