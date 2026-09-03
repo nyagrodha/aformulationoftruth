@@ -61,17 +61,35 @@ jobs:
       # messenger_test, which pins the messenger's "no server plaintext" claim by
       # asserting its script has no way to reach the network.
       #
+      # lib/, romania/tests/, delivered_test and _middleware_test pin delivery,
+      # auth, and audience contracts (callback fail-closed, write-once stamp,
+      # JWT expiry, GPC/DNT). They were passing locally and running nowhere.
+      # --allow-write is for romania/tests/keystore temp dirs. Do not widen to
+      # tests/: that directory still carries the pre-existing type errors above.
+      #
       # Note these are added to the test step ONLY. islands/ is not fmt-clean --
       # QuaternarySpheroid.tsx and Spheroid.tsx predate the singleQuote setting, so
       # widening `deno fmt --check` to it would fail on drift no one here
       # introduced. Format those two, then widen the fmt step separately.
       - name: Test
         run: |
-          deno test --allow-env --allow-read --allow-net \
+          deno test --allow-env --allow-read --allow-net --allow-write \
             data/ \
             components/ \
             islands/ \
+            lib/audience_test.ts \
+            lib/client-ip_test.ts \
+            lib/crypto_test.ts \
+            lib/emailValidator_test.ts \
+            lib/jwt_test.ts \
+            lib/metrics_test.ts \
+            lib/questionnaire_test.ts \
+            lib/qr-scans_test.ts \
+            lib/romania-client_test.ts \
+            romania/tests/ \
             routes/shop_test.tsx \
             routes/about_test.tsx \
             routes/messenger_test.tsx \
-            routes/about/
+            routes/about/ \
+            routes/_middleware_test.ts \
+            routes/api/responses/delivered_test.ts
