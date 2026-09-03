@@ -41,7 +41,7 @@ export const handler: Handlers<BeginData> = {
         apiBaseUrl,
       });
     } catch (error) {
-      console.error("Error fetching gate questions:", error);
+      console.error("Error fetching gate questions:", error?.name);
       return ctx.render({
         questions: [],
         error: "Failed to load questions. Please try again.",

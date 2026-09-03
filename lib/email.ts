@@ -63,11 +63,21 @@ function smtpFailureKind(error: unknown): string {
  * used (port 587), which is Apple's default submission port.
  */
 export async function sendEmail(options: SendEmailOptions): Promise<EmailResult> {
-  // Test-mode bypass: automated CI/e2e runs have no SMTP server, so short-circuit
-  // delivery and report success. This lets end-to-end flows (magic link,
-  // newsletter double opt-in) exercise the endpoints without a real transport.
-  // Production (DENO_ENV != 'test') always takes the real SMTP path below.
-  if (Deno.env.get('DENO_ENV') === 'test') {
+  /*
+   * Stub transport: automated CI/e2e runs have no SMTP server, so delivery is
+   * short-circuited and reported as success. This lets end-to-end flows (magic
+   * link, newsletter double opt-in) exercise the endpoints without a real one.
+   *
+   * Keyed on EMAIL_TRANSPORT rather than DENO_ENV, which is what it used to
+   * read. DENO_ENV names an environment, not a transport, and every other
+   * reader of it treats it as one -- so a host that set DENO_ENV=test for any
+   * other purpose silently stopped sending mail while reporting 250 to every
+   * caller, and the failure is invisible precisely because the magic link and
+   * the double opt-in are the mail nobody on this side is waiting for. Nothing
+   * turns this on by accident: EMAIL_TRANSPORT=stub says only this.
+   */
+  if (Deno.env.get('EMAIL_TRANSPORT') === 'stub') {
+    console.log('[email] EMAIL_TRANSPORT=stub: delivery bypassed, reporting success');
     return { success: true, statusCode: 250 };
   }
 

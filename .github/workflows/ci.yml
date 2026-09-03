@@ -64,13 +64,28 @@ jobs:
         with:
           deno-version: v2.x
 
+      # The pre-commit hook runs this script with no arguments, which examines
+      # only the lines a commit ADDS. That is a ratchet and cannot see what is
+      # already committed: routes/auth/verify.tsx interpolated two session ids
+      # and a raw error object into console.warn for its entire life while the
+      # hook passed cleanly on every commit, because those lines were never
+      # again part of a diff. --all reads every tracked source file, which is
+      # the only mode that can answer the question CLAUDE.md actually asks.
+      #
+      # No path scoping here, unlike the steps below: a leak is a leak wherever
+      # it is, and the script keeps its own exclusion list for generated
+      # bundles and unshipped trees.
+      - name: Zero-logging policy
+        run: bash scripts/check-zero-logging.sh --all
+
       # The service above starts an EMPTY database. Without this the DB-backed
       # test fails on a missing table rather than on anything it means to
       # assert. migrate.ts prefers .env, which is gitignored and therefore
-      # absent here, so it falls through to the environment above.
+      # absent here, so it falls through to the environment above. It runs
+      # after the cheap static check, so a logging regression fails in seconds
+      # rather than behind a database bring-up.
       - name: Apply migrations
         run: deno run --allow-net --allow-env --allow-read migrate.ts
-
       # Scope note: `deno task test` cannot run repo-wide. `tests/` and `trash/`
       # carry ~449 pre-existing type errors (Jest globals, missing drizzle-orm)
       # that predate this workflow and fail before any test executes. The paths
@@ -111,6 +126,11 @@ jobs:
       # routes to a /lotto.html that never existed. It was passing locally and
       # running nowhere, so the guard could not have stopped a repeat.
       #
+      # public/js/ carries seal-guards_test, which exercises the envelope bounds
+      # every sealing surface depends on: a hostile iteration count, an oversized
+      # field decoded before it is inspected, an empty passphrase that seals
+      # nothing. They are pure functions, so they run without a DOM.
+      #
       # Note these are added to the test step ONLY. islands/ is not fmt-clean --
       # QuaternarySpheroid.tsx and Spheroid.tsx predate the singleQuote setting, so
       # widening `deno fmt --check` to it would fail on drift no one here
@@ -128,6 +148,8 @@ jobs:
             data/ \
             components/ \
             islands/ \
+            public/js/ \
+            lib/csrf_test.ts \
             routes/shop_test.tsx \
             routes/about_test.tsx \
             routes/about/ \

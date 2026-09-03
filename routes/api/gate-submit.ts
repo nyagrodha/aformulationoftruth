@@ -265,7 +265,13 @@ export const handler: Handlers = {
       const { opaqueToken, sessionId } = sessionResult;
 
       // Step 6: Create JWT
-      const jwt = await createQuestionnaireJWT(emailHash, sessionId);
+      //
+      // 'link', not 'gate', even though this is the gate handler: the token
+      // built here is never handed to the browser that posted the form. It goes
+      // into the magic-link URL below and becomes a cookie only when
+      // /auth/verify receives it back, which requires reading mail at the
+      // address. See JWTVia, and resumeCookie() for the bypass that closed.
+      const jwt = await createQuestionnaireJWT(emailHash, sessionId, 'link');
 
       // Step 7: Build magic link URL
       const baseUrl = Deno.env.get('BASE_URL') || 'http://localhost:8000';

@@ -315,13 +315,20 @@ export async function getSessionByToken(
 }
 
 /**
- * Get session by session_id (hash).
- * Used when client sends session_id directly or from JWT.
+ * Get session by session_id (hash), finished or not.
+ *
+ * This is the raw row. It is what identity should be read from: whether someone
+ * answered their last question has nothing to do with whether they are who the
+ * session says, and getSessionById() -- which drops completed rows -- turns a
+ * finished respondent into an unauthenticated stranger. That is right for the
+ * questionnaire, which has no next question to serve them, and wrong for every
+ * other surface. lib/session-auth.ts uses this one and leaves the completed
+ * check to callers that actually care.
  *
  * @param sessionId - HMAC hash of opaque token
- * @returns Session if found and not completed
+ * @returns Session if the row exists, regardless of completion
  */
-export async function getSessionById(
+export async function getSessionRecord(
   sessionId: string,
 ): Promise<QuestionnaireSession | null> {
   return await withConnection(async (client) => {
@@ -329,7 +336,7 @@ export async function getSessionById(
       `SELECT session_id, email_hash, question_order, answered_questions,
               current_index, created_at, updated_at, completed_at
        FROM fresh_questionnaire_sessions
-       WHERE session_id = $1 AND completed_at IS NULL`,
+       WHERE session_id = $1`,
       [sessionId],
     );
 
@@ -347,6 +354,20 @@ export async function getSessionById(
       completedAt: row.completed_at ? new Date(row.completed_at) : undefined,
     };
   });
+}
+
+/**
+ * Get session by session_id (hash), only while it is still answerable.
+ * Used when client sends session_id directly or from JWT.
+ *
+ * @param sessionId - HMAC hash of opaque token
+ * @returns Session if found and not completed
+ */
+export async function getSessionById(
+  sessionId: string,
+): Promise<QuestionnaireSession | null> {
+  const session = await getSessionRecord(sessionId);
+  return session?.completedAt ? null : session;
 }
 
 /**

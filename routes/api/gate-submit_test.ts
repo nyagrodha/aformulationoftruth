@@ -36,7 +36,7 @@ interface GateCall {
 
 const originalFetch = globalThis.fetch;
 const originalEnv = Deno.env.toObject();
-const TEST_ENV_KEYS = ['DATABASE_URL', 'JWT_SECRET', 'RESUME_TOKEN_SECRET', 'BASE_URL', 'DENO_ENV'] as const;
+const TEST_ENV_KEYS = ['DATABASE_URL', 'JWT_SECRET', 'RESUME_TOKEN_SECRET', 'BASE_URL', 'DENO_ENV', 'EMAIL_TRANSPORT'] as const;
 
 function setupTestEnv() {
   /*
@@ -51,6 +51,8 @@ function setupTestEnv() {
   Deno.env.set('RESUME_TOKEN_SECRET', 'test-secret-key-for-hmac-operations');
   Deno.env.set('BASE_URL', 'http://localhost:8000');
   Deno.env.set('DENO_ENV', 'test');
+  /* lib/email.ts keys its stub transport on this, not on DENO_ENV. */
+  Deno.env.set('EMAIL_TRANSPORT', 'stub');
 }
 
 function restoreEnv() {

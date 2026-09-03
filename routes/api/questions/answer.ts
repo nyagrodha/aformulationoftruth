@@ -196,8 +196,8 @@ export const handler: Handlers = {
           },
         );
       }
-    } catch (error) {
-      console.error(`[answer:${requestId}] JWT verification failed:`, error);
+    } catch {
+      console.error(`[answer:${requestId}] JWT verification failed`);
       increment('errors.5xx');
       return new Response(
         JSON.stringify({
@@ -218,8 +218,8 @@ export const handler: Handlers = {
     let session;
     try {
       session = await getSessionByToken(resumeToken);
-    } catch (error) {
-      console.error(`[answer:${requestId}] Session lookup failed:`, error);
+    } catch {
+      console.error(`[answer:${requestId}] Session lookup failed`);
       increment('errors.5xx');
       return new Response(
         JSON.stringify({
@@ -407,8 +407,8 @@ export const handler: Handlers = {
           },
         },
       );
-    } catch (error) {
-      console.error(`[answer:${requestId}] Failed to update session:`, error);
+    } catch {
+      console.error(`[answer:${requestId}] Failed to update session`);
       increment('errors.5xx');
 
       return new Response(

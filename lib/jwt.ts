@@ -35,9 +35,29 @@ function getJwtSecret(): string {
 
 const JWT_VALIDITY_HOURS = 24;
 
+/**
+ * How the holder of this token proved the address behind it.
+ *
+ * 'gate' means someone typed an address into the gate and nothing more; 'link'
+ * means they opened what was mailed to that address. Only 'link' is proof of
+ * control, and lib/api-auth.ts refuses every write that does not carry it --
+ * without the distinction, anyone types any address and gets an identity that
+ * the messaging surface then attributes their writing to in front of someone
+ * else.
+ *
+ * Optional only because tokens minted before this claim existed are still
+ * within their 24-hour validity. A claimless token is never read as 'link' on
+ * its own: authenticateRequest answers 'gate' unless the holder also presents
+ * the resume token for that same session, which is delivered only by mail and
+ * so proves what 'link' asserts. See lib/session-auth.ts, which carries the
+ * reasoning and the deployed-fleet counterexample that forces it.
+ */
+export type JWTVia = 'gate' | 'link';
+
 export interface JWTPayload {
   email_hash: string; // For client-side encryption key derivation
   session_id: string; // HMAC hash of opaque token
+  via?: JWTVia; // How the address was proved -- see JWTVia
   iat: number; // Issued at (Unix timestamp)
   exp: number; // Expiration (Unix timestamp)
 }
@@ -61,11 +81,14 @@ function getFutureTimestamp(seconds: number): number {
  *
  * @param emailHash - SHA-256 hash of email (for client-side encryption)
  * @param sessionId - HMAC hash of opaque token (session identifier)
+ * @param via - How the address was proved. Pass 'gate' unless the caller knows
+ *   the holder opened the emailed link; see JWTVia.
  * @returns JWT token string
  */
 export async function createQuestionnaireJWT(
   emailHash: string,
   sessionId: string,
+  via: JWTVia,
 ): Promise<string> {
   const secret = getJwtSecret();
 
@@ -82,6 +105,7 @@ export async function createQuestionnaireJWT(
   const payload: JWTPayload = {
     email_hash: emailHash,
     session_id: sessionId,
+    via,
     iat: getCurrentTimestamp(),
     exp: getFutureTimestamp(JWT_VALIDITY_HOURS * 60 * 60),
   };
@@ -173,8 +197,9 @@ export async function verifyQuestionnaireJWT(
     }
 
     return payload;
-  } catch (error) {
-    console.error('[jwt] Verification failed:', error);
+  } catch {
+    /* Never the object: a malformed-token throw can quote the token itself. */
+    console.error('[jwt] Verification failed');
     return null;
   }
 }

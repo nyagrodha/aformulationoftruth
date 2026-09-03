@@ -71,38 +71,51 @@ Deno.test('Nav renders no items when given none', () => {
 });
 
 /*
- * The mark is the toggle's whole visible content, and the SVG is aria-hidden
- * ornament, so the label on the control is the only accessible name in play.
+ * The mark is the toggle's whole visible content, and the image is empty-alt
+ * ornament, so the label on the control is the only accessible name in play. A
+ * non-empty alt here would announce the glyph a second time.
  */
-Deno.test('Nav renders the five-line mark inside the toggle', () => {
+Deno.test('Nav renders the irendu mark inside the toggle', () => {
   const html = render(<Nav items={ITEMS} />);
-  /* No caller class here, so the trailing space is trimmed off. */
-  assertStringIncludes(html, 'class="five-line-mark"');
-  assertStringIncludes(html, 'viewBox="0 0 300 260"');
-  for (let n = 1; n <= 5; n++) {
-    assertStringIncludes(html, `mark-bar mark-bar-${n}`);
-    assertStringIncludes(html, `var(--mark-${n})`);
-  }
+  assertStringIncludes(html, 'class="nav-mark"');
+  assertStringIncludes(html, 'src="/images/nav-irendu-372.webp"');
+
+  /*
+   * The renderer minimises alt="" to a bare `alt`, which is the same empty
+   * value; asserting the quoted form would fail on correct markup. What must be
+   * true is that the attribute is there and carries nothing -- a missing alt
+   * makes assistive technology fall back to announcing the filename, and a
+   * non-empty one duplicates the button's label. `alt="` can only appear if
+   * someone gave it text.
+   */
+  const img = html.slice(html.indexOf('<img'), html.indexOf('/>') + 2);
+  assertStringIncludes(img, ' alt');
+  assertEquals(img.includes('alt="'), false);
 });
 
 /*
- * A <mask> that nothing points at is inert: the SVG would still contain the ௨
- * outline while rendering five unbroken bars, and a test that only asserted the
- * mask existed would pass on a mark with no glyph in it at all. Assert the
- * reference, and that it is bars 2-4 carrying it — masking all five would cut
- * the outer bars too and read as a hole rather than negative space.
+ * Intrinsic dimensions are what let the header reserve the mark's box before
+ * the image arrives; without them the wordmark beside it jumps on load. They
+ * must also be the file's real size, or the reserved box is the wrong shape and
+ * the jump comes back in a subtler form — so assert the numbers, not merely
+ * that the attributes are present.
  */
-Deno.test('Nav mask is referenced by the middle bars, not merely present', () => {
+Deno.test('Nav declares the mark intrinsic size so the header reserves its box', () => {
   const html = render(<Nav items={ITEMS} />);
-  assertStringIncludes(html, '<mask id="five-line-mark-tamil-two"');
-  assertStringIncludes(html, 'mask="url(#five-line-mark-tamil-two)"');
+  assertStringIncludes(html, 'width="372"');
+  assertStringIncludes(html, 'height="252"');
+});
 
-  /* The masked group must wrap bars 2-4 and neither bar 1 nor bar 5. */
-  const group = html.slice(html.indexOf('mask="url(#five-line-mark-tamil-two)"'));
-  const inner = group.slice(0, group.indexOf('</g>'));
-  assertEquals(inner.includes('mark-bar-1'), false);
-  assertEquals(inner.includes('mark-bar-5'), false);
-  for (const n of [2, 3, 4]) assertStringIncludes(inner, `mark-bar-${n}`);
+/*
+ * The five-line mark is gone, and with it the --mark-* tokens and the <mask>
+ * that cut the ௨ out of the bars. A half-migration that left the SVG rendering
+ * underneath the image would look correct and ship both.
+ */
+Deno.test('Nav ships no trace of the retired five-line mark', () => {
+  const html = render(<Nav items={ITEMS} />);
+  assertEquals(html.includes('five-line-mark'), false);
+  assertEquals(html.includes('mark-bar'), false);
+  assertEquals(html.includes('<mask'), false);
 });
 
 /*
@@ -115,5 +128,5 @@ Deno.test('PAGE_NAV points at nothing that does not exist', () => {
   assertEquals(hrefs.includes('/lotto.html'), false);
   /* Bare fragments resolve only on the landing document. */
   assertEquals(hrefs.some((h) => h.startsWith('#')), false);
-  assertEquals(hrefs, ['/#begin', '/about', '/contact.html', '/shop']);
+  assertEquals(hrefs, ['/#begin', '/about', '/people', '/messages', '/shop']);
 });

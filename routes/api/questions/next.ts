@@ -106,8 +106,8 @@ export const handler: Handlers = {
     try {
       // Hash resume token to get session_id
       session = await getSessionByToken(resumeToken);
-    } catch (error) {
-      console.error(`[questions:${requestId}] Session lookup failed:`, error);
+    } catch {
+      console.error(`[questions:${requestId}] Session lookup failed`);
       increment('errors.5xx');
       return new Response(
         JSON.stringify({

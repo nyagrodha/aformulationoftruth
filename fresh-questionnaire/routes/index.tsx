@@ -64,7 +64,7 @@ export const handler: Handlers<IndexData> = {
         message: data.message || "Magic link sent! Check your email inbox.",
       });
     } catch (error) {
-      console.error("Error requesting magic link:", error);
+      console.error("Error requesting magic link:", error?.name);
       return ctx.render({
         error: "An error occurred. Please try again.",
       });
