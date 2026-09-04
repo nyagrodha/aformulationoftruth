@@ -464,6 +464,19 @@ nav {
     animation: neon-pulse 2s ease-in-out infinite;
 }
 
+/*
+ * The wearable page's mark, standing where the ✩ used to. Same artwork the nav
+ * toggle serves -- one derivative, not two. No glow and no neon-pulse: a
+ * text-shadow does nothing to an image, and the animation's opacity leg reads
+ * as a flicker on drawn gold rather than as a pulse on a glyph.
+ */
+.gate-mark {
+    display: block;
+    width: 96px;
+    height: auto;
+    margin: 0 auto 2rem;
+}
+
 .gate-title {
     font-family: 'Orbitron', ui-sans-serif, system-ui, sans-serif;
     font-size: 1.5rem;

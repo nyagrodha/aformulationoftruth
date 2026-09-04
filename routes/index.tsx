@@ -158,7 +158,14 @@ export default function Home({ data }: PageProps<IndexData>) {
 
               <p class='eyebrow' id='prolegomenon'>PROLEGOMENON:</p>
               <p class='incipit'>
-                <span class='drop-cap' aria-hidden='true'>Y</span>
+                <img
+                  class='drop-cap'
+                  src='/images/y-illuminated-560.webp'
+                  alt=''
+                  aria-hidden='true'
+                  width={532}
+                  height={560}
+                />
                 <span class='sr-only'>Y</span>our answers — anyone's answers — may become for another reader just such
                 an ātmanopticon: in our world where nothing ever happens the same way twice, truth resides in the
                 reconstruction of events without precedent.

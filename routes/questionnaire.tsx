@@ -501,9 +501,14 @@ export default function QuestionnairePage({ data }: PageProps<QuestionnaireData>
 
             <h1 class='question-text'>{currentQuestion}</h1>
 
+            <p class='hint'>
+              Take your time. There are no right answers, only honest ones.
+            </p>
+
             <form method='POST' action='/questionnaire' class='answer-form'>
               <textarea
                 name='answer'
+                placeholder='Take your time...'
                 aria-label='Your answer'
               >
               </textarea>

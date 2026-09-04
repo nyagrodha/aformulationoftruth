@@ -269,16 +269,20 @@ footer .footer-return {
   margin-bottom: 0;
 }
 
+/*
+ * The incipit's initial is an illuminated Y rather than a letterform, so it
+ * carries no border: the gold frame the drawing already has would only be
+ * doubled by the saffron rule the typeset cap used to need. Height is set in
+ * em of .incipit so the initial scales with the clamp above it — 3.2em spans
+ * roughly the first three lines at line-height 1.18 — and width follows from
+ * the intrinsic ratio, which the img's width/height attributes reserve before
+ * the file lands.
+ */
 .drop-cap {
   float: left;
-  margin: 0.1em 0.13em 0 0;
-  padding: 0.08em 0.1em 0.03em;
-  border: 1px solid var(--saffron);
-  box-shadow: inset 0 0 0 4px var(--paper), inset 0 0 0 5px #1717156b;
-  color: var(--ink);
-  font-size: 3.75em;
-  line-height: 0.73;
-  text-shadow: 2px 2px #d965122e;
+  height: 3.2em;
+  width: auto;
+  margin: 0.16em 0.18em 0 0;
 }
 
 .enter {
@@ -918,7 +922,7 @@ footer .footer-return {
   }
 
   .drop-cap {
-    font-size: 3em;
+    height: 2.7em;
   }
 
   .enter {
