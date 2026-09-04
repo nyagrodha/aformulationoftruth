@@ -15,25 +15,25 @@ const rows = [
 ];
 
 Deno.test('buildBundle - orders answers canonically, not chronologically', () => {
-  const bundle = buildBundle('sess-1', rows, 'enc-email', null);
+  const bundle = buildBundle('sess-1', 'key-1', rows, 'enc-email', null);
   assertEquals(bundle.answers.length, CANONICAL_COUNT);
   assertEquals(bundle.answers.map((a) => a.questionIndex), Array.from({ length: CANONICAL_COUNT }, (_, i) => i));
 });
 
 Deno.test('buildBundle - preserves skipped markers', () => {
-  const bundle = buildBundle('sess-1', rows, 'enc-email', null);
+  const bundle = buildBundle('sess-1', 'key-1', rows, 'enc-email', null);
   assertEquals(bundle.answers.find((a) => a.questionIndex === 3)?.skipped, true);
 });
 
 Deno.test('buildBundle - carries the real ciphertext for answered questions', () => {
-  const bundle = buildBundle('sess-1', rows, 'enc-email', null);
+  const bundle = buildBundle('sess-1', 'key-1', rows, 'enc-email', null);
   assertEquals(bundle.answers.find((a) => a.questionIndex === 7)?.ciphertext, 'ct7');
 });
 
 // A short document would look complete to the respondent, who cannot be
 // expected to remember which of 35 questions they were asked.
 Deno.test('buildBundle - fills an unreached question rather than shortening the document', () => {
-  const bundle = buildBundle('sess-1', rows, 'enc-email', null);
+  const bundle = buildBundle('sess-1', 'key-1', rows, 'enc-email', null);
   const missing = bundle.answers.find((a) => a.questionIndex === 20);
   assertEquals(missing?.skipped, true);
   assertEquals(missing?.ciphertext, '');
@@ -42,7 +42,7 @@ Deno.test('buildBundle - fills an unreached question rather than shortening the 
 
 Deno.test('buildBundle - refuses duplicate indices', () => {
   const dupes = [...rows, { question_index: 7, question_text: 'q7', ciphertext: 'other', skipped: false }];
-  assertThrows(() => buildBundle('sess-1', dupes, 'enc-email', null), Error, 'duplicate answer');
+  assertThrows(() => buildBundle('sess-1', 'key-1', dupes, 'enc-email', null), Error, 'duplicate answer');
 });
 
 // An index outside 0..34 means the row does not belong to this questionnaire.
@@ -50,21 +50,65 @@ Deno.test('buildBundle - refuses duplicate indices', () => {
 Deno.test('buildBundle - refuses an out-of-range index', () => {
   assertThrows(
     () =>
-      buildBundle('sess-1', [{ question_index: 99, question_text: 'q', ciphertext: 'c', skipped: false }], 'e', null),
+      buildBundle(
+        'sess-1',
+        'key-1',
+        [{ question_index: 99, question_text: 'q', ciphertext: 'c', skipped: false }],
+        'e',
+        null,
+      ),
+    Error,
+    'out of range',
+  );
+});
+
+// question_index is BIGINT in migration 007, and deno-postgres decodes int8 as
+// a JS bigint -- so every row read from the database arrives as 2n, not 2.
+// Number.isInteger(2n) is false, which made the range guard reject every real
+// answer with "out of range: 2" for an index plainly inside 0..34. Every test
+// above builds rows from number literals, so nothing caught it until the walk
+// crossed the database boundary.
+Deno.test('buildBundle - accepts the bigint the driver actually returns', () => {
+  const fromDriver = [
+    { question_index: 2n, question_text: 'q2', ciphertext: 'ct2', skipped: false },
+    { question_index: 0n, question_text: 'q0', ciphertext: 'ct0', skipped: false },
+  ];
+  const bundle = buildBundle('sess-1', 'key-1', fromDriver, 'enc-email', null);
+  assertEquals(bundle.answers.length, CANONICAL_COUNT);
+  assertEquals(bundle.answers[2].ciphertext, 'ct2');
+  assertEquals(bundle.answers[2].skipped, false);
+  // Normalised on the way out: the bundle is JSON, and bigint does not survive
+  // JSON.stringify -- it throws rather than serialising.
+  assertEquals(typeof bundle.answers[2].questionIndex, 'number');
+  assert(JSON.stringify(bundle).length > 0, 'the bundle must survive serialisation');
+});
+
+// A bigint outside the range is still out of range; widening the type must not
+// widen what counts as a valid index.
+Deno.test('buildBundle - refuses an out-of-range bigint', () => {
+  assertThrows(
+    () =>
+      buildBundle(
+        'sess-1',
+        'key-1',
+        [{ question_index: 99n, question_text: 'q', ciphertext: 'c', skipped: false }],
+        'e',
+        null,
+      ),
     Error,
     'out of range',
   );
 });
 
 Deno.test('buildBundle - carries the encrypted password through untouched', () => {
-  const bundle = buildBundle('sess-1', rows, 'enc-email', 'AGE-ARMORED-PW');
+  const bundle = buildBundle('sess-1', 'key-1', rows, 'enc-email', 'AGE-ARMORED-PW');
   assertEquals(bundle.encryptedPassword, 'AGE-ARMORED-PW');
 });
 
 Deno.test('buildBundle - no password means null, never an empty string', () => {
   // The key box branches on null to decide whether to protect the PDF; '' would
   // be truthy-adjacent and invites a "protect with empty password" bug.
-  assertEquals(buildBundle('sess-1', rows, 'enc-email', null).encryptedPassword, null);
+  assertEquals(buildBundle('sess-1', 'key-1', rows, 'enc-email', null).encryptedPassword, null);
 });
 
 // ── consent parsing: the form is urlencoded on the no-JS path ───────────────
@@ -85,4 +129,25 @@ Deno.test('consentFrom - anything else is treated as no', () => {
 
 Deno.test('consentFrom - accepts the exact casing the form submits', () => {
   assertEquals(consentFrom({ consent: 'Yes' }), 'no', 'only the literal form value counts');
+});
+
+/**
+ * The identity is filed on the key box under the GATE TOKEN
+ * (`pushIdentity(gateToken, ...)` in gate-submit), but the render service used
+ * to load it by `bundle.sessionId` -- the session HMAC. Those are different
+ * strings, so `loadIdentity` raised ENOENT on every render and no PDF has ever
+ * been produced. The bundle therefore has to carry both: the key id to open it
+ * with, and the session id to report delivery against.
+ */
+Deno.test('buildBundle - carries the key id the identity was filed under', () => {
+  const bundle = buildBundle(
+    'b'.repeat(64),
+    '11111111-2222-3333-4444-555555555555',
+    [],
+    'encrypted-email',
+    null,
+  );
+
+  assertEquals(bundle.keyId, '11111111-2222-3333-4444-555555555555');
+  assertEquals(bundle.sessionId, 'b'.repeat(64));
 });

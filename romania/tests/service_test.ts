@@ -6,7 +6,10 @@ import { assertEquals } from 'https://deno.land/std@0.208.0/assert/mod.ts';
 import { validateBundle } from '../render-service.ts';
 
 const full = (n = 35) => ({
-  sessionId: '11111111-2222-3333-4444-555555555555',
+  sessionId: 'a'.repeat(64),
+  // The identity is filed under the gate token, so the bundle carries it
+  // separately from the session id it reports delivery against.
+  keyId: '11111111-2222-3333-4444-555555555555',
   answers: Array.from({ length: n }, (_, i) => ({
     questionIndex: i,
     questionText: `q${i}`,
@@ -44,4 +47,17 @@ Deno.test('validateBundle - rejects a missing address', () => {
 Deno.test('validateBundle - rejects nonsense', () => {
   assertEquals(validateBundle(null), 'not an object');
   assertEquals(validateBundle({ sessionId: 'x' }), 'bad session id');
+});
+
+// The key id names a file the service will open. A traversal-shaped one must be
+// refused for the same reason the session id is, and it is now the field that
+// actually reaches loadIdentity.
+Deno.test('validateBundle - rejects a traversal-shaped key id', () => {
+  assertEquals(validateBundle({ ...full(), keyId: '../../etc/passwd' }), 'bad key id');
+});
+
+Deno.test('validateBundle - rejects a bundle with no key id at all', () => {
+  const b = full() as Record<string, unknown>;
+  delete b.keyId;
+  assertEquals(validateBundle(b), 'bad key id');
 });

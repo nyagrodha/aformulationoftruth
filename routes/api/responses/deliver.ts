@@ -25,7 +25,14 @@ import { QUESTIONS as TAMIL_QUESTIONS } from '../../../lib/questions_dakshinapar
 export const CANONICAL_COUNT = 35;
 
 interface AnswerRow {
-  question_index: number;
+  /**
+   * BIGINT in the store (migration 007), and deno-postgres decodes int8 as a
+   * JS bigint -- so an uncast read hands back 2n, not 2. The queries below add
+   * ::int, but the type stays wide on purpose: queryObject<T> is an unchecked
+   * cast, so a query that forgets the cast compiles clean and fails only at
+   * runtime. buildBundle normalises rather than trusting the annotation.
+   */
+  question_index: number | bigint;
   question_text: string;
   ciphertext: string;
   skipped: boolean;
@@ -56,21 +63,27 @@ function canonicalQuestionText(index: number): string {
  */
 export function buildBundle(
   sessionId: string,
+  keyId: string,
   rows: AnswerRow[],
   encryptedEmail: string,
   encryptedPassword: string | null,
 ): DeliveryBundle {
   const byIndex = new Map<number, AnswerRow>();
   for (const r of rows) {
-    if (!Number.isInteger(r.question_index) || r.question_index < 0 || r.question_index >= CANONICAL_COUNT) {
+    // Number() first: a bigint fails Number.isInteger, so an unnormalised 2n
+    // was rejected as "out of range" for an index plainly inside 0..34. The
+    // range check still applies to the normalised value, so widening the
+    // accepted type does not widen what counts as a valid index.
+    const questionIndex = Number(r.question_index);
+    if (!Number.isInteger(questionIndex) || questionIndex < 0 || questionIndex >= CANONICAL_COUNT) {
       // Not a row from this questionnaire. Dropping it silently would conceal
       // a real inconsistency in the store.
       throw new Error(`question index out of range: ${r.question_index}`);
     }
-    if (byIndex.has(r.question_index)) {
-      throw new Error(`duplicate answer for question ${r.question_index}`);
+    if (byIndex.has(questionIndex)) {
+      throw new Error(`duplicate answer for question ${questionIndex}`);
     }
-    byIndex.set(r.question_index, r);
+    byIndex.set(questionIndex, r);
   }
 
   const answers = Array.from({ length: CANONICAL_COUNT }, (_, questionIndex) => {
@@ -91,7 +104,7 @@ export function buildBundle(
     };
   });
 
-  return { sessionId, answers, encryptedEmail, encryptedPassword };
+  return { sessionId, keyId, answers, encryptedEmail, encryptedPassword };
 }
 
 /**
@@ -168,8 +181,10 @@ export const handler: Handlers = {
       }
 
       const row = await withConnection(async (client) => {
-        const r = await client.queryObject<{ session_pubkey: string | null; encrypted_email: string | null }>(
-          `SELECT session_pubkey, encrypted_email
+        const r = await client.queryObject<
+          { session_pubkey: string | null; encrypted_email: string | null; gate_token: string | null }
+        >(
+          `SELECT session_pubkey, encrypted_email, gate_token
              FROM fresh_gate_responses
             WHERE linked_session_id = $1
             LIMIT 1`,
@@ -203,7 +218,9 @@ export const handler: Handlers = {
 
       const rows = await withConnection(async (client) => {
         const r = await client.queryObject<AnswerRow>(
-          `SELECT question_index, question_text, ciphertext, skipped
+          // ::int because the column is BIGINT and the driver would otherwise
+          // hand back bigint; the bundle is JSON, and bigint does not serialise.
+          `SELECT question_index::int AS question_index, question_text, ciphertext, skipped
              FROM gate_encrypted_answers
             WHERE session_id = $1
             ORDER BY question_index`,
@@ -212,7 +229,15 @@ export const handler: Handlers = {
         return r.rows;
       });
 
-      const bundle = buildBundle(session.sessionId, rows, row.encrypted_email, encryptedPassword);
+      // The identity is filed under the gate token, not the session id; the render
+      // service opens the bundle with keyId and reports delivery against sessionId.
+      const bundle = buildBundle(
+        session.sessionId,
+        row.gate_token ?? session.sessionId,
+        rows,
+        row.encrypted_email,
+        encryptedPassword,
+      );
 
       try {
         await pushBundle(bundle);

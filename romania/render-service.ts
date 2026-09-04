@@ -46,6 +46,13 @@ interface BundleAnswer {
 
 interface DeliveryBundle {
   sessionId: string;
+  /**
+   * The id the identity is FILED under on the key box -- the gate token, since
+   * gate-submit mints and pushes the keypair before a session exists. It is not
+   * the session id, and conflating the two is why loadIdentity raised ENOENT on
+   * every render and no PDF was ever produced.
+   */
+  keyId: string;
   answers: BundleAnswer[];
   encryptedEmail: string;
   encryptedPassword: string | null;
@@ -66,6 +73,7 @@ export function validateBundle(b: unknown): 'ok' | string {
   const bundle = b as DeliveryBundle;
   if (!bundle || typeof bundle !== 'object') return 'not an object';
   if (typeof bundle.sessionId !== 'string' || !SESSION_ID.test(bundle.sessionId)) return 'bad session id';
+  if (typeof bundle.keyId !== 'string' || !SESSION_ID.test(bundle.keyId)) return 'bad key id';
   if (!Array.isArray(bundle.answers)) return 'answers missing';
   if (bundle.answers.length !== CANONICAL_COUNT) return `expected ${CANONICAL_COUNT} answers`;
   for (let i = 0; i < CANONICAL_COUNT; i++) {
@@ -89,7 +97,7 @@ async function decryptWith(identity: string, ciphertext: string): Promise<string
  * on the floor.
  */
 export async function handleBundle(bundle: DeliveryBundle): Promise<void> {
-  const identity = await loadIdentity(KEY_DIR, bundle.sessionId);
+  const identity = await loadIdentity(KEY_DIR, bundle.keyId);
   // NOT Deno.makeTempDir({ dir }): that demands blanket filesystem access
   // (NotCapable: "Requires all access to /dev/shm") even with --allow-read and
   // --allow-write granted, which would force the service to run --allow-all.
@@ -129,7 +137,7 @@ export async function handleBundle(bundle: DeliveryBundle): Promise<void> {
 
     // Only after the send succeeded. Recording a delivery that did not happen
     // would start the shred clock on a key still needed.
-    await markDelivered(KEY_DIR, bundle.sessionId, new Date());
+    await markDelivered(KEY_DIR, bundle.keyId, new Date());
     await notifyDelivered(bundle.sessionId);
   } finally {
     await Deno.remove(work, { recursive: true }).catch(() => {});
