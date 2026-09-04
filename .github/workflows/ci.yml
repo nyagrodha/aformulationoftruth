@@ -61,17 +61,47 @@ jobs:
       # messenger_test, which pins the messenger's "no server plaintext" claim by
       # asserting its script has no way to reach the network.
       #
+      # lib/, romania/tests/, and the colocated route tests pin delivery consent,
+      # session-key injection, contact rate-limit identity, and gate fail-closed.
+      # They were passing locally (or living under tests/, which CI cannot run)
+      # and running nowhere. --allow-write is for keystore/protect temp dirs;
+      # --allow-run is for email_test's python3 sender and romania's binary
+      # probes. Tests that mutate process env rely on Deno's default sequential
+      # run (do not pass --parallel).
+      #
+      # Do not widen to tests/: that directory still carries the pre-existing
+      # type errors that fail before any test executes.
+      #
       # Note these are added to the test step ONLY. islands/ is not fmt-clean --
       # QuaternarySpheroid.tsx and Spheroid.tsx predate the singleQuote setting, so
       # widening `deno fmt --check` to it would fail on drift no one here
       # introduced. Format those two, then widen the fmt step separately.
       - name: Test
         run: |
-          deno test --allow-env --allow-read --allow-net \
+          deno test --allow-env --allow-read --allow-net --allow-write --allow-run \
             data/ \
             components/ \
             islands/ \
+            lib/audience_test.ts \
+            lib/age-encrypt_test.ts \
+            lib/client-ip_test.ts \
+            lib/crypto_resume_test.ts \
+            lib/email_test.ts \
+            lib/qr-scans_test.ts \
+            lib/session-keys_test.ts \
+            romania/tests/ \
             routes/shop_test.tsx \
             routes/about_test.tsx \
             routes/messenger_test.tsx \
-            routes/about/
+            routes/privacy_test.tsx \
+            routes/WillyStCo-op_test.ts \
+            routes/WillyStCoop_test.ts \
+            routes/about/ \
+            routes/api/gate-submit_test.ts \
+            routes/api/auth/magic-link_test.ts \
+            routes/api/contact_test.ts \
+            routes/api/health_test.ts \
+            routes/api/newsletter/subscribe_test.ts \
+            routes/api/questions/answer_test.ts \
+            routes/api/questions/next_test.ts \
+            routes/api/responses/deliver_test.ts
