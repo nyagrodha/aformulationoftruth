@@ -46,6 +46,7 @@ jobs:
           # crash-looped the site into 502. Keep main.ts first in this list.
           deno check \
             main.ts \
+            lib/gate_encrypt.ts \
             data/shop.ts \
             components/PageShell.tsx \
             routes/about.tsx \
@@ -71,6 +72,7 @@ jobs:
             data/ \
             components/ \
             islands/ \
+            lib/gate_encrypt_test.ts \
             routes/shop_test.tsx \
             routes/about_test.tsx \
             routes/messenger_test.tsx \
