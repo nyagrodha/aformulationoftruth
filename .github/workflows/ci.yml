@@ -165,4 +165,5 @@ jobs:
             routes/about/ \
             tests/deliver_bundle_test.ts \
             tests/session_supersede_test.ts \
+            tests/lazy_gate_provisioning_test.ts \
             tests/questionnaire_e2e_flow_test.ts

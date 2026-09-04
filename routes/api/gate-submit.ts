@@ -3,8 +3,9 @@
  *
  * POST /api/gate-submit
  * - Accepts email and gate answers in a single request
- * - Generates gateToken server-side
- * - Stores gate answers
+ * - Creates or resumes the questionnaire session; the gate (token, keypair,
+ *   row, Q0-Q1 ciphertext) is provisioned LAZILY inside that transaction,
+ *   and only when no linked gate row already exists -- a resume mints nothing
  * - Creates and sends magic link
  *
  * gupta-vidya compliance:
@@ -18,19 +19,12 @@ import { z } from 'zod';
 import { withConnection } from '../../lib/db.ts';
 import { createMagicLink } from '../../lib/auth.ts';
 import { hashEmail } from '../../lib/crypto.ts';
-import { createQuestionnaireSession } from '../../lib/questionnaire-session.ts';
+import { createQuestionnaireSession, type SessionCreationResult } from '../../lib/questionnaire-session.ts';
 import { createQuestionnaireJWT } from '../../lib/jwt.ts';
 import { increment } from '../../lib/metrics.ts';
 import { sendMagicLinkEmail } from '../../lib/email.ts';
-import { GATE_QUESTIONS, storeEncryptedAnswer } from '../../lib/gate_encrypt.ts';
-import { ageEncryptTo } from '../../lib/age-encrypt.ts';
-import {
-  breakglassRecipient,
-  generateSessionKeypair,
-  IdentityPushFailed,
-  pushIdentity,
-  shredRemoteIdentity,
-} from '../../lib/session-keys.ts';
+import { buildFreshGateProvisioner, freshGateState } from '../../lib/gate-provision.ts';
+import { shredRemoteIdentity } from '../../lib/session-keys.ts';
 
 const GateSubmitSchema = z.object({
   email: z.string().email(),
@@ -124,102 +118,63 @@ export const handler: Handlers = {
     const { email, answer1, answer2 } = parsed.data;
 
     try {
-      // Step 1: Generate server-side gate token
-      const gateToken = crypto.randomUUID();
-
-      // Step 1b: Provision this session's keypair BEFORE anything is stored.
-      //
-      // break-glass is read first because it is local and throws when
-      // unconfigured; doing it after the push would strand a key on the key box
-      // for a submission we then refuse over a missing env var.
-      //
-      // Fails closed: a session whose identity never reached the key box is one
-      // whose PDF could never be produced, so storing its answers would be
-      // storing an unreadable orphan.
-      let recipients: string[];
-      let pushed = false;
-      try {
-        const breakglass = breakglassRecipient();
-        const keypair = await generateSessionKeypair();
-        await pushIdentity(gateToken, keypair.identity);
-        pushed = true;
-        recipients = [keypair.recipient, breakglass];
-      } catch (e) {
-        // An ambiguous failure may still have left a key behind: ssh is killed
-        // at its deadline and `cat > file` can produce a complete or truncated
-        // key indistinguishably from here. Withdraw before refusing.
-        if (e instanceof IdentityPushFailed && e.ambiguous) {
-          await shredRemoteIdentity(gateToken);
-        }
-        console.error('[gate-submit] Session key provisioning failed; submission refused');
-        increment('errors.5xx');
-        return fail(503, 'Unable to securely store your answers right now. Please try again.', 'server');
-      }
-
       const q0 = answer1.trim();
       const q1 = answer2.trim();
 
-      // Ordering note. Everything below is arranged so the one step that CANNOT
-      // be undone happens last. The Rust gate exposes /api/store and no delete,
-      // so once an answer is written there it stays; the Postgres row and the
-      // pushed identity can both be withdrawn. Writing answers first — as this
-      // route used to — meant a later failure left ciphertext behind for a
-      // session that was refused and has no key.
+      // Step 1: Hash email immediately.
+      const emailHash = await hashEmail(email);
+
+      // Step 2: Create or resume the questionnaire session, provisioning the
+      // gate LAZILY inside it.
+      //
+      // Nothing gate-shaped exists yet -- no token, no keypair, no key-box
+      // push, no row, no Q0-Q1 ciphertext. createQuestionnaireSession invokes
+      // the provisioner inside its transaction, under the per-email advisory
+      // lock, and ONLY if no linked gate row already carries this
+      // respondent's walk. This route used to provision all of it eagerly,
+      // and on every resume the freshly minted set was orphaned: the unused
+      // identity sat on the key box for the 30-day shred window, and the
+      // unlinked row plus its Q0-Q1 ciphertext (undeletable by the runtime
+      // role) sat in Postgres forever. A resume now mints nothing -- and no
+      // longer needs the key box to be reachable at all.
+      //
+      // Still fails closed for a first-timer: a provisioning failure aborts
+      // the transaction, which takes the gate row and the session with it.
+      const gateState = freshGateState();
+      const provisionFreshGate = buildFreshGateProvisioner({ email, q0, q1 }, gateState);
+
+      let sessionResult: SessionCreationResult;
       try {
-        // The Postgres row carries the session's PUBLIC key and the address
-        // encrypted to it. Neither is readable here: this process holds
-        // recipients, never identities.
-        const encryptedEmail = await ageEncryptTo(email, recipients);
-
-        await withConnection(async (client) => {
-          await client.queryObject(
-            `INSERT INTO fresh_gate_responses (gate_token, q0_answer, q1_answer, session_pubkey, encrypted_email)
-             VALUES ($1, NULL, NULL, $2, $3)`,
-            [gateToken, recipients[0], encryptedEmail],
-          );
-        });
-
-        // Last, and unrecoverable. Encrypted to this session's key plus
-        // break-glass rather than the gate's global recipient. The plaintext
-        // columns q0_answer/q1_answer stay NULL — nothing reads them, and
-        // storing plaintext would break the promise the gate form makes.
-        await storeEncryptedAnswer({
-          sessionId: gateToken,
-          questionIndex: 0,
-          questionText: GATE_QUESTIONS[0],
-          answer: q0,
-          skipped: q0.length === 0,
-          recipients,
-        });
-        await storeEncryptedAnswer({
-          sessionId: gateToken,
-          questionIndex: 1,
-          questionText: GATE_QUESTIONS[1],
-          answer: q1,
-          skipped: q1.length === 0,
-          recipients,
-        });
+        sessionResult = await createQuestionnaireSession(emailHash, provisionFreshGate);
       } catch {
-        // Unwind what can be unwound. Best-effort: we are already refusing the
-        // submission and must not fail differently because cleanup failed.
-        if (pushed) await shredRemoteIdentity(gateToken);
-        await withConnection(async (client) => {
-          await client.queryObject('DELETE FROM fresh_gate_responses WHERE gate_token = $1', [gateToken]);
-        }).catch(() => {});
+        // The rollback reclaimed the row; what it cannot reach is an identity
+        // that may be sitting on the key box. `pushed` covers every failure
+        // after a confirmed push (the gate store, the session insert, the
+        // commit). A push that failed AMBIGUOUSLY -- ssh killed at its
+        // deadline, which can leave a complete or truncated key
+        // indistinguishably -- reports pushed=false but still named its token
+        // in state, so it is withdrawn too. Only a submission that never
+        // minted a token (a resume, or a pre-push failure) has nothing to
+        // shred. Best-effort: we are already refusing the submission and must
+        // not fail differently because cleanup failed.
+        if (gateState.gateToken) {
+          await shredRemoteIdentity(gateState.gateToken).catch(() => {});
+        }
 
         // Category only — the thrown error is never logged, it could carry text.
-        console.error('[gate-submit] Gate encryption unavailable; submission refused');
+        console.error('[gate-submit] Session provisioning failed; submission refused');
         increment('errors.5xx');
         return fail(503, 'Unable to securely store your answers right now. Please try again.', 'server');
       }
 
-      console.log('[gate-submit] Gate answers encrypted and stored');
+      console.log(
+        sessionResult.resuming
+          ? '[gate-submit] Resuming questionnaire; prior answers carried forward'
+          : '[gate-submit] New session; gate answers encrypted and stored',
+      );
 
       // Step 3: Create magic link
-      const { token: magicToken, expiresAt } = await createMagicLink(email);
-
-      // Step 4: Hash email immediately
-      const emailHash = await hashEmail(email);
+      const { expiresAt } = await createMagicLink(email);
 
       // Step 4b: If this entry began at a wearable's QR (/w/:token planted
       // the cookie), record the encounter -- pseudonymous, hash only.
@@ -249,18 +204,6 @@ export const handler: Handlers = {
       } catch (encounterErr) {
         console.error('[gate-submit] Encounter recording failed (non-fatal):', encounterErr);
       }
-
-      // Step 5: Create or resume questionnaire session with gateToken
-      let sessionResult;
-      // Only the transaction, holding the advisory lock, can truthfully say
-      // whether this was a resume -- a probe out here is stale by the time it
-      // is read. See planSupersede.
-      sessionResult = await createQuestionnaireSession(emailHash, gateToken);
-      console.log(
-        sessionResult.resuming
-          ? '[gate-submit] Resuming questionnaire; prior answers carried forward'
-          : '[gate-submit] New questionnaire session',
-      );
 
       const { opaqueToken, sessionId } = sessionResult;
 

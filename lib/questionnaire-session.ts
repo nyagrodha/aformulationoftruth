@@ -77,8 +77,16 @@ export interface SupersedePlan {
   questionOrder: string;
   answeredQuestions: number[];
   currentIndex: number;
-  /** Gate row to point at the new session; null links nothing. */
-  gateTokenToLink: string | null;
+  /**
+   * True when the caller's fresh gate -- an existing row's token, or a
+   * provisioner that has not yet minted anything -- should be brought in and
+   * linked. False whenever the prior session already carries a linked gate
+   * row: its keypair seals every byte this walk will deliver, and a second
+   * one could never open any of it. Deciding this BEFORE any key material
+   * exists is what stops an unused identity being stranded on the key box
+   * and an unlinked row (plus undeletable Q0-Q1 ciphertext) in Postgres.
+   */
+  needsFreshGate: boolean;
   /** Session whose gate_encrypted_answers rows must move; null moves none. */
   migrateAnswersFrom: string | null;
 }
@@ -96,10 +104,18 @@ export interface SupersedePlan {
  *
  * Two things travel together and must not be separated. The answers move to
  * the new session id, and so does the GATE ROW that holds the keypair they are
- * sealed to. Carrying the ciphertext while linking the freshly minted gate row
+ * sealed to. Carrying the ciphertext while linking a freshly minted gate row
  * would give the key box an identity that opens the newest answers and none of
  * the older ones -- turning "answers missing" into "answers present and
  * undecryptable", which is harder to notice and worse to debug.
+ *
+ * Which is why the plan takes `hasFreshGate`, not a fresh gate token: when the
+ * prior session already has a linked row, the right amount of fresh key
+ * material is NONE, and only a decision made before anything is minted can
+ * deliver that. The eager version of this flow provisioned first and decided
+ * second, and every resume orphaned a keypair on the key box (30 days) plus an
+ * unlinked fresh_gate_responses row and its Q0-Q1 ciphertext in Postgres --
+ * the latter undeletable by the runtime role (migration 007), forever.
  *
  * `newQuestionOrder` is a thunk so that resuming cannot reshuffle even by
  * accident: reshuffling re-points current_index at a different question, and
@@ -107,7 +123,7 @@ export interface SupersedePlan {
  */
 export function planSupersede(
   prior: PriorSession | null,
-  freshGateToken: string | undefined,
+  hasFreshGate: boolean,
   newQuestionOrder: () => string,
 ): SupersedePlan {
   if (prior === null) {
@@ -117,7 +133,7 @@ export function planSupersede(
       questionOrder: newQuestionOrder(),
       answeredQuestions: [],
       currentIndex: 0,
-      gateTokenToLink: freshGateToken ?? null,
+      needsFreshGate: hasFreshGate,
       migrateAnswersFrom: null,
     };
   }
@@ -129,22 +145,50 @@ export function planSupersede(
     // Copied, not aliased: the caller must not be able to mutate the row we read.
     answeredQuestions: [...prior.answeredQuestions],
     currentIndex: prior.currentIndex,
-    gateTokenToLink: prior.linkedGateToken ?? freshGateToken ?? null,
+    // A prior WITHOUT a gate link (the magic-link-only path) still accepts a
+    // fresh one: those answers were sealed to the gate default, so a
+    // per-session keypair is a strict improvement, not a conflict.
+    needsFreshGate: prior.linkedGateToken === null && hasFreshGate,
     migrateAnswersFrom: prior.sessionId,
   };
 }
+
+/**
+ * The slice of a database client a gate provisioner may touch. Structural on
+ * purpose: the provisioner must write its row through the SURROUNDING
+ * transaction (so a rollback takes the row with it), and tests can hand in a
+ * recording fake without impersonating a whole PoolClient.
+ */
+export interface GateProvisionClient {
+  queryObject(sql: string, args?: unknown[]): Promise<unknown>;
+}
+
+/**
+ * Mints a fresh gate -- keypair, key-box push, fresh_gate_responses row (via
+ * the client given), Q0-Q1 ciphertext -- and returns its gate token.
+ *
+ * Invoked INSIDE the session transaction, under the per-email advisory lock,
+ * and ONLY when planSupersede finds no linked gate row to carry forward. That
+ * placement is the fix for the eager flow's leak: a resume whose prior session
+ * already holds a keypair provisions nothing, so nothing can be orphaned.
+ * See lib/gate-provision.ts for the implementation and its ordering rules.
+ */
+export type GateProvisioner = (client: GateProvisionClient) => Promise<string>;
 
 /**
  * Create a new questionnaire session.
  * Generates opaque token and stores only its HMAC hash.
  *
  * @param emailHash - SHA-256 hash of user's email
- * @param gateToken - Optional gate token to link gate responses
+ * @param gate - Optional. A gate token whose row already exists (the
+ *   magic-link path), or a GateProvisioner to mint one lazily (the
+ *   gate-submit path). Either is consulted only when the plan needs a fresh
+ *   gate; a resume carrying a linked row uses neither.
  * @returns Opaque token for client + session details
  */
 export async function createQuestionnaireSession(
   emailHash: string,
-  gateToken?: string,
+  gate?: string | GateProvisioner,
 ): Promise<SessionCreationResult> {
   // Step 1: Generate opaque token (32 bytes = 256 bits)
   const opaqueToken = generateResumeToken();
@@ -207,17 +251,39 @@ export async function createQuestionnaireSession(
       }
       : null;
 
-    const plan = planSupersede(prior, gateToken, () => {
+    const plan = planSupersede(prior, gate !== undefined, () => {
       // Only consulted for a first-time respondent, so the gate probe that
       // feeds it is only worth running then.
       return generateQuestionOrderString(false);
     });
 
-    if (prior === null && gateToken) {
+    // Resolve the fresh gate only now, under the lock, and only when the plan
+    // asks for one. This is where lazy provisioning happens: for a resume
+    // whose prior session already carries a linked gate row, plan.needsFreshGate
+    // is false and NOTHING below runs -- no token, no keypair, no key-box
+    // push, no row, no Q0-Q1 ciphertext. The eager flow minted all of that
+    // before this transaction began, and on every resume orphaned the lot.
+    //
+    // The provisioner does remote work (a key-box push, the gate store) while
+    // this transaction holds the advisory lock and a pooled connection. That
+    // is a deliberate trade: the lock is scoped to one email hash, so the only
+    // thing ever waiting on it is the same respondent's second click, and the
+    // push deadline bounds the hold. What the transaction buys in exchange is
+    // that a provisioning failure takes the fresh_gate_responses row and the
+    // session down with it, atomically.
+    let freshGateToken: string | null = null;
+    if (plan.needsFreshGate && gate !== undefined) {
+      freshGateToken = typeof gate === 'string' ? gate : await gate(client);
+    }
+
+    if (prior === null && freshGateToken) {
+      // For a provisioner this row was inserted moments ago in this very
+      // transaction, so the probe sees it; for a bare token it may or may not
+      // exist. Either way: an answered gate means the order skips Q0-Q1.
       const { rows } = await client.queryObject<{ count: string }>(
         `SELECT COUNT(*) as count FROM fresh_gate_responses
          WHERE gate_token = $1`,
-        [gateToken],
+        [freshGateToken],
       );
       if (Number(rows[0]?.count ?? 0) > 0) {
         plan.questionOrder = generateQuestionOrderString(true);
@@ -281,12 +347,12 @@ export async function createQuestionnaireSession(
 
     // First-time respondent, or a resuming one whose prior session had no gate
     // row at all (the magic-link-only path).
-    if (linked === 0 && plan.gateTokenToLink) {
+    if (linked === 0 && freshGateToken) {
       await client.queryObject(
         `UPDATE fresh_gate_responses
          SET linked_session_id = $1
          WHERE gate_token = $2`,
-        [sessionId, plan.gateTokenToLink],
+        [sessionId, freshGateToken],
       );
     }
   });

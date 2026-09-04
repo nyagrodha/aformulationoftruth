@@ -129,7 +129,7 @@ Deno.test('flow - asking for another link part-way through keeps the answers', (
       currentIndex: 20,
       linkedGateToken: '11111111-2222-3333-4444-555555555555',
     },
-    'a-newly-minted-gate-token',
+    true, // a fresh gate could be provisioned...
     () => {
       throw new Error('a resumed walk must not be reshuffled');
     },
@@ -139,8 +139,11 @@ Deno.test('flow - asking for another link part-way through keeps the answers', (
   assertEquals(plan.answeredQuestions.length, 20);
   assertEquals(plan.questionOrder, '4,9,17,2,33');
   assertEquals(plan.migrateAnswersFrom, 'a'.repeat(64));
-  // The keypair the existing answers are sealed to must come with them.
-  assertEquals(plan.gateTokenToLink, '11111111-2222-3333-4444-555555555555');
+  // The keypair the existing answers are sealed to travels via the
+  // superseded-session relink; ...but must NOT be, because the prior session
+  // already has one. Minting it anyway is what used to strand an unused key
+  // on the key box and an unlinked gate row here forever.
+  assertEquals(plan.needsFreshGate, false);
 });
 
 // --------------------------------------------------- database-backed walk
