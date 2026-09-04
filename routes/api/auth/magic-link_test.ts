@@ -120,6 +120,17 @@ Deno.test({
 
         const response = await handler.POST!(req, {} as any);
         assertEquals(response.status, 400, `Should reject: ${email}`);
+
+        /*
+         * The message matters as much as the status. Every input here is a
+         * present-but-unparseable value, including '' -- so each must draw the
+         * malformed message, never the one reserved for an absent field.
+         */
+        assertEquals(
+          (await response.json()).error,
+          'Valid email required',
+          `Wrong message for: ${email}`,
+        );
       }
     } finally {
       restoreEnv();

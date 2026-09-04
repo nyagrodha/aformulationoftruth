@@ -15,7 +15,7 @@
 
 import { Handlers } from '$fresh/server.ts';
 import { z } from 'zod';
-import { withConnection } from '../../lib/db.ts';
+import { withConnection as realWithConnection } from '../../lib/db.ts';
 import { createMagicLink } from '../../lib/auth.ts';
 import { hashEmail } from '../../lib/crypto.ts';
 import { createQuestionnaireSession, findActiveSession } from '../../lib/questionnaire-session.ts';
@@ -27,10 +27,35 @@ import { ageEncryptTo } from '../../lib/age-encrypt.ts';
 import {
   breakglassRecipient,
   generateSessionKeypair,
+  type IdentityTransport,
   IdentityPushFailed,
   pushIdentity,
   shredRemoteIdentity,
 } from '../../lib/session-keys.ts';
+
+/**
+ * Test seam for the identity push. Undefined in production, which is what
+ * makes pushIdentity fall through to its ssh transport.
+ *
+ * Without this the suite reaches for the real key box: every gate-submit test
+ * would open an ssh to the mesh, so the tests would pass or fail on whether a
+ * host happens to be up rather than on the behaviour under test.
+ */
+export const identityTransportForTesting: { current?: IdentityTransport } = {};
+
+/**
+ * Test seam for this route's database access. Undefined in production.
+ *
+ * The gate write is deliberately last, after the INSERT, so a suite that keeps
+ * DATABASE_URL unparseable can never reach the gate at all: it refuses at the
+ * first write. Standing in for Postgres here is what lets a test observe the
+ * ordering rather than stop short of it.
+ */
+export const dbForTesting: { withConnection?: typeof realWithConnection } = {};
+
+/** Every database touch in this route resolves the seam first. */
+const withConnection: typeof realWithConnection = (handler) =>
+  (dbForTesting.withConnection ?? realWithConnection)(handler);
 
 const GateSubmitSchema = z.object({
   email: z.string().email(),
@@ -65,12 +90,27 @@ async function readBody(req: Request): Promise<Record<string, unknown> | null> {
 export const handler: Handlers = {
   async POST(req, _ctx) {
     increment('requests.api');
+    increment('gate.submit.received');
 
     // Native form posts want an HTML redirect; JSON clients want JSON.
     const wantsJson = (req.headers.get('content-type') || '').includes('application/json') ||
       (req.headers.get('accept') || '').includes('application/json');
 
     const fail = (status: number, error: string, redirectError: string) => {
+      /*
+       * Counted here rather than at the call sites, so no branch can forget.
+       *
+       * The no-JS path must answer 303 whatever went wrong: POST/redirect/GET is
+       * what bounces the visitor back to the form with a message instead of a
+       * browser error page. That makes a refusal byte-identical to a success in
+       * the access log — same method, same status, and the Caddyfile's `format
+       * filter` strips the rest. These counters are the only thing that can tell
+       * the two apart; 'gate.submit.stored' and '.accepted' are the other half
+       * of the pair.
+       */
+      increment('gate.submit.refused');
+      increment(`gate.submit.refused.${redirectError}`);
+
       if (wantsJson) {
         return new Response(
           JSON.stringify({ error }),
@@ -116,7 +156,7 @@ export const handler: Handlers = {
       try {
         const breakglass = breakglassRecipient();
         const keypair = await generateSessionKeypair();
-        await pushIdentity(gateToken, keypair.identity);
+        await pushIdentity(gateToken, keypair.identity, identityTransportForTesting.current);
         pushed = true;
         recipients = [keypair.recipient, breakglass];
       } catch (e) {
@@ -188,6 +228,7 @@ export const handler: Handlers = {
         return fail(503, 'Unable to securely store your answers right now. Please try again.', 'server');
       }
 
+      increment('gate.submit.stored');
       console.log('[gate-submit] Gate answers encrypted and stored');
 
       // Step 3: Create magic link
@@ -261,6 +302,7 @@ export const handler: Handlers = {
         return fail(500, 'Failed to send magic link email. Please try again.', 'send');
       }
 
+      increment('gate.submit.accepted');
       increment('auth.magiclink.sent');
       increment('questionnaire.started');
 
