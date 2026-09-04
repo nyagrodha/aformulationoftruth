@@ -85,7 +85,7 @@ Deno.test({
       assertEquals(response.status, 400);
 
       const body = await response.json();
-      assertEquals(body.error, 'Email required');
+      assertEquals(body.error, 'Valid email required');
     } finally {
       restoreEnv();
     }
