@@ -1,0 +1,263 @@
+/*
+ * Landing-page additive styles — layers on top of /css/main.css.
+ * Only contains selectors NOT defined in main.css to avoid clobbering
+ * the canonical hero/gate styles. Loaded locally, no external CDNs.
+ */
+
+/* ---------- Tamil glyph above the tagline ---------- */
+.landing-hero .tamil-glyph {
+  font-family: 'Noto Sans Tamil', 'Latha', 'Tamil MN', 'InaiMathi',
+    'Orbitron', ui-sans-serif, system-ui, sans-serif;
+  font-weight: 700;
+  font-size: clamp(3rem, 7vw, 4.5rem);
+  letter-spacing: 0.2em;
+  color: var(--neon-yellow, #ffe66d);
+  margin: 0 auto 0.75rem auto;
+  text-align: center;
+  text-shadow:
+    0 0 20px rgba(255, 230, 109, 0.5),
+    0 0 40px rgba(255, 230, 109, 0.25);
+  line-height: 1;
+}
+
+/* ---------- @ glyph between tagline and title ---------- */
+.landing-hero .at-symbol {
+  font-family: 'Orbitron', ui-sans-serif, system-ui, sans-serif;
+  font-weight: 700;
+  font-size: clamp(4.5rem, 12vw, 8rem);
+  color: var(--neon-yellow, #ffe66d);
+  text-align: center;
+  margin: 1rem auto 0.5rem auto;
+  line-height: 1;
+  text-shadow:
+    0 0 30px rgba(255, 230, 109, 0.45),
+    0 0 60px rgba(255, 230, 109, 0.25);
+}
+
+/* ---------- Icelandic subtitle ---------- */
+.landing-hero .icelandic-subtitle {
+  font-family: 'Goudy Old Style', 'GoudyStM', 'Orbitron', ui-sans-serif,
+    system-ui, sans-serif;
+  font-style: italic;
+  font-weight: 400;
+  font-size: clamp(1.1rem, 3vw, 1.75rem);
+  color: rgba(255, 255, 255, 0.85);
+  letter-spacing: 0.08em;
+  text-align: center;
+  margin: 0.75rem auto 0 auto;
+  text-shadow: 0 0 12px rgba(255, 100, 0, 0.35);
+}
+
+/* ---------- Email input (was not styled in main.css) ---------- */
+.gate-form input[type='email'] {
+  width: 100%;
+  padding: 0.85rem 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(0, 0, 0, 0.45);
+  color: #fff;
+  font-family: 'Space Mono', ui-monospace, monospace;
+  font-size: 0.95rem;
+  border-radius: 6px;
+  letter-spacing: 0.03em;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.gate-form input[type='email']::placeholder {
+  color: rgba(255, 255, 255, 0.35);
+}
+.gate-form input[type='email']:focus {
+  outline: none;
+  border-color: var(--neon-yellow, #ffe66d);
+  box-shadow: 0 0 0 3px rgba(255, 230, 109, 0.18);
+}
+
+/* ---------- Privacy notice block ---------- */
+.gate-form .privacy-notice {
+  font-size: 0.82rem;
+  font-style: italic;
+  color: rgba(255, 255, 255, 0.7);
+  line-height: 1.5;
+  margin-top: 0.6rem;
+  padding: 0.6rem 0.85rem;
+  border-left: 2px solid var(--neon-emerald, #00ff88);
+  background: rgba(0, 0, 0, 0.25);
+  border-radius: 4px;
+}
+
+/* ---------- Status message under submit ---------- */
+.gate-form .status-message {
+  margin-top: 1rem;
+  padding: 0.6rem 1rem;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  text-align: center;
+  opacity: 0;
+  min-height: 1.5em;
+  transition: opacity 0.25s ease;
+}
+.gate-form .status-message.show { opacity: 1; }
+.gate-form .status-message.info {
+  background: rgba(59, 130, 246, 0.18);
+  border: 1px solid rgba(59, 130, 246, 0.55);
+  color: #93c5fd;
+}
+.gate-form .status-message.success {
+  background: rgba(0, 255, 136, 0.18);
+  border: 1px solid rgba(0, 255, 136, 0.55);
+  color: #00ff88;
+}
+.gate-form .status-message.error {
+  background: rgba(255, 100, 100, 0.18);
+  border: 1px solid rgba(255, 100, 100, 0.55);
+  color: #ff8a8a;
+}
+
+/* ---------- Form-group label tightening ---------- */
+.gate-form .form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-family: 'Orbitron', ui-sans-serif, system-ui, sans-serif;
+  font-weight: 600;
+  font-size: 0.95rem;
+  letter-spacing: 0.04em;
+  color: rgba(255, 255, 255, 0.88);
+}
+
+/* ---------- Big animated tagline ---------- */
+.landing-hero .tagline-big {
+  font-family: 'Orbitron', ui-sans-serif, system-ui, sans-serif;
+  font-size: clamp(2.25rem, 7.5vw, 4.25rem); /* ~4–5× the original .tagline (was 0.7rem) */
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  text-transform: none;
+  line-height: 1.18;
+  margin: 1rem auto 1.5rem auto;
+  text-align: center;
+}
+
+.landing-hero .tagline-big .tagline-staticline {
+  display: inline-block;
+  color: rgba(255, 255, 255, 0.92);
+  font-size: 0.7em;
+  letter-spacing: 0.05em;
+  font-weight: 600;
+  margin-top: 0.35em;
+  /* Hidden until t = 2.75s, then stays visible forever. */
+  opacity: 0;
+  animation: tagline-youare-appear 0.45s ease-out 2.75s 1 forwards;
+}
+
+.landing-hero .tagline-big .tagline-pink,
+.landing-hero .tagline-big .tagline-orange {
+  display: inline-block;
+  will-change: color, text-shadow;
+}
+
+/*
+ * Sequenced one-shot reveal:
+ *   t = 0 – 2s      : "each moment" visible (small, pink)
+ *   t = 2s          : "each moment" snaps black forever; "every day" appears
+ *   t = 2 – 2.75s   : "every day" visible (orange)
+ *   t = 2.75s       : "every day" snaps black forever; "you are" fades in and stays
+ */
+
+.landing-hero .tagline-big .tagline-pink {
+  font-size: 0.62em; /* smaller than "every day" */
+  letter-spacing: 0.02em;
+  color: var(--neon-pink, #ff69b4);
+  text-shadow:
+    0 0 14px rgba(255, 105, 180, 0.65),
+    0 0 28px rgba(255, 105, 180, 0.35);
+  animation: tagline-pink-out 2s linear 0s 1 forwards;
+}
+
+.landing-hero .tagline-big .tagline-orange {
+  color: #000;
+  text-shadow: none;
+  /* delay 2s, then run for 0.75s; end black; fill-mode forwards keeps end state */
+  animation: tagline-orange-window 0.75s linear 2s 1 forwards;
+}
+
+@keyframes tagline-pink-out {
+  0%, 99% {
+    color: var(--neon-pink, #ff69b4);
+    text-shadow:
+      0 0 14px rgba(255, 105, 180, 0.65),
+      0 0 28px rgba(255, 105, 180, 0.35);
+  }
+  100% {
+    color: #000;
+    text-shadow: none;
+  }
+}
+
+@keyframes tagline-orange-window {
+  0%, 99% {
+    color: var(--neon-orange, #ff8c42);
+    text-shadow:
+      0 0 18px rgba(255, 140, 66, 0.65),
+      0 0 36px rgba(255, 140, 66, 0.35);
+  }
+  100% {
+    color: #000;
+    text-shadow: none;
+  }
+}
+
+@keyframes tagline-youare-appear {
+  to { opacity: 1; }
+}
+
+/* ---------- Moving gradient on "of truth" ---------- */
+.landing-hero .title .title-truth {
+  display: block;
+  font-weight: 700;
+  /* Wider colour stack + 200% background size so position can travel. */
+  background-image: linear-gradient(
+    90deg,
+    var(--neon-pink, #ff69b4) 0%,
+    var(--neon-orange, #ff8c42) 25%,
+    #ffd34d 50%,
+    var(--neon-emerald, #00ff88) 75%,
+    var(--neon-pink, #ff69b4) 100%
+  );
+  background-size: 200% 100%;
+  background-repeat: repeat-x;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  animation: title-truth-flow 6s linear infinite;
+  filter: drop-shadow(0 0 18px rgba(255, 105, 180, 0.25));
+}
+
+@keyframes title-truth-flow {
+  0%   { background-position:   0% 50%; }
+  100% { background-position: 200% 50%; }
+}
+
+/* ---------- Reduced motion: kill all decorative animations ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .section-inner,
+  .gate-content {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+  .landing-hero .tagline-big .tagline-pink,
+  .landing-hero .tagline-big .tagline-orange,
+  .landing-hero .tagline-big .tagline-staticline,
+  .landing-hero .title .title-truth {
+    animation: none !important;
+  }
+  .landing-hero .tagline-big .tagline-pink {
+    color: var(--neon-pink, #ff69b4);
+    text-shadow: 0 0 12px rgba(255, 105, 180, 0.55);
+  }
+  .landing-hero .tagline-big .tagline-orange {
+    color: var(--neon-orange, #ff8c42);
+    text-shadow: 0 0 12px rgba(255, 140, 66, 0.55);
+  }
+  .landing-hero .tagline-big .tagline-staticline {
+    opacity: 1;
+  }
+}

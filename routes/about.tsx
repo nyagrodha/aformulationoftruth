@@ -97,7 +97,7 @@ export default function AboutPage() {
         </ul>
       </div>
 
-      <div class='support-section'>
+      <div class='support-section' id='support'>
         <div class='support-header'>
           <h3>Support This Work</h3>
           <p>If you enjoy this site consider supporting its continuation. We are grateful to anyone who contributes.</p>

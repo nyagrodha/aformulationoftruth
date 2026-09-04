@@ -45,7 +45,7 @@
         { href: '/#begin', text: 'Questionnaire', key: 'questionnaire' },
         { href: '/about.html', text: 'About', key: 'about' },
         { href: '/contact.html', text: 'Contact', key: 'contact' },
-        { href: '/privacy.html', text: 'Privacy', key: 'privacy' }
+        { href: '/privacy', text: 'Privacy', key: 'privacy' }
     ];
 
     links.forEach(function (item) {

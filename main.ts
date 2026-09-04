@@ -4,6 +4,26 @@
 /// <reference lib="dom.asynciterable" />
 /// <reference lib="deno.ns" />
 
+/**
+ * A rejected promise nobody awaited must not end the process.
+ *
+ * Deno's default is to exit(1) on an unhandled rejection. denomailer 1.6.0 hit
+ * exactly that for days: lib/email.ts caught its own failures correctly while
+ * the library leaked a *second* rejection from its socket reader, so every
+ * magic-link send took the whole site down — 251 crashes in one day, each one
+ * a respondent who submitted the gate and got no link. The mailer is python
+ * now, but the class of fault outlives any one library.
+ *
+ * Registered before anything else so it covers boot as well as serving. Only
+ * the rejection's class name is recorded; the value itself can carry an
+ * address, a token, or answer text.
+ */
+globalThis.addEventListener('unhandledrejection', (event) => {
+  event.preventDefault();
+  const reason = (event as PromiseRejectionEvent).reason;
+  console.error(`[fatal] unhandled rejection suppressed kind=${reason instanceof Error ? reason.name : typeof reason}`);
+});
+
 // Load environment variables from .env.fresh (Deno Fresh config)
 // Falls back to .env if .env.fresh doesn't exist
 const envFiles = ['.env.fresh', '.env'];
@@ -65,6 +85,29 @@ import { isDatabaseConfigured } from './lib/db.ts';
 // so static and non-DB routes keep working.
 if (!isDatabaseConfigured()) {
   console.error('[db] Database not configured; DB-backed routes will fail.');
+}
+
+/**
+ * Flush the open audience window before exiting.
+ *
+ * The counter holds its state in memory on purpose (see lib/audience.ts), so a
+ * process that dies without this loses whatever it had counted since the last
+ * 60s flush. Every restart observed on this host has been a clean `Stopping`,
+ * which is precisely the case a signal handler covers.
+ *
+ * Fresh's start() never returns, so a signal listener is the only hook there is.
+ */
+for (const signal of ['SIGTERM', 'SIGINT'] as const) {
+  Deno.addSignalListener(signal, async () => {
+    try {
+      const { shutdownAudience } = await import('./lib/audience.ts');
+      await shutdownAudience();
+    } catch {
+      // Losing one window's count must not stop the process from exiting.
+      console.error('[shutdown] audience flush failed');
+    }
+    Deno.exit(0);
+  });
 }
 
 await start(manifest, config);

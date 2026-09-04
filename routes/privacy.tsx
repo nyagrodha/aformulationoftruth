@@ -27,8 +27,10 @@ export default function PrivacyPage() {
         <h2>Our Commitment to Privacy</h2>
 
         <p class='lead'>
-          We believe in radical privacy. This is not merely a policy—it is a foundational principle. In a world{' '}
-          increasingly hostile to individual privacy, this space is designed to be different.
+          We believe citizens of a free society must be able to choose privacy. This is not merely a policy—it is a{' '}
+          foundational principle. In a world increasingly hostile to individual privacy, this space is designed to be
+          {' '}
+          different.
         </p>
 
         <p class='callout'>
@@ -117,11 +119,20 @@ export default function PrivacyPage() {
           preventing abuse). These logs contain:
         </p>
         <ul class='about-links'>
-          <li>IP addresses (automatically rotated and deleted after 7 days)</li>
           <li>Request timestamps</li>
           <li>Requested URLs</li>
           <li>HTTP status codes</li>
+          <li>How long each request took to serve</li>
         </ul>
+        <p>
+          <strong>Not IP addresses.</strong>{' '}
+          The server discards the address before the log line is written. Request headers and response cookies are
+          discarded the same way.
+        </p>
+        <p>
+          We count how many people visit, and nothing else. No identifier for you is kept — what is written down is a
+          number. We do not track.
+        </p>
         <p>These logs are never used for tracking or profiling and are retained only for operational security.</p>
 
         <h3>Encryption</h3>

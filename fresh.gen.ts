@@ -4,7 +4,9 @@
 
 import * as $_4m from './routes/4m.tsx';
 import * as $WillyStCo_op from './routes/WillyStCo-op.tsx';
+import * as $WillyStCoop from './routes/WillyStCoop.tsx';
 import * as $_404 from './routes/_404.tsx';
+import * as $_middleware from './routes/_middleware.ts';
 import * as $about from './routes/about.tsx';
 import * as $about_confession_albums from './routes/about/confession-albums.tsx';
 import * as $about_respondents from './routes/about/respondents.tsx';
@@ -23,12 +25,15 @@ import * as $api_questions_answer from './routes/api/questions/answer.ts';
 import * as $api_questions_next from './routes/api/questions/next.ts';
 import * as $api_responses from './routes/api/responses.ts';
 import * as $api_responses_deliver from './routes/api/responses/deliver.ts';
+import * as $api_responses_delivered from './routes/api/responses/delivered.ts';
 import * as $auth_verify from './routes/auth/verify.tsx';
 import * as $check_email from './routes/check-email.tsx';
 import * as $completion from './routes/completion.tsx';
+import * as $encrypted_messenger from './routes/encrypted-messenger.tsx';
 import * as $gate from './routes/gate.tsx';
 import * as $index from './routes/index.tsx';
 import * as $login from './routes/login.tsx';
+import * as $messenger from './routes/messenger.tsx';
 import * as $privacy from './routes/privacy.tsx';
 import * as $profile_choice from './routes/profile-choice.tsx';
 import * as $profile_create from './routes/profile-create.tsx';
@@ -45,7 +50,9 @@ const manifest = {
   routes: {
     './routes/4m.tsx': $_4m,
     './routes/WillyStCo-op.tsx': $WillyStCo_op,
+    './routes/WillyStCoop.tsx': $WillyStCoop,
     './routes/_404.tsx': $_404,
+    './routes/_middleware.ts': $_middleware,
     './routes/about.tsx': $about,
     './routes/about/confession-albums.tsx': $about_confession_albums,
     './routes/about/respondents.tsx': $about_respondents,
@@ -64,12 +71,15 @@ const manifest = {
     './routes/api/questions/next.ts': $api_questions_next,
     './routes/api/responses.ts': $api_responses,
     './routes/api/responses/deliver.ts': $api_responses_deliver,
+    './routes/api/responses/delivered.ts': $api_responses_delivered,
     './routes/auth/verify.tsx': $auth_verify,
     './routes/check-email.tsx': $check_email,
     './routes/completion.tsx': $completion,
+    './routes/encrypted-messenger.tsx': $encrypted_messenger,
     './routes/gate.tsx': $gate,
     './routes/index.tsx': $index,
     './routes/login.tsx': $login,
+    './routes/messenger.tsx': $messenger,
     './routes/privacy.tsx': $privacy,
     './routes/profile-choice.tsx': $profile_choice,
     './routes/profile-create.tsx': $profile_create,

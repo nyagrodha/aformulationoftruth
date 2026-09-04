@@ -6,7 +6,7 @@
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://aformulationoftruth.com/about.html</loc>
+    <loc>https://aformulationoftruth.com/about</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -16,7 +16,12 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://aformulationoftruth.com/privacy.html</loc>
+    <loc>https://aformulationoftruth.com/messenger</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://aformulationoftruth.com/privacy</loc>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
@@ -24,16 +29,6 @@
     <loc>https://aformulationoftruth.com/accessibility.html</loc>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
-  </url>
-  <url>
-    <loc>https://aformulationoftruth.com/donate.html</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://aformulationoftruth.com/donations.html</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.5</priority>
   </url>
   <url>
     <loc>https://aformulationoftruth.com/futurenow.html</loc>

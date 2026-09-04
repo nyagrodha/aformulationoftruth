@@ -12,8 +12,12 @@ ExecStart=/home/liar/.deno/bin/deno run --allow-read --allow-write --allow-run -
 Restart=on-failure
 RestartSec=10s
 
-# The plaintext floor. PrivateTmp gives this unit its own /tmp and /var/tmp;
-# the work root is /dev/shm, which is memory-backed.
+# The plaintext floor. PrivateTmp gives this unit its own /tmp and /var/tmp,
+# both memory-backed and invisible to every other process; RENDER_WORK_ROOT
+# defaults to /tmp for that reason. NOT /dev/shm — Deno refuses every operation
+# there without --allow-all, which would mean un-sandboxing this service to
+# obtain a tmpfs it already has. /dev/shm stays in ReadWritePaths only so an
+# operator who overrides RENDER_WORK_ROOT is not silently broken.
 PrivateTmp=true
 NoNewPrivileges=true
 ProtectSystem=strict

@@ -3,7 +3,7 @@
 //! Tiny HTTP service that age-encrypts gate answers before storage so that
 //! only the holder of the corresponding x25519 identity (kept offline) can
 //! ever decrypt them. Speaks the contract expected by
-//! `lib/gate-client.ts` in the Deno Fresh app:
+//! `lib/gate_encrypt.ts` in the Deno Fresh app:
 //!
 //!   POST /api/store
 //!     { session_id, question_text, question_index, answer, skipped }
@@ -279,7 +279,7 @@ async fn main() -> anyhow::Result<()> {
     let recipient: age::x25519::Recipient = recipient_str
         .parse()
         .map_err(|e| anyhow::anyhow!("AGE_RECIPIENT parse: {e}"))?;
-    info!(recipient = %recipient.to_string(), "age recipient loaded");
+    info!("age recipient loaded");
 
     let pool = PgPoolOptions::new()
         .max_connections(8)
