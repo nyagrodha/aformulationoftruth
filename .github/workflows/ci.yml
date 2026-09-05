@@ -73,7 +73,29 @@ jobs:
             components/ \
             islands/ \
             lib/gate_encrypt_test.ts \
+            lib/db_config_test.ts \
             routes/shop_test.tsx \
             routes/about_test.tsx \
             routes/messenger_test.tsx \
-            routes/about/
+            routes/about/ \
+            routes/api/gate_test.ts \
+            routes/api/metrics/increment_test.ts \
+            routes/auth/verify_test.ts \
+            routes/w/token_test.ts
+
+  gate:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: rust-server
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      # The gate is what age-encrypts every answer. cargo test is cheap relative
+      # to shipping a log line that still carries DATABASE_URL's password.
+      - name: Test
+        run: cargo test
