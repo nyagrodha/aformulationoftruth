@@ -20,6 +20,11 @@ interface DbConfig {
   tls?: { enabled: boolean; enforce: boolean };
 }
 
+/** Test hook. Production callers use isDatabaseConfigured / getPool. */
+export function _resolveConfigForTest(): DbConfig | null {
+  return resolveConfig();
+}
+
 function resolveConfig(): DbConfig | null {
   const databaseUrl = Deno.env.get('DATABASE_URL');
 

@@ -25,6 +25,7 @@ build
 build/
 .vite
 _fresh/
+rust-server/target/
 
 # Trash (moved files pending deletion)
 trashy/
