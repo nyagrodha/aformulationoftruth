@@ -76,4 +76,26 @@ jobs:
             routes/shop_test.tsx \
             routes/about_test.tsx \
             routes/messenger_test.tsx \
-            routes/about/
+            routes/about/ \
+            routes/api/profile_test.ts \
+            routes/api/responses_test.ts \
+            routes/api/metrics_test.ts \
+            routes/gate_test.ts
+
+  gate:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: rust-server
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      # The gate is what age-encrypts every answer. cargo test is cheap relative
+      # to shipping a store that accepts an unbounded body or a partial recipient
+      # list that silently drops break-glass.
+      - name: Test
+        run: cargo test

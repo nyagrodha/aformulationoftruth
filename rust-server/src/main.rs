@@ -84,6 +84,46 @@ impl IntoResponse for AppError {
     }
 }
 
+/// Cheap bounds on a store request. Run before any parse or encrypt: a
+/// 64 KiB answer is already large, and parsing an unbounded recipient list
+/// is the expensive part, so a check that ran afterwards would be no
+/// protection at all.
+fn validate_store_bounds(req: &StoreReq) -> Result<(), AppError> {
+    if req.session_id.is_empty() || req.session_id.len() > 128 {
+        return Err(AppError::Validation("session_id length".into()));
+    }
+    if req.question_index < 0 || req.question_index > 64 {
+        return Err(AppError::Validation("question_index out of range".into()));
+    }
+    if req.question_text.len() > 1024 {
+        return Err(AppError::Validation("question_text too long".into()));
+    }
+    if req.answer.len() > 64 * 1024 {
+        return Err(AppError::Validation("answer too long".into()));
+    }
+    if req.recipients.len() > 8 {
+        return Err(AppError::Validation("too many recipients".into()));
+    }
+    Ok(())
+}
+
+/// Per-session recipients when the caller supplies them, else the service
+/// default. An empty list keeps callers that predate session keys working.
+/// A single unparseable entry aborts the whole list: encrypting to a
+/// partial set would silently drop the break-glass key.
+fn resolve_recipients(
+    raw: &[String],
+    default: &age::x25519::Recipient,
+) -> Result<Vec<age::x25519::Recipient>, AppError> {
+    if raw.is_empty() {
+        return Ok(vec![default.clone()]);
+    }
+    raw.iter()
+        .map(|r| r.parse::<age::x25519::Recipient>())
+        .collect::<Result<Vec<_>, _>>()
+        .map_err(|_| AppError::Validation("bad recipient".into()))
+}
+
 /// Encrypt to every supplied recipient. Any one of their identities opens the
 /// result. An empty list is rejected rather than silently producing a file no
 /// key can ever open.
@@ -150,37 +190,12 @@ async fn store(
     State(state): State<AppState>,
     Json(req): Json<StoreReq>,
 ) -> Result<Json<StoreOk>, AppError> {
-    if req.session_id.is_empty() || req.session_id.len() > 128 {
-        return Err(AppError::Validation("session_id length".into()));
-    }
-    if req.question_index < 0 || req.question_index > 64 {
-        return Err(AppError::Validation("question_index out of range".into()));
-    }
-    if req.question_text.len() > 1024 {
-        return Err(AppError::Validation("question_text too long".into()));
-    }
-    if req.answer.len() > 64 * 1024 {
-        return Err(AppError::Validation("answer too long".into()));
-    }
-
-    // Bound the list BEFORE parsing it: parsing is the expensive part, so a
-    // check that runs afterwards is no protection at all.
-    if req.recipients.len() > 8 {
-        return Err(AppError::Validation("too many recipients".into()));
-    }
+    validate_store_bounds(&req)?;
 
     // Per-session recipients when the caller supplies them, else the service
     // default. Parsing failures must abort: encrypting to a partial set would
     // silently drop the break-glass key and make recovery impossible.
-    let recipients: Vec<age::x25519::Recipient> = if req.recipients.is_empty() {
-        vec![(*state.recipient).clone()]
-    } else {
-        req.recipients
-            .iter()
-            .map(|r| r.parse::<age::x25519::Recipient>())
-            .collect::<Result<Vec<_>, _>>()
-            .map_err(|_| AppError::Validation("bad recipient".into()))?
-    };
+    let recipients = resolve_recipients(&req.recipients, &state.recipient)?;
 
     // Encrypt the answer payload (empty string when skipped is still encrypted
     // so the row shape stays uniform and no plaintext side-channel exists).
@@ -349,5 +364,111 @@ mod tests {
     #[test]
     fn refuses_an_empty_recipient_list() {
         assert!(armor_encrypt("x", &[]).is_err());
+    }
+
+    fn store_req(
+        session_id: &str,
+        question_index: i64,
+        question_text: &str,
+        answer: &str,
+        recipients: Vec<String>,
+    ) -> StoreReq {
+        StoreReq {
+            session_id: session_id.into(),
+            question_text: question_text.into(),
+            question_index,
+            answer: answer.into(),
+            skipped: false,
+            recipients,
+        }
+    }
+
+    fn validation_msg(req: &StoreReq) -> Option<String> {
+        match validate_store_bounds(req) {
+            Err(AppError::Validation(m)) => Some(m),
+            Ok(()) => None,
+            Err(other) => panic!("expected validation, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn store_rejects_an_empty_or_oversized_session_id() {
+        assert_eq!(
+            validation_msg(&store_req("", 0, "q", "a", vec![])),
+            Some("session_id length".into())
+        );
+        assert_eq!(
+            validation_msg(&store_req(&"x".repeat(129), 0, "q", "a", vec![])),
+            Some("session_id length".into())
+        );
+        assert_eq!(
+            validation_msg(&store_req(&"x".repeat(128), 0, "q", "a", vec![])),
+            None
+        );
+    }
+
+    #[test]
+    fn store_rejects_a_question_index_outside_0_64() {
+        assert_eq!(
+            validation_msg(&store_req("sid", -1, "q", "a", vec![])),
+            Some("question_index out of range".into())
+        );
+        assert_eq!(
+            validation_msg(&store_req("sid", 65, "q", "a", vec![])),
+            Some("question_index out of range".into())
+        );
+        assert_eq!(validation_msg(&store_req("sid", 0, "q", "a", vec![])), None);
+        assert_eq!(validation_msg(&store_req("sid", 64, "q", "a", vec![])), None);
+    }
+
+    #[test]
+    fn store_rejects_oversized_question_text_or_answer() {
+        assert_eq!(
+            validation_msg(&store_req("sid", 0, &"q".repeat(1025), "a", vec![])),
+            Some("question_text too long".into())
+        );
+        assert_eq!(
+            validation_msg(&store_req("sid", 0, "q", &"a".repeat(64 * 1024 + 1), vec![])),
+            Some("answer too long".into())
+        );
+        assert_eq!(
+            validation_msg(&store_req("sid", 0, &"q".repeat(1024), &"a".repeat(64 * 1024), vec![])),
+            None
+        );
+    }
+
+    #[test]
+    fn store_bounds_recipients_before_they_are_parsed() {
+        let nine = (0..9).map(|i| format!("age1invalid{i}")).collect();
+        assert_eq!(
+            validation_msg(&store_req("sid", 0, "q", "a", nine)),
+            Some("too many recipients".into())
+        );
+        let eight = (0..8).map(|i| format!("age1invalid{i}")).collect();
+        assert_eq!(
+            validation_msg(&store_req("sid", 0, "q", "a", eight)),
+            None,
+            "eight is allowed; parse is a later step"
+        );
+    }
+
+    #[test]
+    fn resolve_recipients_uses_the_default_when_the_list_is_empty() {
+        let id = age::x25519::Identity::generate();
+        let default = parse(&id.to_public().to_string());
+        let got = resolve_recipients(&[], &default).expect("empty list is the default");
+        assert_eq!(got.len(), 1);
+        assert_eq!(got[0].to_string(), default.to_string());
+    }
+
+    #[test]
+    fn resolve_recipients_refuses_a_partial_list_when_one_entry_is_garbage() {
+        let a = age::x25519::Identity::generate();
+        let default = parse(&age::x25519::Identity::generate().to_public().to_string());
+        let raw = vec![a.to_public().to_string(), "not-a-recipient".into()];
+        match resolve_recipients(&raw, &default) {
+            Err(AppError::Validation(m)) => assert_eq!(m, "bad recipient"),
+            other => panic!("a mixed list must abort, got {other:?}"),
+        }
     }
 }
