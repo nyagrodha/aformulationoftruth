@@ -62,25 +62,67 @@ jobs:
       # messenger_test, which pins the messenger's "no server plaintext" claim by
       # asserting its script has no way to reach the network.
       #
+      # lib/, romania/tests/, and the colocated route tests pin delivery,
+      # consent, session-key injection, contact rate-limit identity, gate
+      # fail-closed, JWT expiry, and GPC/DNT. They were passing locally (or
+      # living under tests/, which CI cannot run) and running nowhere.
+      # --allow-write is for keystore/protect temp dirs; --allow-run is for
+      # email_test's python3 sender and romania's binary probes. Tests that
+      # mutate process env rely on Deno's default sequential run (do not pass
+      # --parallel). Do not widen to tests/: that directory still carries the
+      # pre-existing type errors that fail before any test executes.
+      #
       # Note these are added to the test step ONLY. islands/ is not fmt-clean --
       # QuaternarySpheroid.tsx and Spheroid.tsx predate the singleQuote setting, so
       # widening `deno fmt --check` to it would fail on drift no one here
       # introduced. Format those two, then widen the fmt step separately.
       - name: Test
         run: |
-          deno test --allow-env --allow-read --allow-net \
+          deno test --allow-env --allow-read --allow-net --allow-write --allow-run \
             data/ \
             components/ \
             islands/ \
             lib/gate_encrypt_test.ts \
+            lib/audience_test.ts \
+            lib/age-encrypt_test.ts \
+            lib/client-ip_test.ts \
+            lib/crypto_test.ts \
+            lib/crypto_resume_test.ts \
+            lib/db_config_test.ts \
+            lib/email_test.ts \
+            lib/emailValidator_test.ts \
+            lib/jwt_test.ts \
+            lib/metrics_test.ts \
+            lib/questionnaire_test.ts \
+            lib/qr-scans_test.ts \
+            lib/romania-client_test.ts \
+            lib/session-keys_test.ts \
+            romania/tests/ \
             routes/shop_test.tsx \
             routes/about_test.tsx \
             routes/messenger_test.tsx \
+            routes/privacy_test.tsx \
+            routes/WillyStCo-op_test.ts \
+            routes/WillyStCoop_test.ts \
             routes/about/ \
-            routes/api/profile_test.ts \
-            routes/api/responses_test.ts \
+            routes/_middleware_test.ts \
+            routes/api/gate-submit_test.ts \
+            routes/api/auth/magic-link_test.ts \
+            routes/api/contact_test.ts \
+            routes/api/gate_test.ts \
+            routes/api/health_test.ts \
             routes/api/metrics_test.ts \
-            routes/gate_test.ts
+            routes/api/metrics/increment_test.ts \
+            routes/api/newsletter/subscribe_test.ts \
+            routes/api/profile_test.ts \
+            routes/api/questions/answer_test.ts \
+            routes/api/questions/next_test.ts \
+            routes/api/responses_test.ts \
+            routes/api/responses/deliver_test.ts \
+            routes/api/responses/delivered_test.ts \
+            routes/auth/verify_test.ts \
+            routes/gate_test.ts \
+            routes/w/token_test.ts
 
   gate:
     runs-on: ubuntu-latest
@@ -95,7 +137,8 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
 
       # The gate is what age-encrypts every answer. cargo test is cheap relative
-      # to shipping a store that accepts an unbounded body or a partial recipient
-      # list that silently drops break-glass.
+      # to shipping a store that accepts an unbounded body, a partial recipient
+      # list that silently drops break-glass, or a log line that still carries
+      # DATABASE_URL's password.
       - name: Test
         run: cargo test
