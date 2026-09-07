@@ -121,6 +121,7 @@ jobs:
           # too; naming the pair explicitly keeps the guard if those paths move.
           deno check \
             main.ts \
+            lib/gate_encrypt.ts \
             data/shop.ts \
             components/PageShell.tsx \
             routes/about.tsx \
@@ -134,7 +135,9 @@ jobs:
       # not exist` case is the guard against a nav link to a page that is not
       # routed -- the failure a retired menu already shipped once, linking three
       # routes to a /lotto.html that never existed. It was passing locally and
-      # running nowhere, so the guard could not have stopped a repeat.
+      # running nowhere, so the guard could not have stopped a repeat. Same for
+      # messenger_test, which pins the messenger's "no server plaintext" claim by
+      # asserting its script has no way to reach the network.
       #
       # public/js/ carries seal-guards_test, which exercises the envelope bounds
       # every sealing surface depends on: a hostile iteration count, an oversized
@@ -160,10 +163,13 @@ jobs:
             islands/ \
             public/js/ \
             lib/csrf_test.ts \
+            lib/gate_encrypt_test.ts \
             routes/shop_test.tsx \
             routes/about_test.tsx \
+            routes/messenger_test.tsx \
             routes/about/ \
             tests/deliver_bundle_test.ts \
             tests/session_supersede_test.ts \
             tests/lazy_gate_provisioning_test.ts \
             tests/questionnaire_e2e_flow_test.ts
+

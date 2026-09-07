@@ -40,6 +40,8 @@ const LANDING_NAV: NavItem[] = [
   { label: 'begin', href: '#begin' },
   { label: 'about', href: '#about' },
   { label: 'people', href: '/people' },
+  { label: 'messages', href: '/messages' },
+  { label: 'messenger', href: '/messenger' },
   { label: 'gift shop', href: '/shop' },
 ];
 

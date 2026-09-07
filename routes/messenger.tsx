@@ -1,4 +1,4 @@
-import { Head } from "$fresh/runtime.ts";
+import { Head } from '$fresh/runtime.ts';
 
 export default function EncryptedMessengerPage() {
   return (
@@ -24,47 +24,47 @@ export default function EncryptedMessengerPage() {
         </style>
       </Head>
       <main>
-        <a class="pill" href="/">← home</a>
-        <p class="eyebrow">client side · AES-GCM · no server plaintext</p>
+        <a class='pill' href='/'>← home</a>
+        <p class='eyebrow'>client side · AES-GCM · no server plaintext</p>
         <h1>encrypted messenger</h1>
         <p>
-          Compose sealed notes in the browser. The passphrase never leaves this
-          page; ciphertext can be copied into any channel and reopened here.
+          Compose sealed notes in the browser. The passphrase never leaves this page; ciphertext can be copied into any
+          channel and reopened here.
         </p>
-        <div class="grid">
+        <div class='grid'>
           <section>
             <h2>seal a message</h2>
-            <label for="plain">plaintext</label>
+            <label for='plain'>plaintext</label>
             <textarea
-              id="plain"
-              placeholder="write what only the holder of the passphrase should read"
+              id='plain'
+              placeholder='write what only the holder of the passphrase should read'
             />
-            <label for="passphrase">passphrase</label>
+            <label for='passphrase'>passphrase</label>
             <input
-              id="passphrase"
-              type="password"
-              autoComplete="new-password"
+              id='passphrase'
+              type='password'
+              autoComplete='new-password'
             />
-            <button id="encrypt" type="button">encrypt</button>
+            <button id='encrypt' type='button'>encrypt</button>
             <label>sealed envelope</label>
-            <output id="cipher"></output>
+            <output id='cipher'></output>
           </section>
           <section>
             <h2>open a message</h2>
-            <label for="sealed">sealed envelope</label>
+            <label for='sealed'>sealed envelope</label>
             <textarea
-              id="sealed"
+              id='sealed'
               placeholder='paste {"v":1,"kdf":"PBKDF2-SHA256",...}'
             />
-            <label for="openPassphrase">passphrase</label>
+            <label for='openPassphrase'>passphrase</label>
             <input
-              id="openPassphrase"
-              type="password"
-              autoComplete="current-password"
+              id='openPassphrase'
+              type='password'
+              autoComplete='current-password'
             />
-            <button id="decrypt" type="button">decrypt</button>
+            <button id='decrypt' type='button'>decrypt</button>
             <label>plaintext</label>
-            <output id="opened"></output>
+            <output id='opened'></output>
           </section>
           <section>
             <h2>format</h2>
@@ -80,7 +80,7 @@ export default function EncryptedMessengerPage() {
           </section>
         </div>
       </main>
-      <script src="/js/messenger.js"></script>
+      <script src='/js/messenger.js'></script>
     </>
   );
 }
