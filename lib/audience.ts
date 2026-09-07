@@ -70,6 +70,9 @@ export const FLUSH_INTERVAL_MS = 60_000;
  */
 export const MAX_TRACKED = 200_000;
 
+/** Overridable so tests can exercise the cap without minting 200k keys. */
+let trackedCap = MAX_TRACKED;
+
 /**
  * Domain tag, first field of every HMAC message.
  *
@@ -205,7 +208,7 @@ export async function recordVisit(
   const digest = await audienceHash(open.key, ip, userAgent);
   const bucket = isBotUserAgent(userAgent) ? counters.botSeen : counters.seen;
 
-  if (bucket.size >= MAX_TRACKED && !bucket.has(digest)) {
+  if (bucket.size >= trackedCap && !bucket.has(digest)) {
     if (!open.truncated) {
       open.truncated = true;
       increment('visits.set_capped');
@@ -288,9 +291,37 @@ export function _resetForTest(): void {
     flushTimer = null;
   }
   open = null;
+  trackedCap = MAX_TRACKED;
 }
 
 /** Test hook: the open window's key, or null. Never exported to callers. */
 export function _openKeyForTest(): CryptoKey | null {
   return open?.key ?? null;
+}
+
+/** Test hook: shrink the per-window cap. Production always uses MAX_TRACKED. */
+export function _setMaxTrackedForTest(n: number): void {
+  trackedCap = n;
+}
+
+export interface WindowSnapshot {
+  visitors: number;
+  botVisitors: number;
+  requests: number;
+  truncated: boolean;
+}
+
+/**
+ * Test hook: in-memory counts for one site. Does not touch the database and
+ * must not be used to observe a live visitor from a request handler.
+ */
+export function _windowSnapshotForTest(site: Site): WindowSnapshot | null {
+  if (!open) return null;
+  const c = open.bySite.get(site);
+  return {
+    visitors: c?.seen.size ?? 0,
+    botVisitors: c?.botSeen.size ?? 0,
+    requests: c?.requests ?? 0,
+    truncated: open.truncated,
+  };
 }

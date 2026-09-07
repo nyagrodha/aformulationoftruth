@@ -64,6 +64,9 @@ pids
 coverage
 *.lcov
 
+# Rust
+rust-server/target/
+
 # Database
 *.db
 *.sqlite

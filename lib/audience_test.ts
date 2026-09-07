@@ -13,7 +13,17 @@
 import { assert, assertEquals, assertNotEquals } from '$std/assert/mod.ts';
 import { hmacKey, randomBytes } from './crypto.ts';
 import { visitorHash } from './qr-scans.ts';
-import { audienceHash, siteFor, WINDOW_MS, windowStart } from './audience.ts';
+import {
+  _openKeyForTest,
+  _resetForTest,
+  _setMaxTrackedForTest,
+  _windowSnapshotForTest,
+  audienceHash,
+  recordVisit,
+  siteFor,
+  WINDOW_MS,
+  windowStart,
+} from './audience.ts';
 
 const at = (iso: string) => new Date(iso);
 
@@ -174,4 +184,126 @@ Deno.test('the migration declares no address-derived column', async () => {
   for (const banned of [/\bvisitor_hash\b/, /\bip\b\s+\w/, /\buser_agent\b/, /\binet\b/, /\bcidr\b/]) {
     assert(!banned.test(body), `migration declares a forbidden column: ${banned}`);
   }
+});
+
+// --- the in-memory count --------------------------------------------------
+//
+// These stay inside one window and never call flushAudience, so they never
+// touch Postgres. Rotation is tested by resetting between windows rather than
+// letting recordVisit persist the closing one.
+
+const NOW = at('2026-09-07T10:00:00Z');
+const PERSON = 'Mozilla/5.0';
+const BOT = 'Slackbot-LinkExpanding 1.0';
+
+async function counted(fn: () => Promise<void>): Promise<void> {
+  _resetForTest();
+  try {
+    await fn();
+  } finally {
+    _resetForTest();
+  }
+}
+
+Deno.test('the same visitor in one window is counted once', async () => {
+  await counted(async () => {
+    await recordVisit('aformulationoftruth.com', '203.0.113.7', PERSON, NOW);
+    await recordVisit('aformulationoftruth.com', '203.0.113.7', PERSON, NOW);
+    const snap = _windowSnapshotForTest('a4t');
+    assertEquals(snap?.visitors, 1);
+    assertEquals(snap?.botVisitors, 0);
+    assertEquals(snap?.requests, 2);
+  });
+});
+
+Deno.test('a different address is a second visitor', async () => {
+  await counted(async () => {
+    await recordVisit('aformulationoftruth.com', '203.0.113.7', PERSON, NOW);
+    await recordVisit('aformulationoftruth.com', '203.0.113.8', PERSON, NOW);
+    assertEquals(_windowSnapshotForTest('a4t')?.visitors, 2);
+  });
+});
+
+// Link-unfurlers must not inflate the headline number. They are counted in a
+// separate bucket so the correction stays visible rather than being dropped.
+Deno.test('a bot user agent is not a visitor', async () => {
+  await counted(async () => {
+    await recordVisit('aformulationoftruth.com', '203.0.113.7', PERSON, NOW);
+    await recordVisit('aformulationoftruth.com', '203.0.113.7', BOT, NOW);
+    const snap = _windowSnapshotForTest('a4t');
+    assertEquals(snap?.visitors, 1);
+    assertEquals(snap?.botVisitors, 1);
+  });
+});
+
+// An empty user agent is a privacy-hardened browser, not a crawler. Dropping
+// it would silently undercount real people — the opposite of the bot guard.
+Deno.test('an empty user agent is still a visitor', async () => {
+  await counted(async () => {
+    await recordVisit('aformulationoftruth.com', '203.0.113.7', '', NOW);
+    const snap = _windowSnapshotForTest('a4t');
+    assertEquals(snap?.visitors, 1);
+    assertEquals(snap?.botVisitors, 0);
+  });
+});
+
+Deno.test('unknown hosts collapse onto other, not a minted label', async () => {
+  await counted(async () => {
+    await recordVisit('evil.example', '203.0.113.7', PERSON, NOW);
+    assertEquals(_windowSnapshotForTest('a4t'), {
+      visitors: 0,
+      botVisitors: 0,
+      requests: 0,
+      truncated: false,
+    });
+    assertEquals(_windowSnapshotForTest('other')?.visitors, 1);
+  });
+});
+
+// Past the cap the figure is a floor, not a bound. Without this the set is a
+// memory-exhaustion vector driven by whoever sends the most distinct addresses.
+Deno.test('the tracked set stops growing once capped, and says so', async () => {
+  await counted(async () => {
+    _setMaxTrackedForTest(2);
+    await recordVisit('aformulationoftruth.com', '203.0.113.1', PERSON, NOW);
+    await recordVisit('aformulationoftruth.com', '203.0.113.2', PERSON, NOW);
+    await recordVisit('aformulationoftruth.com', '203.0.113.3', PERSON, NOW);
+    const snap = _windowSnapshotForTest('a4t');
+    assertEquals(snap?.visitors, 2);
+    assertEquals(snap?.truncated, true);
+    // A visitor already inside the set must still be recorded as a request.
+    await recordVisit('aformulationoftruth.com', '203.0.113.1', PERSON, NOW);
+    assertEquals(_windowSnapshotForTest('a4t')?.visitors, 2);
+    assertEquals(_windowSnapshotForTest('a4t')?.requests, 4);
+  });
+});
+
+Deno.test('the window key is not extractable', async () => {
+  await counted(async () => {
+    await recordVisit('aformulationoftruth.com', '203.0.113.7', PERSON, NOW);
+    const key = _openKeyForTest();
+    assert(key, 'recordVisit must mint a window key');
+    assertEquals(key.extractable, false);
+  });
+});
+
+// Unlinkability at the counting layer, not just the hash helper: a new window
+// must mint a new key, so the same visitor cannot be joined across the boundary
+// even by whoever holds this process's memory after rotation.
+Deno.test('a new window mints a new key, unlinking the previous count', async () => {
+  await counted(async () => {
+    await recordVisit('aformulationoftruth.com', '203.0.113.7', PERSON, NOW);
+    const first = _openKeyForTest();
+    assert(first);
+    const hashA = await audienceHash(first, '203.0.113.7', PERSON);
+
+    // Drop the window without persisting — the same isolation flushAudience
+    // would have, minus the database write tests must not perform.
+    _resetForTest();
+    await recordVisit('aformulationoftruth.com', '203.0.113.7', PERSON, at('2026-09-07T16:00:00Z'));
+    const second = _openKeyForTest();
+    assert(second);
+    const hashB = await audienceHash(second, '203.0.113.7', PERSON);
+    assertNotEquals(hashA, hashB);
+  });
 });
