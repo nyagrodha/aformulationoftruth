@@ -37,7 +37,7 @@ import {
 } from '../../../lib/questionnaire-session.ts';
 import { parseQuestionOrder } from '../../../lib/questionnaire.ts';
 import { increment } from '../../../lib/metrics.ts';
-import { storeEncryptedAnswer } from '../../../lib/gate-client.ts';
+import { storeEncryptedAnswer } from '../../../lib/gate_encrypt.ts';
 import { breakglassRecipient } from '../../../lib/session-keys.ts';
 
 // Proust questionnaire questions (canonical order, indices 0-34)
@@ -339,8 +339,24 @@ export const handler: Handlers = {
         skipped,
         recipients: recipientsForSession(sessionPubkey, breakglassRecipient),
       });
-    } catch (error) {
-      console.error(`[answer:${requestId}] Error storing encrypted response`);
+    } catch {
+      // Category only — the thrown error must never be logged; it can carry
+      // the answer. Same fail-closed contract as /api/gate-submit: if the
+      // gate did not take the plaintext, this process must not pretend it did.
+      increment('errors.5xx');
+      return new Response(
+        JSON.stringify({
+          error: 'Unable to securely store your answer right now.',
+          requestId,
+        }),
+        {
+          status: 503,
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Request-ID': requestId,
+          },
+        },
+      );
     }
 
     try {

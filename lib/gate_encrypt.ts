@@ -6,7 +6,11 @@
  * armored ciphertext. Plaintext answers must never be written to Postgres —
  * see the User Input Encryption rule in CLAUDE.md.
  *
- * This module is the only thing that should send answer text anywhere.
+ * This module is the only thing that should send answer text anywhere —
+ * gate questions and Q2–Q34 both call it. There is no second client and no
+ * GATE_API_KEY: the Rust service binds loopback and does not read X-Gate-Key,
+ * so requiring a key the gate ignores made later answers 500 while the
+ * landing form still worked.
  *
  * It FAILS CLOSED. If the gate is unreachable, storeEncryptedAnswer throws and
  * the caller must abort the submission. It must never fall back to storing
