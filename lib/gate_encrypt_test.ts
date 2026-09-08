@@ -122,3 +122,72 @@ Deno.test('questionnaire answers import the fail-closed client, not the retired 
   assert(!source.includes('gate-client'), 'the retired client must not be imported');
   assert(source.includes('status: 503'), 'a failed store must refuse, not advance the session');
 });
+
+Deno.test({
+  name: 'storeEncryptedAnswer - forwards recipients and skipped in the JSON body',
+  async fn() {
+    let url = '';
+    let method = '';
+    let contentType = '';
+    let payload: Record<string, unknown> | undefined;
+    globalThis.fetch = (input, init) => {
+      url = input instanceof Request ? input.url : String(input);
+      method = (input instanceof Request ? input.method : init?.method) ?? '';
+      const headers = input instanceof Request ? input.headers : new Headers(init?.headers);
+      contentType = headers.get('Content-Type') ?? '';
+      const raw = typeof init?.body === 'string' ? init.body : '';
+      payload = JSON.parse(raw);
+      return Promise.resolve(new Response(null, { status: 200 }));
+    };
+    try {
+      const recipients = ['age1sessionrecipient', 'age1breakglass'];
+      await storeEncryptedAnswer({
+        sessionId: '11111111-2222-3333-4444-555555555555',
+        questionIndex: 7,
+        questionText: 'What is your motto?',
+        answer: 'intimate',
+        skipped: true,
+        recipients,
+      });
+      assert(url.endsWith('/api/store'), `must POST to the gate store, got ${url}`);
+      assertEquals(method, 'POST');
+      assertEquals(contentType, 'application/json');
+      assertEquals(payload, {
+        session_id: '11111111-2222-3333-4444-555555555555',
+        question_index: 7,
+        question_text: 'What is your motto?',
+        answer: 'intimate',
+        skipped: true,
+        recipients,
+      });
+    } finally {
+      restoreFetch();
+    }
+  },
+});
+
+Deno.test({
+  name: 'storeEncryptedAnswer - omitted recipients travel as an empty list, not absent',
+  async fn() {
+    let payload: Record<string, unknown> | undefined;
+    globalThis.fetch = (_input, init) => {
+      payload = JSON.parse(String(init?.body ?? ''));
+      return Promise.resolve(new Response(null, { status: 200 }));
+    };
+    try {
+      await storeEncryptedAnswer({
+        sessionId: '11111111-2222-3333-4444-555555555555',
+        questionIndex: 0,
+        questionText: 'q',
+        answer: 'a',
+      });
+      // The Rust gate treats [] as "use my configured default". Dropping the
+      // field, or sending undefined, is a different contract and would strand
+      // a session whose answers encrypted to the wrong key.
+      assertEquals(payload?.recipients, []);
+      assertEquals(payload?.skipped, false);
+    } finally {
+      restoreFetch();
+    }
+  },
+});

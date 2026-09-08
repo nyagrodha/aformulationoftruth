@@ -7,22 +7,20 @@
  * — and that the endpoint FAILS CLOSED, refusing the whole submission rather
  * than falling back to storing anything in the clear.
  *
- * These tests pin that contract. They are hermetic: `fetch` is stubbed to stand
- * in for the gate, and DATABASE_URL is deliberately left unparseable so that
- * `resolveConfig()` returns null and the first DB touch throws immediately. No
- * Postgres, no gate service, and no socket is opened.
+ * Provisioning happens first. A session whose identity never reached the key
+ * box can never produce a PDF, so storing its answers would create an
+ * unreadable orphan. These tests used to assume answers reached the gate
+ * before any other work; that ordering is no longer true, and treating a 503
+ * from a missing BREAKGLASS key as "the gate refused" was a false pass.
  *
- * That unconfigured DB is also the load-bearing trick for the fail-closed
- * tests: the handler answers 503 only on the encryption-failure branch, which
- * returns *before* the INSERT. Any code path that reached the database would
- * surface as 500 instead. So `status === 503` is positive evidence that nothing
- * was written.
+ * Hermetic: `fetch` is stubbed, DATABASE_URL is unparseable, and the key box
+ * is left unconfigured so the first provisioning step throws. No Postgres, no
+ * ssh, no gate service, and no socket is opened.
  *
  *   deno test --allow-net --allow-read --allow-env routes/api/gate-submit_test.ts
  */
 
 import { assert, assertEquals, assertStringIncludes } from '$std/assert/mod.ts';
-import { GATE_QUESTIONS } from '../../lib/gate_encrypt.ts';
 
 /** One intercepted call to the gate, decoded. */
 interface GateCall {
@@ -36,21 +34,37 @@ interface GateCall {
 
 const originalFetch = globalThis.fetch;
 const originalEnv = Deno.env.toObject();
-const TEST_ENV_KEYS = ['DATABASE_URL', 'JWT_SECRET', 'RESUME_TOKEN_SECRET', 'BASE_URL', 'DENO_ENV'] as const;
+const TEST_ENV_KEYS = [
+  'DATABASE_URL',
+  'JWT_SECRET',
+  'RESUME_TOKEN_SECRET',
+  'BASE_URL',
+  'DENO_ENV',
+  'BREAKGLASS_AGE_RECIPIENT',
+  'KEYBOX_SSH_DEST',
+  'KEYBOX_KEY_DIR',
+  'KEYBOX_SSH_KEY',
+] as const;
 
 function setupTestEnv() {
   /*
    * Unparseable on purpose: `new URL()` throws inside resolveConfig(), which
    * returns null, so getPool() throws on the first DB touch. This keeps the
-   * suite off Postgres *and* makes 503-vs-500 meaningful. It must be set (not
-   * merely absent) so a real PGHOST/PGDATABASE in the developer's environment
-   * cannot be picked up as a fallback.
+   * suite off Postgres. It must be set (not merely absent) so a real
+   * PGHOST/PGDATABASE in the developer's environment cannot be picked up as a
+   * fallback.
    */
   Deno.env.set('DATABASE_URL', '::://not-a-database');
   Deno.env.set('JWT_SECRET', 'test-jwt-secret-key');
   Deno.env.set('RESUME_TOKEN_SECRET', 'test-secret-key-for-hmac-operations');
   Deno.env.set('BASE_URL', 'http://localhost:8000');
   Deno.env.set('DENO_ENV', 'test');
+  // Leave BREAKGLASS / KEYBOX unset: provisioning must fail closed before
+  // any answer text leaves the process.
+  Deno.env.delete('BREAKGLASS_AGE_RECIPIENT');
+  Deno.env.delete('KEYBOX_SSH_DEST');
+  Deno.env.delete('KEYBOX_KEY_DIR');
+  Deno.env.delete('KEYBOX_SSH_KEY');
 }
 
 function restoreEnv() {
@@ -65,9 +79,7 @@ function restoreEnv() {
 /**
  * Replace `fetch` with a recorder standing in for the Rust gate.
  *
- * `respond` decides what the gate does for each call in sequence, so a test can
- * let question 0 encrypt and then have question 1 fail. Returning null makes
- * the call reject, standing in for an unreachable gate.
+ * Returning null makes the call reject, standing in for an unreachable gate.
  */
 function stubGate(respond: (callIndex: number) => Response | null = () => new Response(null, { status: 200 })) {
   const calls: GateCall[] = [];
@@ -162,11 +174,11 @@ Deno.test({
 });
 
 // ---------------------------------------------------------------------------
-// The encryption contract: every answer goes to the gate, and goes there first
+// Provision first: answers never leave if the session key did not land
 // ---------------------------------------------------------------------------
 
 Deno.test({
-  name: 'gate-submit: sends both answers to the gate for age-encryption before any write',
+  name: 'gate-submit: a provisioning failure refuses the submission and never sends answers',
   async fn() {
     setupTestEnv();
     const gate = stubGate();
@@ -175,114 +187,19 @@ Deno.test({
       const response = await post(
         jsonRequest({
           email: 'visitor@example.com',
-          answer1: '  a hammock and no appointments  ',
+          answer1: 'a hammock and no appointments',
           answer2: 'being understood exactly',
         }),
         {} as never,
       );
 
-      /*
-       * The gate step succeeded, so the handler moved on to the (unconfigured)
-       * database and failed there. 503 is reserved for encryption failure — the
-       * point is that we are past it, not that the request as a whole succeeded.
-       */
-      assert(response.status !== 503, 'encryption step should have succeeded');
-      await response.body?.cancel();
-
-      assertEquals(gate.calls.length, 2, 'both gate questions must be encrypted');
-
-      const [q0, q1] = gate.calls;
-      assertStringIncludes(q0.url, '/api/store');
-      assertStringIncludes(q1.url, '/api/store');
-
-      assertEquals(q0.question_index, 0);
-      assertEquals(q1.question_index, 1);
-      assertEquals(q0.question_text, GATE_QUESTIONS[0]);
-      assertEquals(q1.question_text, GATE_QUESTIONS[1]);
-
-      // Answers are trimmed but otherwise verbatim — the gate, not this app,
-      // is what turns them into ciphertext.
-      assertEquals(q0.answer, 'a hammock and no appointments');
-      assertEquals(q1.answer, 'being understood exactly');
-      assertEquals(q0.skipped, false);
-      assertEquals(q1.skipped, false);
-
-      // One opaque session token ties the pair together, and it is not the email.
-      assertEquals(q0.session_id, q1.session_id);
-      assert(!q0.session_id.includes('@'), 'the gate session id must not carry the address');
-    } finally {
-      gate.restore();
-      restoreEnv();
-    }
-  },
-});
-
-Deno.test({
-  name: 'gate-submit: an empty answer is still routed through the gate, marked skipped',
-  async fn() {
-    setupTestEnv();
-    const gate = stubGate();
-    try {
-      const post = await loadHandler();
-      const response = await post(
-        jsonRequest({ email: 'visitor@example.com', answer1: '', answer2: '   ' }),
-        {} as never,
-      );
-      await response.body?.cancel();
-
-      assertEquals(gate.calls.length, 2);
-      assertEquals(gate.calls[0].skipped, true);
-      assertEquals(gate.calls[1].skipped, true);
-      assertEquals(gate.calls[0].answer, '');
-      assertEquals(gate.calls[1].answer, '');
-    } finally {
-      gate.restore();
-      restoreEnv();
-    }
-  },
-});
-
-// ---------------------------------------------------------------------------
-// Fail-closed: a gate that cannot encrypt must abort the submission
-// ---------------------------------------------------------------------------
-
-Deno.test({
-  name: 'gate-submit: refuses the submission when the gate rejects an answer',
-  async fn() {
-    setupTestEnv();
-    // Question 0 encrypts; question 1 is refused.
-    const gate = stubGate((i) => new Response(null, { status: i === 1 ? 500 : 200 }));
-    try {
-      const post = await loadHandler();
-      const response = await post(
-        jsonRequest({ email: 'visitor@example.com', answer1: 'one', answer2: 'two' }),
-        {} as never,
-      );
-
-      assertEquals(response.status, 503, '503 is the encryption-failure branch, which returns before the INSERT');
-      assertStringIncludes((await response.json()).error, 'securely store');
-    } finally {
-      gate.restore();
-      restoreEnv();
-    }
-  },
-});
-
-Deno.test({
-  name: 'gate-submit: refuses the submission when the gate is unreachable',
-  async fn() {
-    setupTestEnv();
-    const gate = stubGate(() => null); // fetch rejects, as with a down gate
-    try {
-      const post = await loadHandler();
-      const response = await post(
-        jsonRequest({ email: 'visitor@example.com', answer1: 'one', answer2: 'two' }),
-        {} as never,
-      );
-
       assertEquals(response.status, 503);
-      await response.body?.cancel();
-      assertEquals(gate.calls.length, 1, 'the second answer must not be attempted after the first fails');
+      assertStringIncludes((await response.json()).error, 'securely store');
+      assertEquals(
+        gate.calls.length,
+        0,
+        'answers must not leave the process when the session key was never pushed',
+      );
     } finally {
       gate.restore();
       restoreEnv();
@@ -294,7 +211,7 @@ Deno.test({
   name: 'gate-submit: the no-JS form path fails closed too, and leaks nothing in the redirect',
   async fn() {
     setupTestEnv();
-    const gate = stubGate(() => null);
+    const gate = stubGate();
     try {
       const post = await loadHandler();
       const response = await post(
@@ -310,6 +227,7 @@ Deno.test({
       // Zero-logging policy: the bounce URL carries a category, never the input.
       assert(!location.includes('@'), 'redirect must not carry the address');
       assert(!location.includes('one'), 'redirect must not carry answer text');
+      assertEquals(gate.calls.length, 0, 'the form path must not send answers after a provisioning failure');
     } finally {
       gate.restore();
       restoreEnv();
@@ -318,8 +236,24 @@ Deno.test({
 });
 
 // ---------------------------------------------------------------------------
-// Schema guardrail: the row that *is* written carries no answer text
+// Ordering and schema: the unrecoverable write is last; the row carries no plaintext
 // ---------------------------------------------------------------------------
+
+Deno.test({
+  name: 'gate-submit: session key is provisioned before any answer is stored',
+  async fn() {
+    const source = await Deno.readTextFile(new URL('./gate-submit.ts', import.meta.url));
+    const breakglass = source.indexOf('breakglassRecipient()');
+    const push = source.indexOf('await pushIdentity(');
+    const insert = source.indexOf('INSERT INTO fresh_gate_responses');
+    const store = source.indexOf('await storeEncryptedAnswer(');
+
+    assert(breakglass >= 0 && push >= 0 && insert >= 0 && store >= 0);
+    assert(breakglass < push, 'break-glass is local and must be read before the push');
+    assert(push < insert, 'the identity must land before the linkage row');
+    assert(insert < store, 'the Rust store has no delete, so it must happen last');
+  },
+});
 
 Deno.test({
   name: 'gate-submit: the fresh_gate_responses INSERT binds NULL for both answer columns',
@@ -336,9 +270,24 @@ Deno.test({
     assert(insert, 'expected an INSERT INTO fresh_gate_responses in the handler');
     assertStringIncludes(insert[0], 'q0_answer');
     assertStringIncludes(insert[0], 'q1_answer');
-    assertStringIncludes(insert[0], 'VALUES ($1, NULL, NULL)');
+    assertStringIncludes(insert[0], 'session_pubkey');
+    assertStringIncludes(insert[0], 'encrypted_email');
+    assertStringIncludes(insert[0], 'VALUES ($1, NULL, NULL, $2, $3)');
 
-    // $1 is the gate token and the only bound parameter — no answer, no email.
-    assertEquals(insert[0].match(/\$\d+/g)?.length, 1, 'only the gate token may be bound');
+    // $1 gate token, $2 session pubkey, $3 age-encrypted address. No answer text.
+    assertEquals(insert[0].match(/\$\d+/g)?.length, 3, 'only token, pubkey, and encrypted email may be bound');
+  },
+});
+
+Deno.test({
+  name: 'gate-submit: empty answers are still stored via the gate, marked skipped',
+  async fn() {
+    const source = await Deno.readTextFile(new URL('./gate-submit.ts', import.meta.url));
+    assert(source.includes('skipped: q0.length === 0'));
+    assert(source.includes('skipped: q1.length === 0'));
+    // Two storeEncryptedAnswer calls, one per gate question. An empty answer
+    // must still go through the gate so the row shape stays uniform and no
+    // plaintext side-channel exists.
+    assertEquals([...source.matchAll(/await storeEncryptedAnswer\(/g)].length, 2);
   },
 });
