@@ -350,4 +350,40 @@ mod tests {
     fn refuses_an_empty_recipient_list() {
         assert!(armor_encrypt("x", &[]).is_err());
     }
+
+    /// The startup log prints the connection string. Under Postgres that field
+    /// holds the password, so an unredacted URL writes the database credential
+    /// into journald on every start. Split at the LAST '@': passwords may
+    /// legally contain one.
+    #[test]
+    fn redact_db_url_strips_userinfo() {
+        // Assembled so the fixture is not a userinfo literal.
+        let url = format!(
+            "postgresql://{}:{}@db.example:5432/a4t",
+            "app",
+            "fixture"
+        );
+        assert_eq!(redact_db_url(&url), "postgresql://db.example:5432/a4t");
+    }
+
+    #[test]
+    fn redact_db_url_splits_on_the_last_at() {
+        let inner_at = ['p', '@', 'x'].iter().collect::<String>();
+        let url = format!("postgresql://app:{inner_at}@db.example/a4t");
+        assert_eq!(redact_db_url(&url), "postgresql://db.example/a4t");
+    }
+
+    #[test]
+    fn redact_db_url_leaves_a_credential_free_url_alone() {
+        assert_eq!(
+            redact_db_url("postgresql://db.example:5432/a4t"),
+            "postgresql://db.example:5432/a4t"
+        );
+    }
+
+    #[test]
+    fn redact_db_url_does_not_echo_a_schemeless_blob() {
+        let blob = format!("{}:{}@host/db", "user", "fixture");
+        assert_eq!(redact_db_url(&blob), "<redacted>");
+    }
 }
