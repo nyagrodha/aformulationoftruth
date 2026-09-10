@@ -46,6 +46,13 @@ interface BundleAnswer {
 
 interface DeliveryBundle {
   sessionId: string;
+  /**
+   * The id the identity is FILED under on the key box -- the gate token, since
+   * gate-submit mints and pushes the keypair before a session exists. It is not
+   * the session id, and conflating the two is why loadIdentity raised ENOENT on
+   * every render and no PDF was ever produced.
+   */
+  keyId: string;
   answers: BundleAnswer[];
   encryptedEmail: string;
   encryptedPassword: string | null;
@@ -66,6 +73,7 @@ export function validateBundle(b: unknown): 'ok' | string {
   const bundle = b as DeliveryBundle;
   if (!bundle || typeof bundle !== 'object') return 'not an object';
   if (typeof bundle.sessionId !== 'string' || !SESSION_ID.test(bundle.sessionId)) return 'bad session id';
+  if (typeof bundle.keyId !== 'string' || !SESSION_ID.test(bundle.keyId)) return 'bad key id';
   if (!Array.isArray(bundle.answers)) return 'answers missing';
   if (bundle.answers.length !== CANONICAL_COUNT) return `expected ${CANONICAL_COUNT} answers`;
   for (let i = 0; i < CANONICAL_COUNT; i++) {
@@ -88,8 +96,11 @@ async function decryptWith(identity: string, ciphertext: string): Promise<string
  * `finally`, so a failure anywhere does not leave the decrypted questionnaire
  * on the floor.
  */
-export async function handleBundle(bundle: DeliveryBundle): Promise<void> {
-  const identity = await loadIdentity(KEY_DIR, bundle.sessionId);
+export async function handleBundle(bundle: DeliveryBundle, keyDir = KEY_DIR): Promise<void> {
+  // By keyId, the gate token the identity was filed under -- NOT sessionId.
+  // Conflating the two is why no PDF was ever produced; the test in
+  // tests/service_test.ts pins which field reaches the key store.
+  const identity = await loadIdentity(keyDir, bundle.keyId);
   // NOT Deno.makeTempDir({ dir }): that demands blanket filesystem access
   // (NotCapable: "Requires all access to /dev/shm") even with --allow-read and
   // --allow-write granted, which would force the service to run --allow-all.
@@ -129,7 +140,7 @@ export async function handleBundle(bundle: DeliveryBundle): Promise<void> {
 
     // Only after the send succeeded. Recording a delivery that did not happen
     // would start the shred clock on a key still needed.
-    await markDelivered(KEY_DIR, bundle.sessionId, new Date());
+    await markDelivered(keyDir, bundle.keyId, new Date());
     await notifyDelivered(bundle.sessionId);
   } finally {
     await Deno.remove(work, { recursive: true }).catch(() => {});
@@ -147,6 +158,11 @@ async function notifyDelivered(sessionId: string): Promise<void> {
       signal: AbortSignal.timeout(15_000),
     });
     await res.body?.cancel();
+    // A rejected callback used to be indistinguishable from an accepted one.
+    // For months every call 404'd -- the route did not exist -- and nothing
+    // said so, so pdf_delivered_at was never stamped and the shred clock never
+    // started. The status is not PII; not checking it is how that hid.
+    if (!res.ok) console.error('[render] delivery callback rejected (%d)', res.status);
   } catch {
     // The document is already in the respondent's hands; a failed callback
     // means a stale pdf_delivered_at, not a lost delivery.

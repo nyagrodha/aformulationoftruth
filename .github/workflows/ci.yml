@@ -18,6 +18,49 @@ jobs:
   check:
     runs-on: ubuntu-latest
 
+    # Reinstated deliberately. 8ca0131 resolved this file's committed merge
+    # conflict by discarding a Postgres service, and was right to: no test in
+    # the step below touched a database, and it said so -- "reinstating a
+    # database service belongs with the first test that needs one." This is
+    # that test. tests/questionnaire_e2e_flow_test.ts skips itself silently
+    # when DATABASE_URL is unset, so without this service the one case that
+    # crosses a stage boundary would report green having never run.
+    services:
+      postgres:
+        # Pinned by digest: `postgres:15` is a mutable tag, so a run next month
+        # could test against an image nobody reviewed. To move it, look up the
+        # new manifest-list digest for the tag and change it here on purpose:
+        #   docker buildx imagetools inspect postgres:15 | grep Digest
+        image: postgres:15@sha256:9b1d34adbce1dd07ee6e94b4a2cf698884b89bd44a6c9c12f5da8f3acbfe4957
+        env:
+          POSTGRES_USER: postgres
+          # Ephemeral localhost-only CI database: trust auth, no password to
+          # hardcode (avoids committing a credential-looking literal).
+          POSTGRES_HOST_AUTH_METHOD: trust
+          POSTGRES_DB: test_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      # Local Postgres service (TLS auto-disabled for localhost in lib/db.ts).
+      DATABASE_URL: postgres://postgres@localhost:5432/test_db
+      BASE_URL: http://localhost:8393
+      DENO_ENV: test
+      # JWT_SECRET and RESUME_TOKEN_SECRET are NOT set here. They are minted
+      # per run by the step below, because a literal assigned to a name like
+      # JWT_SECRET is precisely what a secret scanner flags, and it is right
+      # to: nothing in the value tells it apart from a live credential, and
+      # GitGuardian failed this PR on exactly that. Generating them is also
+      # the reasoning the Postgres service above already applies to its own
+      # password. SESSION_SECRET and ENCRYPTION_KEY were carried over from
+      # the side this file's earlier conflict discarded and are dropped: no
+      # non-test code in the repo reads either one.
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -26,6 +69,14 @@ jobs:
         uses: denoland/setup-deno@v2
         with:
           deno-version: v2.x
+
+      # Tokens are minted and verified inside a single test process, so these
+      # need to exist and be stable for the job, not be known outside it.
+      # $GITHUB_ENV carries them to every later step.
+      - name: Mint ephemeral test secrets
+        run: |
+          echo "JWT_SECRET=$(openssl rand -hex 32)" >> "$GITHUB_ENV"
+          echo "RESUME_TOKEN_SECRET=$(openssl rand -hex 32)" >> "$GITHUB_ENV"
 
       # The pre-commit hook runs this script with no arguments, which examines
       # only the lines a commit ADDS. That is a ratchet and cannot see what is
@@ -41,6 +92,14 @@ jobs:
       - name: Zero-logging policy
         run: bash scripts/check-zero-logging.sh --all
 
+      # The service above starts an EMPTY database. Without this the DB-backed
+      # test fails on a missing table rather than on anything it means to
+      # assert. migrate.ts prefers .env, which is gitignored and therefore
+      # absent here, so it falls through to the environment above. It runs
+      # after the cheap static check, so a logging regression fails in seconds
+      # rather than behind a database bring-up.
+      - name: Apply migrations
+        run: deno run --allow-net --allow-env --allow-read migrate.ts
       # Scope note: `deno task test` cannot run repo-wide. `tests/` and `trash/`
       # carry ~449 pre-existing type errors (Jest globals, missing drizzle-orm)
       # that predate this workflow and fail before any test executes. The paths
@@ -58,20 +117,31 @@ jobs:
           # started before that commit was checked out, so it kept serving old code
           # and the break stayed invisible for two days, until a routine restart
           # crash-looped the site into 502. Keep main.ts first in this list.
+          #
+          # deliver.ts and romania-client.ts are here for a related reason: the
+          # DeliveryBundle interface omitted keyId while buildBundle returned it,
+          # so the two halves of the wire contract disagreed and only a type check
+          # could say so. The tests below run without --no-check and would catch it
+          # too; naming the pair explicitly keeps the guard if those paths move.
           deno check \
             main.ts \
+            lib/gate_encrypt.ts \
             data/shop.ts \
             components/PageShell.tsx \
             routes/about.tsx \
             routes/shop.tsx \
             routes/about/confession-albums.tsx \
-            routes/about/respondents.tsx
+            routes/about/respondents.tsx \
+            routes/api/responses/deliver.ts \
+            lib/romania-client.ts
 
       # islands/ carries Nav_test, whose `PAGE_NAV points at nothing that does
       # not exist` case is the guard against a nav link to a page that is not
       # routed -- the failure a retired menu already shipped once, linking three
       # routes to a /lotto.html that never existed. It was passing locally and
-      # running nowhere, so the guard could not have stopped a repeat.
+      # running nowhere, so the guard could not have stopped a repeat. Same for
+      # messenger_test, which pins the messenger's "no server plaintext" claim by
+      # asserting its script has no way to reach the network.
       #
       # public/js/ carries seal-guards_test, which exercises the envelope bounds
       # every sealing surface depends on: a hostile iteration count, an oversized
@@ -82,6 +152,13 @@ jobs:
       # QuaternarySpheroid.tsx and Spheroid.tsx predate the singleQuote setting, so
       # widening `deno fmt --check` to it would fail on drift no one here
       # introduced. Format those two, then widen the fmt step separately.
+      #
+      # The three tests/ files are named individually, NOT as `tests/`: the rest
+      # of that directory carries the pre-existing type errors described above,
+      # and `deno test` type checks before it runs anything. These three are
+      # clean, so they run without --no-check and get the type check for free.
+      # The e2e one is the only test in the repo that crosses a stage boundary,
+      # and it is the reason the Postgres service exists.
       - name: Test
         run: |
           deno test --allow-env --allow-read --allow-net \
@@ -89,7 +166,16 @@ jobs:
             components/ \
             islands/ \
             public/js/ \
+            lib/audience_test.ts \
+            lib/client-ip_test.ts \
             lib/csrf_test.ts \
+            lib/gate_encrypt_test.ts \
             routes/shop_test.tsx \
             routes/about_test.tsx \
-            routes/about/
+            routes/messenger_test.tsx \
+            routes/about/ \
+            tests/deliver_bundle_test.ts \
+            tests/session_supersede_test.ts \
+            tests/lazy_gate_provisioning_test.ts \
+            tests/questionnaire_e2e_flow_test.ts
+

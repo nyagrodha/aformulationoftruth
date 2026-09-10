@@ -26,14 +26,15 @@ import { Handlers } from '$fresh/server.ts';
 import { z } from 'zod';
 import { createMagicLink } from '../../../lib/auth.ts';
 import { hashEmail } from '../../../lib/crypto.ts';
-import { createQuestionnaireSession, findActiveSession } from '../../../lib/questionnaire-session.ts';
+import { createQuestionnaireSession } from '../../../lib/questionnaire-session.ts';
 import { createQuestionnaireJWT } from '../../../lib/jwt.ts';
 import { increment } from '../../../lib/metrics.ts';
 import { sendMagicLinkEmail } from '../../../lib/email.ts';
 
 const RequestSchema = z.object({
   email: z.string().email(),
-  gateToken: z.string().optional(), // Optional gate token to link gate responses
+  // Optional gate token to link gate responses. VARCHAR(64) in the schema.
+  gateToken: z.string().max(64).optional(),
 });
 
 export const handler: Handlers = {
@@ -71,18 +72,17 @@ export const handler: Handlers = {
 
       // Step 3: Create or resume questionnaire session
       // Check if user has an existing incomplete session
-      let sessionResult;
-      const existingSession = await findActiveSession(emailHash);
-
-      if (existingSession) {
-        // User is resuming - create new opaque token for existing session
-        // (Old token is not retrievable, so we create a new session)
-        console.log('[auth] User resuming questionnaire, creating new session');
-        sessionResult = await createQuestionnaireSession(emailHash, gateToken);
-      } else {
-        // New session
-        sessionResult = await createQuestionnaireSession(emailHash, gateToken);
-      }
+      // A fresh session is forced either way -- an issued resume token cannot be
+      // re-derived, since session_id IS its HMAC and the token is never stored.
+      // What is not forced is losing the work: createQuestionnaireSession now
+      // carries a prior session's answers, progress and question order across,
+      // together with the gate row holding the keypair they are sealed to.
+      const sessionResult = await createQuestionnaireSession(emailHash, gateToken);
+      console.log(
+        sessionResult.resuming
+          ? '[auth] Resuming questionnaire; prior answers carried forward'
+          : '[auth] New questionnaire session',
+      );
 
       const { opaqueToken, sessionId } = sessionResult;
 

@@ -65,13 +65,6 @@ SERVICES = {
         'expected_status': 200,
         'timeout': 10,
     },
-    'fresh_api_vpn': {
-        'name': 'Fresh API (VPN)',
-        'url': 'http://10.67.0.1:7781/api/health',
-        'expected_status': 200,
-        'timeout': 15,
-        'optional': True,  # Don't alert if VPN service is down (fallback exists)
-    },
     'metrics': {
         'name': 'Metrics Endpoint',
         'url': 'http://localhost:8393/api/metrics',
@@ -79,6 +72,20 @@ SERVICES = {
         'timeout': 10,
     },
 }
+
+# The VPN probe is optional in both senses: it does not alert, and it is only
+# registered when a gateway is configured. It used to sit inside the dict above
+# as os.environ["VPN_GATEWAY_IP"], which raised KeyError at import when the
+# variable was unset and took the mandatory probes down with it.
+_VPN_GATEWAY_IP = os.environ.get('VPN_GATEWAY_IP')
+if _VPN_GATEWAY_IP:
+    SERVICES['fresh_api_vpn'] = {
+        'name': 'Fresh API (VPN)',
+        'url': f'http://{_VPN_GATEWAY_IP}:7781/api/health',
+        'expected_status': 200,
+        'timeout': 15,
+        'optional': True,  # Don't alert if VPN service is down (fallback exists)
+    }
 
 # Track service states
 service_states: Dict[str, Dict[str, Any]] = {}

@@ -11,8 +11,12 @@
  * flight, but not the corpus.
  */
 
-const KEYBOX_URL = Deno.env.get('KEYBOX_RENDER_URL') || '';
-const KEYBOX_TOKEN = Deno.env.get('KEYBOX_RENDER_TOKEN') || '';
+// Read per call, not at import. Deno caches modules for the life of the test
+// process, so a top-level read would freeze whatever the FIRST importing test
+// file saw, and an endpoint test that configures the key box after that could
+// never reach pushBundle's fetch. A push is one env lookup per render; cheap.
+const keyboxUrl = (): string => Deno.env.get('KEYBOX_RENDER_URL') || '';
+const keyboxToken = (): string => Deno.env.get('KEYBOX_RENDER_TOKEN') || '';
 const PUSH_TIMEOUT_MS = 20_000;
 
 export interface BundleAnswer {
@@ -25,6 +29,19 @@ export interface BundleAnswer {
 
 export interface DeliveryBundle {
   sessionId: string;
+  /**
+   * The id the identity is FILED under on the key box -- the gate token, since
+   * gate-submit mints and pushes the keypair before a session exists. It is not
+   * the session id, and conflating the two is why loadIdentity raised ENOENT on
+   * every render and no PDF was ever produced.
+   *
+   * This is the sending half of the contract validateBundle enforces in
+   * romania/render-service.ts. It was missing here while buildBundle already
+   * returned it, so the field travelled on the wire with nothing in the type
+   * system holding it there: a projection or spread that rebuilt the object
+   * would have dropped it and restored the ENOENT silently.
+   */
+  keyId: string;
   answers: BundleAnswer[];
   encryptedEmail: string;
   /** age-armored, or null when no password was chosen. */
@@ -41,7 +58,7 @@ export class KeyboxUnavailableError extends Error {
 }
 
 export function keyboxConfigured(): boolean {
-  return Boolean(KEYBOX_URL && KEYBOX_TOKEN);
+  return Boolean(keyboxUrl() && keyboxToken());
 }
 
 /**
@@ -56,11 +73,11 @@ export async function pushBundle(bundle: DeliveryBundle): Promise<void> {
 
   let res: Response;
   try {
-    res = await fetch(`${KEYBOX_URL}/render`, {
+    res = await fetch(`${keyboxUrl()}/render`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${KEYBOX_TOKEN}`,
+        'Authorization': `Bearer ${keyboxToken()}`,
       },
       body: JSON.stringify(bundle),
       signal: AbortSignal.timeout(PUSH_TIMEOUT_MS),

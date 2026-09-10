@@ -141,14 +141,34 @@ export async function hmacSign(
   data: string,
   secretKey: Uint8Array<ArrayBuffer>,
 ): Promise<string> {
-  const key = await crypto.subtle.importKey(
+  return await hmacSignWith(data, await hmacKey(secretKey));
+}
+
+/**
+ * Import raw bytes as a non-extractable HMAC-SHA256 key.
+ *
+ * Non-extractability is the whole point. A caller that must hold a key for a
+ * bounded window can import it once, zero the raw buffer, and then hold
+ * something it can sign with but cannot read back — so there is no extractable
+ * copy of the secret anywhere for the rest of the window. lib/audience.ts
+ * depends on exactly that: its salt must not outlive four hours, and a value
+ * you cannot read is a value you cannot leak.
+ *
+ * Importing once per window rather than once per signature also removes a
+ * subtle cost from the request path.
+ */
+export function hmacKey(secretKey: Uint8Array<ArrayBuffer>): Promise<CryptoKey> {
+  return crypto.subtle.importKey(
     'raw',
     secretKey,
     { name: 'HMAC', hash: 'SHA-256' },
-    false,
+    false, // not extractable
     ['sign'],
   );
+}
 
+/** Sign with an already-imported key. See hmacKey. */
+export async function hmacSignWith(data: string, key: CryptoKey): Promise<string> {
   const signature = await crypto.subtle.sign('HMAC', key, encoder.encode(data));
   return Array.from(new Uint8Array(signature))
     .map((b) => b.toString(16).padStart(2, '0'))

@@ -3,7 +3,7 @@
 //! Tiny HTTP service that age-encrypts gate answers before storage so that
 //! only the holder of the corresponding x25519 identity (kept offline) can
 //! ever decrypt them. Speaks the contract expected by
-//! `lib/gate-client.ts` in the Deno Fresh app:
+//! `lib/gate_encrypt.ts` in the Deno Fresh app:
 //!
 //!   POST /api/store
 //!     { session_id, question_text, question_index, answer, skipped }
@@ -264,6 +264,15 @@ async fn main() -> anyhow::Result<()> {
     let bind: SocketAddr = env::var("GATE_BIND")
         .unwrap_or_else(|_| DEFAULT_BIND.to_string())
         .parse()?;
+    // /api/store is unauthenticated on purpose: the Fresh app reaches it over
+    // loopback and answer plaintext never leaves the host. A non-loopback bind
+    // would hand that endpoint to whoever can reach the interface, so refuse
+    // it here rather than trust every deployment to remember.
+    if !bind.ip().is_loopback() {
+        anyhow::bail!(
+            "GATE_BIND must be a loopback address, got {bind}: /api/store is unauthenticated"
+        );
+    }
     // Required, deliberately with no fallback. This service shares the Fresh
     // app's Postgres; a default would either point somewhere wrong or silently
     // create a second store, which is the split this consolidation removes.
