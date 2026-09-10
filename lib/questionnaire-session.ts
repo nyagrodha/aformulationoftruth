@@ -154,8 +154,44 @@ export async function getSessionByToken(
   return await getSessionById(sessionId);
 }
 
+function toSession(row: SessionRow): QuestionnaireSession {
+  return {
+    sessionId: row.session_id,
+    emailHash: row.email_hash,
+    questionOrder: row.question_order,
+    answeredQuestions: row.answered_questions || [],
+    currentIndex: row.current_index || 0,
+    createdAt: new Date(row.created_at),
+    updatedAt: new Date(row.updated_at),
+    completedAt: row.completed_at ? new Date(row.completed_at) : undefined,
+  };
+}
+
 /**
- * Get session by session_id (hash).
+ * The session row, whether or not the questionnaire is finished.
+ *
+ * Profile create happens AFTER completeSession() stamps completed_at. The
+ * answerable-session helper below treats that stamp as "gone", which is right
+ * for /questionnaire and wrong for /profile-create: finishing the walk must
+ * not erase the identity the profile is keyed to.
+ */
+export async function getSessionRecord(
+  sessionId: string,
+): Promise<QuestionnaireSession | null> {
+  return await withConnection(async (client) => {
+    const { rows } = await client.queryObject<SessionRow>(
+      `SELECT session_id, email_hash, question_order, answered_questions,
+              current_index, created_at, updated_at, completed_at
+       FROM fresh_questionnaire_sessions
+       WHERE session_id = $1`,
+      [sessionId],
+    );
+    return rows.length ? toSession(rows[0]) : null;
+  });
+}
+
+/**
+ * Get session by session_id (hash), only while it is still answerable.
  * Used when client sends session_id directly or from JWT.
  *
  * @param sessionId - HMAC hash of opaque token
@@ -164,29 +200,8 @@ export async function getSessionByToken(
 export async function getSessionById(
   sessionId: string,
 ): Promise<QuestionnaireSession | null> {
-  return await withConnection(async (client) => {
-    const { rows } = await client.queryObject<SessionRow>(
-      `SELECT session_id, email_hash, question_order, answered_questions,
-              current_index, created_at, updated_at, completed_at
-       FROM fresh_questionnaire_sessions
-       WHERE session_id = $1 AND completed_at IS NULL`,
-      [sessionId],
-    );
-
-    if (rows.length === 0) return null;
-
-    const row = rows[0];
-    return {
-      sessionId: row.session_id,
-      emailHash: row.email_hash,
-      questionOrder: row.question_order,
-      answeredQuestions: row.answered_questions || [],
-      currentIndex: row.current_index || 0,
-      createdAt: new Date(row.created_at),
-      updatedAt: new Date(row.updated_at),
-      completedAt: row.completed_at ? new Date(row.completed_at) : undefined,
-    };
-  });
+  const session = await getSessionRecord(sessionId);
+  return session?.completedAt ? null : session;
 }
 
 /**

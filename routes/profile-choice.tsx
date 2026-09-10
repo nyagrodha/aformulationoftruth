@@ -9,38 +9,19 @@
 import { Handlers } from '$fresh/server.ts';
 import Nav from '../islands/Nav.tsx';
 import { NAV_NOSCRIPT_CSS, PAGE_NAV } from '../components/nav-shared.ts';
-import { verifyQuestionnaireJWT } from '../lib/jwt.ts';
-import { getSessionById } from '../lib/questionnaire-session.ts';
 import { increment } from '../lib/metrics.ts';
-
-function getCookie(cookieHeader: string | null, name: string): string | null {
-  if (!cookieHeader) return null;
-  const match = cookieHeader.match(new RegExp(`(?:^|;\\s*)${name}=([^;]*)`));
-  return match ? decodeURIComponent(match[1]) : null;
-}
+import { identityFromRequest } from '../lib/profile-session.ts';
 
 /**
- * Gate the profile pages behind the same magic-link session the
- * questionnaire uses: a valid `jwt` cookie whose session_id resolves to
- * an active session. Any failure redirects to the gate at `/`, matching
- * routes/questionnaire.tsx. No PII is read or logged.
+ * Same identity as the questionnaire, including a finished session.
+ * Completing the walk stamps completed_at; that must not lock the next step.
  */
 export const handler: Handlers = {
   async GET(req, ctx) {
     increment('requests.api');
 
-    const jwtToken = getCookie(req.headers.get('Cookie'), 'jwt');
-    if (!jwtToken) {
-      return new Response(null, { status: 302, headers: { Location: '/' } });
-    }
-
-    const jwtPayload = await verifyQuestionnaireJWT(jwtToken);
-    if (!jwtPayload) {
-      return new Response(null, { status: 302, headers: { Location: '/' } });
-    }
-
-    const session = await getSessionById(jwtPayload.session_id);
-    if (!session) {
+    const identity = await identityFromRequest(req);
+    if (!identity) {
       return new Response(null, { status: 302, headers: { Location: '/' } });
     }
 

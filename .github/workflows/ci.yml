@@ -47,12 +47,19 @@ jobs:
           deno check \
             main.ts \
             lib/gate_encrypt.ts \
+            lib/profiles.ts \
+            lib/profile-session.ts \
             data/shop.ts \
             components/PageShell.tsx \
             routes/about.tsx \
             routes/shop.tsx \
             routes/about/confession-albums.tsx \
-            routes/about/respondents.tsx
+            routes/about/respondents.tsx \
+            routes/api/profile.ts \
+            routes/people.tsx \
+            routes/p/\[handle\].tsx \
+            routes/profile-create.tsx \
+            routes/profile-choice.tsx
 
       # islands/ carries Nav_test, whose `PAGE_NAV points at nothing that does
       # not exist` case is the guard against a nav link to a page that is not
@@ -73,7 +80,9 @@ jobs:
             components/ \
             islands/ \
             lib/gate_encrypt_test.ts \
+            lib/profiles_test.ts \
             routes/shop_test.tsx \
+            routes/api/profile_test.ts \
             routes/about_test.tsx \
             routes/messenger_test.tsx \
             routes/about/

@@ -6,48 +6,94 @@
  * Landing page after a person chooses to create a profile.
  */
 
-import { Handlers } from '$fresh/server.ts';
+import { Handlers, PageProps } from '$fresh/server.ts';
 import Nav from '../islands/Nav.tsx';
 import { NAV_NOSCRIPT_CSS, PAGE_NAV } from '../components/nav-shared.ts';
-import { verifyQuestionnaireJWT } from '../lib/jwt.ts';
-import { getSessionById } from '../lib/questionnaire-session.ts';
 import { increment } from '../lib/metrics.ts';
+import { identityFromRequest } from '../lib/profile-session.ts';
+import { emptyToNull, formVisibilityToSchema, getProfile, saveProfile } from '../lib/profiles.ts';
 
-function getCookie(cookieHeader: string | null, name: string): string | null {
-  if (!cookieHeader) return null;
-  const match = cookieHeader.match(new RegExp(`(?:^|;\\s*)${name}=([^;]*)`));
-  return match ? decodeURIComponent(match[1]) : null;
+interface ProfileCreateData {
+  visibilityChoice: 'private' | 'selected' | 'anonymous-mail';
+  displayName: string;
+  handle: string;
+  bio: string;
+  error?: string;
+}
+
+function visibilityChoiceFromProfile(
+  visibility: 'private' | 'public',
+  acceptsMail: boolean,
+): ProfileCreateData['visibilityChoice'] {
+  if (visibility === 'public') return 'selected';
+  if (acceptsMail) return 'anonymous-mail';
+  return 'private';
 }
 
 /**
- * Same magic-link session gate as /profile-choice: a valid `jwt` cookie
- * resolving to an active session, else redirect to the gate at `/`.
- * No PII is read or logged.
+ * Same identity as /profile-choice, including a finished questionnaire.
  */
-export const handler: Handlers = {
+export const handler: Handlers<ProfileCreateData> = {
   async GET(req, ctx) {
     increment('requests.api');
 
-    const jwtToken = getCookie(req.headers.get('Cookie'), 'jwt');
-    if (!jwtToken) {
+    const identity = await identityFromRequest(req);
+    if (!identity) {
       return new Response(null, { status: 302, headers: { Location: '/' } });
     }
 
-    const jwtPayload = await verifyQuestionnaireJWT(jwtToken);
-    if (!jwtPayload) {
+    const existing = await getProfile(identity.emailHash);
+    return ctx.render({
+      visibilityChoice: existing ? visibilityChoiceFromProfile(existing.visibility, existing.acceptsMail) : 'private',
+      displayName: existing?.displayName ?? '',
+      handle: existing?.handle ?? '',
+      bio: existing?.bio ?? '',
+    });
+  },
+
+  async POST(req, ctx) {
+    increment('requests.api');
+
+    const identity = await identityFromRequest(req);
+    if (!identity) {
       return new Response(null, { status: 302, headers: { Location: '/' } });
     }
 
-    const session = await getSessionById(jwtPayload.session_id);
-    if (!session) {
-      return new Response(null, { status: 302, headers: { Location: '/' } });
+    const form = await req.formData();
+    const choice = String(form.get('visibility') ?? 'private');
+    const mapped = formVisibilityToSchema(choice);
+    const displayName = emptyToNull(String(form.get('profile-name') ?? ''));
+    const handle = emptyToNull(String(form.get('profile-handle') ?? '').toLowerCase());
+    const bio = emptyToNull(String(form.get('profile-note') ?? ''));
+
+    const result = await saveProfile(identity.emailHash, {
+      handle,
+      displayName,
+      bio,
+      visibility: mapped.visibility,
+      acceptsAnonymousMail: mapped.acceptsAnonymousMail,
+    });
+
+    if (!result.ok) {
+      if (result.status === 409) increment('profile.handle_taken');
+      else if (result.status >= 500) increment('errors.5xx');
+      else increment('errors.4xx');
+      return ctx.render({
+        visibilityChoice: choice === 'selected' || choice === 'anonymous-mail' ? choice : 'private',
+        displayName: displayName ?? '',
+        handle: handle ?? '',
+        bio: bio ?? '',
+        error: result.error,
+      });
     }
 
-    return ctx.render();
+    increment('profile.saved');
+    const location = result.handle ? `/p/${encodeURIComponent(result.handle)}` : '/completion';
+    return new Response(null, { status: 302, headers: { Location: location } });
   },
 };
 
-export default function ProfileCreatePage() {
+export default function ProfileCreatePage({ data }: PageProps<ProfileCreateData>) {
   return (
     <html lang='en'>
       <head>
@@ -233,25 +279,43 @@ export default function ProfileCreatePage() {
                     adjust later.
                   </p>
 
-                  <form class='profile-create-form'>
+                  <form class='profile-create-form' method='post' action='/profile-create'>
                     <fieldset class='profile-create-fieldset'>
                       <legend>visibility</legend>
                       <div class='profile-create-radio'>
-                        <input type='radio' id='private' name='visibility' value='private' checked />
+                        <input
+                          type='radio'
+                          id='private'
+                          name='visibility'
+                          value='private'
+                          checked={data.visibilityChoice === 'private'}
+                        />
                         <label for='private'>
                           private encrypted space. no public answers.
                           <p class='profile-create-note'>The profile exists for you; other visitors do not see it.</p>
                         </label>
                       </div>
                       <div class='profile-create-radio'>
-                        <input type='radio' id='selected' name='visibility' value='selected' />
+                        <input
+                          type='radio'
+                          id='selected'
+                          name='visibility'
+                          value='selected'
+                          checked={data.visibilityChoice === 'selected'}
+                        />
                         <label for='selected'>
                           selected answers may become public.
                           <p class='profile-create-note'>Nothing appears publicly until you choose the answers.</p>
                         </label>
                       </div>
                       <div class='profile-create-radio'>
-                        <input type='radio' id='anonymous-mail' name='visibility' value='anonymous-mail' />
+                        <input
+                          type='radio'
+                          id='anonymous-mail'
+                          name='visibility'
+                          value='anonymous-mail'
+                          checked={data.visibilityChoice === 'anonymous-mail'}
+                        />
                         <label for='anonymous-mail'>
                           private profile plus anonymous mail.
                           <p class='profile-create-note'>
@@ -265,11 +329,21 @@ export default function ProfileCreatePage() {
                       <legend>nameplate</legend>
                       <div class='profile-create-row'>
                         <label for='profile-name'>display name</label>
-                        <input id='profile-name' name='profile-name' placeholder='one self among many' />
+                        <input
+                          id='profile-name'
+                          name='profile-name'
+                          placeholder='one self among many'
+                          value={data.displayName}
+                        />
                       </div>
                       <div class='profile-create-row'>
                         <label for='profile-handle'>handle</label>
-                        <input id='profile-handle' name='profile-handle' placeholder='weather-report' />
+                        <input
+                          id='profile-handle'
+                          name='profile-handle'
+                          placeholder='weather-report'
+                          value={data.handle}
+                        />
                       </div>
                       <div class='profile-create-row'>
                         <label for='profile-note'>small statement</label>
@@ -278,6 +352,7 @@ export default function ProfileCreatePage() {
                           name='profile-note'
                           placeholder='Write the thing that may or may not belong under your name.'
                         >
+                          {data.bio}
                         </textarea>
                       </div>
                     </fieldset>
@@ -299,10 +374,12 @@ export default function ProfileCreatePage() {
                     </fieldset>
 
                     <div class='profile-create-actions'>
-                      <button type='button' id='profile-save-btn' class='cta cta-primary'>save this profile</button>
+                      <button type='submit' id='profile-save-btn' class='cta cta-primary'>save this profile</button>
                       <a href='/completion' class='cta'>not tonight</a>
                     </div>
-                    <p id='profile-save-status' class='profile-create-note' role='status' aria-live='polite'></p>
+                    <p id='profile-save-status' class='profile-create-note' role='status' aria-live='polite'>
+                      {data.error ?? ''}
+                    </p>
                   </form>
                 </div>
 
@@ -355,8 +432,9 @@ export default function ProfileCreatePage() {
           // Per-answer publishing (the "public answers" fieldset) is deferred,
           // so only visibility, nameplate, and anonymous-mail are sent here.
           (function () {
+            var form = document.querySelector('.profile-create-form');
             var btn = document.getElementById('profile-save-btn');
-            if (!btn) return;
+            if (!form || !btn) return;
             var status = document.getElementById('profile-save-status');
             function val(id) { var el = document.getElementById(id); return el ? el.value.trim() : ''; }
             function radio(name) {
@@ -365,7 +443,8 @@ export default function ProfileCreatePage() {
             }
             function say(msg) { if (status) { status.textContent = msg; } }
 
-            btn.addEventListener('click', async function () {
+            form.addEventListener('submit', async function (event) {
+              event.preventDefault();
               var vis = radio('visibility');
               // Map the form's visibility choice onto the profile schema.
               var visibility = vis === 'selected' ? 'public' : 'private';
@@ -396,7 +475,9 @@ export default function ProfileCreatePage() {
                 });
                 var data = await res.json().catch(function () { return {}; });
                 if (res.ok) {
-                  window.location.href = '/completion';
+                  window.location.href = data.handle
+                    ? ('/p/' + encodeURIComponent(data.handle))
+                    : '/completion';
                 } else {
                   say(data.error || 'Could not save your profile.');
                   btn.disabled = false;
