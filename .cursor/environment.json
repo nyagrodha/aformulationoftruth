@@ -1,0 +1,13 @@
+{
+  "name": "aformulationoftruth (Deno Fresh + PostgreSQL)",
+  "user": "ubuntu",
+  "install": "bash .cursor/install.sh",
+  "start": "bash .cursor/start.sh",
+  "terminals": [
+    {
+      "name": "dev",
+      "command": "export DATABASE_URL=postgres://a4ot:a4ot@127.0.0.1:5432/a4ot PORT=8000 && deno task dev"
+    }
+  ],
+  "ports": [8000]
+}
