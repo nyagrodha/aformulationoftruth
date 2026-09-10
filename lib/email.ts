@@ -19,6 +19,13 @@ import { fromFileUrl } from '$std/path/mod.ts';
  */
 const SENDER = fromFileUrl(new URL('./send_mail.py', import.meta.url));
 
+/**
+ * Hard ceiling on one sender run. send_mail.py's own socket timeout is 60 s;
+ * this sits above it so only a child that has stopped making progress at all
+ * is killed, and a slow-but-live SMTP exchange is never cut short.
+ */
+const SENDER_DEADLINE_MS = 75_000;
+
 interface SendEmailOptions {
   to: string;
   subject: string;
@@ -91,6 +98,10 @@ async function runSender(
       env: { PATH: '/usr/bin:/bin', ...smtpEnv },
       stdout: 'piped',
       stderr: 'null',
+      // A stalled child is killed and output() rejects, which the catch below
+      // records as a failed attempt for the retry loop. The child's own socket
+      // timeout is 60 s; this sits above it so a normal slow send is not cut.
+      signal: AbortSignal.timeout(SENDER_DEADLINE_MS),
     }).output();
 
     if (result.success) return { success: true, kind: 'none' };

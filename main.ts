@@ -97,15 +97,33 @@ if (!isDatabaseConfigured()) {
  *
  * Fresh's start() never returns, so a signal listener is the only hook there is.
  */
+// Re-entry guard: the listener is invoked again for every signal without
+// waiting for the previous one, so a second Ctrl-C would call Deno.exit while
+// the first flush was still writing.
+let shuttingDown = false;
+
+// The flush is raced against a deadline. persist() waits on a pooled
+// connection and one query per site; if Postgres is the thing that is wedged,
+// that wait never settles and the process sits in shutdown until systemd
+// kills it -- and the window is lost either way. Well under TimeoutStopSec.
+const SHUTDOWN_FLUSH_MS = 5_000;
+
 for (const signal of ['SIGTERM', 'SIGINT'] as const) {
   Deno.addSignalListener(signal, async () => {
+    if (shuttingDown) return;
+    shuttingDown = true;
+    let flushed = false;
     try {
       const { shutdownAudience } = await import('./lib/audience.ts');
-      await shutdownAudience();
+      flushed = await Promise.race([
+        shutdownAudience().then(() => true),
+        new Promise<boolean>((resolve) => setTimeout(() => resolve(false), SHUTDOWN_FLUSH_MS)),
+      ]);
     } catch {
-      // Losing one window's count must not stop the process from exiting.
-      console.error('[shutdown] audience flush failed');
+      flushed = false;
     }
+    // Losing one window's count must not stop the process from exiting.
+    if (!flushed) console.error('[shutdown] audience flush failed or timed out');
     Deno.exit(0);
   });
 }
