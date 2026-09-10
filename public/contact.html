@@ -134,7 +134,7 @@
                 </p>
 
                 <p>
-                    <strong>What this means in practice:</strong> data access by authorities requires a court order, and Iceland's small judiciary and non-EU status add deliberate friction to cross-border requests via MLAT. We further minimize what we collect and encrypt what we must store; if served with a valid Icelandic court order, we could only hand over encrypted data and metadata we don't retain (web server access logging is disabled). We cannot provide what we don't have.
+                    <strong>What this means in practice:</strong> data access by authorities requires a court order, and Iceland's small judiciary and non-EU status add deliberate friction to cross-border requests via MLAT. We further minimize what we collect and encrypt what we must store; if served with a valid Icelandic court order, we could only hand over encrypted data and metadata we don't retain (the web server's access logs hold anonymized request metrics only, never an address or identifier). We cannot provide what we don't have.
                 </p>
 
                 <h3 class="subsection-title"><span class="icon">🔓</span> Open Source &amp; Auditability</h3>
@@ -165,7 +165,7 @@
                     <li>❌ No third-party data sharing</li>
                     <li>❌ No selling or monetizing user data</li>
                     <li>❌ No behavioral profiling or surveillance</li>
-                    <li>❌ No access logging (we've disabled web server access logs)</li>
+                    <li>❌ No identifying access logs (the web server logs anonymized request metrics only, never addresses)</li>
                 </ul>
 
                 <h3 class="subsection-title"><span class="icon">🌐</span> Infrastructure Details</h3>
@@ -177,7 +177,7 @@
                     <li><strong>Server location:</strong> Iceland (Flokinet infrastructure)</li>
                     <li><strong>Database:</strong> Encrypted PostgreSQL hosted in Iceland (Flokinet infrastructure)</li>
                     <li><strong>TLS:</strong> All traffic encrypted via Let's Encrypt certificates (TLS 1.3)</li>
-                    <li><strong>Access logs:</strong> Disabled at the web server level</li>
+                    <li><strong>Access logs:</strong> Anonymized at the web server level; no address or identifier is ever written</li>
                 </ul>
 
                 <h3 class="subsection-title"><span class="icon">📜</span> Your Rights</h3>

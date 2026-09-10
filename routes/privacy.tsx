@@ -130,8 +130,10 @@ export default function PrivacyPage() {
           discarded the same way.
         </p>
         <p>
-          We count how many people visit, and nothing else. No identifier for you is kept — what is written down is a
-          number. We do not track.
+          We count how many people visit, and nothing else. To count you once rather than on every page, the server
+          holds a keyed hash of your address and browser in memory for at most four hours. The key is destroyed when
+          that window closes, nothing derived from it is ever written to disk, and what is stored is a number. We do not
+          track.
         </p>
         <p>These logs are never used for tracking or profiling and are retained only for operational security.</p>
 
