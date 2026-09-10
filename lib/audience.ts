@@ -184,30 +184,43 @@ export async function recordVisit(
   const start = windowStart(now).getTime();
 
   if (!open || open.start !== start) {
-    const closing = open;
-    open = await mint(start);
-    if (closing) {
-      // Persist without awaiting: the request path must not wait on Postgres.
-      // Explicit catch rather than leaning on main.ts's unhandled-rejection
-      // guard, which exists as a backstop, not as error handling.
-      persist(closing).catch(() => increment('errors.db.audience_flush'));
+    const fresh = await mint(start);
+    // Re-check after the await. A second request arriving during mint() saw
+    // the same stale window and minted too; without this the later assignment
+    // orphaned the earlier window with every visit already recorded in it --
+    // an UNDERcount, the one direction the header promises never to err in.
+    // The loser's key is simply dropped; it was never used for anything.
+    if (!open || open.start !== start) {
+      const closing = open;
+      open = fresh;
+      if (closing) {
+        // Persist without awaiting: the request path must not wait on Postgres.
+        // Explicit catch rather than leaning on main.ts's unhandled-rejection
+        // guard, which exists as a backstop, not as error handling.
+        persist(closing).catch(() => increment('errors.db.audience_flush'));
+      }
     }
   }
 
+  // Pin the window for the rest of this call. audienceHash() below awaits,
+  // and a rotation on another request in that gap must not redirect this
+  // visit into a window whose key did not produce its digest.
+  const w = open;
+
   const site = siteFor(host);
-  let counters = open.bySite.get(site);
+  let counters = w.bySite.get(site);
   if (!counters) {
     counters = emptyCounters();
-    open.bySite.set(site, counters);
+    w.bySite.set(site, counters);
   }
   counters.requests += 1;
 
-  const digest = await audienceHash(open.key, ip, userAgent);
+  const digest = await audienceHash(w.key, ip, userAgent);
   const bucket = isBotUserAgent(userAgent) ? counters.botSeen : counters.seen;
 
   if (bucket.size >= MAX_TRACKED && !bucket.has(digest)) {
-    if (!open.truncated) {
-      open.truncated = true;
+    if (!w.truncated) {
+      w.truncated = true;
       increment('visits.set_capped');
     }
     return;
@@ -215,7 +228,15 @@ export async function recordVisit(
   bucket.add(digest);
 }
 
-/** Write one window's counts through. Idempotent per (window, site, run). */
+/**
+ * Write one window's counts through. Idempotent per (window, site, run).
+ *
+ * Merged with GREATEST rather than replaced: the timer and a rotation can
+ * flush the same window concurrently, and the one that COMMITS last is not
+ * necessarily the one that READ last. Within one (window, site, run) every
+ * counter only grows, so the larger value is always the later snapshot and
+ * a stale flush can never shrink what is stored.
+ */
 async function persist(w: OpenWindow): Promise<void> {
   if (w.bySite.size === 0) return;
   const startedAt = new Date(w.start).toISOString();
@@ -227,10 +248,10 @@ async function persist(w: OpenWindow): Promise<void> {
            (window_start, site, run_id, visitors, bot_visitors, requests, truncated, updated_at)
          VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())
          ON CONFLICT (window_start, site, run_id) DO UPDATE
-           SET visitors     = EXCLUDED.visitors,
-               bot_visitors = EXCLUDED.bot_visitors,
-               requests     = EXCLUDED.requests,
-               truncated    = EXCLUDED.truncated,
+           SET visitors     = GREATEST(fresh_audience_windows.visitors, EXCLUDED.visitors),
+               bot_visitors = GREATEST(fresh_audience_windows.bot_visitors, EXCLUDED.bot_visitors),
+               requests     = GREATEST(fresh_audience_windows.requests, EXCLUDED.requests),
+               truncated    = fresh_audience_windows.truncated OR EXCLUDED.truncated,
                updated_at   = NOW()`,
         [startedAt, site, RUN_ID, c.seen.size, c.botSeen.size, c.requests, w.truncated],
       );
@@ -293,4 +314,20 @@ export function _resetForTest(): void {
 /** Test hook: the open window's key, or null. Never exported to callers. */
 export function _openKeyForTest(): CryptoKey | null {
   return open?.key ?? null;
+}
+
+/**
+ * Test hook: the open window's counts as integers, or null. Deliberately the
+ * same shape persist() writes -- sizes, never the pseudonyms themselves.
+ */
+export function _openSnapshotForTest(): {
+  start: number;
+  bySite: Partial<Record<Site, { visitors: number; botVisitors: number; requests: number }>>;
+} | null {
+  if (!open) return null;
+  const bySite: Partial<Record<Site, { visitors: number; botVisitors: number; requests: number }>> = {};
+  for (const [site, c] of open.bySite) {
+    bySite[site] = { visitors: c.seen.size, botVisitors: c.botSeen.size, requests: c.requests };
+  }
+  return { start: open.start, bySite };
 }

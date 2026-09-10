@@ -175,3 +175,43 @@ Deno.test('the migration declares no address-derived column', async () => {
     assert(!banned.test(body), `migration declares a forbidden column: ${banned}`);
   }
 });
+
+// --- concurrency at the window boundary -----------------------------------
+
+import { _openSnapshotForTest, _resetForTest, recordVisit } from './audience.ts';
+
+// recordVisit's rotation check and assignment straddled an await: two requests
+// arriving with no window open (or a stale one) both saw "stale", both minted,
+// and the second assignment orphaned the first window with its visit inside.
+// That is an UNDERcount, the one direction the header promises never to err in.
+Deno.test('two concurrent first visits land in one window, not two', async () => {
+  _resetForTest();
+  const now = at('2026-08-19T04:00:00Z');
+  await Promise.all([
+    recordVisit('aformulationoftruth.com', '203.0.113.7', 'Mozilla/5.0', now),
+    recordVisit('aformulationoftruth.com', '203.0.113.8', 'Mozilla/5.0', now),
+  ]);
+  const snap = _openSnapshotForTest();
+  assertEquals(snap?.bySite.a4t?.requests, 2);
+  assertEquals(snap?.bySite.a4t?.visitors, 2);
+  _resetForTest();
+});
+
+// persist() used to replace the row outright, so two overlapping flushes of the
+// same window could store the SMALLER snapshot last. Within one (window, site,
+// run) every counter only grows, so the larger value is always the later one.
+Deno.test('the upsert never lets a stale flush shrink a stored count', async () => {
+  const src = await Deno.readTextFile(new URL('./audience.ts', import.meta.url));
+  const upsert = src.slice(src.indexOf('ON CONFLICT (window_start, site, run_id)'));
+  const setClause = upsert.slice(0, upsert.indexOf('updated_at'));
+  for (const col of ['visitors', 'bot_visitors', 'requests']) {
+    assert(
+      new RegExp(`${col}\\s*=\\s*GREATEST\\(`).test(setClause),
+      `${col} must be merged with GREATEST, not replaced`,
+    );
+  }
+  assert(
+    /truncated\s*=\s*fresh_audience_windows\.truncated OR/.test(setClause),
+    'truncated must only ever become true',
+  );
+});
