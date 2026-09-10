@@ -6,48 +6,134 @@
  * Landing page after a person chooses to create a profile.
  */
 
-import { Handlers } from '$fresh/server.ts';
+import { Handlers, PageProps } from '$fresh/server.ts';
 import Nav from '../islands/Nav.tsx';
 import { NAV_NOSCRIPT_CSS, PAGE_NAV } from '../components/nav-shared.ts';
-import { verifyQuestionnaireJWT } from '../lib/jwt.ts';
-import { getSessionById } from '../lib/questionnaire-session.ts';
 import { increment } from '../lib/metrics.ts';
+import { identityFromRequest } from '../lib/profile-session.ts';
+import {
+  emptyToNull,
+  formVisibilityToSchema,
+  getProfile,
+  PROFILE_BIO_MAX,
+  PROFILE_DISPLAY_NAME_MAX,
+  profileAfterSavePath,
+  ProfileFieldsSchema,
+  saveProfile,
+} from '../lib/profiles.ts';
 
-function getCookie(cookieHeader: string | null, name: string): string | null {
-  if (!cookieHeader) return null;
-  const match = cookieHeader.match(new RegExp(`(?:^|;\\s*)${name}=([^;]*)`));
-  return match ? decodeURIComponent(match[1]) : null;
+interface ProfileCreateData {
+  visibilityChoice: 'private' | 'selected' | 'anonymous-mail';
+  displayName: string;
+  handle: string;
+  bio: string;
+  error?: string;
+}
+
+function visibilityChoiceFromProfile(
+  visibility: 'private' | 'public',
+  acceptsMail: boolean,
+): ProfileCreateData['visibilityChoice'] {
+  if (visibility === 'public') return 'selected';
+  if (acceptsMail) return 'anonymous-mail';
+  return 'private';
 }
 
 /**
- * Same magic-link session gate as /profile-choice: a valid `jwt` cookie
- * resolving to an active session, else redirect to the gate at `/`.
- * No PII is read or logged.
+ * Same identity as /profile-choice, including a finished questionnaire.
  */
-export const handler: Handlers = {
+export const handler: Handlers<ProfileCreateData> = {
   async GET(req, ctx) {
     increment('requests.api');
 
-    const jwtToken = getCookie(req.headers.get('Cookie'), 'jwt');
-    if (!jwtToken) {
+    const identity = await identityFromRequest(req);
+    if (!identity) {
       return new Response(null, { status: 302, headers: { Location: '/' } });
     }
 
-    const jwtPayload = await verifyQuestionnaireJWT(jwtToken);
-    if (!jwtPayload) {
+    const existing = await getProfile(identity.emailHash);
+    return ctx.render({
+      visibilityChoice: existing ? visibilityChoiceFromProfile(existing.visibility, existing.acceptsMail) : 'private',
+      displayName: existing?.displayName ?? '',
+      handle: existing?.handle ?? '',
+      bio: existing?.bio ?? '',
+    });
+  },
+
+  async POST(req, ctx) {
+    increment('requests.api');
+
+    const identity = await identityFromRequest(req);
+    if (!identity) {
       return new Response(null, { status: 302, headers: { Location: '/' } });
     }
 
-    const session = await getSessionById(jwtPayload.session_id);
-    if (!session) {
-      return new Response(null, { status: 302, headers: { Location: '/' } });
+    const form = await req.formData();
+    const choice = String(form.get('visibility') ?? 'private');
+    const mapped = formVisibilityToSchema(choice);
+    const displayNameRaw = String(form.get('profile-name') ?? '');
+    const handleRaw = String(form.get('profile-handle') ?? '');
+    const bioRaw = String(form.get('profile-note') ?? '');
+
+    const parsed = ProfileFieldsSchema.safeParse({
+      handle: handleRaw,
+      displayName: displayNameRaw,
+      bio: bioRaw,
+      visibility: mapped.visibility,
+      acceptsAnonymousMail: mapped.acceptsAnonymousMail,
+    });
+    if (!parsed.success) {
+      increment('errors.4xx');
+      const issue = parsed.error.issues[0];
+      return ctx.render(
+        {
+          visibilityChoice: choice === 'selected' || choice === 'anonymous-mail' ? choice : 'private',
+          displayName: displayNameRaw,
+          handle: handleRaw,
+          bio: bioRaw,
+          error: issue?.message ?? 'Check the profile fields.',
+        },
+        { status: 400 },
+      );
     }
 
-    return ctx.render();
+    const displayName = emptyToNull(parsed.data.displayName);
+    const handle = emptyToNull(parsed.data.handle);
+    const bio = emptyToNull(parsed.data.bio);
+
+    const result = await saveProfile(identity.emailHash, {
+      handle,
+      displayName,
+      bio,
+      visibility: parsed.data.visibility,
+      acceptsAnonymousMail: parsed.data.acceptsAnonymousMail,
+    });
+
+    if (!result.ok) {
+      if (result.status === 409) increment('profile.handle_taken');
+      else if (result.status >= 500) increment('errors.5xx');
+      else increment('errors.4xx');
+      return ctx.render(
+        {
+          visibilityChoice: choice === 'selected' || choice === 'anonymous-mail' ? choice : 'private',
+          displayName: displayName ?? '',
+          handle: handle ?? '',
+          bio: bio ?? '',
+          error: result.error,
+        },
+        { status: result.status },
+      );
+    }
+
+    increment('profile.saved');
+    return new Response(null, {
+      status: 302,
+      headers: { Location: profileAfterSavePath(result.visibility, result.handle) },
+    });
   },
 };
 
-export default function ProfileCreatePage() {
+export default function ProfileCreatePage({ data }: PageProps<ProfileCreateData>) {
   return (
     <html lang='en'>
       <head>
@@ -229,29 +315,49 @@ export default function ProfileCreatePage() {
                 <div>
                   <h1 class='profile-create-title'>make a small room</h1>
                   <p class='section-text'>
-                    You selected create a profile. This can be private, public, or some awkward middle interval you
-                    adjust later.
+                    You selected create a profile. The nameplate can stay private, be listed, or accept anonymous mail.
+                    Questionnaire answers stay encrypted. Per-answer publishing is not on this form.
                   </p>
 
-                  <form class='profile-create-form'>
+                  <form class='profile-create-form' method='post' action='/profile-create'>
                     <fieldset class='profile-create-fieldset'>
                       <legend>visibility</legend>
                       <div class='profile-create-radio'>
-                        <input type='radio' id='private' name='visibility' value='private' checked />
+                        <input
+                          type='radio'
+                          id='private'
+                          name='visibility'
+                          value='private'
+                          checked={data.visibilityChoice === 'private'}
+                        />
                         <label for='private'>
-                          private encrypted space. no public answers.
+                          private encrypted space. not listed.
                           <p class='profile-create-note'>The profile exists for you; other visitors do not see it.</p>
                         </label>
                       </div>
                       <div class='profile-create-radio'>
-                        <input type='radio' id='selected' name='visibility' value='selected' />
+                        <input
+                          type='radio'
+                          id='selected'
+                          name='visibility'
+                          value='selected'
+                          checked={data.visibilityChoice === 'selected'}
+                        />
                         <label for='selected'>
-                          selected answers may become public.
-                          <p class='profile-create-note'>Nothing appears publicly until you choose the answers.</p>
+                          listed nameplate. handle, name, and statement appear in /people and at /p/handle.
+                          <p class='profile-create-note'>
+                            Questionnaire answers stay encrypted. Per-answer publishing is not available yet.
+                          </p>
                         </label>
                       </div>
                       <div class='profile-create-radio'>
-                        <input type='radio' id='anonymous-mail' name='visibility' value='anonymous-mail' />
+                        <input
+                          type='radio'
+                          id='anonymous-mail'
+                          name='visibility'
+                          value='anonymous-mail'
+                          checked={data.visibilityChoice === 'anonymous-mail'}
+                        />
                         <label for='anonymous-mail'>
                           private profile plus anonymous mail.
                           <p class='profile-create-note'>
@@ -265,44 +371,51 @@ export default function ProfileCreatePage() {
                       <legend>nameplate</legend>
                       <div class='profile-create-row'>
                         <label for='profile-name'>display name</label>
-                        <input id='profile-name' name='profile-name' placeholder='one self among many' />
+                        <input
+                          id='profile-name'
+                          name='profile-name'
+                          maxlength={PROFILE_DISPLAY_NAME_MAX}
+                          placeholder='one self among many'
+                          value={data.displayName}
+                        />
                       </div>
                       <div class='profile-create-row'>
                         <label for='profile-handle'>handle</label>
-                        <input id='profile-handle' name='profile-handle' placeholder='weather-report' />
+                        <input
+                          id='profile-handle'
+                          name='profile-handle'
+                          maxlength={64}
+                          autocomplete='username'
+                          spellcheck={false}
+                          placeholder='weather-report'
+                          value={data.handle}
+                        />
                       </div>
                       <div class='profile-create-row'>
                         <label for='profile-note'>small statement</label>
                         <textarea
                           id='profile-note'
                           name='profile-note'
+                          maxlength={PROFILE_BIO_MAX}
                           placeholder='Write the thing that may or may not belong under your name.'
                         >
+                          {data.bio}
                         </textarea>
                       </div>
                     </fieldset>
 
-                    <fieldset class='profile-create-fieldset'>
-                      <legend>public answers</legend>
-                      <div class='profile-create-radio'>
-                        <input type='radio' id='answers-none' name='answers' value='none' checked />
-                        <label for='answers-none'>publish none for now</label>
-                      </div>
-                      <div class='profile-create-radio'>
-                        <input type='radio' id='answers-review' name='answers' value='review' />
-                        <label for='answers-review'>take me to a per-answer review screen</label>
-                      </div>
-                      <div class='profile-create-radio'>
-                        <input type='radio' id='answers-all' name='answers' value='all' />
-                        <label for='answers-all'>make all answers public after one more confirmation</label>
-                      </div>
-                    </fieldset>
+                    <p class='profile-create-note'>
+                      Per-answer publishing is not available yet. Visibility only controls the nameplate (handle, name,
+                      statement), not questionnaire answers.
+                    </p>
 
                     <div class='profile-create-actions'>
-                      <button type='button' id='profile-save-btn' class='cta cta-primary'>save this profile</button>
+                      <button type='submit' id='profile-save-btn' class='cta cta-primary'>save this profile</button>
                       <a href='/completion' class='cta'>not tonight</a>
                     </div>
-                    <p id='profile-save-status' class='profile-create-note' role='status' aria-live='polite'></p>
+                    <p id='profile-save-status' class='profile-create-note' role='status' aria-live='polite'>
+                      {data.error ?? ''}
+                    </p>
                   </form>
                 </div>
 
@@ -310,9 +423,9 @@ export default function ProfileCreatePage() {
                   <h2>before anything leaves the room</h2>
                   <ol>
                     <li>private is a complete choice.</li>
-                    <li>public answers require explicit selection.</li>
-                    <li>anonymous mail is separate from answer visibility.</li>
-                    <li>unpublishing should remain available later.</li>
+                    <li>listing a nameplate does not publish answers.</li>
+                    <li>anonymous mail is separate from listing.</li>
+                    <li>you can change the nameplate later.</li>
                   </ol>
 
                   <div class='quote-block' style='margin-top: 2rem;'>
@@ -349,68 +462,7 @@ export default function ProfileCreatePage() {
           </div>
         </footer>
 
-        <script>
-          {`
-          // Progressive enhancement: POST the profile metadata to /api/profile.
-          // Per-answer publishing (the "public answers" fieldset) is deferred,
-          // so only visibility, nameplate, and anonymous-mail are sent here.
-          (function () {
-            var btn = document.getElementById('profile-save-btn');
-            if (!btn) return;
-            var status = document.getElementById('profile-save-status');
-            function val(id) { var el = document.getElementById(id); return el ? el.value.trim() : ''; }
-            function radio(name) {
-              var el = document.querySelector('input[name="' + name + '"]:checked');
-              return el ? el.value : '';
-            }
-            function say(msg) { if (status) { status.textContent = msg; } }
-
-            btn.addEventListener('click', async function () {
-              var vis = radio('visibility');
-              // Map the form's visibility choice onto the profile schema.
-              var visibility = vis === 'selected' ? 'public' : 'private';
-              var acceptsAnonymousMail = vis === 'anonymous-mail';
-              var handle = val('profile-handle').toLowerCase();
-
-              if (visibility === 'public' && !handle) {
-                say('A public profile needs a handle.');
-                return;
-              }
-
-              var original = btn.textContent;
-              btn.disabled = true;
-              btn.textContent = 'saving…';
-              say('');
-
-              try {
-                var res = await fetch('/api/profile', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({
-                    visibility: visibility,
-                    acceptsAnonymousMail: acceptsAnonymousMail,
-                    displayName: val('profile-name'),
-                    bio: val('profile-note'),
-                    handle: handle,
-                  }),
-                });
-                var data = await res.json().catch(function () { return {}; });
-                if (res.ok) {
-                  window.location.href = '/completion';
-                } else {
-                  say(data.error || 'Could not save your profile.');
-                  btn.disabled = false;
-                  btn.textContent = original;
-                }
-              } catch (e) {
-                say('Network error. Please try again.');
-                btn.disabled = false;
-                btn.textContent = original;
-              }
-            });
-          })();
-        `}
-        </script>
+        <script src='/js/profile-create.js'></script>
       </body>
     </html>
   );

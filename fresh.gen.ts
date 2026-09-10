@@ -34,6 +34,8 @@ import * as $gate from './routes/gate.tsx';
 import * as $index from './routes/index.tsx';
 import * as $login from './routes/login.tsx';
 import * as $messenger from './routes/messenger.tsx';
+import * as $p_handle_ from './routes/p/[handle].tsx';
+import * as $people from './routes/people.tsx';
 import * as $privacy from './routes/privacy.tsx';
 import * as $profile_choice from './routes/profile-choice.tsx';
 import * as $profile_create from './routes/profile-create.tsx';
@@ -80,6 +82,8 @@ const manifest = {
     './routes/index.tsx': $index,
     './routes/login.tsx': $login,
     './routes/messenger.tsx': $messenger,
+    './routes/p/[handle].tsx': $p_handle_,
+    './routes/people.tsx': $people,
     './routes/privacy.tsx': $privacy,
     './routes/profile-choice.tsx': $profile_choice,
     './routes/profile-create.tsx': $profile_create,

@@ -39,12 +39,14 @@ if (!databaseUrl) {
 
 // Parse connection string
 const url = new URL(databaseUrl);
+const isLocalhost = url.hostname === 'localhost' || url.hostname === '127.0.0.1';
 const pool = new Pool({
   hostname: url.hostname,
   port: parseInt(url.port) || 5432,
   database: url.pathname.slice(1),
   user: url.username,
   password: decodeURIComponent(url.password),
+  tls: isLocalhost ? { enabled: false, enforce: false } : undefined,
 }, 1);
 
 async function runMigrations() {
@@ -62,7 +64,7 @@ async function runMigrations() {
 
     // Get applied migrations
     const { rows: applied } = await client.queryObject<{ name: string }>(
-      'SELECT name FROM _migrations ORDER BY id'
+      'SELECT name FROM _migrations ORDER BY id',
     );
     const appliedNames = new Set(applied.map((r) => r.name));
 
@@ -94,7 +96,7 @@ async function runMigrations() {
         await client.queryObject(sql);
         await client.queryObject(
           'INSERT INTO _migrations (name) VALUES ($1)',
-          [migration]
+          [migration],
         );
         await client.queryObject('COMMIT');
         console.log(`[migrate] Applied: ${migration}`);

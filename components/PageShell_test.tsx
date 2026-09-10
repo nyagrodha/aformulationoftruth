@@ -49,6 +49,16 @@ Deno.test('PageShell footer links to about, contact and privacy', () => {
  * page and this shell had drifted onto separate headers and only one of them
  * ever carried the link.
  */
+Deno.test('PageShell nav reaches people', () => {
+  const html = render(
+    <PageShell title='t' description='d'>
+      <span />
+    </PageShell>,
+  );
+  assertStringIncludes(html, 'href="/people"');
+  assertStringIncludes(html, 'people');
+});
+
 Deno.test('PageShell nav reaches the gift shop', () => {
   const html = render(
     <PageShell title='t' description='d'>

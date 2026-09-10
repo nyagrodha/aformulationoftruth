@@ -18,6 +18,23 @@ jobs:
   check:
     runs-on: ubuntu-latest
 
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: a4ot
+          POSTGRES_DB: a4ot
+          # Disposable job database. Trust auth avoids embedding a password
+          # that secret scanners treat as a credential.
+          POSTGRES_HOST_AUTH_METHOD: trust
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U a4ot -d a4ot"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -47,12 +64,19 @@ jobs:
           deno check \
             main.ts \
             lib/gate_encrypt.ts \
+            lib/profiles.ts \
+            lib/profile-session.ts \
             data/shop.ts \
             components/PageShell.tsx \
             routes/about.tsx \
             routes/shop.tsx \
             routes/about/confession-albums.tsx \
-            routes/about/respondents.tsx
+            routes/about/respondents.tsx \
+            routes/api/profile.ts \
+            routes/people.tsx \
+            routes/p/\[handle\].tsx \
+            routes/profile-create.tsx \
+            routes/profile-choice.tsx
 
       # islands/ carries Nav_test, whose `PAGE_NAV points at nothing that does
       # not exist` case is the guard against a nav link to a page that is not
@@ -66,14 +90,24 @@ jobs:
       # QuaternarySpheroid.tsx and Spheroid.tsx predate the singleQuote setting, so
       # widening `deno fmt --check` to it would fail on drift no one here
       # introduced. Format those two, then widen the fmt step separately.
+      - name: Migrate
+        env:
+          DATABASE_URL: postgres://a4ot@localhost:5432/a4ot
+        run: deno run --allow-net --allow-env --allow-read migrate.ts
+
       - name: Test
+        env:
+          DATABASE_URL: postgres://a4ot@localhost:5432/a4ot
         run: |
           deno test --allow-env --allow-read --allow-net \
             data/ \
             components/ \
             islands/ \
             lib/gate_encrypt_test.ts \
+            lib/profiles_test.ts \
             routes/shop_test.tsx \
+            routes/api/profile_test.ts \
+            routes/profile-create_test.tsx \
             routes/about_test.tsx \
             routes/messenger_test.tsx \
             routes/about/

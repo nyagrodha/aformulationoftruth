@@ -12,11 +12,12 @@ on:
 
 jobs:
   claude-review:
-    # Optional: Filter by PR author
-    # if: |
-    #   github.event.pull_request.user.login == 'external-contributor' ||
-    #   github.event.pull_request.user.login == 'new-developer' ||
-    #   github.event.pull_request.author_association == 'FIRST_TIME_CONTRIBUTOR'
+    # Copilot-opened PRs set github.actor to Copilot, which is not a GitHub
+    # user. Anthropic's OIDC exchange then 401s before any allowlist is
+    # consulted (anthropics/claude-code-action#1017). Skip the job for that
+    # actor instead of handing the workflow a write token. Human-opened PRs
+    # still review via OIDC. This check is not required.
+    if: github.actor != 'Copilot' && github.actor != 'cursor[bot]'
 
     runs-on: ubuntu-latest
     permissions:
@@ -41,4 +42,3 @@ jobs:
           prompt: '/code-review:code-review ${{ github.repository }}/pull/${{ github.event.pull_request.number }}'
           # See https://github.com/anthropics/claude-code-action/blob/main/docs/usage.md
           # or https://code.claude.com/docs/en/cli-reference for available options
-
