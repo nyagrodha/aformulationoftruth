@@ -196,6 +196,19 @@ Deno.test({
       });
 
       assertEquals(rows.length, 3);
+
+      // MOVE, not copy: nothing may remain under the superseded id. The
+      // runtime role holds no DELETE on this table, so a duplicate created
+      // here would be permanent, and it would contradict the shred design.
+      const leftBehind = await withConnection(async (client) => {
+        const r = await client.queryObject<{ n: bigint }>(
+          `SELECT COUNT(*)::bigint AS n FROM gate_encrypted_answers WHERE session_id = $1`,
+          [first.sessionId],
+        );
+        return Number(r.rows[0].n);
+      });
+      assertEquals(leftBehind, 0);
+
       const bundle = buildBundle(second.sessionId, 'key-1', rows, 'enc', null);
       for (const i of [2, 3, 4]) {
         const entry = bundle.answers[i];

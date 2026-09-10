@@ -54,14 +54,22 @@ instruction or file that says otherwise is stale.
 
 ```bash
 deno task dev          # local server (see .env; DATABASE_URL is deliberately unset)
-deno task test         # the whole suite
+deno task test         # everything, including ~46 pre-existing failures (see below)
 deno task hooks        # point git at hooks/pre-commit (zero-logging + secrets checks)
 deno fmt && deno lint  # singleQuote, 2 spaces, 120 cols (deno.json)
 ```
 
+`deno task test` runs every test file, and some of them have carried type errors
+and failures for a long time (`tests/newsletter_test.ts`, `tests/contact_test.ts`,
+`tests/questionnaire_e2e_test.ts`, which needs a running server). A green run is
+not the bar; "no new failures against a baseline run" is. CI does not run the
+whole tree: `.github/workflows/ci.yml` names its test files explicitly so the
+clean ones get the type check. Run a single file with
+`deno test --allow-env --allow-read --allow-net path/to/x_test.ts`.
+
 Database-backed tests gate on `DATABASE_URL` and skip silently without it. CI
-(`.github/workflows/ci.yml`) provides a Postgres service and mints the test
-secrets per run; do not commit literals that look like credentials.
+provides a Postgres service and mints the test secrets per run; do not commit
+literals that look like credentials.
 
 ### Environment
 

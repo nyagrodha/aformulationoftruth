@@ -238,14 +238,16 @@ export async function recordVisit(
       counters.truncated = true;
       increment('visits.set_capped');
     }
-    return;
+  } else {
+    bucket.add(digest);
   }
-  bucket.add(digest);
 
   // The window may have been closed and written through while audienceHash()
   // was in flight, in which case this visit landed after its flush. Write it
   // through again: persist() merges with GREATEST, so a second pass can only
   // raise the stored count, and it happens once per straggler at a boundary.
+  // No early return above: the capped branch still moved requests and maybe
+  // truncated, and those need the same write-through.
   if (w !== open) {
     persist(w).catch(() => increment('errors.db.audience_flush'));
   }
