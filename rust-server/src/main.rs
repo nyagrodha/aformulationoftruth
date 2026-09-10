@@ -264,6 +264,15 @@ async fn main() -> anyhow::Result<()> {
     let bind: SocketAddr = env::var("GATE_BIND")
         .unwrap_or_else(|_| DEFAULT_BIND.to_string())
         .parse()?;
+    // /api/store is unauthenticated on purpose: the Fresh app reaches it over
+    // loopback and answer plaintext never leaves the host. A non-loopback bind
+    // would hand that endpoint to whoever can reach the interface, so refuse
+    // it here rather than trust every deployment to remember.
+    if !bind.ip().is_loopback() {
+        anyhow::bail!(
+            "GATE_BIND must be a loopback address, got {bind}: /api/store is unauthenticated"
+        );
+    }
     // Required, deliberately with no fallback. This service shares the Fresh
     // app's Postgres; a default would either point somewhere wrong or silently
     // create a second store, which is the split this consolidation removes.
