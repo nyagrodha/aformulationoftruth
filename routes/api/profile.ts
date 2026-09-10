@@ -64,6 +64,26 @@ const ProfileSchema = z.object({
   acceptsAnonymousMail: z.boolean().optional().default(false),
 });
 
+/**
+ * Why a public profile was refused, or null if the handle may be stored.
+ *
+ * Public profiles are addressed at /p/<handle>, so a missing handle is
+ * unroutable and a reserved one would shadow a real page. Private profiles
+ * may omit a handle entirely.
+ */
+export function profileHandleError(
+  handle: string | null,
+  visibility: 'private' | 'public',
+): string | null {
+  if (visibility === 'public' && !handle) {
+    return 'A public profile needs a handle.';
+  }
+  if (handle && (!HANDLE_RE.test(handle) || RESERVED_HANDLES.has(handle))) {
+    return 'That handle is not available.';
+  }
+  return null;
+}
+
 function getCookie(cookieHeader: string | null, name: string): string | null {
   if (!cookieHeader) return null;
   const match = cookieHeader.match(new RegExp(`(?:^|;\\s*)${name}=([^;]*)`));
@@ -122,15 +142,10 @@ export const handler: Handlers = {
 
     // Public profiles are addressed by handle, so it is required and must
     // be well-formed and not shadow a real route.
-    if (visibility === 'public') {
-      if (!handle) {
-        increment('errors.4xx');
-        return json({ error: 'A public profile needs a handle.' }, 400);
-      }
-    }
-    if (handle && (!HANDLE_RE.test(handle) || RESERVED_HANDLES.has(handle))) {
+    const handleError = profileHandleError(handle, visibility);
+    if (handleError) {
       increment('errors.4xx');
-      return json({ error: 'That handle is not available.' }, 400);
+      return json({ error: handleError }, 400);
     }
 
     // Step 3: Upsert the profile for this identity.
