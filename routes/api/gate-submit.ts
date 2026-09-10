@@ -77,7 +77,8 @@ export function buildMagicLinkUrl(
  *
  * Deliberately not a general hook -- it holds a URL that is already leaving via
  * email, and nothing reads it in production. It exists so the end-to-end test
- * can complete the flow without a mailbox.
+ * can complete the flow without a mailbox, and it is only written when
+ * DENO_ENV is 'test', so production never retains the link at all.
  */
 export const magicLinkForTesting: { last: string | null } = { last: null };
 
@@ -225,7 +226,9 @@ export const handler: Handlers = {
       // Step 8: Send magic link email. The URL is handed to the seam below
       // first, so an end-to-end test can follow exactly the link a respondent
       // would receive without anything being posted to a mail server.
-      magicLinkForTesting.last = magicLinkUrl;
+      // Only under test: in production this would hold a live authentication
+      // URL in process memory for no reader.
+      if (Deno.env.get('DENO_ENV') === 'test') magicLinkForTesting.last = magicLinkUrl;
       const emailResult = await sendMagicLinkEmail(email, magicLinkUrl);
 
       if (!emailResult.success) {
