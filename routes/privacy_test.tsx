@@ -60,6 +60,12 @@ Deno.test('privacy page describes the visitor count honestly', () => {
   const html = render(<PrivacyPage />);
   assertStringIncludes(html, 'count how many people visit, and nothing else');
   assertStringIncludes(html, 'We do not track');
+  // The page once said "No identifier for you is kept", which was false for
+  // the four hours a window is open: lib/audience.ts holds a keyed hash in
+  // memory for exactly that long. Bounded retention must be stated as such.
+  assertStringIncludes(html, 'in memory for at most four hours');
+  assertStringIncludes(html, 'destroyed when that window closes');
+  assertEquals(html.includes('No identifier for you is kept'), false);
 });
 
 /*
