@@ -96,8 +96,11 @@ async function decryptWith(identity: string, ciphertext: string): Promise<string
  * `finally`, so a failure anywhere does not leave the decrypted questionnaire
  * on the floor.
  */
-export async function handleBundle(bundle: DeliveryBundle): Promise<void> {
-  const identity = await loadIdentity(KEY_DIR, bundle.keyId);
+export async function handleBundle(bundle: DeliveryBundle, keyDir = KEY_DIR): Promise<void> {
+  // By keyId, the gate token the identity was filed under -- NOT sessionId.
+  // Conflating the two is why no PDF was ever produced; the test in
+  // tests/service_test.ts pins which field reaches the key store.
+  const identity = await loadIdentity(keyDir, bundle.keyId);
   // NOT Deno.makeTempDir({ dir }): that demands blanket filesystem access
   // (NotCapable: "Requires all access to /dev/shm") even with --allow-read and
   // --allow-write granted, which would force the service to run --allow-all.
@@ -137,7 +140,7 @@ export async function handleBundle(bundle: DeliveryBundle): Promise<void> {
 
     // Only after the send succeeded. Recording a delivery that did not happen
     // would start the shred clock on a key still needed.
-    await markDelivered(KEY_DIR, bundle.keyId, new Date());
+    await markDelivered(keyDir, bundle.keyId, new Date());
     await notifyDelivered(bundle.sessionId);
   } finally {
     await Deno.remove(work, { recursive: true }).catch(() => {});
