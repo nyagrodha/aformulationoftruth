@@ -81,8 +81,9 @@ set. Notable: `JWT_SECRET`, `RESUME_TOKEN_SECRET`, `DATABASE_URL`, `BASE_URL`,
 ### Database
 
 Schema lives in `db/migrations/*.sql`, applied in order by `migrate.ts`.
-Tables store hashes and ciphertext only; there is no plaintext email, address
-or answer anywhere in Postgres.
+Questionnaire tables store hashes and ciphertext; the audience table stores
+aggregate integer counts. There is no plaintext email, address or answer
+anywhere in Postgres.
 
 ### Testing Strategy
 
