@@ -73,7 +73,12 @@ jobs:
             components/ \
             islands/ \
             lib/gate_encrypt_test.ts \
+            lib/questions_contract_test.ts \
             routes/shop_test.tsx \
             routes/about_test.tsx \
             routes/messenger_test.tsx \
+            routes/4m_test.tsx \
+            routes/index_gate_form_test.tsx \
+            routes/completion_consent_test.tsx \
+            routes/api/gate-submit_form_test.ts \
             routes/about/
