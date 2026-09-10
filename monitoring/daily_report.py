@@ -487,7 +487,6 @@ def get_questionnaire_stats(target_date: datetime) -> Dict[str, Any]:
         'in_progress': 'N/A',
         'questionnaire_answers_total': 'N/A', 'questionnaire_answers_today': 'N/A',
         'questionnaire_answer_sessions': 'N/A',
-        'links_sent_today': 'N/A', 'links_used_today': 'N/A',
         'pdfs_today': 'N/A', 'pdfs_total': 'N/A', 'pdf_note': None,
     }
 
@@ -567,15 +566,13 @@ def get_questionnaire_stats(target_date: datetime) -> Dict[str, Any]:
     if v is not None and v.isdigit():
         stats['questionnaire_answers_today'] = int(v)
 
-    # Sent vs used is the honest read on delivery: a link that is never clicked
-    # is either undelivered, in a spam folder, or unwanted, and the three look
-    # identical from here -- but a collapse in the ratio is visible immediately.
-    v = _psql(
-        "SELECT COUNT(*), COUNT(used_at) FROM fresh_magic_links "
-        f"WHERE created_at::date = '{d}'"
-    )
-    if v and '|' in v:
-        stats['links_sent_today'], stats['links_used_today'] = (int(x) for x in v.split('|'))
+    # Links sent and opened now come from the app's own counters
+    # (auth.magiclink.sent / .verified, see get_metrics_stats). They used to be
+    # read from fresh_magic_links, dropped in migration 015: the token that
+    # table recorded was never placed in the link, so nothing could mark it
+    # used on a click. What COUNT(used_at) actually counted was rows the NEXT
+    # request from the same address had invalidated -- a re-request rate
+    # reported as an open rate.
 
     # pdf_delivered_at arrives with migration 010. Until that is applied the
     # column is absent, and asking for it would error -- so check first and say
@@ -651,7 +648,9 @@ def health(q: Dict[str, Any], caddy: Dict[str, Any],
     posts, rows = _num(caddy.get('gate_submissions_ok')), _num(q.get('gate_submissions_today'))
     out['posts_lost'] = int(posts - rows) if posts is not None and rows is not None and posts > rows else 0
 
-    sent, used = _num(q.get('links_sent_today')), _num(q.get('links_used_today'))
+    # From the app's counters: sent is incremented after a successful send,
+    # verified when /auth/verify accepts the link. Both are real events.
+    sent, used = _num(m.get('magic_links_sent')), _num(m.get('magic_links_verified'))
     out['links_unsent'] = int(rows - sent) if rows is not None and sent is not None and rows > sent else 0
     out['open_rate'] = int(used * 100 // sent) if sent else None
     # Everyone who submitted successfully and heard nothing back, however the
@@ -1335,7 +1334,7 @@ def generate_report(
             + (f", {plural(h['posts_lost'], 'post')} unstored" if h['posts_lost'] else "")))
     checks.extend(verdict(
         "Delivery", h['heard_nothing'] == 0,
-        plural(q_stats['links_sent_today'], 'link') + " sent"
+        plural(metrics_stats.get('magic_links_sent', 'N/A'), 'link') + " sent"
         + (f", {h['heard_nothing']} submissions got none back"
            if h['heard_nothing'] else "")
         + (f", {h['open_rate']}% opened" if h['open_rate'] is not None else "")))
@@ -1432,17 +1431,18 @@ def generate_report(
         "",
     ] + heading(
         "Delivery",
-        "the database for what was sent and opened, the app's counters for "
-        "what failed -- a refusal leaves no row to count",
+        "the app's counters throughout: sent on a successful send, opened when "
+        "/auth/verify accepts the link, and failures that leave no row to count",
     ) + line(
-        "Magic links sent", q_stats['links_sent_today'],
+        "Magic links sent", metrics_stats.get('magic_links_sent', 'N/A'),
         f"{h['heard_nothing']} accepted submissions produced no link at all: "
         f"{h['posts_lost']} were never stored and {h['links_unsent']} were "
         "stored without one being sent. Those people handed over an address "
         "and got nothing back."
         if h['heard_nothing'] else "",
     ) + rate(
-        "Magic links opened", q_stats['links_used_today'], q_stats['links_sent_today'],
+        "Magic links opened", metrics_stats.get('magic_links_verified', 'N/A'),
+        metrics_stats.get('magic_links_sent', 'N/A'),
         "Unopened covers undelivered, filed as spam, and unwanted alike -- "
         "the three are indistinguishable from here. A collapse in the "
         "proportion is not.",
@@ -1688,8 +1688,8 @@ def generate_report(
         'finished_today': q_stats.get('finished_today'),
         'finished_total': q_stats.get('finished_total'),
         'superseded_today': q_stats.get('superseded_today'),
-        'links_sent_today': q_stats.get('links_sent_today'),
-        'links_used_today': q_stats.get('links_used_today'),
+        'links_sent_today': metrics_stats.get('magic_links_sent'),
+        'links_used_today': metrics_stats.get('magic_links_verified'),
         'pdfs_today': q_stats.get('pdfs_today'),
         'pdfs_total': q_stats.get('pdfs_total'),
         'newsletter_total': newsletter_stats.get('total_subscribers'),

@@ -39,7 +39,6 @@ Deno.test({
 
     const data = await response.json();
     assertExists(data.message);
-    assertExists(data.expiresAt);
     assertStringIncludes(data.message, 'Magic link sent');
   },
 });

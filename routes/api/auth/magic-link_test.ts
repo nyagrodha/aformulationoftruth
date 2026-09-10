@@ -138,9 +138,10 @@ Deno.test({
     // Documentation test - validates expected response schema format
     // Does NOT exercise runtime code; see integration tests for actual behavior
 
+    // No expiresAt field: the one this response used to carry came from the
+    // fresh_magic_links row (dropped in migration 015) and nothing enforced it.
     const expectedDevResponse = {
       message: 'Magic link sent',
-      expiresAt: '2024-01-01T00:15:00.000Z',
       _devLink: 'http://localhost:8000/auth/verify?token=jwt&resume=opaque',
       _devJWT: 'eyJhbG...',
       _devResume: 'abc123...',
@@ -149,17 +150,12 @@ Deno.test({
 
     // Verify all required fields exist
     assertExists(expectedDevResponse.message);
-    assertExists(expectedDevResponse.expiresAt);
 
     // In dev mode, verify debug fields exist
     assertExists(expectedDevResponse._devLink);
     assertExists(expectedDevResponse._devJWT);
     assertExists(expectedDevResponse._devResume);
     assertExists(expectedDevResponse._devSessionId);
-
-    // Verify expiresAt is ISO date format
-    const date = new Date(expectedDevResponse.expiresAt);
-    assertEquals(isNaN(date.getTime()), false);
   },
 });
 
@@ -231,16 +227,18 @@ Deno.test({
 
 // Test group: Token Expiration
 Deno.test({
-  name: 'doc: magic-link expiration is ~15 minutes from creation',
+  name: 'doc: a magic link is valid for as long as its JWT, 24 hours',
   fn() {
-    // Documentation test - demonstrates expected expiration calculation
-    // Does NOT verify runtime behavior of createMagicLink
+    // Documentation test. This used to claim ~15 minutes, which was the expiry
+    // of a fresh_magic_links row that nothing ever checked (dropped in
+    // migration 015). What /auth/verify actually enforces is the JWT's exp,
+    // and lib/jwt.ts sets JWT_VALIDITY_HOURS = 24.
     const now = new Date();
-    const expectedExpiry = new Date(now.getTime() + 15 * 60 * 1000);
+    const expectedExpiry = new Date(now.getTime() + 24 * 60 * 60 * 1000);
 
     // Allow 1 minute tolerance
-    const minExpiry = new Date(now.getTime() + 14 * 60 * 1000);
-    const maxExpiry = new Date(now.getTime() + 16 * 60 * 1000);
+    const minExpiry = new Date(now.getTime() + (24 * 60 - 1) * 60 * 1000);
+    const maxExpiry = new Date(now.getTime() + (24 * 60 + 1) * 60 * 1000);
 
     assertEquals(expectedExpiry >= minExpiry, true);
     assertEquals(expectedExpiry <= maxExpiry, true);

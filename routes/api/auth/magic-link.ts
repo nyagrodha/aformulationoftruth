@@ -24,7 +24,6 @@
 
 import { Handlers } from '$fresh/server.ts';
 import { z } from 'zod';
-import { createMagicLink } from '../../../lib/auth.ts';
 import { hashEmail } from '../../../lib/crypto.ts';
 import { createQuestionnaireSession } from '../../../lib/questionnaire-session.ts';
 import { createQuestionnaireJWT } from '../../../lib/jwt.ts';
@@ -64,10 +63,7 @@ export const handler: Handlers = {
     try {
       const { email, gateToken } = parsed.data;
 
-      // Step 1: Create magic link (for email delivery verification)
-      const { token: magicToken, expiresAt } = await createMagicLink(email);
-
-      // Step 2: Hash email immediately
+      // Step 1: Hash email immediately
       const emailHash = await hashEmail(email);
 
       // Step 3: Create or resume questionnaire session
@@ -111,12 +107,14 @@ export const handler: Handlers = {
       increment('auth.magiclink.sent');
 
       // Log only that a link was created, not for whom
-      console.log('[auth] Magic link created, expires:', expiresAt.toISOString());
+      console.log('[auth] Magic link created');
 
+      // No expiresAt: the value this used to carry was the fresh_magic_links
+      // row's 15 minutes, which nothing enforced -- the link is good for as
+      // long as its JWT is -- and no client read it.
       return new Response(
         JSON.stringify({
           message: 'Magic link sent',
-          expiresAt: expiresAt.toISOString(),
           // Development only - remove in production
           ...(Deno.env.get('DENO_ENV') !== 'production' && {
             _devLink: magicLinkUrl,

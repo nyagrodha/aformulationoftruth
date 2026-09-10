@@ -17,7 +17,6 @@
 import { Handlers } from '$fresh/server.ts';
 import { z } from 'zod';
 import { withConnection } from '../../lib/db.ts';
-import { createMagicLink } from '../../lib/auth.ts';
 import { hashEmail } from '../../lib/crypto.ts';
 import { createQuestionnaireSession, type SessionCreationResult } from '../../lib/questionnaire-session.ts';
 import { createQuestionnaireJWT } from '../../lib/jwt.ts';
@@ -174,11 +173,6 @@ export const handler: Handlers = {
           : '[gate-submit] New session; gate answers encrypted and stored',
       );
 
-      // Step 3: Create magic link. The cleanup is kept for the send-failure
-      // path below: createMagicLink's contract is that a link whose email
-      // never went out is invalidated, not left live until it expires.
-      const { expiresAt, cleanup: cleanupMagicLink } = await createMagicLink(email);
-
       // Step 4b: If this entry began at a wearable's QR (/w/:token planted
       // the cookie), record the encounter -- pseudonymous, hash only.
       // Silent rate cap per token (no oracle for abusers); failures never
@@ -235,15 +229,13 @@ export const handler: Handlers = {
         // Status only — the error may carry the recipient address (CLAUDE.md).
         console.error('[gate-submit] Email delivery failed');
         increment('errors.email');
-        // Never throws; a cleanup failure must not change the response.
-        await cleanupMagicLink();
         return fail(500, 'Failed to send magic link email. Please try again.', 'send');
       }
 
       increment('auth.magiclink.sent');
       increment('questionnaire.started');
 
-      console.log('[gate-submit] Magic link sent, expires:', expiresAt.toISOString());
+      console.log('[gate-submit] Magic link sent');
 
       // Native form path: 303-redirect to the no-JS success page.
       // JSON clients get the structured response.
@@ -254,11 +246,11 @@ export const handler: Handlers = {
         });
       }
 
+      // No expiresAt: the value this used to carry was the fresh_magic_links
+      // row's 15 minutes, which nothing enforced -- the link is good for as
+      // long as its JWT is -- and no client read it.
       return new Response(
-        JSON.stringify({
-          message: 'Magic link sent',
-          expiresAt: expiresAt.toISOString(),
-        }),
+        JSON.stringify({ message: 'Magic link sent' }),
         { status: 200, headers: { 'Content-Type': 'application/json' } },
       );
     } catch {
