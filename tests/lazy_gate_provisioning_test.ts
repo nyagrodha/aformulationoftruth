@@ -347,6 +347,42 @@ Deno.test({
   },
 });
 
+Deno.test({
+  name: 'lazy gate (db) - a token already linked to someone else is never pulled across',
+  ignore: !hasDb,
+  async fn() {
+    // The magic-link route takes the token from the request body. A row
+    // already linked to another respondent's session must stay theirs: their
+    // answers are sealed to that row's keypair, and re-linking it would leave
+    // their session with no gate and their delivery with no key.
+    const { createQuestionnaireSession } = await import('../lib/questionnaire-session.ts');
+    const { withConnection } = await import('../lib/db.ts');
+
+    const owner = randomHash();
+    const intruder = randomHash();
+    const tokenA = crypto.randomUUID();
+
+    await withConnection(async (client) => {
+      await client.queryObject(
+        `INSERT INTO fresh_gate_responses (gate_token, session_pubkey, encrypted_email)
+         VALUES ($1, $2, $3)`,
+        [tokenA, 'age1test', 'enc-test'],
+      );
+    });
+
+    try {
+      const owned = await createQuestionnaireSession(owner, tokenA);
+      assertEquals(await linkedSessionOf(tokenA), owned.sessionId);
+
+      await createQuestionnaireSession(intruder, tokenA);
+      assertEquals(await linkedSessionOf(tokenA), owned.sessionId, 'the link must not move');
+    } finally {
+      await cleanup(owner, [tokenA]);
+      await cleanup(intruder, []);
+    }
+  },
+});
+
 // ------------------------------------------------------------------ helpers
 
 function randomHash(): string {

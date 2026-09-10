@@ -33,7 +33,8 @@ import { sendMagicLinkEmail } from '../../../lib/email.ts';
 
 const RequestSchema = z.object({
   email: z.string().email(),
-  gateToken: z.string().optional(), // Optional gate token to link gate responses
+  // Optional gate token to link gate responses. VARCHAR(64) in the schema.
+  gateToken: z.string().max(64).optional(),
 });
 
 export const handler: Handlers = {

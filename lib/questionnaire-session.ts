@@ -346,12 +346,14 @@ export async function createQuestionnaireSession(
     }
 
     // First-time respondent, or a resuming one whose prior session had no gate
-    // row at all (the magic-link-only path).
+    // row at all (the magic-link-only path). Only an UNLINKED row: the token
+    // can arrive from a client on the magic-link route, and a row already
+    // linked to someone else's session must not be pulled across to this one.
     if (linked === 0 && freshGateToken) {
       await client.queryObject(
         `UPDATE fresh_gate_responses
          SET linked_session_id = $1
-         WHERE gate_token = $2`,
+         WHERE gate_token = $2 AND linked_session_id IS NULL`,
         [sessionId, freshGateToken],
       );
     }
