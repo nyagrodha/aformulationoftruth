@@ -66,14 +66,34 @@ jobs:
       # QuaternarySpheroid.tsx and Spheroid.tsx predate the singleQuote setting, so
       # widening `deno fmt --check` to it would fail on drift no one here
       # introduced. Format those two, then widen the fmt step separately.
+      #
+      # Do not widen to tests/: ~449 pre-existing type errors (Jest globals,
+      # missing drizzle-orm) fail before any test executes.
       - name: Test
         run: |
-          deno test --allow-env --allow-read --allow-net \
+          deno test --allow-env --allow-read --allow-net --allow-write --allow-run \
             data/ \
             components/ \
             islands/ \
             lib/gate_encrypt_test.ts \
+            lib/audience_test.ts \
+            lib/client-ip_test.ts \
+            lib/qr-scans_test.ts \
+            lib/email_test.ts \
+            lib/email_argv_test.ts \
+            lib/session-keys_transport_test.ts \
+            lib/unhandled_rejection_test.ts \
+            lib/rust_recipient_log_test.ts \
             routes/shop_test.tsx \
             routes/about_test.tsx \
             routes/messenger_test.tsx \
-            routes/about/
+            routes/privacy_test.tsx \
+            routes/contact-form_script_test.ts \
+            routes/WillyStCo-op_test.ts \
+            routes/WillyStCoop_test.ts \
+            routes/api/gate-submit_test.ts \
+            routes/about/ \
+            romania/tests/keystore_test.ts \
+            romania/tests/service_test.ts \
+            romania/tests/render_argv_test.ts \
+            romania/tests/render_service_contract_test.ts
