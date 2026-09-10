@@ -157,3 +157,7 @@ docker/pyaz/
 !package-lock.json
 .playwright-mcp/
 **/.playwright-mcp/
+
+# Python bytecode; py_compile and the monitoring scripts both produce it
+__pycache__/
+*.pyc
