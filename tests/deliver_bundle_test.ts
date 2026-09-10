@@ -5,8 +5,9 @@
  * Run with: deno task test
  */
 
-import { assert, assertEquals, assertThrows } from 'https://deno.land/std@0.208.0/assert/mod.ts';
+import { assert, assertEquals, assertNotEquals, assertThrows } from 'https://deno.land/std@0.208.0/assert/mod.ts';
 import { buildBundle, CANONICAL_COUNT, consentFrom } from '../routes/api/responses/deliver.ts';
+import type { DeliveryBundle } from '../lib/romania-client.ts';
 
 const rows = [
   { question_index: 7, question_text: 'q7', ciphertext: 'ct7', skipped: false },
@@ -150,4 +151,85 @@ Deno.test('buildBundle - carries the key id the identity was filed under', () =>
 
   assertEquals(bundle.keyId, '11111111-2222-3333-4444-555555555555');
   assertEquals(bundle.sessionId, 'b'.repeat(64));
+});
+
+// ── the endpoint itself: gate token → keyId, session id → sessionId ─────────
+
+/**
+ * Every test above hands buildBundle its ids directly. The ENDPOINT is what
+ * reads row.gate_token and maps it to keyId before pushBundle, and a regression
+ * there -- a fallback to the session id, say -- passes all of the above while
+ * reproducing the ENOENT this route exists to fix. So walk the endpoint: seed a
+ * session with a linked gate row, POST consent, capture what pushBundle hands
+ * the key box, and assert the two ids are the two DIFFERENT strings they must
+ * be. Database-backed, so it skips itself without DATABASE_URL, as the rest of
+ * the (db) cases do.
+ */
+Deno.test({
+  name: 'deliver (db) - the endpoint files keyId under the gate token, not the session id',
+  ignore: !Deno.env.get('DATABASE_URL'),
+  async fn() {
+    const { createQuestionnaireSession } = await import('../lib/questionnaire-session.ts');
+    const { withConnection } = await import('../lib/db.ts');
+    const { handler } = await import('../routes/api/responses/deliver.ts');
+
+    // The key box is reached through fetch; stand in for it and keep the body.
+    const ENV_KEYS = ['KEYBOX_RENDER_URL', 'KEYBOX_RENDER_TOKEN', 'BREAKGLASS_AGE_RECIPIENT'] as const;
+    const savedEnv = Object.fromEntries(ENV_KEYS.map((k) => [k, Deno.env.get(k)]));
+    Deno.env.set('KEYBOX_RENDER_URL', 'http://keybox.invalid');
+    Deno.env.set('KEYBOX_RENDER_TOKEN', 'test-token');
+    Deno.env.set('BREAKGLASS_AGE_RECIPIENT', 'age1breakglass');
+
+    const originalFetch = globalThis.fetch;
+    const pushed: DeliveryBundle[] = [];
+    globalThis.fetch = (_input: string | URL | Request, init?: RequestInit): Promise<Response> => {
+      pushed.push(JSON.parse(String(init?.body)));
+      return Promise.resolve(new Response(null, { status: 200 }));
+    };
+
+    const emailHash = Array.from(
+      crypto.getRandomValues(new Uint8Array(32)),
+      (b) => b.toString(16).padStart(2, '0'),
+    ).join('');
+    const gateToken = crypto.randomUUID();
+
+    try {
+      const session = await createQuestionnaireSession(emailHash, async (client) => {
+        await client.queryObject(
+          `INSERT INTO fresh_gate_responses (gate_token, session_pubkey, encrypted_email)
+           VALUES ($1, $2, $3)`,
+          [gateToken, 'age1test', 'enc-test'],
+        );
+        return gateToken;
+      });
+
+      const res = await handler.POST!(
+        new Request('http://localhost/api/responses/deliver', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ consent: 'yes', resume_token: session.opaqueToken }),
+        }),
+        {} as never,
+      );
+      await res.body?.cancel();
+
+      assertEquals(res.status, 200);
+      assertEquals(pushed.length, 1, 'exactly one bundle reaches the key box');
+      assertEquals(pushed[0].keyId, gateToken, 'opened with the gate token the identity was filed under');
+      assertEquals(pushed[0].sessionId, session.sessionId, 'reported against the session');
+      assertNotEquals(pushed[0].keyId, pushed[0].sessionId);
+    } finally {
+      globalThis.fetch = originalFetch;
+      for (const k of ENV_KEYS) {
+        const v = savedEnv[k];
+        if (v === undefined) Deno.env.delete(k);
+        else Deno.env.set(k, v);
+      }
+      // Gate row first: its linked_session_id references the session.
+      await withConnection(async (client) => {
+        await client.queryObject(`DELETE FROM fresh_gate_responses WHERE gate_token = $1`, [gateToken]);
+        await client.queryObject(`DELETE FROM fresh_questionnaire_sessions WHERE email_hash = $1`, [emailHash]);
+      });
+    }
+  },
 });

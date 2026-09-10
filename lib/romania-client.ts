@@ -11,8 +11,12 @@
  * flight, but not the corpus.
  */
 
-const KEYBOX_URL = Deno.env.get('KEYBOX_RENDER_URL') || '';
-const KEYBOX_TOKEN = Deno.env.get('KEYBOX_RENDER_TOKEN') || '';
+// Read per call, not at import. Deno caches modules for the life of the test
+// process, so a top-level read would freeze whatever the FIRST importing test
+// file saw, and an endpoint test that configures the key box after that could
+// never reach pushBundle's fetch. A push is one env lookup per render; cheap.
+const keyboxUrl = (): string => Deno.env.get('KEYBOX_RENDER_URL') || '';
+const keyboxToken = (): string => Deno.env.get('KEYBOX_RENDER_TOKEN') || '';
 const PUSH_TIMEOUT_MS = 20_000;
 
 export interface BundleAnswer {
@@ -54,7 +58,7 @@ export class KeyboxUnavailableError extends Error {
 }
 
 export function keyboxConfigured(): boolean {
-  return Boolean(KEYBOX_URL && KEYBOX_TOKEN);
+  return Boolean(keyboxUrl() && keyboxToken());
 }
 
 /**
@@ -69,11 +73,11 @@ export async function pushBundle(bundle: DeliveryBundle): Promise<void> {
 
   let res: Response;
   try {
-    res = await fetch(`${KEYBOX_URL}/render`, {
+    res = await fetch(`${keyboxUrl()}/render`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${KEYBOX_TOKEN}`,
+        'Authorization': `Bearer ${keyboxToken()}`,
       },
       body: JSON.stringify(bundle),
       signal: AbortSignal.timeout(PUSH_TIMEOUT_MS),

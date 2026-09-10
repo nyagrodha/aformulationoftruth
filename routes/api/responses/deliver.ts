@@ -197,7 +197,13 @@ export const handler: Handlers = {
       // no address encrypted to one, so no copy can be produced. Say so plainly
       // rather than accepting the request and failing silently in a queue the
       // respondent cannot see.
-      if (!row?.session_pubkey || !row?.encrypted_email) {
+      //
+      // gate_token is NOT NULL in the schema, but queryObject<T> is an unchecked
+      // cast, so it is required here rather than trusted. It is the name the
+      // identity is filed under on the key box; a bundle without it cannot be
+      // opened, and substituting the session id would only recreate the ENOENT
+      // this route existed to fix.
+      if (!row?.session_pubkey || !row?.encrypted_email || !row?.gate_token) {
         increment('delivery.unavailable_legacy');
         return done(
           409,
@@ -233,7 +239,7 @@ export const handler: Handlers = {
       // service opens the bundle with keyId and reports delivery against sessionId.
       const bundle = buildBundle(
         session.sessionId,
-        row.gate_token ?? session.sessionId,
+        row.gate_token,
         rows,
         row.encrypted_email,
         encryptedPassword,
