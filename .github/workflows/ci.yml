@@ -27,7 +27,11 @@ jobs:
     # crosses a stage boundary would report green having never run.
     services:
       postgres:
-        image: postgres:15
+        # Pinned by digest: `postgres:15` is a mutable tag, so a run next month
+        # could test against an image nobody reviewed. To move it, look up the
+        # new manifest-list digest for the tag and change it here on purpose:
+        #   docker buildx imagetools inspect postgres:15 | grep Digest
+        image: postgres:15@sha256:9b1d34adbce1dd07ee6e94b4a2cf698884b89bd44a6c9c12f5da8f3acbfe4957
         env:
           POSTGRES_USER: postgres
           # Ephemeral localhost-only CI database: trust auth, no password to

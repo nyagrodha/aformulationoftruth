@@ -54,7 +54,7 @@ FROM_EMAIL=
   - `responses`: Questionnaire answers
 
 ### Testing Strategy
-- Backend: Jest tests in `/tests`
+- Backend: Deno tests (`Deno.test` + `$std/assert`) in `/tests` and beside routes as `*_test.ts`; run with `deno task test`. There is no Jest.
 - API Integration tests
 - Frontend component tests
 

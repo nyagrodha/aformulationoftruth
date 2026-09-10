@@ -12,11 +12,14 @@ on:
 
 jobs:
   claude-review:
-    # Optional: Filter by PR author
-    # if: |
-    #   github.event.pull_request.user.login == 'external-contributor' ||
-    #   github.event.pull_request.user.login == 'new-developer' ||
-    #   github.event.pull_request.author_association == 'FIRST_TIME_CONTRIBUTOR'
+    # Skip runs a bot started (Cursor Bugbot pushing to the branch, for one).
+    # claude-code-action refuses non-human actors outright -- "Workflow
+    # initiated by non-human actor: cursor (type: Bot)" -- and that refusal
+    # showed as a RED check on PR #111, indistinguishable from a real review
+    # failure. Skipping is the honest state: the review runs on the next human
+    # push. Widening allowed_bots instead would spend a review on every bot
+    # commit.
+    if: github.event.sender.type != 'Bot'
 
     runs-on: ubuntu-latest
     permissions:
