@@ -1,132 +1,137 @@
 # AI Agent Instructions for aformulationoftruth
 
 ## Project Overview
-A web application for administering the Proust Questionnaire with a focus on self-inquiry and contemplative practice. Built with Express.js backend, React frontend, and PostgreSQL database.
+
+A web application for administering the Proust Questionnaire with a focus on
+self-inquiry and contemplative practice. It is a **Deno + Fresh** application
+(Preact for islands, PostgreSQL via `deno-postgres`, `zod` for request
+validation). There is no Express, no React, no Drizzle and no Jest; any
+instruction or file that says otherwise is stale.
 
 ## Core Architecture
 
 ### Project Structure
+
 ```
 /
-├── backend/           # Express.js + TypeScript server
-│   ├── services/     # Core business logic services
-│   ├── utils/        # Shared utilities
-│   └── routes.ts     # API route definitions
-├── frontend/         # React frontend (Create React App)
-├── client/          # Alternative TypeScript + Vite frontend
-└── shared/          # Cross-cutting types and schemas
+├── main.ts / dev.ts       # Fresh entry points (start, signal handling)
+├── fresh.gen.ts           # Generated route manifest -- regenerate, never hand-edit
+├── routes/                # Fresh routes; a file is a page or, under api/, a JSON handler
+│   ├── _middleware.ts     # Request-path middleware (audience counting, client IP)
+│   ├── api/               # POST handlers: gate-submit, auth/, questions/, responses/
+│   └── *_test.ts(x)       # Route tests live beside the route they test
+├── islands/               # Preact islands (client-side interactivity)
+├── components/            # Server-rendered Preact components
+├── lib/                   # Everything that is not a route: sessions, crypto,
+│                          #   email, audience, gate provisioning, romania client
+├── db/migrations/         # Numbered SQL migrations, applied by migrate.ts
+├── tests/                 # Cross-cutting and database-backed tests
+├── romania/               # The key box / render service (separate Deno process)
+├── rust-server/           # The gate: age-encrypts answers before they are stored
+├── public/                # Static assets, including no-JS-fallback pages
+├── scripts/               # Pre-commit checks (zero-logging, secrets)
+└── monitoring/            # Operational Python scripts
 ```
 
 ### Key Components
 
-1. **Authentication System**
-   - Magic link based auth (see `backend/utils/email.js`)
-   - Uses nodemailer with customizable SMTP config
-   - MJML templates for email rendering
+1. **Authentication** — magic links (`routes/api/auth/magic-link.ts`,
+   `routes/api/gate-submit.ts`, `routes/auth/verify.tsx`). The link carries a
+   JWT plus an opaque resume token whose HMAC is the session id
+   (`lib/questionnaire-session.ts`, `lib/jwt.ts`). Email goes out through
+   `lib/email.ts`, which spawns `lib/send_mail.py`.
+2. **Questionnaire flow** — sessions with a per-respondent shuffled order,
+   progress carried across a second magic link (`planSupersede`), and answers
+   sealed to a per-submission keypair by the Rust gate (`lib/gate_encrypt.ts`,
+   `lib/gate-provision.ts`).
+3. **Delivery** — `routes/api/responses/deliver.ts` builds a bundle that the
+   key box (`romania/`) opens with `keyId` (the gate token) and reports against
+   `sessionId`. Those are different strings; never substitute one for the other.
+4. **Audience counting** — `lib/audience.ts`: how many, never who. Integers
+   only reach the database.
 
-2. **Questionnaire Flow**
-   - Session-based question management
-   - Randomized question ordering
-   - Progress tracking and resumption
+## Development
 
-3. **Results Processing**
-   - PDF generation of responses
-   - Email delivery with contemplative context
-   - Response analytics and storage
-
-## Development Patterns
-
-### Environment Configuration
-Required variables:
-```
-SMTP_HOST=smtp.mail.me.com
-SMTP_PORT=587
-SMTP_USER=
-SMTP_PASS=
-FROM_EMAIL=
+```bash
+deno task dev          # local server (see .env; DATABASE_URL is deliberately unset)
+deno task test         # the whole suite
+deno task hooks        # point git at hooks/pre-commit (zero-logging + secrets checks)
+deno fmt && deno lint  # singleQuote, 2 spaces, 120 cols (deno.json)
 ```
 
-### Database Schema
-- Uses Drizzle ORM with PostgreSQL
-- Core tables defined in `shared/schema.ts`:
-  - `sessions`: Required for auth
-  - `users`: User profiles and metadata
-  - `responses`: Questionnaire answers
+Database-backed tests gate on `DATABASE_URL` and skip silently without it. CI
+(`.github/workflows/ci.yml`) provides a Postgres service and mints the test
+secrets per run; do not commit literals that look like credentials.
+
+### Environment
+
+Read `.env.example` and `.github/workflows/ci.yml` for the current variable
+set. Notable: `JWT_SECRET`, `RESUME_TOKEN_SECRET`, `DATABASE_URL`, `BASE_URL`,
+`DENO_ENV`, `EMAIL_TRANSPORT` (`stub` under test), `SMTP_*`,
+`KEYBOX_RENDER_URL` / `KEYBOX_RENDER_TOKEN`, `BREAKGLASS_AGE_RECIPIENT`.
+
+### Database
+
+Schema lives in `db/migrations/*.sql`, applied in order by `migrate.ts`.
+Tables store hashes and ciphertext only; there is no plaintext email, address
+or answer anywhere in Postgres.
 
 ### Testing Strategy
-- Backend: Deno tests (`Deno.test` + `$std/assert`) in `/tests` and beside routes as `*_test.ts`; run with `deno task test`. There is no Jest.
-- API Integration tests
-- Frontend component tests
 
-## Common Workflows
-
-### Adding New Questions
-1. Update `backend/services/questionService.ts`
-2. Add validation in `shared/schema.ts`
-3. Update frontend display components
-
-### Email Template Changes
-1. Modify templates in `backend/templates/`
-2. Use MJML for responsive email designs
-3. Test with `renderTemplate()` utility
-
-### Authentication Flow
-1. User requests magic link
-2. System generates timed token
-3. Email sent with contemplative context
-4. Token validates on click-through
-
-## Integration Points
-
-### External Services
-- SMTP server for emails
-- PostgreSQL database
-- PDF generation service
-
-### Internal APIs
-- Question management API
-- Response submission endpoints
-- User session handling
+- `Deno.test` with `$std/assert`, in `tests/` and beside routes/libs as
+  `*_test.ts(x)`. Run with `deno task test`. There is no Jest.
+- Route handlers are tested by calling `handler.POST(request, {} as never)`
+  directly; see `routes/api/gate-submit_test.ts` for the stub-fetch pattern.
+- Pure logic goes in `lib/` and gets unit tests; endpoints get one
+  database-backed walk that crosses the stage boundary.
 
 ## Important Code Patterns
 
-### Error Handling
+### Zero logging of personal data
+
+`scripts/check-zero-logging.sh` runs on every commit. Log a **category**, never
+the error object, whenever the error could carry an address, a token, or an
+answer:
+
 ```typescript
-try {
-  await emailService.sendCompletionEmail(email, pdfBuffer);
-} catch (error) {
-  logger.error('Email sending failed:', error);
-  // Always provide meaningful error responses
-  throw new AppError('Failed to send completion email', 500);
+} catch {
+  console.error('[gate-submit] Email delivery failed'); // status only
+  increment('errors.email');
+  return fail(500, 'Failed to send magic link email. Please try again.', 'send');
 }
 ```
 
-### Data Validation
-```typescript
-// Always use Zod schemas from shared/schema.ts
-const response = insertResponseSchema.parse(req.body);
-```
+### Fail closed
 
-### Service Pattern
-```typescript
-// Services are singleton classes with clear responsibilities
-class EmailService {
-  constructor() {
-    this.transporter = nodemailer.createTransport({...});
-  }
-  
-  async sendMagicLink(to: string, link: string): Promise<void> {...}
-}
-```
+If the gate did not take the plaintext, the endpoint must not pretend it did:
+return 503 and store nothing. Never fall back to storing anything in the clear.
+
+### Request validation
+
+`zod` schemas are declared next to the handler that uses them, sized to the
+database column (`VARCHAR(64)` means `.max(64)`).
+
+### Test seams
+
+Prefer a small exported seam (`magicLinkForTesting`, `_resetForTest`) over
+reaching into module state, and gate any seam that would retain a secret on
+`DENO_ENV === 'test'`.
 
 ## Key Files to Review
-- `backend/routes.ts`: Main API structure
-- `shared/schema.ts`: Data models and validation
-- `backend/services/*.ts`: Core business logic
-- `backend/utils/email.js`: Auth email handling
+
+- `routes/api/gate-submit.ts` — the one place gate answers enter the system
+- `lib/questionnaire-session.ts` — session lifecycle and `planSupersede`
+- `routes/api/responses/deliver.ts` and `romania/render-service.ts` — delivery
+- `lib/audience.ts` — the privacy argument for the visitor count, in full
+- `.github/workflows/ci.yml` — which tests CI actually runs (an explicit list)
 
 ## Pitfalls to Avoid
-1. Never hardcode email templates - use MJML system
-2. Always validate responses against shared schemas
-3. Use proper error handling in async routes
-4. Remember to handle contemplative timing in email sends
+
+1. Do not add a test file and assume CI runs it: `ci.yml` names test files
+   explicitly. Add yours to the list.
+2. `fresh.gen.ts` is generated. Regenerate it; do not edit it.
+3. `deno-postgres` returns `BIGINT` as `bigint`. Cast in SQL (`::int`) or
+   normalise before serialising.
+4. Modules are cached for the life of a test process: read environment
+   variables when you use them, not at import, if a test may set them later.
+5. Never point database-backed tests at a production `DATABASE_URL`.

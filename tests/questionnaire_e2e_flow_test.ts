@@ -163,52 +163,57 @@ Deno.test({
       (b) => b.toString(16).padStart(2, '0'),
     ).join('');
 
-    const first = await createQuestionnaireSession(emailHash);
-    await withConnection(async (client) => {
-      for (const i of [2, 3, 4]) {
-        await client.queryObject(
-          `INSERT INTO gate_encrypted_answers (session_id, question_index, question_text, ciphertext, skipped)
-           VALUES ($1, $2, $3, $4, false)`,
-          [first.sessionId, i, `q${i}`, `ct-${i}`],
+    // Every session this walk creates carries this hash, so cleanup can find
+    // them all by it even when an assertion fails part-way.
+    try {
+      const first = await createQuestionnaireSession(emailHash);
+      await withConnection(async (client) => {
+        for (const i of [2, 3, 4]) {
+          await client.queryObject(
+            `INSERT INTO gate_encrypted_answers (session_id, question_index, question_text, ciphertext, skipped)
+             VALUES ($1, $2, $3, $4, false)`,
+            [first.sessionId, i, `q${i}`, `ct-${i}`],
+          );
+        }
+      });
+
+      const second = await createQuestionnaireSession(emailHash);
+      assertEquals(second.resuming, true);
+
+      const rows = await withConnection(async (client) => {
+        const r = await client.queryObject<
+          { question_index: number; question_text: string; ciphertext: string; skipped: boolean }
+        >(
+          // Mirrors deliver.ts exactly, ::int included -- a test that dropped the
+          // cast would exercise a query production does not run.
+          `SELECT question_index::int AS question_index, question_text, ciphertext, skipped
+             FROM gate_encrypted_answers
+            WHERE session_id = $1
+            ORDER BY question_index`,
+          [second.sessionId],
         );
+        return r.rows;
+      });
+
+      assertEquals(rows.length, 3);
+      const bundle = buildBundle(second.sessionId, 'key-1', rows, 'enc', null);
+      for (const i of [2, 3, 4]) {
+        const entry = bundle.answers[i];
+        assertEquals(entry.skipped, false);
+        assertNotEquals(entry.ciphertext, '');
       }
-    });
-
-    const second = await createQuestionnaireSession(emailHash);
-    assertEquals(second.resuming, true);
-
-    const rows = await withConnection(async (client) => {
-      const r = await client.queryObject<
-        { question_index: number; question_text: string; ciphertext: string; skipped: boolean }
-      >(
-        // Mirrors deliver.ts exactly, ::int included -- a test that dropped the
-        // cast would exercise a query production does not run.
-        `SELECT question_index::int AS question_index, question_text, ciphertext, skipped
-           FROM gate_encrypted_answers
-          WHERE session_id = $1
-          ORDER BY question_index`,
-        [second.sessionId],
-      );
-      return r.rows;
-    });
-
-    assertEquals(rows.length, 3);
-    const bundle = buildBundle(second.sessionId, 'key-1', rows, 'enc', null);
-    for (const i of [2, 3, 4]) {
-      const entry = bundle.answers[i];
-      assertEquals(entry.skipped, false);
-      assertNotEquals(entry.ciphertext, '');
+    } finally {
+      await withConnection(async (client) => {
+        await client.queryObject(
+          `DELETE FROM gate_encrypted_answers
+            WHERE session_id IN (SELECT session_id FROM fresh_questionnaire_sessions WHERE email_hash = $1)`,
+          [emailHash],
+        );
+        await client.queryObject(
+          `DELETE FROM fresh_questionnaire_sessions WHERE email_hash = $1`,
+          [emailHash],
+        );
+      });
     }
-
-    await withConnection(async (client) => {
-      await client.queryObject(
-        `DELETE FROM gate_encrypted_answers WHERE session_id = ANY($1)`,
-        [[first.sessionId, second.sessionId]],
-      );
-      await client.queryObject(
-        `DELETE FROM fresh_questionnaire_sessions WHERE email_hash = $1`,
-        [emailHash],
-      );
-    });
   },
 });

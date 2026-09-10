@@ -166,6 +166,8 @@ jobs:
             components/ \
             islands/ \
             public/js/ \
+            lib/audience_test.ts \
+            lib/client-ip_test.ts \
             lib/csrf_test.ts \
             lib/gate_encrypt_test.ts \
             routes/shop_test.tsx \

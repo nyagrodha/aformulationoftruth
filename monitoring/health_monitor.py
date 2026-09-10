@@ -65,13 +65,6 @@ SERVICES = {
         'expected_status': 200,
         'timeout': 10,
     },
-    'fresh_api_vpn': {
-        'name': 'Fresh API (VPN)',
-        'url': f'http://{os.environ["VPN_GATEWAY_IP"]}:7781/api/health',
-        'expected_status': 200,
-        'timeout': 15,
-        'optional': True,  # Don't alert if VPN service is down (fallback exists)
-    },
     'metrics': {
         'name': 'Metrics Endpoint',
         'url': 'http://localhost:8393/api/metrics',

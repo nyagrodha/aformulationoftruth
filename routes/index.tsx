@@ -34,7 +34,7 @@ import { NAV_NOSCRIPT_CSS } from '../components/nav-shared.ts';
  * items is a prop: they resolve only on this document, and PAGE_NAV carries the
  * '/#begin' form every other page needs.
  *
- * Messaging and the gift shop are the two that leave the page.
+ * Four leave the page: /people, /messages, /messenger and the gift shop.
  */
 const LANDING_NAV: NavItem[] = [
   { label: 'begin', href: '#begin' },

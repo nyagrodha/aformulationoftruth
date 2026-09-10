@@ -110,23 +110,28 @@ Deno.test('a failed send returns rather than throwing', async () => {
   set('SMTP_USER', 'nobody');
   set('SMTP_PASS', 'nothing');
   set('FROM_EMAIL', CANARY);
-
-  // Three attempts against a refused port, with the production backoff.
-  const result = await sendEmail({
-    to: CANARY,
-    subject: 'contract test',
-    text: 'body',
-    html: '<p>body</p>',
-  });
+  // The surrounding environment may select the stub transport (CI and the
+  // route tests set it); this test is about the real SMTP path.
+  Deno.env.delete('EMAIL_TRANSPORT');
 
   try {
+    // Three attempts against a refused port, with the production backoff.
+    const result = await sendEmail({
+      to: CANARY,
+      subject: 'contract test',
+      text: 'body',
+      html: '<p>body</p>',
+    });
+
     assertEquals(result.success, false);
     assertEquals(result.statusCode, undefined, 'a transport failure has no reply code');
     // Callers put this in HTTP responses; it must be a fixed string.
     assertStringIncludes(result.error ?? '', 'SMTP send failed');
     assert(!(result.error ?? '').includes(CANARY), 'the recipient reached the caller');
   } finally {
-    for (const k of ['SMTP_HOST', 'SMTP_PORT', 'SMTP_SECURE', 'SMTP_USER', 'SMTP_PASS', 'FROM_EMAIL']) {
+    for (
+      const k of ['SMTP_HOST', 'SMTP_PORT', 'SMTP_SECURE', 'SMTP_USER', 'SMTP_PASS', 'FROM_EMAIL', 'EMAIL_TRANSPORT']
+    ) {
       const original = saved[k];
       if (original === undefined) Deno.env.delete(k);
       else Deno.env.set(k, original);

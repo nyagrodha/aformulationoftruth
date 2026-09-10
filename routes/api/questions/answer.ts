@@ -343,6 +343,7 @@ export const handler: Handlers = {
       // Category only — the thrown error must never be logged; it can carry
       // the answer. Same fail-closed contract as /api/gate-submit: if the
       // gate did not take the plaintext, this process must not pretend it did.
+      console.error(`[answer:${requestId}] Encrypted answer store refused; answer not accepted`);
       increment('errors.5xx');
       return new Response(
         JSON.stringify({
