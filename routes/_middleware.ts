@@ -56,8 +56,9 @@ export async function handler(req: Request, ctx: FreshContext): Promise<Response
     );
   } catch {
     // Category only, never the error: it could carry the address. recordVisit
-    // does no I/O, so this should be unreachable -- which is exactly why it is
-    // worth counting if it ever fires.
+    // awaits no I/O -- a rotation may fire a write-through, but it is not
+    // awaited and catches its own failure -- so this should be unreachable,
+    // which is exactly why it is worth counting if it ever fires.
     increment('errors.audience.record');
   }
 

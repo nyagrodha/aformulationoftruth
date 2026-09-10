@@ -36,11 +36,14 @@
  *
  * ## What the number means
  *
- * An UPPER BOUND on people, not an estimate. A visitor at 09:00 and again at
- * 20:00 spans two windows and is counted twice; a process restart opens a new
- * window and counts them again. The scheme can split one person into several
- * but can never merge two people into one, so it only ever over-counts. Report
- * it as a bound or it is a wrong number wearing a right number's clothes.
+ * A count of distinct (address, user agent) pseudonyms per window, not of
+ * people. The scheme errs upward wherever it can: a visitor at 09:00 and again
+ * at 20:00 spans two windows and is counted twice, and a process restart
+ * opens a new window and counts them again. It does merge people who share
+ * both an address and a user agent -- a household behind one NAT on the same
+ * phone model, an office -- so it is not a strict upper bound on persons.
+ * Report it as "distinct visitors" with that caveat, or it is a wrong number
+ * wearing a right number's clothes.
  *
  * ## Single-process assumption
  *
@@ -61,7 +64,9 @@ export const WINDOW_MS = 4 * 60 * 60 * 1000;
 export const FLUSH_INTERVAL_MS = 60_000;
 
 /**
- * Ceiling on tracked pseudonyms per window.
+ * Ceiling on tracked pseudonyms per BUCKET -- one set per (site, bot-or-not),
+ * so a window holds at most six such sets and the worst case is six times
+ * this, not this.
  *
  * Without it the set is an unbounded allocation driven by whoever sends the
  * most distinct addresses — a memory-exhaustion vector, not merely a big
@@ -104,13 +109,14 @@ interface Counters {
   seen: Set<string>;
   botSeen: Set<string>;
   requests: number;
+  /** One of this site's sets hit MAX_TRACKED; its figure is a floor. */
+  truncated: boolean;
 }
 
 interface OpenWindow {
   start: number;
   key: CryptoKey;
   bySite: Map<Site, Counters>;
-  truncated: boolean;
 }
 
 let open: OpenWindow | null = null;
@@ -146,7 +152,7 @@ export function audienceHash(key: CryptoKey, ip: string, userAgent: string): Pro
 }
 
 function emptyCounters(): Counters {
-  return { seen: new Set(), botSeen: new Set(), requests: 0 };
+  return { seen: new Set(), botSeen: new Set(), requests: 0, truncated: false };
 }
 
 /**
@@ -161,7 +167,7 @@ async function mint(start: number): Promise<OpenWindow> {
   const raw = randomBytes(32);
   const key = await hmacKey(raw);
   raw.fill(0);
-  return { start, key, bySite: new Map(), truncated: false };
+  return { start, key, bySite: new Map() };
 }
 
 /**
@@ -183,14 +189,18 @@ export async function recordVisit(
 ): Promise<void> {
   const start = windowStart(now).getTime();
 
-  if (!open || open.start !== start) {
+  // Strictly older, not merely different: a visit stamped in the previous
+  // slot can arrive after a later request has already rotated forward, and it
+  // must NOT drag `open` back to its own slot. It is counted in whichever
+  // window is live -- an over-count at worst, never a loss.
+  if (!open || open.start < start) {
     const fresh = await mint(start);
     // Re-check after the await. A second request arriving during mint() saw
     // the same stale window and minted too; without this the later assignment
     // orphaned the earlier window with every visit already recorded in it --
     // an UNDERcount, the one direction the header promises never to err in.
     // The loser's key is simply dropped; it was never used for anything.
-    if (!open || open.start !== start) {
+    if (!open || open.start < start) {
       const closing = open;
       open = fresh;
       if (closing) {
@@ -207,6 +217,12 @@ export async function recordVisit(
   // visit into a window whose key did not produce its digest.
   const w = open;
 
+  // Hash BEFORE touching the window. This is the only await in the recording
+  // path, so doing it first means every mutation below lands synchronously in
+  // one go: a flush that interleaves can never see the request counted and
+  // the visitor not yet added.
+  const digest = await audienceHash(w.key, ip, userAgent);
+
   const site = siteFor(host);
   let counters = w.bySite.get(site);
   if (!counters) {
@@ -215,17 +231,24 @@ export async function recordVisit(
   }
   counters.requests += 1;
 
-  const digest = await audienceHash(w.key, ip, userAgent);
   const bucket = isBotUserAgent(userAgent) ? counters.botSeen : counters.seen;
 
   if (bucket.size >= MAX_TRACKED && !bucket.has(digest)) {
-    if (!w.truncated) {
-      w.truncated = true;
+    if (!counters.truncated) {
+      counters.truncated = true;
       increment('visits.set_capped');
     }
     return;
   }
   bucket.add(digest);
+
+  // The window may have been closed and written through while audienceHash()
+  // was in flight, in which case this visit landed after its flush. Write it
+  // through again: persist() merges with GREATEST, so a second pass can only
+  // raise the stored count, and it happens once per straggler at a boundary.
+  if (w !== open) {
+    persist(w).catch(() => increment('errors.db.audience_flush'));
+  }
 }
 
 /**
@@ -253,7 +276,9 @@ async function persist(w: OpenWindow): Promise<void> {
                requests     = GREATEST(fresh_audience_windows.requests, EXCLUDED.requests),
                truncated    = fresh_audience_windows.truncated OR EXCLUDED.truncated,
                updated_at   = NOW()`,
-        [startedAt, site, RUN_ID, c.seen.size, c.botSeen.size, c.requests, w.truncated],
+        // truncated is per site: a site that never hit the cap must not be
+        // reported as a floor because another one did.
+        [startedAt, site, RUN_ID, c.seen.size, c.botSeen.size, c.requests, c.truncated],
       );
     }
   });

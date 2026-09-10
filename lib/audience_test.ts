@@ -215,3 +215,24 @@ Deno.test('the upsert never lets a stale flush shrink a stored count', async () 
     'truncated must only ever become true',
   );
 });
+
+// A visit stamped in the previous slot can finish minting AFTER a later
+// request has already rotated forward. Installing its older window over the
+// live one would regress `open`, orphan the live window, and lose everything
+// recorded in it. A window is only ever replaced by a strictly newer one; the
+// straggler is counted in whichever window is live, which over-counts at
+// worst, never under.
+Deno.test('a straggler from the previous slot never regresses the live window', async () => {
+  _resetForTest();
+  const newer = at('2026-08-19T04:00:00Z');
+  const older = at('2026-08-19T03:59:59Z');
+  await Promise.all([
+    recordVisit('aformulationoftruth.com', '203.0.113.7', 'Mozilla/5.0', newer),
+    recordVisit('aformulationoftruth.com', '203.0.113.8', 'Mozilla/5.0', older),
+  ]);
+  const snap = _openSnapshotForTest();
+  assertEquals(snap?.start, windowStart(newer).getTime());
+  assertEquals(snap?.bySite.a4t?.requests, 2);
+  assertEquals(snap?.bySite.a4t?.visitors, 2);
+  _resetForTest();
+});
