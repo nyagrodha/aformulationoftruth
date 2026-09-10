@@ -173,8 +173,10 @@ export const handler: Handlers = {
           : '[gate-submit] New session; gate answers encrypted and stored',
       );
 
-      // Step 3: Create magic link
-      const { expiresAt } = await createMagicLink(email);
+      // Step 3: Create magic link. The cleanup is kept for the send-failure
+      // path below: createMagicLink's contract is that a link whose email
+      // never went out is invalidated, not left live until it expires.
+      const { expiresAt, cleanup: cleanupMagicLink } = await createMagicLink(email);
 
       // Step 4b: If this entry began at a wearable's QR (/w/:token planted
       // the cookie), record the encounter -- pseudonymous, hash only.
@@ -230,6 +232,8 @@ export const handler: Handlers = {
         // Status only — the error may carry the recipient address (CLAUDE.md).
         console.error('[gate-submit] Email delivery failed');
         increment('errors.email');
+        // Never throws; a cleanup failure must not change the response.
+        await cleanupMagicLink();
         return fail(500, 'Failed to send magic link email. Please try again.', 'send');
       }
 
