@@ -43,6 +43,18 @@ export default function PeoplePage({ data }: PageProps<Data>) {
         <noscript>
           <style>{NAV_NOSCRIPT_CSS}</style>
         </noscript>
+        <style>
+          {`
+            .people-list { list-style: none; padding: 0; }
+            .people-list li { margin: 0 0 1.5rem; }
+            .people-list a {
+              color: var(--neon-emerald);
+              text-decoration: none;
+              text-shadow: 0 0 12px var(--emerald-glow);
+            }
+            .people-list a:hover { text-decoration: underline; }
+          `}
+        </style>
       </head>
       <body>
         <header class='site-header'>
@@ -61,9 +73,9 @@ export default function PeoplePage({ data }: PageProps<Data>) {
                   </p>
                 )
                 : (
-                  <ul style='list-style: none; padding: 0;'>
+                  <ul class='people-list'>
                     {people.map((p) => (
-                      <li key={p.handle} style='margin: 0 0 1.5rem;'>
+                      <li key={p.handle}>
                         <a href={`/p/${p.handle}`}>{p.displayName || p.handle}</a>
                         <div class='section-text'>@{p.handle}</div>
                         {p.bio ? <p class='section-text'>{p.bio}</p> : null}

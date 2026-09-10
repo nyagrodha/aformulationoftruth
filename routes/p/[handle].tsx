@@ -52,6 +52,15 @@ export default function ProfilePage({ data }: PageProps<Data>) {
         <noscript>
           <style>{NAV_NOSCRIPT_CSS}</style>
         </noscript>
+        <style>
+          {`
+            .profile-back a {
+              color: var(--neon-emerald);
+              text-decoration: none;
+            }
+            .profile-back a:hover { text-decoration: underline; }
+          `}
+        </style>
       </head>
       <body>
         <header class='site-header'>
@@ -60,7 +69,7 @@ export default function ProfilePage({ data }: PageProps<Data>) {
         <main>
           <section class='section' style='padding-top: 7rem;'>
             <div class='gate-content' style='max-width: 640px; margin: 0 auto;'>
-              <p>
+              <p class='profile-back'>
                 <a href='/people'>← people</a>
               </p>
               <h1 class='gate-title'>{name}</h1>

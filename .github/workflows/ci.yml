@@ -83,6 +83,7 @@ jobs:
             lib/profiles_test.ts \
             routes/shop_test.tsx \
             routes/api/profile_test.ts \
+            routes/profile-create_test.tsx \
             routes/about_test.tsx \
             routes/messenger_test.tsx \
             routes/about/
