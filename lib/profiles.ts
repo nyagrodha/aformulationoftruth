@@ -5,14 +5,26 @@
  * chooses to publish lives here, so handle / display_name / bio_public are
  * plaintext by design. The encrypted answer store is not touched.
  *
- *   visibility='public'      -> may be listed in the directory
+ *   visibility='public'      -> listed in /people and served at /p/<handle>
  *   accepts_anonymous_mail   -> may be sent a message
  *
- * They are independent. A listed profile can refuse mail; an unlisted one can
- * still be reached at /p/<handle> by anyone who was given the address.
+ * They are independent. A listed profile can refuse mail. A private profile
+ * is not served at /p/<handle>, even if it has a handle.
  */
 
+import { z } from 'zod';
 import { withConnection } from './db.ts';
+
+export const PROFILE_DISPLAY_NAME_MAX = 120;
+export const PROFILE_BIO_MAX = 2000;
+
+export const ProfileFieldsSchema = z.object({
+  handle: z.string().trim().toLowerCase().optional(),
+  displayName: z.string().trim().max(PROFILE_DISPLAY_NAME_MAX, 'That display name is too long.').optional(),
+  bio: z.string().trim().max(PROFILE_BIO_MAX, 'That statement is too long.').optional(),
+  visibility: z.enum(['private', 'public']),
+  acceptsAnonymousMail: z.boolean().optional().default(false),
+});
 
 /** Lowercase letters, digits, internal hyphens. Two to 64 characters. */
 export const HANDLE_RE = /^[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])$/;
@@ -151,11 +163,21 @@ export async function getProfileByHandle(handle: string): Promise<Profile | null
 
   return await withConnection(async (client) => {
     const { rows } = await client.queryObject<ProfileRow>(
-      `SELECT ${COLUMNS} FROM fresh_profiles WHERE handle = $1`,
+      `SELECT ${COLUMNS} FROM fresh_profiles
+        WHERE handle = $1 AND visibility = 'public'`,
       [normalized],
     );
     return rows.length ? toProfile(rows[0]) : null;
   });
+}
+
+/** After a save: listed profiles go to /p/<handle>, private ones to completion. */
+export function profileAfterSavePath(
+  visibility: 'private' | 'public',
+  handle: string | null | undefined,
+): string {
+  if (visibility === 'public' && handle) return `/p/${encodeURIComponent(handle)}`;
+  return '/completion';
 }
 
 export type SaveProfileResult =
@@ -180,6 +202,12 @@ export async function saveProfile(
   const handleError = profileHandleError(draft.handle, draft.visibility);
   if (handleError) {
     return { ok: false, status: 400, error: handleError };
+  }
+  if ((draft.displayName?.length ?? 0) > PROFILE_DISPLAY_NAME_MAX) {
+    return { ok: false, status: 400, error: 'That display name is too long.' };
+  }
+  if ((draft.bio?.length ?? 0) > PROFILE_BIO_MAX) {
+    return { ok: false, status: 400, error: 'That statement is too long.' };
   }
 
   try {

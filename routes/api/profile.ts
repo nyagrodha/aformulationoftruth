@@ -13,18 +13,9 @@
  */
 
 import { Handlers } from '$fresh/server.ts';
-import { z } from 'zod';
 import { increment } from '../../lib/metrics.ts';
 import { identityFromRequest } from '../../lib/profile-session.ts';
-import { emptyToNull, saveProfile } from '../../lib/profiles.ts';
-
-const ProfileSchema = z.object({
-  handle: z.string().trim().toLowerCase().optional(),
-  displayName: z.string().trim().max(120).optional(),
-  bio: z.string().trim().max(2000).optional(),
-  visibility: z.enum(['private', 'public']),
-  acceptsAnonymousMail: z.boolean().optional().default(false),
-});
+import { emptyToNull, ProfileFieldsSchema, saveProfile } from '../../lib/profiles.ts';
 
 function json(body: unknown, status: number): Response {
   return new Response(JSON.stringify(body), {
@@ -48,7 +39,7 @@ export const handler: Handlers = {
       return json({ error: 'Invalid JSON body' }, 400);
     }
 
-    const parsed = ProfileSchema.safeParse(body);
+    const parsed = ProfileFieldsSchema.safeParse(body);
     if (!parsed.success) {
       increment('errors.4xx');
       return json({ error: 'Invalid profile data' }, 400);

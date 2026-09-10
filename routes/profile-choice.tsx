@@ -67,33 +67,29 @@ export default function ProfileChoicePage() {
               </h2>
 
               <p class='gate-description'>
-                A profile is optional. Without one, the questionnaire can end here. With one, a person may choose to
-                keep an encrypted private space, or render public some or all answers from the questionnaire they
-                completed.
+                A profile is optional. Without one, the questionnaire can end here. With one, a person may keep a
+                private nameplate, list handle and name so others can find them, or accept anonymous mail. Questionnaire
+                answers stay encrypted either way.
               </p>
 
               <div class='quote-block' style='text-align: left; max-width: 560px; margin: 2rem auto;'>
                 <p>
-                  Public means selected answers may be displayed to other visitors. Private means they remain outside
-                  the public profile surface.
+                  Private means the nameplate is not listed and is not served at /p/handle. Listed means handle, display
+                  name, and statement appear in the directory and at /p/handle.
                 </p>
                 <cite>choice before publication</cite>
               </div>
 
               <div style='max-width: 560px; margin: 0 auto 2rem; text-align: left;'>
                 <p class='section-text'>
-                  The profile path should ask for explicit consent before any answer appears publicly.
+                  The useful controls are simple: create no profile, create a private profile, or list a nameplate.
                 </p>
                 <p class='section-text'>
-                  The useful controls are simple: create no profile, create a private profile, or create a public
-                  profile with per-answer visibility.
-                </p>
-                <p class='section-text'>
-                  A public profile should also include a way to unpublish answers later.
+                  You can change the nameplate later. Questionnaire answers are not published from this path.
                 </p>
                 <p class='section-text'>
                   The same profile path can support paid anonymous mail to other folks without requiring the sender to
-                  make their own answers public.
+                  list themselves.
                 </p>
               </div>
 

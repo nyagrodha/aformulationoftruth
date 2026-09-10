@@ -28,7 +28,21 @@ Deno.test('saving a profile with a junk jwt is 401', async () => {
   assertEquals(res.status, 401);
 });
 
-async function withCompletedSession(
+Deno.test('saving a profile with a malformed jwt cookie is 401', async () => {
+  const req = new Request('http://localhost/api/profile', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Cookie: 'jwt=%',
+    },
+    body: JSON.stringify({ visibility: 'private' }),
+  });
+  const res = await handler.POST!(req, {} as never);
+  assertEquals(res.status, 401);
+});
+
+async function withSession(
+  completed: boolean,
   fn: (args: { sessionId: string; emailHash: string; jwt: string }) => Promise<void>,
 ) {
   const { createQuestionnaireJWT } = await import('../../lib/jwt.ts');
@@ -38,12 +52,21 @@ async function withCompletedSession(
   const emailHash = sessionId.padEnd(64, '0').slice(0, 64);
 
   await withConnection(async (client) => {
-    await client.queryObject(
-      `INSERT INTO fresh_questionnaire_sessions
-         (session_id, email_hash, question_order, completed_at)
-       VALUES ($1, $2, '0', NOW())`,
-      [sessionId, emailHash],
-    );
+    if (completed) {
+      await client.queryObject(
+        `INSERT INTO fresh_questionnaire_sessions
+           (session_id, email_hash, question_order, completed_at)
+         VALUES ($1, $2, '0', NOW())`,
+        [sessionId, emailHash],
+      );
+    } else {
+      await client.queryObject(
+        `INSERT INTO fresh_questionnaire_sessions
+           (session_id, email_hash, question_order)
+         VALUES ($1, $2, '0')`,
+        [sessionId, emailHash],
+      );
+    }
   });
 
   try {
@@ -58,6 +81,12 @@ async function withCompletedSession(
       );
     });
   }
+}
+
+function withCompletedSession(
+  fn: (args: { sessionId: string; emailHash: string; jwt: string }) => Promise<void>,
+) {
+  return withSession(true, fn);
 }
 
 function postProfile(jwt: string, body: unknown, raw = false): Promise<Response> {
@@ -171,5 +200,35 @@ Deno.test({
         await client.queryObject('DELETE FROM fresh_profiles WHERE email_hash = $1', [ownerHash]);
       });
     }
+  },
+});
+
+Deno.test({
+  name: 'an unfinished questionnaire cannot save a profile',
+  ignore: !Deno.env.get('DATABASE_URL'),
+  async fn() {
+    await withSession(false, async ({ jwt }) => {
+      const res = await postProfile(jwt, { visibility: 'private' });
+      assertEquals(res.status, 401);
+    });
+  },
+});
+
+Deno.test({
+  name: 'a private profile is not served by handle',
+  ignore: !Deno.env.get('DATABASE_URL'),
+  async fn() {
+    await withCompletedSession(async ({ emailHash, jwt, sessionId }) => {
+      const { getProfile, getProfileByHandle } = await import('../../lib/profiles.ts');
+      const handle = `v-${sessionId.replace(/[^a-z0-9]/g, '').slice(-12)}`;
+      const res = await postProfile(jwt, {
+        visibility: 'private',
+        handle,
+        displayName: 'hidden',
+      });
+      assertEquals(res.status, 200);
+      assertEquals((await getProfile(emailHash))?.handle, handle);
+      assertEquals(await getProfileByHandle(handle), null);
+    });
   },
 });

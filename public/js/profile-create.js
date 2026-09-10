@@ -55,7 +55,11 @@
         return {};
       }).then(function (data) {
         if (res.ok) {
-          window.location.href = data.handle ? ('/p/' + encodeURIComponent(data.handle)) : '/completion';
+          if (data.visibility === 'public' && data.handle) {
+            window.location.href = '/p/' + encodeURIComponent(data.handle);
+          } else {
+            window.location.href = '/completion';
+          }
         } else {
           say(data.error || 'Could not save your profile.');
           btn.disabled = false;

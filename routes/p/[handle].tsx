@@ -1,9 +1,8 @@
 /**
- * One profile, addressed at /p/<handle>.
+ * One listed profile, addressed at /p/<handle>.
  *
- * Resolves for any profile with that handle, listed or not. Being findable in
- * the directory and being reachable by a handle someone handed you are
- * separate decisions.
+ * Only public nameplates are served. A private row with a handle is not found.
+ * This page is the nameplate only; questionnaire answers are not shown here.
  */
 
 import { Handlers, PageProps } from '$fresh/server.ts';

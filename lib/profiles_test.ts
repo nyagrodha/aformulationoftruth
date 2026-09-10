@@ -3,9 +3,14 @@ import {
   emptyToNull,
   formVisibilityToSchema,
   HANDLE_RE,
+  PROFILE_BIO_MAX,
+  PROFILE_DISPLAY_NAME_MAX,
+  profileAfterSavePath,
+  ProfileFieldsSchema,
   profileHandleError,
   profileLabel,
   RESERVED_HANDLES,
+  saveProfile,
 } from './profiles.ts';
 
 Deno.test('a public profile without a handle is refused', () => {
@@ -74,4 +79,63 @@ Deno.test('profileLabel never falls back to an email hash', () => {
     }),
     'weather',
   );
+});
+
+Deno.test('profileAfterSavePath only routes listed handles to /p/', () => {
+  assertEquals(profileAfterSavePath('public', 'weather'), '/p/weather');
+  assertEquals(profileAfterSavePath('private', 'weather'), '/completion');
+  assertEquals(profileAfterSavePath('public', null), '/completion');
+});
+
+Deno.test('ProfileFieldsSchema refuses overlong nameplate fields', () => {
+  assertEquals(
+    ProfileFieldsSchema.safeParse({
+      visibility: 'private',
+      displayName: 'x'.repeat(PROFILE_DISPLAY_NAME_MAX + 1),
+    }).success,
+    false,
+  );
+  assertEquals(
+    ProfileFieldsSchema.safeParse({
+      visibility: 'private',
+      bio: 'x'.repeat(PROFILE_BIO_MAX + 1),
+    }).success,
+    false,
+  );
+  assertEquals(
+    ProfileFieldsSchema.safeParse({
+      visibility: 'private',
+      displayName: 'ok',
+      bio: 'ok',
+    }).success,
+    true,
+  );
+});
+
+Deno.test('saveProfile refuses overlong fields before writing', async () => {
+  const tooLongName = await saveProfile('unused', {
+    handle: null,
+    displayName: 'x'.repeat(PROFILE_DISPLAY_NAME_MAX + 1),
+    bio: null,
+    visibility: 'private',
+    acceptsAnonymousMail: false,
+  });
+  assertEquals(tooLongName.ok, false);
+  if (!tooLongName.ok) {
+    assertEquals(tooLongName.status, 400);
+    assertEquals(tooLongName.error, 'That display name is too long.');
+  }
+
+  const tooLongBio = await saveProfile('unused', {
+    handle: null,
+    displayName: null,
+    bio: 'x'.repeat(PROFILE_BIO_MAX + 1),
+    visibility: 'private',
+    acceptsAnonymousMail: false,
+  });
+  assertEquals(tooLongBio.ok, false);
+  if (!tooLongBio.ok) {
+    assertEquals(tooLongBio.status, 400);
+    assertEquals(tooLongBio.error, 'That statement is too long.');
+  }
 });

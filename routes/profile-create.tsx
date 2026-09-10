@@ -11,7 +11,16 @@ import Nav from '../islands/Nav.tsx';
 import { NAV_NOSCRIPT_CSS, PAGE_NAV } from '../components/nav-shared.ts';
 import { increment } from '../lib/metrics.ts';
 import { identityFromRequest } from '../lib/profile-session.ts';
-import { emptyToNull, formVisibilityToSchema, getProfile, saveProfile } from '../lib/profiles.ts';
+import {
+  emptyToNull,
+  formVisibilityToSchema,
+  getProfile,
+  PROFILE_BIO_MAX,
+  PROFILE_DISPLAY_NAME_MAX,
+  profileAfterSavePath,
+  ProfileFieldsSchema,
+  saveProfile,
+} from '../lib/profiles.ts';
 
 interface ProfileCreateData {
   visibilityChoice: 'private' | 'selected' | 'anonymous-mail';
@@ -62,34 +71,65 @@ export const handler: Handlers<ProfileCreateData> = {
     const form = await req.formData();
     const choice = String(form.get('visibility') ?? 'private');
     const mapped = formVisibilityToSchema(choice);
-    const displayName = emptyToNull(String(form.get('profile-name') ?? ''));
-    const handle = emptyToNull(String(form.get('profile-handle') ?? '').toLowerCase());
-    const bio = emptyToNull(String(form.get('profile-note') ?? ''));
+    const displayNameRaw = String(form.get('profile-name') ?? '');
+    const handleRaw = String(form.get('profile-handle') ?? '');
+    const bioRaw = String(form.get('profile-note') ?? '');
+
+    const parsed = ProfileFieldsSchema.safeParse({
+      handle: handleRaw,
+      displayName: displayNameRaw,
+      bio: bioRaw,
+      visibility: mapped.visibility,
+      acceptsAnonymousMail: mapped.acceptsAnonymousMail,
+    });
+    if (!parsed.success) {
+      increment('errors.4xx');
+      const issue = parsed.error.issues[0];
+      return ctx.render(
+        {
+          visibilityChoice: choice === 'selected' || choice === 'anonymous-mail' ? choice : 'private',
+          displayName: displayNameRaw,
+          handle: handleRaw,
+          bio: bioRaw,
+          error: issue?.message ?? 'Check the profile fields.',
+        },
+        { status: 400 },
+      );
+    }
+
+    const displayName = emptyToNull(parsed.data.displayName);
+    const handle = emptyToNull(parsed.data.handle);
+    const bio = emptyToNull(parsed.data.bio);
 
     const result = await saveProfile(identity.emailHash, {
       handle,
       displayName,
       bio,
-      visibility: mapped.visibility,
-      acceptsAnonymousMail: mapped.acceptsAnonymousMail,
+      visibility: parsed.data.visibility,
+      acceptsAnonymousMail: parsed.data.acceptsAnonymousMail,
     });
 
     if (!result.ok) {
       if (result.status === 409) increment('profile.handle_taken');
       else if (result.status >= 500) increment('errors.5xx');
       else increment('errors.4xx');
-      return ctx.render({
-        visibilityChoice: choice === 'selected' || choice === 'anonymous-mail' ? choice : 'private',
-        displayName: displayName ?? '',
-        handle: handle ?? '',
-        bio: bio ?? '',
-        error: result.error,
-      });
+      return ctx.render(
+        {
+          visibilityChoice: choice === 'selected' || choice === 'anonymous-mail' ? choice : 'private',
+          displayName: displayName ?? '',
+          handle: handle ?? '',
+          bio: bio ?? '',
+          error: result.error,
+        },
+        { status: result.status },
+      );
     }
 
     increment('profile.saved');
-    const location = result.handle ? `/p/${encodeURIComponent(result.handle)}` : '/completion';
-    return new Response(null, { status: 302, headers: { Location: location } });
+    return new Response(null, {
+      status: 302,
+      headers: { Location: profileAfterSavePath(result.visibility, result.handle) },
+    });
   },
 };
 
@@ -275,8 +315,8 @@ export default function ProfileCreatePage({ data }: PageProps<ProfileCreateData>
                 <div>
                   <h1 class='profile-create-title'>make a small room</h1>
                   <p class='section-text'>
-                    You selected create a profile. This can be private, public, or some awkward middle interval you
-                    adjust later.
+                    You selected create a profile. The nameplate can stay private, be listed, or accept anonymous mail.
+                    Questionnaire answers stay encrypted. Per-answer publishing is not on this form.
                   </p>
 
                   <form class='profile-create-form' method='post' action='/profile-create'>
@@ -291,7 +331,7 @@ export default function ProfileCreatePage({ data }: PageProps<ProfileCreateData>
                           checked={data.visibilityChoice === 'private'}
                         />
                         <label for='private'>
-                          private encrypted space. no public answers.
+                          private encrypted space. not listed.
                           <p class='profile-create-note'>The profile exists for you; other visitors do not see it.</p>
                         </label>
                       </div>
@@ -304,8 +344,10 @@ export default function ProfileCreatePage({ data }: PageProps<ProfileCreateData>
                           checked={data.visibilityChoice === 'selected'}
                         />
                         <label for='selected'>
-                          selected answers may become public.
-                          <p class='profile-create-note'>Nothing appears publicly until you choose the answers.</p>
+                          listed nameplate. handle, name, and statement appear in /people and at /p/handle.
+                          <p class='profile-create-note'>
+                            Questionnaire answers stay encrypted. Per-answer publishing is not available yet.
+                          </p>
                         </label>
                       </div>
                       <div class='profile-create-radio'>
@@ -332,6 +374,7 @@ export default function ProfileCreatePage({ data }: PageProps<ProfileCreateData>
                         <input
                           id='profile-name'
                           name='profile-name'
+                          maxlength={PROFILE_DISPLAY_NAME_MAX}
                           placeholder='one self among many'
                           value={data.displayName}
                         />
@@ -341,6 +384,9 @@ export default function ProfileCreatePage({ data }: PageProps<ProfileCreateData>
                         <input
                           id='profile-handle'
                           name='profile-handle'
+                          maxlength={64}
+                          autocomplete='username'
+                          spellcheck={false}
                           placeholder='weather-report'
                           value={data.handle}
                         />
@@ -350,6 +396,7 @@ export default function ProfileCreatePage({ data }: PageProps<ProfileCreateData>
                         <textarea
                           id='profile-note'
                           name='profile-note'
+                          maxlength={PROFILE_BIO_MAX}
                           placeholder='Write the thing that may or may not belong under your name.'
                         >
                           {data.bio}
@@ -357,21 +404,10 @@ export default function ProfileCreatePage({ data }: PageProps<ProfileCreateData>
                       </div>
                     </fieldset>
 
-                    <fieldset class='profile-create-fieldset'>
-                      <legend>public answers</legend>
-                      <div class='profile-create-radio'>
-                        <input type='radio' id='answers-none' name='answers' value='none' checked />
-                        <label for='answers-none'>publish none for now</label>
-                      </div>
-                      <div class='profile-create-radio'>
-                        <input type='radio' id='answers-review' name='answers' value='review' />
-                        <label for='answers-review'>take me to a per-answer review screen</label>
-                      </div>
-                      <div class='profile-create-radio'>
-                        <input type='radio' id='answers-all' name='answers' value='all' />
-                        <label for='answers-all'>make all answers public after one more confirmation</label>
-                      </div>
-                    </fieldset>
+                    <p class='profile-create-note'>
+                      Per-answer publishing is not available yet. Visibility only controls the nameplate (handle, name,
+                      statement), not questionnaire answers.
+                    </p>
 
                     <div class='profile-create-actions'>
                       <button type='submit' id='profile-save-btn' class='cta cta-primary'>save this profile</button>
@@ -387,9 +423,9 @@ export default function ProfileCreatePage({ data }: PageProps<ProfileCreateData>
                   <h2>before anything leaves the room</h2>
                   <ol>
                     <li>private is a complete choice.</li>
-                    <li>public answers require explicit selection.</li>
-                    <li>anonymous mail is separate from answer visibility.</li>
-                    <li>unpublishing should remain available later.</li>
+                    <li>listing a nameplate does not publish answers.</li>
+                    <li>anonymous mail is separate from listing.</li>
+                    <li>you can change the nameplate later.</li>
                   </ol>
 
                   <div class='quote-block' style='margin-top: 2rem;'>
