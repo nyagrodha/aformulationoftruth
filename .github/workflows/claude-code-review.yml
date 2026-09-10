@@ -12,19 +12,17 @@ on:
 
 jobs:
   claude-review:
-    # Optional: Filter by PR author
-    # if: |
-    #   github.event.pull_request.user.login == 'external-contributor' ||
-    #   github.event.pull_request.user.login == 'new-developer' ||
-    #   github.event.pull_request.author_association == 'FIRST_TIME_CONTRIBUTOR'
+    # Copilot-opened PRs set github.actor to Copilot, which is not a GitHub
+    # user. Anthropic's OIDC exchange then 401s before any allowlist is
+    # consulted (anthropics/claude-code-action#1017). Skip the job for that
+    # actor instead of handing the workflow a write token. Human-opened PRs
+    # still review via OIDC. This check is not required.
+    if: github.actor != 'Copilot' && github.actor != 'cursor[bot]'
 
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      # Write so GITHUB_TOKEN can post the review when the OIDC app-token
-      # exchange is skipped (Copilot-opened PRs). Human-opened PRs still use
-      # the Claude GitHub App token from OIDC.
-      pull-requests: write
+      pull-requests: read
       issues: read
       id-token: write
 
@@ -39,15 +37,6 @@ jobs:
         uses: anthropics/claude-code-action@v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-          # Cursor/Copilot-opened PRs set github.actor to Copilot, which is not
-          # a GitHub user. Anthropic's OIDC exchange then 401s ("User does not
-          # have write access") before allowed_bots is consulted. Pass the job
-          # token only for that actor so the exchange is skipped; human-opened
-          # PRs keep the empty override and still mint the Claude app token.
-          # See anthropics/claude-code-action#1017.
-          github_token: ${{ github.actor == 'Copilot' && secrets.GITHUB_TOKEN || '' }}
-          allowed_bots: 'Copilot,cursor[bot]'
-          allowed_non_write_users: 'Copilot'
           plugin_marketplaces: 'https://github.com/anthropics/claude-code.git'
           plugins: 'code-review@claude-code-plugins'
           prompt: '/code-review:code-review ${{ github.repository }}/pull/${{ github.event.pull_request.number }}'

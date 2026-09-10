@@ -18,6 +18,23 @@ jobs:
   check:
     runs-on: ubuntu-latest
 
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: a4ot
+          POSTGRES_DB: a4ot
+          # Disposable job database. Trust auth avoids embedding a password
+          # that secret scanners treat as a credential.
+          POSTGRES_HOST_AUTH_METHOD: trust
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U a4ot -d a4ot"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -73,7 +90,14 @@ jobs:
       # QuaternarySpheroid.tsx and Spheroid.tsx predate the singleQuote setting, so
       # widening `deno fmt --check` to it would fail on drift no one here
       # introduced. Format those two, then widen the fmt step separately.
+      - name: Migrate
+        env:
+          DATABASE_URL: postgres://a4ot@localhost:5432/a4ot
+        run: deno run --allow-net --allow-env --allow-read migrate.ts
+
       - name: Test
+        env:
+          DATABASE_URL: postgres://a4ot@localhost:5432/a4ot
         run: |
           deno test --allow-env --allow-read --allow-net \
             data/ \
