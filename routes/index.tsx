@@ -52,7 +52,7 @@ const LANDING_NAV: NavItem[] = [
 const FOLIO_PARTS: FolioPart[] = [
   { label: '1. Proust quote', id: 'top' },
   { label: '2. Prolegomenon', id: 'prolegomenon' },
-  { label: '3. gate', id: 'begin' },
+  { label: '3. a gate', id: 'begin' },
 ];
 
 interface IndexData {
@@ -287,7 +287,7 @@ export default function Home({ data }: PageProps<IndexData>) {
           <section id='begin' class='gate-section'>
             <div class='gate-content'>
               <p class='gate-eyebrow'>a gate:</p>
-              <h2 class='gate-title'>we meet @ this gate:</h2>
+              <h2 class='gate-title'>Here we meet @ a gate:</h2>
               <p class='gate-description'>
                 What follow are not polite questions. They are holes in the ice. Answer honestly and something cold
                 touches the feet.
