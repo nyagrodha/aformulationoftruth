@@ -34,6 +34,57 @@
     0 0 60px rgba(255, 230, 109, 0.25);
 }
 
+/* ---------- /check-email lockup: irendu, wordmark, name ---------- */
+.landing-hero .check-lockup {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 1rem auto 1.75rem auto;
+  text-align: center;
+}
+
+/* 372px source, shown at half width so it stays sharp on 2x screens. */
+.landing-hero .check-irendu {
+  width: clamp(96px, 24vw, 186px);
+  height: auto;
+  filter: drop-shadow(0 0 18px rgba(255, 214, 0, 0.35));
+}
+
+/*
+ * The wordmark's own triad at the values the footer uses on ink: the paper
+ * values in prolegomenon.css are darkened for a light ground and would sink
+ * into this black one.
+ */
+.landing-hero .check-wordmark {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: clamp(1.75rem, 5vw, 2.75rem);
+  letter-spacing: -0.04em;
+  line-height: 1.1;
+  color: var(--bone, #e8e8e8);
+  white-space: nowrap;
+}
+
+.landing-hero .check-wordmark .wm-a,
+.landing-hero .check-wordmark .wm-sa {
+  color: #ff3cac;
+}
+
+.landing-hero .check-wordmark .wm-num {
+  color: #3b82f6;
+}
+
+.landing-hero .check-wordmark .wm-ta {
+  color: #ffd600;
+}
+
+.landing-hero .check-wordmark-sub {
+  color: #ff9933;
+  font: 600 clamp(0.7rem, 1.6vw, 0.85rem) / 1 Arial, Helvetica, sans-serif;
+  letter-spacing: 0.2em;
+  text-transform: lowercase;
+}
+
 /* ---------- Icelandic subtitle ---------- */
 .landing-hero .icelandic-subtitle {
   font-family: 'Goudy Old Style', 'GoudyStM', 'Orbitron', ui-sans-serif,

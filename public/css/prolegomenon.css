@@ -494,6 +494,7 @@ footer .footer-return {
 
 .folio > span {
   writing-mode: vertical-rl;
+  text-transform: none;
 }
 
 .folio i {

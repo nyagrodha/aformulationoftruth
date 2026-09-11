@@ -65,9 +65,8 @@ const ERROR_MESSAGES: Record<string, VNode> = {
   send: <>We couldn't deliver your authorization link right meow. Try again in a moment.</>,
   server: (
     <>
-      Something went wrong. Please try again and it should resolve itself. Consider taking a brief moment to contact the
-      {' '}
-      <a href='mailto:formitselfisemptiness@aformulationoftruth.com'>webmaster</a> so I can investigate why.
+      Something went wrong. Try again — it usually resolves itself. If it doesn't, a brief note to the{' '}
+      <a href='mailto:formitselfisemptiness@aformulationoftruth.com'>webmaster</a> would help me find out why.
     </>
   ),
 };
@@ -151,9 +150,9 @@ export default function Home({ data }: PageProps<IndexData>) {
           <section class='hero' id='top' aria-labelledby='prolegomenon'>
             <div class='hero-copy'>
               <p class='hero-title'>
-                Every reader finds themselves. The writer’s work is merely a kind of optical instrument that makes it
-                possible for the reader to discern what, without this book, readers would perhaps never have seen in
-                themselves.
+                In reading, every reader finds themselves. The writer’s work is merely a kind of optical instrument that
+                makes it possible for the reader to discern what, without this book, they would perhaps never have seen
+                in themselves.
               </p>
 
               <p class='eyebrow' id='prolegomenon'>PROLEGOMENON:</p>
@@ -167,29 +166,29 @@ export default function Home({ data }: PageProps<IndexData>) {
                   height={560}
                 />
                 <span class='sr-only'>Y</span>our answers — anyone's answers — may become for another reader just such
-                an ātmanopticon: in our world where nothing ever happens the same way twice, truth resides in the
-                reconstruction of events without precedent.
+                an ātmanopticon: that optical lens-like perspective one among you compose that without having read an
+                other may not have recognized that quality within himself or herself or their self.
               </p>
 
               <div class='hero-prose'>
                 <p>
-                  A practice/<i lang='sa-Latn'>sādhana</i>: the questions invite an unguarded, thoughtful state; and
-                  what the answer at times just astonishes in describing some interior (<span lang='ta'>அகம்</span>) — a
+                  A practice/<i lang='sa-Latn'>sādhana</i>: the questions invite an unguarded, thoughtful state, and at
+                  times the answer astonishes in what it describes of some interior (<span lang='ta'>அகம்</span>) — a
                   subject, the grammatical <em>I</em>, a formulation of truth.
                 </p>
                 <p>
-                  Return after enough time and (a species) amnesia to respond again. The earlier answers belong to
-                  someone else; the one answering now is provisional too. Another self emerges in the collision of the
-                  past in the present from memories we create and their associations. This is not a tragedy. It’s more
+                  Return, after enough time and a species of amnesia, to respond again. The earlier answers belong to
+                  someone else; the one answering now is provisional too. Another self emerges where the past collides
+                  with the present, out of the memories we make and their associations. This is not a tragedy. It’s more
                   like the weather.
                 </p>
                 <p>
                   The questionnaire keeps their record — so many persons in succession, bearing one name: <em>I</em>.
                 </p>
                 <p>
-                  Insofar as recognition adds nothing new or points out something that hasn’t always been known it can
-                  be captured well by double-dipping ‘I’, ‘I-I’ sees the ones already given — who you were when you
-                  answered then. Who answers now, who will — as one light regarding itself.
+                  Insofar as recognition adds nothing new — points to nothing that hasn’t always been known — it is well
+                  captured by doubling the ‘I’: ‘I-I’ sees the ones already given, who you were when you answered then;
+                  who answers now; who will — as one light regarding itself.
                 </p>
                 <p>Find who sleeps.</p>
                 <p>That is what this instrument is for.</p>
@@ -272,7 +271,7 @@ export default function Home({ data }: PageProps<IndexData>) {
             <span class='spheroid-sigil' aria-hidden='true'>IV</span>
 
             <aside class='folio' aria-hidden='true'>
-              <span>I · TEXT</span>
+              <span>1. Proust quote</span>
               <i></i>
               <b>
                 01
@@ -288,7 +287,7 @@ export default function Home({ data }: PageProps<IndexData>) {
               <p class='gate-eyebrow'>a gate:</p>
               <h2 class='gate-title'>we meet @ this gate:</h2>
               <p class='gate-description'>
-                What follow are not polite questions. These are holes in the ice. Answer honestly and something cold
+                What follow are not polite questions. They are holes in the ice. Answer honestly and something cold
                 touches the feet.
               </p>
 
@@ -313,7 +312,7 @@ export default function Home({ data }: PageProps<IndexData>) {
                     name='answer1'
                     rows={4}
                     maxLength={20000}
-                    placeholder='You may respond to all the questions in one session, or complete the questionnaire over the course of days... When you return simply enter the same email address you use today to login.'
+                    placeholder='Answer every question in one sitting, or complete the questionnaire over several days… When you return, simply sign in with the same email address you use today.'
                     aria-describedby='accessibility-hint'
                   >
                   </textarea>
@@ -326,7 +325,7 @@ export default function Home({ data }: PageProps<IndexData>) {
                     name='answer2'
                     rows={4}
                     maxLength={20000}
-                    placeholder="You may only submit one questionnaire. The site enforces a period of waiting between submissions and the application will contact you via email when you're able to submit another set of responses."
+                    placeholder="You may submit one questionnaire at a time. A waiting period follows each submission; you'll be emailed when you're able to submit another set of responses."
                     aria-describedby='accessibility-hint'
                   >
                   </textarea>
@@ -354,9 +353,9 @@ export default function Home({ data }: PageProps<IndexData>) {
                     placeholder='your.email@example.com'
                   />
                   <p class='privacy-notice'>
-                    All what you type is age-encrypted before storage. Your address is used once, to deliver your link
+                    Your answers are age-encrypted before storage. Your address is used once, to deliver your link
                     through Apple's mail servers, and is never itself stored — the database keeps only a SHA-256 hash of
-                    it. We don't care to see your email address. There is no tracking, no profiling, no analytics, and
+                    it. We have no wish to see your email address. There is no tracking, no profiling, no analytics, and
                     nothing is shared with anyone beyond that delivery.
                   </p>
                 </div>
@@ -377,7 +376,7 @@ export default function Home({ data }: PageProps<IndexData>) {
           <div>
             <p>
               a <span class='keep-case'>Proust</span>{' '}
-              questionnaire that aims to acquaint oneself with a sequence of selves this lifetime.
+              questionnaire through which to acquaint oneself with a lifetime’s sequence of selves.
             </p>
             <p style='margin-top: 1rem;'>
               database hosted in Iceland by{' '}

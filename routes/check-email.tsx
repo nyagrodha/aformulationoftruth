@@ -9,6 +9,7 @@
 import { Handlers } from '$fresh/server.ts';
 import Nav from '../islands/Nav.tsx';
 import { NAV_NOSCRIPT_CSS, PAGE_NAV } from '../components/nav-shared.ts';
+import { WordmarkGlyphs } from '../components/Wordmark.tsx';
 
 export const handler: Handlers = {
   GET(_req, ctx) {
@@ -40,7 +41,27 @@ export default function CheckEmail() {
         <main>
           <section class='hero landing-hero'>
             <div class='hero-content'>
-              <div class='at-symbol' aria-hidden='true'>@</div>
+              {
+                /*
+                 * The irendu, then the wordmark, then the name it spells. The mark
+                 * is empty-alt ornament and the glyphs are hidden from assistive
+                 * technology, so the plain-text name beneath speaks for both.
+                 */
+              }
+              <div class='check-lockup'>
+                <img
+                  class='check-irendu'
+                  src='/images/nav-irendu-372.webp'
+                  alt=''
+                  width='372'
+                  height='252'
+                  decoding='async'
+                />
+                <p class='check-wordmark' aria-hidden='true'>
+                  <WordmarkGlyphs />
+                </p>
+                <p class='check-wordmark-sub'>a formulation of truth</p>
+              </div>
               <h1 class='title'>
                 check your inbox
                 <span class='title-truth'>to begin</span>
