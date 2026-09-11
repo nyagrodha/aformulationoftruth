@@ -44,6 +44,7 @@ import * as $questionnaire from './routes/questionnaire.tsx';
 import * as $questions from './routes/questions.tsx';
 import * as $shop from './routes/shop.tsx';
 import * as $w_token_ from './routes/w/[token].tsx';
+import * as $Folio from './islands/Folio.tsx';
 import * as $Nav from './islands/Nav.tsx';
 import * as $QuaternarySpheroid from './islands/QuaternarySpheroid.tsx';
 import * as $Spheroid from './islands/Spheroid.tsx';
@@ -95,6 +96,7 @@ const manifest = {
     './routes/w/[token].tsx': $w_token_,
   },
   islands: {
+    './islands/Folio.tsx': $Folio,
     './islands/Nav.tsx': $Nav,
     './islands/QuaternarySpheroid.tsx': $QuaternarySpheroid,
     './islands/Spheroid.tsx': $Spheroid,

@@ -477,24 +477,71 @@ footer .footer-return {
   text-shadow: 0 0 8px #078f9a47;
 }
 
-/* ── folio (vertical page marker) ──────────────────────────────────────── */
-.folio {
+/* ── folio (vertical contents rail) ────────────────────────────────────── */
+/*
+ * The track runs the height of <main> below the header — hero and gate, not the
+ * footer — and the folio rides it on position: sticky, so it follows the reader
+ * down the page with no script at all. islands/Folio.tsx only moves the marker.
+ *
+ * The folio is sized to the first screen's hero (88% of it, as the old in-hero
+ * folio was) and sticks centred in the viewport once the header scrolls away.
+ */
+.folio-host {
+  position: relative;
+}
+
+.folio-track {
   position: absolute;
-  top: 6%;
+  top: calc(76px + 6vh);
   right: 2.9vw;
-  bottom: 6%;
+  bottom: 6vh;
+}
+
+.folio {
+  position: sticky;
+  top: calc(6vh + 38px);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: space-between;
+  height: calc(88vh - 76px);
   padding-left: 1.25rem;
   border-left: 1px solid var(--rule);
   font-size: 0.6rem;
 }
 
-.folio > span {
+.folio ol {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.6rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.folio li {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.7rem;
+}
+
+.folio a {
   writing-mode: vertical-rl;
   text-transform: none;
+  color: var(--muted);
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.folio a[aria-current] {
+  color: var(--ink);
+}
+
+.folio a:hover,
+.folio a:focus-visible {
+  color: var(--saffron);
 }
 
 .folio i {
@@ -502,6 +549,12 @@ footer .footer-return {
   height: 5px;
   border-radius: 50%;
   background: var(--saffron);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.folio .is-current i {
+  opacity: 1;
 }
 
 .folio b {
@@ -889,7 +942,7 @@ footer .footer-return {
     transform-origin: 100% 100%;
   }
 
-  .folio {
+  .folio-track {
     display: none;
   }
 

@@ -25,6 +25,7 @@ import { Handlers, PageProps } from '$fresh/server.ts';
 import type { VNode } from 'preact';
 import Nav, { type NavItem } from '../islands/Nav.tsx';
 import Spheroid from '../islands/Spheroid.tsx';
+import Folio, { type FolioPart } from '../islands/Folio.tsx';
 import { WordmarkGlyphs } from '../components/Wordmark.tsx';
 import { NAV_NOSCRIPT_CSS } from '../components/nav-shared.ts';
 
@@ -41,6 +42,16 @@ const LANDING_NAV: NavItem[] = [
   { label: 'about', href: '#about' },
   { label: 'people', href: '/people' },
   { label: 'gift shop', href: '/shop' },
+];
+
+/*
+ * The folio's contents, in page order. Each id opens its part: the quote leads
+ * the hero (#top), the eyebrow opens the prolegomenon, and #begin is the gate.
+ */
+const FOLIO_PARTS: FolioPart[] = [
+  { label: '1. Proust quote', id: 'top' },
+  { label: '2. Prolegomenon', id: 'prolegomenon' },
+  { label: '3. gate', id: 'begin' },
 ];
 
 interface IndexData {
@@ -141,7 +152,7 @@ export default function Home({ data }: PageProps<IndexData>) {
         </noscript>
       </head>
       <body>
-        <main>
+        <main class='folio-host'>
           <header class='site-header'>
             <Nav items={LANDING_NAV} />
           </header>
@@ -166,7 +177,7 @@ export default function Home({ data }: PageProps<IndexData>) {
                   height={560}
                 />
                 <span class='sr-only'>Y</span>our answers — anyone's answers — may become for another reader just such
-                an ātmanopticon: that optical lens-like perspective one among you compose that without having read an
+                an ātmanopticon: that optical lens-like perspective one among you composes that without having read an
                 other may not have recognized that quality within himself or herself or their self.
               </p>
 
@@ -269,16 +280,6 @@ export default function Home({ data }: PageProps<IndexData>) {
             <Spheroid />
             {/* anchored to the page, not to the molecule: it drifts, IV does not */}
             <span class='spheroid-sigil' aria-hidden='true'>IV</span>
-
-            <aside class='folio' aria-hidden='true'>
-              <span>1. Proust quote</span>
-              <i></i>
-              <b>
-                01
-                <br />
-                12
-              </b>
-            </aside>
           </section>
 
           {/* ── the gate — where the prolegomenon terminates ─────────────── */}
@@ -366,6 +367,11 @@ export default function Home({ data }: PageProps<IndexData>) {
               </form>
             </div>
           </section>
+
+          {/* spans all of <main>, so the sticky folio inside follows the reader to the gate's end */}
+          <div class='folio-track'>
+            <Folio parts={FOLIO_PARTS} />
+          </div>
         </main>
 
         <footer id='about'>
