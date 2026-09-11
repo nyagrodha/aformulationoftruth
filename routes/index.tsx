@@ -162,9 +162,9 @@ export default function Home({ data }: PageProps<IndexData>) {
           <section class='hero' id='top' aria-labelledby='prolegomenon'>
             <div class='hero-copy'>
               <p class='hero-title'>
-                In reading, every reader finds themselves. The writer’s work is merely a kind of optical instrument that
-                makes it possible for the reader to discern what, without this book, they would perhaps never have seen
-                in themselves.
+                Every reader finds themselves. The writer’s work is merely a kind of optical instrument that makes it
+                possible for the reader to discern what, without this book, they would perhaps never have seen in
+                themselves.
               </p>
 
               <p class='eyebrow' id='prolegomenon'>PROLEGOMENON:</p>
