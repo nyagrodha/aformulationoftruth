@@ -89,7 +89,7 @@ export default function CheckEmail() {
             <p class='footer-copy'>
               Encrypted database hosted in Iceland by{' '}
               <a
-                href='https://fobdongle.com'
+                href='https://flokinet.is/aff.php?aff=543'
                 target='_blank'
                 rel='noopener noreferrer'
                 style='color: var(--neon-emerald); text-decoration: none;'
