@@ -3,7 +3,7 @@
 //! Tiny HTTP service that age-encrypts gate answers before storage so that
 //! only the holder of the corresponding x25519 identity (kept offline) can
 //! ever decrypt them. Speaks the contract expected by
-//! `lib/gate-client.ts` in the Deno Fresh app:
+//! `lib/gate_encrypt.ts` in the Deno Fresh app:
 //!
 //!   POST /api/store
 //!     { session_id, question_text, question_index, answer, skipped }

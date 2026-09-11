@@ -18,7 +18,7 @@ Recorded because several contradicted prior assumptions.
 
 | Assumption                             | Reality                                                                                                     |
 | -------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
-| Live site runs on the poet Pi          | Runs on the **`fob` VPS**, `185.146.234.144`, Caddy-fronted. Poet Pi is offline and unrelated.              |
+| Live site runs on the poet Pi          | Runs on the **`fob` VPS**, `<VPS_IP>`, Caddy-fronted. Poet Pi is offline and unrelated.              |
 | `routes/about.tsx` exists              | It does not. About is `public/about.html`, linked as `/about.html` from 8 routes.                           |
 | A store exists and needs finishing     | Nothing exists. No shop code on any branch; `/shop` and `/store` both 404. It is net-new.                   |
 | Site is strictly no-JS                 | The **questionnaire flow** is no-JS. Prose pages already ship JS (`copyZcashAddress()`, `theme-toggle.js`). |
@@ -196,7 +196,7 @@ Beats to cover:
 1. **The server has an unpushed commit `ad8e3614` and a dirty working tree with many staged deletions.** Push or preserve it before deploying. Do not `git reset --hard` or force-pull.
 2. Adding routes requires a `fresh.gen.ts` rebuild **and** `systemctl restart aformulationoftruth-fresh`, not just a file copy.
 3. The Caddyfile change needs a Caddy reload, separate from the app restart.
-4. There are two hosts named `fobdongle` — this VPS and the LoRa Pi at `192.168.1.20`. Deploy target is `ssh fob`.
+4. There are two hosts named `fobdongle` — this VPS and the LoRa Pi at `<LOCAL_IP>`. Deploy target is `ssh fob`.
 
 ## Phasing
 

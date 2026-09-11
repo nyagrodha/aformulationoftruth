@@ -1,0 +1,30 @@
+[Unit]
+Description=SSH tunnel to the key box render service (Romania)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=ahamahamahakaha
+# Two forwards on one authenticated channel, in opposite directions.
+#
+#   -L 8793 -> the key box's render service. The web tier pushes bundles here.
+#   -R 8794 -> back to this box's web tier. The key box posts delivery
+#              confirmations here, so that callback never crosses the public
+#              internet: before this it went to https://aformulationoftruth.com,
+#              through Caddy, from a public IP, guarded by a bearer token alone.
+#
+# Both ends bind 127.0.0.1 only. ExitOnForwardFailure is what makes that a
+# guarantee rather than a hope -- if either forward cannot be established the
+# ssh exits and systemd retries, instead of running half a tunnel and leaving
+# one direction silently dead.
+ExecStart=/usr/bin/ssh -N -T \
+  -o BatchMode=yes -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes \
+  -o ExitOnForwardFailure=yes -o ServerAliveInterval=30 -o ServerAliveCountMax=3 \
+  -i /home/ahamahamahakaha/.ssh/keybox_ed25519 -p 2078 \
+  -L 127.0.0.1:8793:127.0.0.1:8791 \
+  -R 127.0.0.1:8794:127.0.0.1:7268 liar@aformulationiontruth.com
+Restart=always
+RestartSec=10s
+
+[Install]
+WantedBy=multi-user.target

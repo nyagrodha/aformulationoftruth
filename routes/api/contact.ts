@@ -20,6 +20,11 @@ import { Handlers } from '$fresh/server.ts';
 import { z } from 'zod';
 import { ContactRecipientNotConfiguredError, storeContactMessage } from '../../lib/contact.ts';
 import { increment } from '../../lib/metrics.ts';
+// Was a private copy of this function, which is how it kept the
+// read-the-first-XFF-entry bug after lib/client-ip.ts was fixed -- and that bug
+// is what made this endpoint's rate limit bypassable. Proxy trust must not
+// exist twice; see the MERGE NOTE at the top of lib/client-ip.ts.
+import { getClientIp } from '../../lib/client-ip.ts';
 
 const ContactSchema = z.object({
   message: z.string().min(1).max(10000),
@@ -59,18 +64,6 @@ function rateLimitCheck(ip: string): number {
 
   const retryAfterMs = RATE_LIMIT_WINDOW_MS - (now - bucket.windowStart);
   return Math.max(retryAfterMs, 1000);
-}
-
-function getClientIp(req: Request, remoteHost: string | undefined): string {
-  const trustProxy = Deno.env.get('TRUST_PROXY') === 'true';
-  if (trustProxy) {
-    const xff = req.headers.get('x-forwarded-for');
-    if (xff) {
-      const first = xff.split(',')[0]?.trim();
-      if (first) return first;
-    }
-  }
-  return remoteHost || 'unknown';
 }
 
 function corsHeaders(req: Request): HeadersInit {

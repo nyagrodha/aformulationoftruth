@@ -33,3 +33,31 @@ Verify:
     systemctl list-timers qr-salt-prune.timer
     sudo systemctl start qr-salt-prune.service   # run once, now
     journalctl -u qr-salt-prune.service -n 20    # counts and a date only
+
+## daily report
+
+`monitoring/daily_report.py` is the site report, mailed at 08:00, 18:00 and
+23:15 local by `a4t-report.timer`. It reads the Caddy access log and the
+database, and sends over the site's own SMTP credentials.
+
+**This file is the source of truth as of 2026-08-19, and was not before.** The
+program had been edited in place at `/usr/local/bin/a4t-daily-report.py` while a
+652-line SendGrid-era ancestor sat in the repository, 222 lines and one mail
+provider out of date. Anyone who "fixed the daily report" by editing the tracked
+copy changed nothing that runs. Install after every edit, or the divergence
+starts again:
+
+    sudo install -m0755 monitoring/daily_report.py /usr/local/bin/a4t-daily-report.py
+    sudo systemctl start a4t-report.service        # run once, now
+    journalctl -u a4t-report.service -n 30
+
+`REPORT_EMAIL` has no default. A recipient baked into a tracked file would sit
+in git history permanently, so an unset value skips the email channel and logs
+that it did, rather than quietly mailing someone. `a4t-report.service.d/smtp.conf`
+supplies it in production.
+
+Not yet fixed, and worth knowing when reading its output: the service runs as
+root with no `User=`, unlike qr-salt-prune; every "visitor statistics" number is
+summed across every vhost sharing the access log, not just aformulationoftruth.com;
+and `Unique Visitors` has structurally always been 0, because the field it reads
+is one the Caddyfile deletes.

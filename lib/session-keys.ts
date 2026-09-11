@@ -74,7 +74,7 @@ export function assertSafeSessionId(sessionId: string): void {
  * Named for the ROLE, not the site. This has been Romania, then the Iceland
  * onion host, then Romania again inside two days, and each move made the
  * previous name a lie -- ICELANDonion_* was still in use while dialling
- * 185.146.232.223. A name that describes what the box DOES survives the next
+ * <VPS_IP>. A name that describes what the box DOES survives the next
  * relocation; one that describes where it sits has to be edited every time,
  * and is misleading in the window before someone does.
  *

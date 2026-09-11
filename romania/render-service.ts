@@ -147,6 +147,11 @@ async function notifyDelivered(sessionId: string): Promise<void> {
       signal: AbortSignal.timeout(15_000),
     });
     await res.body?.cancel();
+    // A rejected callback used to be indistinguishable from an accepted one.
+    // For months every call 404'd -- the route did not exist -- and nothing
+    // said so, so pdf_delivered_at was never stamped and the shred clock never
+    // started. The status is not PII; not checking it is how that hid.
+    if (!res.ok) console.error('[render] delivery callback rejected (%d)', res.status);
   } catch {
     // The document is already in the respondent's hands; a failed callback
     // means a stale pdf_delivered_at, not a lost delivery.

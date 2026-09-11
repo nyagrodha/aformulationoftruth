@@ -17,16 +17,38 @@ function withTrustProxy<T>(value: string | null, fn: () => T): T {
   }
 }
 
-Deno.test('trusted proxy: takes the first X-Forwarded-For entry', () => {
+// THE FORGERY CASE. Caddy appends its peer to whatever the client sent, so the
+// first entry is attacker-controlled and the last is the one Caddy wrote.
+// Reading the first is what let anyone inflate the scan count and walk past the
+// contact rate limit simply by setting the header on their own request.
+Deno.test('trusted proxy: takes the LAST X-Forwarded-For entry, not the forged first', () => {
   withTrustProxy('true', () => {
-    const ip = getClientIp(req({ 'x-forwarded-for': '203.0.113.7, 10.0.0.1' }), '10.0.0.1');
-    assertEquals(ip, '203.0.113.7');
+    const ip = getClientIp(req({ 'x-forwarded-for': '1.2.3.4, 203.0.113.9' }), '10.0.0.1');
+    assertEquals(ip, '203.0.113.9');
+  });
+});
+
+// A single-entry header has the same first and last value, so this read is
+// correct whether or not the proxy in front of us appends.
+Deno.test('trusted proxy: a single entry is unaffected by the last-element rule', () => {
+  withTrustProxy('true', () => {
+    assertEquals(getClientIp(req({ 'x-forwarded-for': '203.0.113.7' }), '10.0.0.1'), '203.0.113.7');
   });
 });
 
 Deno.test('trusted proxy: trims whitespace around the entry', () => {
   withTrustProxy('true', () => {
-    const ip = getClientIp(req({ 'x-forwarded-for': '  203.0.113.7  , 10.0.0.1' }), '10.0.0.1');
+    const ip = getClientIp(req({ 'x-forwarded-for': '1.2.3.4 ,  203.0.113.7  ' }), '10.0.0.1');
+    assertEquals(ip, '203.0.113.7');
+  });
+});
+
+// A trailing comma makes the rightmost element the empty string. Falling
+// through to the socket peer there would be safe but silently wrong, so the
+// scan walks right-to-left for the first non-empty entry instead.
+Deno.test('trusted proxy: a trailing comma does not yield an empty address', () => {
+  withTrustProxy('true', () => {
+    const ip = getClientIp(req({ 'x-forwarded-for': '1.2.3.4, 203.0.113.7,' }), '10.0.0.1');
     assertEquals(ip, '203.0.113.7');
   });
 });
