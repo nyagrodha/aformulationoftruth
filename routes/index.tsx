@@ -178,8 +178,8 @@ export default function Home({ data }: PageProps<IndexData>) {
                   height={560}
                 />
                 <span class='sr-only'>Y</span>our answers — anyone's answers — may become for another reader just such
-                an ātmanopticon: that optical lens-like perspective one among you composes that without having read an
-                other may not have recognized that quality within himself or herself or their self.
+                an ātmanopticon: that optical lens-like perspective one among you composes that, without having read it,
+                another reader may not ever have recognized that quality or trait within himself or herself.
               </p>
 
               <div class='hero-prose'>
