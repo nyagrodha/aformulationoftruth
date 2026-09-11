@@ -355,10 +355,13 @@ export default function Home({ data }: PageProps<IndexData>) {
                     placeholder='your.email@example.com'
                   />
                   <p class='privacy-notice'>
-                    Your answers are age-encrypted before storage. Your address is used once, to deliver your link
-                    through Apple's mail servers, and is never itself stored — the database keeps only a SHA-256 hash of
-                    it. We have no wish to see your email address. There is no tracking, no profiling, no analytics, and
-                    nothing is shared with anyone beyond that delivery.
+                    Your answers are age-encrypted before storage, and so is your address. The database keeps a SHA-256
+                    hash of it, to recognise your session, and an age-encrypted copy that only the key box which mails
+                    your finished questionnaire can open. We have no wish to see your email address. We use it for three
+                    things and nothing else: to send you your link, to deliver your answers to you as a PDF, and to
+                    remind you, some time later, to answer the questions again. Each of those goes out through Apple's
+                    mail servers. There is no tracking, no profiling, no analytics, and nothing is shared with anyone
+                    beyond that delivery.
                   </p>
                 </div>
 
