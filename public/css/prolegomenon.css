@@ -832,6 +832,194 @@ footer .footer-return {
   line-height: 1.6;
 }
 
+/* ── completion (/completion) ──────────────────────────────────────────── */
+/*
+ * The copy offer and the way onward reuse the gate's section, measure and
+ * type; the consent form is drawn in the gate form's idiom, its two buttons
+ * the gate's submit — ink for yes, outline for no.
+ */
+.completion-offer {
+  border-top: 0;
+}
+
+.completion-quote {
+  margin-inline: 0;
+}
+
+.completion-quote p {
+  margin: 0;
+}
+
+.completion-quote cite {
+  display: block;
+  margin-top: 0.6rem;
+  color: var(--muted);
+  font: normal 0.72rem / 1.4 Arial, Helvetica, sans-serif;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.completion-status {
+  margin-bottom: 2rem;
+  padding: 1rem 1.2rem;
+  border-left: 3px solid var(--cyan);
+  background: #078f9a12;
+  color: var(--ink);
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 0.85rem;
+  line-height: 1.6;
+}
+
+.completion-status.is-problem {
+  border-left-color: var(--rose);
+  background: #a83b5b12;
+  color: var(--rose);
+}
+
+.consent-question {
+  margin: 0 0 1rem;
+  font-size: clamp(1.2rem, 2vw, 1.7rem);
+  line-height: 1.4;
+  letter-spacing: -0.02em;
+}
+
+.pw-panel {
+  margin-bottom: 1.75rem;
+}
+
+.pw-panel input[type='password'] {
+  display: block;
+  width: 100%;
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--rule);
+  background: var(--paper-light);
+  color: var(--ink);
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 1.05rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.pw-panel input[type='password']::placeholder {
+  color: var(--muted);
+  font-style: italic;
+}
+
+.pw-panel input[type='password']:focus {
+  outline: none;
+  border-color: var(--cyan);
+  box-shadow: 0 0 0 4px #078f9a1a;
+}
+
+.pw-note {
+  margin: 0.9rem 0 0;
+  color: var(--muted);
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 0.78rem;
+  line-height: 1.65;
+}
+
+.consent-actions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+  gap: 1rem;
+}
+
+.consent-btn {
+  padding: 1.15rem 2rem;
+  border: 1px solid var(--ink);
+  cursor: pointer;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
+}
+
+.consent-btn-yes {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.consent-btn-no {
+  background: transparent;
+  color: var(--ink);
+}
+
+.consent-btn:hover {
+  background: var(--saffron);
+  border-color: var(--saffron);
+  color: var(--paper-light);
+}
+
+.consent-btn:focus-visible {
+  outline: 2px solid var(--cyan);
+  outline-offset: 4px;
+}
+
+/* The essay: .movement's measure and type, with room between its paragraphs. */
+.essay p + p {
+  margin-top: 1.1em;
+}
+
+.essay .section-break {
+  padding: clamp(3rem, 6vw, 5rem) 0 clamp(2.5rem, 5vw, 4rem);
+}
+
+.essay-threshold {
+  color: var(--saffron);
+}
+
+.essay-threshold img {
+  width: auto;
+  height: 1.6em;
+  vertical-align: middle;
+}
+
+.essay-kicker {
+  width: min(790px, 100%);
+  margin: 0.4em auto 0.6em;
+  font-size: clamp(2.4rem, 5vw, 4.6rem);
+  font-weight: 400;
+  line-height: 1.02;
+  letter-spacing: -0.045em;
+}
+
+.essay-dedication {
+  color: var(--muted);
+  font-size: 0.8em !important;
+}
+
+.essay-close {
+  font-style: italic;
+}
+
+.completion-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem 2.5rem;
+  margin: 0 0 2rem;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.completion-links a,
+.completion-newsletter a {
+  color: var(--saffron);
+  text-underline-offset: 3px;
+}
+
+.completion-newsletter {
+  margin: 0;
+  color: #4f473d;
+  font-size: clamp(1.05rem, 1.6vw, 1.3rem);
+  font-style: italic;
+  line-height: 1.65;
+}
+
 /* ── footer ────────────────────────────────────────────────────────────── */
 footer {
   display: grid;

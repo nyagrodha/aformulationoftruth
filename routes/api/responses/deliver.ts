@@ -16,7 +16,8 @@ import { withConnection } from '../../../lib/db.ts';
 import { increment } from '../../../lib/metrics.ts';
 import { ageEncryptTo } from '../../../lib/age-encrypt.ts';
 import { breakglassRecipient } from '../../../lib/session-keys.ts';
-import { getSessionByToken } from '../../../lib/questionnaire-session.ts';
+import { getSessionRecord } from '../../../lib/questionnaire-session.ts';
+import { hashResumeToken } from '../../../lib/crypto.ts';
 import { type DeliveryBundle, KeyboxUnavailableError, pushBundle } from '../../../lib/romania-client.ts';
 import { GATE_QUESTIONS } from '../../../lib/gate_encrypt.ts';
 import { QUESTIONS as TAMIL_QUESTIONS } from '../../../lib/questions_dakshinaparvanuvadam.ts';
@@ -161,7 +162,11 @@ export const handler: Handlers = {
     }
 
     try {
-      const session = await getSessionByToken(resumeToken);
+      // getSessionRecord, not getSessionByToken: the latter drops finished
+      // sessions, and everyone who reaches this form has finished. Today that
+      // only works because the form path never stamps completed_at (it serves
+      // 31 of 33 questions); the day it does, every copy would be "not found".
+      const session = await getSessionRecord(await hashResumeToken(resumeToken));
       if (!session) {
         increment('errors.4xx');
         return done(404, 'Session not found or already closed.', 'copy=nosession');
