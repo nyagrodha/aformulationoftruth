@@ -28,5 +28,10 @@ export const TIP_ADDRESSES: readonly TipAddress[] = [
     name: 'Monero',
     address: '88MyQZLzKD8Z5q1eydqNLnG7aW8njaA3XChyVRuXb5FHh14a45KK98xHagruiPK5AfPxnHF281nQFfpEuQBTZyhM2vo8f35',
   },
-  { symbol: 'ZEC', name: 'Zcash', address: null },
+  {
+    symbol: 'ZEC',
+    name: 'Zcash',
+    address:
+      'u1hkkue80n7fvvkce725j7nq3eythgt6xuhmwrcyj3j7dtc2g90xtmvlr88hnhftckmjhvkz96mg6t53hpn6x2fde52n69fegdgq4angvjjpsp8wc2dtqzz8hdsmxucn838g7q52dj3xsx65z3u57yq9euzap38ktf7z8hmc58lskg32e8',
+  },
 ];
