@@ -248,6 +248,7 @@ export const handler: Handlers<QuestionnaireData> = {
   },
 };
 
+/** Render the authenticated questionnaire at the session's current question. */
 export default function QuestionnairePage({ data }: PageProps<QuestionnaireData>) {
   const { currentIndex, currentQuestion, questionNumber, totalQuestions } = data;
 

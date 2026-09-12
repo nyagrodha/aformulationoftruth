@@ -48,6 +48,7 @@ export const handler: Handlers = {
   },
 };
 
+/** Render the form for configuring an optional public profile. */
 export default function ProfileCreatePage() {
   return (
     <html lang='en'>

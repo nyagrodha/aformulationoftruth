@@ -104,6 +104,7 @@ export const handler: Handlers<IndexData> = {
   },
 };
 
+/** Render the landing page and its first questionnaire prompt. */
 export default function Home({ data }: PageProps<IndexData>) {
   const { error } = data;
   return (

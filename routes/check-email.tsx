@@ -16,6 +16,7 @@ export const handler: Handlers = {
   },
 };
 
+/** Render the confirmation page shown after a magic-link email is accepted. */
 export default function CheckEmail() {
   return (
     <html lang='en'>

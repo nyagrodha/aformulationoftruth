@@ -9,6 +9,7 @@
 import { WordmarkGlyphs } from './Wordmark.tsx';
 import TipJar from './TipJar.tsx';
 
+/** Render the shared footer, optionally targeting an in-page home anchor. */
 export default function SiteFooter({ home = '/', id }: { home?: string; id?: string }) {
   return (
     <footer id={id}>

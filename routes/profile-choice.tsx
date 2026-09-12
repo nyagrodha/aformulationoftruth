@@ -49,6 +49,7 @@ export const handler: Handlers = {
   },
 };
 
+/** Render the post-questionnaire choice between private and public profiles. */
 export default function ProfileChoicePage() {
   return (
     <html lang='en'>

@@ -31,6 +31,7 @@ export const handler: Handlers<LoginData> = {
   },
 };
 
+/** Render the form that requests a questionnaire magic link. */
 export default function LoginPage({ data }: PageProps<LoginData>) {
   return (
     <html lang='en'>

@@ -164,6 +164,7 @@ export const handler: Handlers<GateData> = {
   },
 };
 
+/** Render the current unauthenticated gate question and its submission form. */
 export default function GatePage({ data }: PageProps<GateData>) {
   const { questionIndex, question, gateToken, error } = data;
 

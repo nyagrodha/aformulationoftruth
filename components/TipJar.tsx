@@ -19,6 +19,7 @@
 
 import { STRIPE_TIP_LINK, TIP_ADDRESSES } from '../data/tip-jar.ts';
 
+/** Render the configured payment options as a script-free disclosure. */
 export default function TipJar() {
   const addresses = TIP_ADDRESSES.filter((a) => a.address);
   if (!STRIPE_TIP_LINK && addresses.length === 0) return null;
