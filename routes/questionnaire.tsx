@@ -15,6 +15,7 @@ import { verifyQuestionnaireJWT } from '../lib/jwt.ts';
 import { getSessionById, updateSessionIndex, updateSessionProgress } from '../lib/questionnaire-session.ts';
 import { parseQuestionOrder } from '../lib/questionnaire.ts';
 import { increment } from '../lib/metrics.ts';
+import TipJar from '../components/TipJar.tsx';
 
 // The 35 Proust questionnaire questions
 const QUESTIONS = [
@@ -574,6 +575,7 @@ export default function QuestionnairePage({ data }: PageProps<QuestionnaireData>
           <p class='footer-copy'>
             Encrypted &amp; hosted in Iceland
           </p>
+          <TipJar />
         </footer>
       </body>
     </html>

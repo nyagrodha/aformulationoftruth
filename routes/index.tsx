@@ -26,7 +26,7 @@ import type { VNode } from 'preact';
 import Nav, { type NavItem } from '../islands/Nav.tsx';
 import Spheroid from '../islands/Spheroid.tsx';
 import Folio, { type FolioPart } from '../islands/Folio.tsx';
-import { WordmarkGlyphs } from '../components/Wordmark.tsx';
+import SiteFooter from '../components/SiteFooter.tsx';
 import { NAV_NOSCRIPT_CSS } from '../components/nav-shared.ts';
 
 /*
@@ -378,44 +378,7 @@ export default function Home({ data }: PageProps<IndexData>) {
           </div>
         </main>
 
-        <footer id='about'>
-          <a class='wordmark' href='#top' aria-label='a formulation of truth'>
-            <WordmarkGlyphs />
-          </a>
-
-          <div>
-            <p>
-              a <span class='keep-case'>Proust</span>{' '}
-              questionnaire through which to acquaint oneself with a lifetime’s sequence of selves.
-            </p>
-            <p style='margin-top: 1rem;'>
-              database hosted in Iceland by{' '}
-              <a
-                href='https://billing.flokinet.is/aff.php?aff=543'
-                target='_blank'
-                rel='noopener noreferrer'
-              >
-                FlokiNET
-              </a>
-            </p>
-            <p style='margin-top: 0.5rem; word-break: break-all;'>
-              Onion mirror:{' '}
-              <a
-                href='http://a4mulasy36kk6s4liqbqkqs4fx4i6nmtyp73r2vv42mgechry2u47wad.onion/'
-                rel='noopener noreferrer'
-              >
-                a4mulasy36kk6s4liqbqkqs4fx4i6nmtyp73r2vv42mgechry2u47wad.onion
-              </a>
-            </p>
-          </div>
-
-          <div class='footer-links' style='justify-content: flex-end;'>
-            <a href='/about'>about</a>
-            <a href='/shop'>gift shop</a>
-            <a href='/contact.html'>contact</a>
-            <a href='/privacy'>privacy</a>
-          </div>
-        </footer>
+        <SiteFooter home='#top' id='about' />
       </body>
     </html>
   );

@@ -12,6 +12,7 @@ import { NAV_NOSCRIPT_CSS, PAGE_NAV } from '../components/nav-shared.ts';
 import { verifyQuestionnaireJWT } from '../lib/jwt.ts';
 import { getSessionById } from '../lib/questionnaire-session.ts';
 import { increment } from '../lib/metrics.ts';
+import TipJar from '../components/TipJar.tsx';
 
 function getCookie(cookieHeader: string | null, name: string): string | null {
   if (!cookieHeader) return null;
@@ -144,6 +145,7 @@ export default function ProfileChoicePage() {
               </a>
             </p>
           </div>
+          <TipJar />
         </footer>
       </body>
     </html>
