@@ -1,6 +1,7 @@
 import type { ComponentChildren } from 'preact';
 import Nav from '../islands/Nav.tsx';
 import { WordmarkGlyphs } from './Wordmark.tsx';
+import TipJar from './TipJar.tsx';
 import { NAV_NOSCRIPT_CSS, PAGE_NAV } from './nav-shared.ts';
 
 /**
@@ -72,6 +73,8 @@ export function PageShell(
               <a href='/privacy'>Privacy</a>
             </p>
           </div>
+
+          <TipJar />
         </footer>
       </body>
     </html>

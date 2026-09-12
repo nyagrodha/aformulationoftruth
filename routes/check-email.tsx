@@ -8,6 +8,7 @@
 
 import { Handlers } from '$fresh/server.ts';
 import { WordmarkGlyphs } from '../components/Wordmark.tsx';
+import TipJar from '../components/TipJar.tsx';
 
 export const handler: Handlers = {
   GET(_req, ctx) {
@@ -98,6 +99,7 @@ export default function CheckEmail() {
               </a>
             </p>
           </div>
+          <TipJar />
         </footer>
       </body>
     </html>
