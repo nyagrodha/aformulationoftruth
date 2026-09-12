@@ -27,6 +27,7 @@ const FOOTER_FILES = [
   'components/PageShell.tsx',
   'components/SiteFooter.tsx',
   'routes/index.tsx',
+  'routes/completion.tsx',
   'routes/check-email.tsx',
   'routes/gate.tsx',
   'routes/login.tsx',
