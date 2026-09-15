@@ -70,7 +70,7 @@ async function withSession(
   });
 
   try {
-    const jwt = await createQuestionnaireJWT(emailHash, sessionId);
+    const jwt = await createQuestionnaireJWT(emailHash, sessionId, 'link');
     await fn({ sessionId, emailHash, jwt });
   } finally {
     await withConnection(async (client) => {
