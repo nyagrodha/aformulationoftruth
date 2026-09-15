@@ -39,7 +39,7 @@ Deno.test('HANDLE_RE matches the published /p/<handle> shape', () => {
 });
 
 Deno.test('reserved handles include the live routes a handle would shadow', () => {
-  for (const name of ['people', 'p', 'profile-create', 'shop', 'gate', 'questions']) {
+  for (const name of ['people', 'p', 'profile-create', 'shop', 'gate', 'questions', 'messages', 'lotto']) {
     assertEquals(RESERVED_HANDLES.has(name), true);
   }
 });

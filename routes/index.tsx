@@ -25,7 +25,8 @@ import { Handlers, PageProps } from '$fresh/server.ts';
 import type { VNode } from 'preact';
 import Nav, { type NavItem } from '../islands/Nav.tsx';
 import Spheroid from '../islands/Spheroid.tsx';
-import { WordmarkGlyphs } from '../components/Wordmark.tsx';
+import Folio, { type FolioPart } from '../islands/Folio.tsx';
+import SiteFooter from '../components/SiteFooter.tsx';
 import { NAV_NOSCRIPT_CSS } from '../components/nav-shared.ts';
 
 /*
@@ -42,6 +43,16 @@ const LANDING_NAV: NavItem[] = [
   { label: 'people', href: '/people' },
   { label: 'messenger', href: '/messenger' },
   { label: 'gift shop', href: '/shop' },
+];
+
+/*
+ * The folio's contents, in page order. Each id opens its part: the quote leads
+ * the hero (#top), the eyebrow opens the prolegomenon, and #begin is the gate.
+ */
+const FOLIO_PARTS: FolioPart[] = [
+  { label: '1. Proust quote', id: 'top' },
+  { label: '2. Prolegomenon', id: 'prolegomenon' },
+  { label: '3. a gate', id: 'begin' },
 ];
 
 interface IndexData {
@@ -66,9 +77,8 @@ const ERROR_MESSAGES: Record<string, VNode> = {
   send: <>We couldn't deliver your authorization link right meow. Try again in a moment.</>,
   server: (
     <>
-      Something went wrong. Please try again and it should resolve itself. Consider taking a brief moment to contact the
-      {' '}
-      <a href='mailto:formitselfisemptiness@aformulationoftruth.com'>webmaster</a> so I can investigate why.
+      Something went wrong. Try again — it usually resolves itself. If it doesn't, a brief note to the{' '}
+      <a href='mailto:formitselfisemptiness@aformulationoftruth.com'>webmaster</a> would help me find out why.
     </>
   ),
 };
@@ -143,7 +153,7 @@ export default function Home({ data }: PageProps<IndexData>) {
         </noscript>
       </head>
       <body>
-        <main>
+        <main class='folio-host'>
           <header class='site-header'>
             <Nav items={LANDING_NAV} />
           </header>
@@ -153,37 +163,44 @@ export default function Home({ data }: PageProps<IndexData>) {
             <div class='hero-copy'>
               <p class='hero-title'>
                 Every reader finds themselves. The writer’s work is merely a kind of optical instrument that makes it
-                possible for the reader to discern what, without this book, readers would perhaps never have seen in
+                possible for the reader to discern what, without this book, they would perhaps never have seen in
                 themselves.
               </p>
 
               <p class='eyebrow' id='prolegomenon'>PROLEGOMENON:</p>
               <p class='incipit'>
-                <span class='drop-cap' aria-hidden='true'>Y</span>
+                <img
+                  class='drop-cap'
+                  src='/images/y-illuminated-560.webp'
+                  alt=''
+                  aria-hidden='true'
+                  width={532}
+                  height={560}
+                />
                 <span class='sr-only'>Y</span>our answers — anyone's answers — may become for another reader just such
-                an ātmanopticon: in our world where nothing ever happens the same way twice, truth resides in the
-                reconstruction of events without precedent.
+                an ātmanopticon: that optical lens-like perspective one among you composes that, without having read it,
+                another reader may not ever have recognized that quality or trait within themselves.
               </p>
 
               <div class='hero-prose'>
                 <p>
-                  A practice/<i lang='sa-Latn'>sādhana</i>: the questions invite an unguarded, thoughtful state; and
-                  what the answer at times just astonishes in describing some interior (<span lang='ta'>அகம்</span>) — a
+                  A practice/<i lang='sa-Latn'>sādhana</i>: the questions invite an unguarded, thoughtful state, and at
+                  times the answer astonishes in what it describes of some interior (<span lang='ta'>அகம்</span>) — a
                   subject, the grammatical <em>I</em>, a formulation of truth.
                 </p>
                 <p>
-                  Return after enough time and (a species) amnesia to respond again. The earlier answers belong to
-                  someone else; the one answering now is provisional too. Another self emerges in the collision of the
-                  past in the present from memories we create and their associations. This is not a tragedy. It’s more
+                  Return, after enough time and a species of amnesia, to respond again. The earlier answers belong to
+                  someone else; the one answering now is provisional too. Another self emerges where the past collides
+                  with the present, out of the memories we make and their associations. This is not a tragedy. It’s more
                   like the weather.
                 </p>
                 <p>
                   The questionnaire keeps their record — so many persons in succession, bearing one name: <em>I</em>.
                 </p>
                 <p>
-                  Insofar as recognition adds nothing new or points out something that hasn’t always been known it can
-                  be captured well by double-dipping ‘I’, ‘I-I’ sees the ones already given — who you were when you
-                  answered then. Who answers now, who will — as one light regarding itself.
+                  Insofar as recognition adds nothing new — points to nothing that hasn’t always been known — it is well
+                  captured by doubling the ‘I’: ‘I-I’ sees the ones already given, who you were when you answered then;
+                  who answers now; who will — as one light regarding itself.
                 </p>
                 <p>Find who sleeps.</p>
                 <p>That is what this instrument is for.</p>
@@ -264,25 +281,15 @@ export default function Home({ data }: PageProps<IndexData>) {
             <Spheroid />
             {/* anchored to the page, not to the molecule: it drifts, IV does not */}
             <span class='spheroid-sigil' aria-hidden='true'>IV</span>
-
-            <aside class='folio' aria-hidden='true'>
-              <span>I · TEXT</span>
-              <i></i>
-              <b>
-                01
-                <br />
-                12
-              </b>
-            </aside>
           </section>
 
           {/* ── the gate — where the prolegomenon terminates ─────────────── */}
           <section id='begin' class='gate-section'>
             <div class='gate-content'>
               <p class='gate-eyebrow'>a gate:</p>
-              <h2 class='gate-title'>we meet @ this gate:</h2>
+              <h2 class='gate-title'>Here we meet @ a gate:</h2>
               <p class='gate-description'>
-                What follow are not polite questions. These are holes in the ice. Answer honestly and something cold
+                What follow are not polite questions. They are holes in the ice. Answer honestly and something cold
                 touches the feet.
               </p>
 
@@ -307,7 +314,7 @@ export default function Home({ data }: PageProps<IndexData>) {
                     name='answer1'
                     rows={4}
                     maxLength={20000}
-                    placeholder='You may respond to all the questions in one session, or complete the questionnaire over the course of days... When you return simply enter the same email address you use today to login.'
+                    placeholder='Answer every question in one sitting, or complete the questionnaire over several days… When you return, simply sign in with the same email address you use today.'
                     aria-describedby='accessibility-hint'
                   >
                   </textarea>
@@ -320,7 +327,7 @@ export default function Home({ data }: PageProps<IndexData>) {
                     name='answer2'
                     rows={4}
                     maxLength={20000}
-                    placeholder="You may only submit one questionnaire. The site enforces a period of waiting between submissions and the application will contact you via email when you're able to submit another set of responses."
+                    placeholder="You may submit one questionnaire at a time. A waiting period follows each submission; you'll be emailed when you're able to submit another set of responses."
                     aria-describedby='accessibility-hint'
                   >
                   </textarea>
@@ -348,10 +355,13 @@ export default function Home({ data }: PageProps<IndexData>) {
                     placeholder='your.email@example.com'
                   />
                   <p class='privacy-notice'>
-                    All what you type is age-encrypted before storage. Your address is used once, to deliver your link
-                    through Apple's mail servers, and is never itself stored — the database keeps only a SHA-256 hash of
-                    it. We don't care to see your email address. There is no tracking, no profiling, no analytics, and
-                    nothing is shared with anyone beyond that delivery.
+                    Your answers are age-encrypted before storage, and so is your address. The database keeps a SHA-256
+                    hash of it, to recognise your session, and an age-encrypted copy that only the key box which mails
+                    your finished questionnaire can open. We have no wish to see your email address. We use it for three
+                    things and nothing else: to send you your link, to deliver your answers to you as a PDF, and to
+                    remind you, some time later, to answer the questions again. Each of those goes out through Apple's
+                    mail servers. There is no tracking, no profiling, no analytics, and nothing is shared with anyone
+                    beyond that delivery.
                   </p>
                 </div>
 
@@ -361,46 +371,14 @@ export default function Home({ data }: PageProps<IndexData>) {
               </form>
             </div>
           </section>
+
+          {/* spans all of <main>, so the sticky folio inside follows the reader to the gate's end */}
+          <div class='folio-track'>
+            <Folio parts={FOLIO_PARTS} />
+          </div>
         </main>
 
-        <footer id='about'>
-          <a class='wordmark' href='#top' aria-label='a formulation of truth'>
-            <WordmarkGlyphs />
-          </a>
-
-          <div>
-            <p>
-              a <span class='keep-case'>Proust</span>{' '}
-              questionnaire that aims to acquaint oneself with a sequence of selves this lifetime.
-            </p>
-            <p style='margin-top: 1rem;'>
-              database hosted in Iceland by{' '}
-              <a
-                href='https://billing.flokinet.is/aff.php?aff=543'
-                target='_blank'
-                rel='noopener noreferrer'
-              >
-                FlokiNET
-              </a>
-            </p>
-            <p style='margin-top: 0.5rem; word-break: break-all;'>
-              Onion mirror:{' '}
-              <a
-                href='http://a4mulasy36kk6s4liqbqkqs4fx4i6nmtyp73r2vv42mgechry2u47wad.onion/'
-                rel='noopener noreferrer'
-              >
-                a4mulasy36kk6s4liqbqkqs4fx4i6nmtyp73r2vv42mgechry2u47wad.onion
-              </a>
-            </p>
-          </div>
-
-          <div class='footer-links' style='justify-content: flex-end;'>
-            <a href='/about'>about</a>
-            <a href='/shop'>gift shop</a>
-            <a href='/contact.html'>contact</a>
-            <a href='/privacy'>privacy</a>
-          </div>
-        </footer>
+        <SiteFooter home='#top' id='about' />
       </body>
     </html>
   );

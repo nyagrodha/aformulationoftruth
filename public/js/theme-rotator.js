@@ -19,7 +19,7 @@
         return JSON.parse(stored);
       }
     } catch (e) {
-      console.warn('Failed to load theme config:', e);
+      console.warn('Failed to load theme config:', e?.name);
     }
 
     // Default configuration
@@ -37,7 +37,7 @@
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(config));
     } catch (e) {
-      console.warn('Failed to save theme config:', e);
+      console.warn('Failed to save theme config:', e?.name);
     }
   }
 

@@ -8,6 +8,7 @@
  */
 
 import { Handlers, PageProps } from '$fresh/server.ts';
+import TipJar from '../components/TipJar.tsx';
 
 interface LoginData {
   sent?: boolean;
@@ -111,6 +112,7 @@ export default function LoginPage({ data }: PageProps<LoginData>) {
               </a>
             </p>
           </div>
+          <TipJar />
         </footer>
 
         <script>

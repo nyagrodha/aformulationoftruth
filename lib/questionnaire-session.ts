@@ -75,7 +75,7 @@ export async function createQuestionnaireSession(
   // Step 2: Compute session_id = HMAC-SHA256(opaque_token, secret)
   const sessionId = await hashResumeToken(opaqueToken);
 
-  // Steps 3-5 in a single transaction: check gate, create session, link
+  // Steps 3-5 in a single transaction: check gate, create session, link.
   // Assigned inside the transaction callback below, which always runs to
   // completion before the await resolves; TS cannot see through the closure.
   let questionOrder!: string;
@@ -168,12 +168,18 @@ function toSession(row: SessionRow): QuestionnaireSession {
 }
 
 /**
- * The session row, whether or not the questionnaire is finished.
+ * Get session by session_id (hash), finished or not.
  *
- * Profile create happens AFTER completeSession() stamps completed_at. The
- * answerable-session helper below treats that stamp as "gone", which is right
- * for /questionnaire and wrong for /profile-create: finishing the walk must
- * not erase the identity the profile is keyed to.
+ * This is the raw row. It is what identity should be read from: whether someone
+ * answered their last question has nothing to do with whether they are who the
+ * session says, and getSessionById() -- which drops completed rows -- turns a
+ * finished respondent into an unauthenticated stranger. That is right for the
+ * questionnaire, which has no next question to serve them, and wrong for every
+ * other surface. lib/session-auth.ts and lib/profile-session.ts use this one
+ * and leave the completed check to callers that actually care.
+ *
+ * @param sessionId - HMAC hash of opaque token
+ * @returns Session if the row exists, regardless of completion
  */
 export async function getSessionRecord(
   sessionId: string,

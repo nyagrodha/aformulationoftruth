@@ -74,7 +74,8 @@ export const handler: Handlers<VerifyData> = {
       if (sessionId !== jwtPayload.session_id) {
         increment('errors.4xx');
         increment('auth.verify.token_mismatch');
-        console.warn(`[auth:${requestId}] Token mismatch: hash=${sessionId}, jwt=${jwtPayload.session_id}`);
+        /* Category only: both ids identify the holder. increment() above carries the count. */
+        console.warn(`[auth:${requestId}] Token mismatch`);
         return ctx.render({
           success: false,
           error: 'Authentication tokens do not match',
@@ -87,7 +88,7 @@ export const handler: Handlers<VerifyData> = {
       if (!session) {
         increment('errors.4xx');
         increment('auth.verify.session_not_found');
-        console.warn(`[auth:${requestId}] Session not found: ${sessionId}`);
+        console.warn(`[auth:${requestId}] Session not found`);
         return ctx.render({
           success: false,
           error: 'Session not found or expired',
@@ -142,8 +143,10 @@ export const handler: Handlers<VerifyData> = {
         status: 302,
         headers,
       });
-    } catch (error) {
-      console.error(`[auth:${requestId}] Verification failed:`, error);
+    } catch {
+      /* The object is dropped: a thrown pg or crypto error can carry the query,
+       * the parameters, or the token that failed to decode. */
+      console.error(`[auth:${requestId}] Verification failed`);
       increment('errors.5xx');
       return ctx.render({
         success: false,

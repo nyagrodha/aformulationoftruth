@@ -60,8 +60,8 @@ export const handler: Handlers<WearableData> = {
 
 export default function WearablePage({ data }: PageProps<WearableData>) {
   const greeting = data.displayName
-    ? `You have encountered ${data.displayName}.`
-    : 'You have encountered a bearer of this questionnaire.';
+    ? `Hi there! You scanned the QR code belonging to ${data.displayName}, a user @aformulationoftruth. They logged in and completed the Proust questionnaire, and they think you may also enjoy responding.`
+    : 'Hi there! You scanned the QR code belonging to a user @aformulationoftruth. They logged in and completed the Proust questionnaire, and they think you may also enjoy responding.';
 
   return (
     <html lang='en'>
@@ -86,7 +86,21 @@ export default function WearablePage({ data }: PageProps<WearableData>) {
             style='min-height: 100vh; display: flex; align-items: center;'
           >
             <div class='gate-content'>
-              <div class='gate-icon'>&#10041;</div>
+              {
+                /*
+                 * The nav's own ௨ artwork, small. alt is empty by intent: the
+                 * mark is ornament, and the greeting beneath it already says
+                 * everything the mark would announce.
+                 */
+              }
+              <img
+                class='gate-mark'
+                src='/images/nav-irendu-372.webp'
+                alt=''
+                width='96'
+                height='65'
+                decoding='async'
+              />
 
               <h2 class='gate-title'>{greeting}</h2>
 

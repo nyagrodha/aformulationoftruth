@@ -1,0 +1,143 @@
+/*
+ * Tip jar — see components/TipJar.tsx.
+ *
+ * Deliberately theme-neutral: every colour is currentColor or a translucent
+ * grey, so the jar reads correctly on the landing's ink footer and on the
+ * older neon pages alike.
+ *
+ * The one rule that must never be lost is `text-transform: none` on the
+ * addresses. Footers here lowercase their text; a lowercased Monero or Zcash
+ * address is a different, invalid string, and a lowercased Ether address fails
+ * its checksum. tests/tip_jar_test.tsx checks the rule is present.
+ */
+
+.tip-jar {
+  width: min(36rem, 100%);
+  margin: 0 auto;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+  text-align: left;
+}
+
+/* In the landing footer's three-column grid, take a row of its own. */
+footer > .tip-jar {
+  grid-column: 1 / -1;
+}
+
+footer .footer-inner + .tip-jar {
+  margin-top: 2rem;
+}
+
+.tip-jar summary {
+  width: max-content;
+  margin: 0 auto;
+  cursor: pointer;
+  list-style: none;
+  letter-spacing: 0.2em;
+  text-transform: lowercase;
+  opacity: 0.85;
+}
+
+.tip-jar summary::-webkit-details-marker {
+  display: none;
+}
+
+.tip-jar summary::before {
+  content: '+ ';
+}
+
+.tip-jar[open] summary::before {
+  content: '− ';
+}
+
+.tip-jar summary:hover,
+.tip-jar summary:focus-visible {
+  opacity: 1;
+}
+
+.tip-jar summary:focus-visible {
+  outline: 1px solid currentColor;
+  outline-offset: 4px;
+}
+
+.tip-jar-body {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1.25rem;
+}
+
+.tip-jar .tip-jar-note {
+  margin: 0;
+  text-align: center;
+  text-transform: none;
+  font-size: 0.7rem;
+  letter-spacing: 0.04em;
+  opacity: 0.8;
+}
+
+.tip-jar-card {
+  justify-self: center;
+  padding: 0.6em 1.2em;
+  border: 1px solid currentColor;
+  color: inherit;
+  letter-spacing: 0.2em;
+  text-decoration: none;
+  text-transform: lowercase;
+}
+
+.tip-jar-card span {
+  opacity: 0.7;
+}
+
+.tip-jar-card:hover,
+.tip-jar-card:focus-visible {
+  background: rgba(127, 127, 127, 0.18);
+}
+
+.tip-jar-addresses {
+  display: grid;
+  gap: 0.6rem;
+  margin: 0;
+}
+
+.tip-jar-row {
+  display: grid;
+  grid-template-columns: 3.2em minmax(0, 1fr);
+  gap: 0.75em;
+  align-items: baseline;
+}
+
+.tip-jar dt {
+  font-weight: 700;
+  letter-spacing: 0.2em;
+}
+
+.tip-jar abbr {
+  text-decoration: none;
+  cursor: help;
+}
+
+.tip-jar dd {
+  min-width: 0;
+  margin: 0;
+}
+
+.tip-jar .tip-jar-address {
+  display: block;
+  padding: 0.45em 0.6em;
+  border: 1px solid rgba(127, 127, 127, 0.35);
+  background: rgba(127, 127, 127, 0.12);
+  color: inherit;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.68rem;
+  line-height: 1.5;
+  letter-spacing: 0;
+  text-transform: none;
+  /* no spaces to break at — break anywhere rather than overflow */
+  overflow-wrap: anywhere;
+  word-break: break-all;
+  /* one tap selects the whole address */
+  -webkit-user-select: all;
+  user-select: all;
+}

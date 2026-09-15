@@ -1,5 +1,5 @@
 /**
- * Primary navigation — a disclosure whose toggle is the five-line mark.
+ * Primary navigation — a disclosure whose toggle is the ௨ mark.
  *
  * This has to be an island: the open/closed state is client state, and Fresh
  * only hydrates what lives under islands/. The same component as a route or a
@@ -17,7 +17,38 @@
 
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { WordmarkGlyphs } from '../components/Wordmark.tsx';
-import { FiveLineMark } from '../components/FiveLineMark.tsx';
+
+/*
+ * The toggle is the Tamil ௨ (இரண்டு, 2) as drawn artwork, replacing the
+ * five-line mark that carried the same glyph as negative space cut from a stack
+ * of bars. It is a raster because the artwork is a rendered, lit object rather
+ * than a flat contour -- there is no path to inline, and tracing it to one would
+ * throw away the thing that makes it read.
+ *
+ * Served as a single .webp at 372px, three times the 124px the mark is ever
+ * painted at, so it stays crisp on a 3x display; intrinsic width/height are
+ * declared so the header reserves its box before the image arrives and the
+ * wordmark beside it does not jump. Sizing is the stylesheet's business -- see
+ * .nav-mark in public/css/nav-mark.css.
+ *
+ * alt is empty by intent: the glyph is ornament and the control it sits inside
+ * already carries the accessible name (aria-label='Menu'). A non-empty alt here
+ * would announce twice.
+ */
+const MARK_SRC = '/images/nav-irendu-372.webp';
+
+function IrenduMark() {
+  return (
+    <img
+      class='nav-mark'
+      src={MARK_SRC}
+      alt=''
+      width='372'
+      height='252'
+      decoding='async'
+    />
+  );
+}
 
 export interface NavItem {
   label: string;
@@ -69,8 +100,8 @@ export default function Nav({ items }: { items: NavItem[] }) {
     <nav class='site-nav' aria-label='Primary navigation' ref={root}>
       {
         /*
-         * The mark is the control, and it carries the accessible name: the SVG is
-         * aria-hidden ornament, so without a label the button would announce as
+         * The mark is the control, and it carries the accessible name: the image
+         * is empty-alt ornament, so without a label the button would announce as
          * nothing at all.
          */
       }
@@ -85,12 +116,12 @@ export default function Nav({ items }: { items: NavItem[] }) {
             aria-controls='nav-list'
             onClick={() => setOpen((v) => !v)}
           >
-            <FiveLineMark />
+            <IrenduMark />
           </button>
         )
         : (
           <span class='nav-toggle'>
-            <FiveLineMark />
+            <IrenduMark />
           </span>
         )}
 

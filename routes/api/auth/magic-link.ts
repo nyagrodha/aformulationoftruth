@@ -54,8 +54,29 @@ export const handler: Handlers = {
     const parsed = RequestSchema.safeParse(body);
     if (!parsed.success) {
       increment('errors.4xx');
+      /*
+       * Two messages, because they are two different mistakes and a visitor
+       * can only fix the one they made. An absent field is a client that never
+       * sent the address; a malformed one is an address that will not parse.
+       * newsletter/subscribe.ts has drawn this line since the validator landed
+       * there; magic-link never got it, which is why the "rejects missing
+       * email" test has been red since 2026-01-31.
+       *
+       * An empty string counts as malformed, not missing: it is a value that
+       * is not an address, and the invalid-format test lists '' among the
+       * malformed inputs.
+       *
+       * Presence only -- deliberately NOT lib/emailValidator.ts. validateEmail
+       * returns a *normalized* address (lowercased, Gmail dots and +tags
+       * stripped), and the address here is hashed into email_hash, the identity
+       * anchor for profiles and messenger keys. Normalising at this call site
+       * would silently re-key every existing user whose address is not already
+       * in normal form, with no error at the moment of loss.
+       */
+      const field = (body as { email?: unknown } | null)?.email;
+      const missing = typeof field !== 'string';
       return new Response(
-        JSON.stringify({ error: 'Valid email required' }),
+        JSON.stringify({ error: missing ? 'Email required' : 'Valid email required' }),
         { status: 400, headers: { 'Content-Type': 'application/json' } },
       );
     }
@@ -86,8 +107,11 @@ export const handler: Handlers = {
 
       const { opaqueToken, sessionId } = sessionResult;
 
-      // Step 4: Create JWT (contains email_hash + session_id)
-      const jwt = await createQuestionnaireJWT(emailHash, sessionId);
+      // Step 4: Create JWT (contains email_hash + session_id + via)
+      //
+      // 'link': this token is only ever delivered by email, and only
+      // /auth/verify turns it into a cookie. See JWTVia.
+      const jwt = await createQuestionnaireJWT(emailHash, sessionId, 'link');
 
       // Step 5: Build magic link URL with JWT + resume token
       // IMPORTANT: NO EMAIL IN URL (gupta-vidya compliant)

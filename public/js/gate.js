@@ -199,7 +199,7 @@
       console.log('Response saved successfully:', data.request_id);
       return true;
     } catch (error) {
-      console.error('Error saving gate response:', error);
+      console.error('Error saving gate response:', error?.name);
       return false;
     }
   }

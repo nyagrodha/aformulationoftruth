@@ -11,6 +11,7 @@ import Nav from '../islands/Nav.tsx';
 import { NAV_NOSCRIPT_CSS, PAGE_NAV } from '../components/nav-shared.ts';
 import { increment } from '../lib/metrics.ts';
 import { identityFromRequest } from '../lib/profile-session.ts';
+import TipJar from '../components/TipJar.tsx';
 
 /**
  * Same identity as the questionnaire, including a finished session.
@@ -74,8 +75,8 @@ export default function ProfileChoicePage() {
 
               <div class='quote-block' style='text-align: left; max-width: 560px; margin: 2rem auto;'>
                 <p>
-                  Private means the nameplate is not listed and is not served at /p/handle. Listed means handle, display
-                  name, and statement appear in the directory and at /p/handle.
+                  Private means the nameplate is not listed in /people. A handle someone already has may still resolve
+                  at /p/handle. Listed means handle, display name, and statement appear in the directory.
                 </p>
                 <cite>choice before publication</cite>
               </div>
@@ -121,6 +122,7 @@ export default function ProfileChoicePage() {
               </a>
             </p>
           </div>
+          <TipJar />
         </footer>
       </body>
     </html>

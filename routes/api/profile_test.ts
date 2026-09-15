@@ -215,11 +215,11 @@ Deno.test({
 });
 
 Deno.test({
-  name: 'a private profile is not served by handle',
+  name: 'a private profile is findable by handle but not listed',
   ignore: !Deno.env.get('DATABASE_URL'),
   async fn() {
     await withCompletedSession(async ({ emailHash, jwt, sessionId }) => {
-      const { getProfile, getProfileByHandle } = await import('../../lib/profiles.ts');
+      const { getProfile, getProfileByHandle, listPublicProfiles } = await import('../../lib/profiles.ts');
       const handle = `v-${sessionId.replace(/[^a-z0-9]/g, '').slice(-12)}`;
       const res = await postProfile(jwt, {
         visibility: 'private',
@@ -228,7 +228,8 @@ Deno.test({
       });
       assertEquals(res.status, 200);
       assertEquals((await getProfile(emailHash))?.handle, handle);
-      assertEquals(await getProfileByHandle(handle), null);
+      assertEquals((await getProfileByHandle(handle))?.displayName, 'hidden');
+      assertEquals((await listPublicProfiles()).some((p) => p.handle === handle), false);
     });
   },
 });

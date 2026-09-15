@@ -1,6 +1,6 @@
 /*
  * ═══════════════════════════════════════════════════════════════
- * FIVE-LINE MARK NAV — shared by every page that renders <Nav>
+ * ௨ MARK NAV — shared by every page that renders <Nav>
  * ═══════════════════════════════════════════════════════════════
  *
  * Its own file rather than a block in prolegomenon.css because the callers do
@@ -10,30 +10,16 @@
  *
  * Every custom property therefore carries a fallback — on the main.css pages
  * prolegomenon's :root is not present, and a bare var() would resolve to
- * nothing and paint the bar invisible.
+ * nothing.
+ *
+ * The --mark-1..5 tokens that used to live here are gone with the five-line
+ * mark they coloured. The toggle is now drawn artwork, so its colour is in the
+ * file rather than in the cascade, and a caller on a different ground restates
+ * nothing — see the note on .nav-mark below.
  */
 
-:root {
-  /*
-   * The source palette (#00B8F0 / #2563EB / #16A085 / #D7263D / #2B2D42) was
-   * drawn against a dark card. Two of the five collapse on the site's paper
-   * ground — the cyan measures 1.71:1 and the teal 2.43:1, both under the 3:1
-   * that SC 1.4.11 asks of a non-text graphic. Those two are darkened here at
-   * constant hue and saturation until they clear 3.5:1. The blue (3.83:1), red
-   * (3.68:1) and navy (10.01:1) already pass and are carried through untouched.
-   *
-   * This mirrors what prolegomenon.css already documents for the --wm-* triad,
-   * which had the same origin and the same problem.
-   */
-  --mark-1: #007ba1;
-  --mark-2: #2563eb;
-  --mark-3: #12816b;
-  --mark-4: #d7263d;
-  --mark-5: #2b2d42;
-}
-
 /*
- * The nav is a disclosure whose toggle is the five-line mark, sitting left, with
+ * The nav is a disclosure whose toggle is the ௨ mark, sitting left, with
  * the wordmark opposite it on the right. `.nav-list` opens as a horizontal bar
  * running the width of the header rather than a column dropping out of it.
  *
@@ -69,31 +55,37 @@ button.nav-toggle {
 }
 
 /*
- * The ௨ cut needs room to read. Below roughly 110px wide the negative space
- * collapses into texture and the mark is just five bars, so the floor here is
- * deliberately larger than a conventional hamburger.
+ * The ௨ needs room to read: its inner spiral closes to a blur well before the
+ * outline does, so the floor here is deliberately larger than a conventional
+ * hamburger — the same reason the five-line mark it replaces held this range.
+ *
+ * The intrinsic image is 372×252 and this paints it at 124px at most, so it is
+ * always downscaling. `height: auto` keeps the 1.48 ratio off the attributes in
+ * the markup, which is what stops the header reflowing as it loads.
+ *
+ * The artwork is lit gold with its own highlights and carries no flat fill to
+ * recolour, so unlike the five bars it does not answer to the cascade. A caller
+ * on a ground it cannot sit on needs a different file, not a different token.
  */
-.five-line-mark {
+.nav-mark {
   display: block;
   width: clamp(96px, 10vw, 124px);
   height: auto;
-}
-
-/* Bars part as the menu opens — the mark carries the state itself. */
-.mark-bar {
+  /*
+   * The mark carries the open state itself, as the parting bars used to. A
+   * tenth of a turn is enough to register against a form this curved without
+   * reading as a spin — and it turns anticlockwise, unwinding the spiral
+   * rather than tightening it.
+   */
   transition: transform 0.22s ease;
 }
 
-.nav-toggle[aria-expanded='true'] .mark-bar-2 {
-  transform: translateX(16px);
-}
-
-.nav-toggle[aria-expanded='true'] .mark-bar-4 {
-  transform: translateX(-16px);
+.nav-toggle[aria-expanded='true'] .nav-mark {
+  transform: rotate(-36deg);
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .mark-bar {
+  .nav-mark {
     transition: none;
   }
 }

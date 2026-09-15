@@ -12,6 +12,7 @@ import { Handlers, PageProps } from '$fresh/server.ts';
 import { randomToken } from '../lib/crypto.ts';
 import { increment, trackFunnelQuestion, trackTemporalPattern } from '../lib/metrics.ts';
 import { getGateQuestions, type Question } from '../lib/questions_dakshinaparvanuvadam.ts';
+import TipJar from '../components/TipJar.tsx';
 
 // Gate questions from shared dataset (questions 0-1 from Proust Questionnaire)
 const GATE_QUESTIONS: Question[] = getGateQuestions();
@@ -133,8 +134,8 @@ export const handler: Handlers<GateData> = {
       if (!storeRes.ok) {
         console.error('[gate] Failed to store response');
       }
-    } catch (error) {
-      console.error('[gate] Error storing response:', error);
+    } catch {
+      console.error('[gate] Error storing response');
     }
 
     // Advance to next question
@@ -214,6 +215,7 @@ export default function GatePage({ data }: PageProps<GateData>) {
                     <textarea
                       id='answer'
                       name='answer'
+                      placeholder='Take your time...'
                       aria-describedby='accessibility-hint'
                     >
                     </textarea>
@@ -257,6 +259,7 @@ export default function GatePage({ data }: PageProps<GateData>) {
               </a>
             </p>
           </div>
+          <TipJar />
         </footer>
       </body>
     </html>

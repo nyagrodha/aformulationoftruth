@@ -269,16 +269,20 @@ footer .footer-return {
   margin-bottom: 0;
 }
 
+/*
+ * The incipit's initial is an illuminated Y rather than a letterform, so it
+ * carries no border: the gold frame the drawing already has would only be
+ * doubled by the saffron rule the typeset cap used to need. Height is set in
+ * em of .incipit so the initial scales with the clamp above it — 3.2em spans
+ * roughly the first three lines at line-height 1.18 — and width follows from
+ * the intrinsic ratio, which the img's width/height attributes reserve before
+ * the file lands.
+ */
 .drop-cap {
   float: left;
-  margin: 0.1em 0.13em 0 0;
-  padding: 0.08em 0.1em 0.03em;
-  border: 1px solid var(--saffron);
-  box-shadow: inset 0 0 0 4px var(--paper), inset 0 0 0 5px #1717156b;
-  color: var(--ink);
-  font-size: 3.75em;
-  line-height: 0.73;
-  text-shadow: 2px 2px #d965122e;
+  height: 3.2em;
+  width: auto;
+  margin: 0.16em 0.18em 0 0;
 }
 
 .enter {
@@ -473,23 +477,71 @@ footer .footer-return {
   text-shadow: 0 0 8px #078f9a47;
 }
 
-/* ── folio (vertical page marker) ──────────────────────────────────────── */
-.folio {
+/* ── folio (vertical contents rail) ────────────────────────────────────── */
+/*
+ * The track runs the height of <main> below the header — hero and gate, not the
+ * footer — and the folio rides it on position: sticky, so it follows the reader
+ * down the page with no script at all. islands/Folio.tsx only moves the marker.
+ *
+ * The folio is sized to the first screen's hero (88% of it, as the old in-hero
+ * folio was) and sticks centred in the viewport once the header scrolls away.
+ */
+.folio-host {
+  position: relative;
+}
+
+.folio-track {
   position: absolute;
-  top: 6%;
+  top: calc(76px + 6vh);
   right: 2.9vw;
-  bottom: 6%;
+  bottom: 6vh;
+}
+
+.folio {
+  position: sticky;
+  top: calc(6vh + 38px);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: space-between;
+  height: calc(88vh - 76px);
   padding-left: 1.25rem;
   border-left: 1px solid var(--rule);
   font-size: 0.6rem;
 }
 
-.folio > span {
+.folio ol {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.6rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.folio li {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.7rem;
+}
+
+.folio a {
   writing-mode: vertical-rl;
+  text-transform: none;
+  color: var(--muted);
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.folio a[aria-current] {
+  color: var(--ink);
+}
+
+.folio a:hover,
+.folio a:focus-visible {
+  color: var(--saffron);
 }
 
 .folio i {
@@ -497,6 +549,12 @@ footer .footer-return {
   height: 5px;
   border-radius: 50%;
   background: var(--saffron);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.folio .is-current i {
+  opacity: 1;
 }
 
 .folio b {
@@ -884,7 +942,7 @@ footer .footer-return {
     transform-origin: 100% 100%;
   }
 
-  .folio {
+  .folio-track {
     display: none;
   }
 
@@ -918,7 +976,7 @@ footer .footer-return {
   }
 
   .drop-cap {
-    font-size: 3em;
+    height: 2.7em;
   }
 
   .enter {

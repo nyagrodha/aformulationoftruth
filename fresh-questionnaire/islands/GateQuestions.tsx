@@ -89,7 +89,7 @@ export default function GateQuestions({ questions, apiBaseUrl }: GateQuestionsPr
         setCurrentIndex(currentIndex + 1);
       }
     } catch (err) {
-      console.error("Error saving gate response:", err);
+      console.error("Error saving gate response:", err?.name);
       setError(err instanceof Error ? err.message : "Failed to save. Please try again.");
     } finally {
       setIsSubmitting(false);
@@ -129,7 +129,7 @@ export default function GateQuestions({ questions, apiBaseUrl }: GateQuestionsPr
         setCurrentIndex(currentIndex + 1);
       }
     } catch (err) {
-      console.error("Error skipping question:", err);
+      console.error("Error skipping question:", err?.name);
     } finally {
       setIsSubmitting(false);
     }
@@ -177,7 +177,7 @@ export default function GateQuestions({ questions, apiBaseUrl }: GateQuestionsPr
       // Clear gate session from localStorage after successful email send
       // The session ID is now passed to the backend
     } catch (err) {
-      console.error("Error sending magic link:", err);
+      console.error("Error sending magic link:", err?.name);
       setError(err instanceof Error ? err.message : "Failed to send magic link. Please try again.");
     } finally {
       setIsSubmitting(false);

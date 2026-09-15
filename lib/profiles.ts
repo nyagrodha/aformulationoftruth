@@ -5,11 +5,16 @@
  * chooses to publish lives here, so handle / display_name / bio_public are
  * plaintext by design. The encrypted answer store is not touched.
  *
- *   visibility='public'      -> listed in /people and served at /p/<handle>
+ *   visibility='public'      -> listed in /people
  *   accepts_anonymous_mail   -> may be sent a message
  *
- * They are independent. A listed profile can refuse mail. A private profile
- * is not served at /p/<handle>, even if it has a handle.
+ * They are independent. A listed profile can refuse mail. An unlisted one can
+ * still be reached at /p/<handle> by anyone who was given the address — the
+ * directory decision and the addressability decision are separate. Callers
+ * that must not expose an unlisted profile check `visibility` themselves.
+ *
+ * Zero-logging: a handle is chosen for publication, but an email_hash is not,
+ * and the two travel together here.
  */
 
 import { z } from 'zod';
@@ -51,6 +56,8 @@ export const RESERVED_HANDLES = new Set([
   'profile-create',
   'messenger',
   'encrypted-messenger',
+  'messages',
+  'lotto',
   'shop',
   'static',
   'css',
@@ -157,14 +164,25 @@ export async function getProfile(emailHash: string): Promise<Profile | null> {
   });
 }
 
+/**
+ * Look up a profile by handle.
+ *
+ * Reachable whether or not the profile is listed: the directory decision and
+ * the addressability decision are separate, and a handle someone hands out
+ * should resolve for whoever was handed it. Callers that must not expose an
+ * unlisted profile check `visibility` themselves.
+ *
+ * Handles are stored lowercase by the write path. Lowercasing again here means
+ * a link typed with capitals still resolves rather than 404ing on a difference
+ * the user cannot see.
+ */
 export async function getProfileByHandle(handle: string): Promise<Profile | null> {
   const normalized = handle.trim().toLowerCase();
   if (!normalized) return null;
 
   return await withConnection(async (client) => {
     const { rows } = await client.queryObject<ProfileRow>(
-      `SELECT ${COLUMNS} FROM fresh_profiles
-        WHERE handle = $1 AND visibility = 'public'`,
+      `SELECT ${COLUMNS} FROM fresh_profiles WHERE handle = $1`,
       [normalized],
     );
     return rows.length ? toProfile(rows[0]) : null;
@@ -248,21 +266,71 @@ export async function upsertProfile(emailHash: string, draft: ProfileDraft): Pro
   });
 }
 
-export async function listPublicProfiles(opts: { limit?: number } = {}): Promise<Profile[]> {
+/**
+ * The directory: profiles that chose to be listed.
+ *
+ * Requires a handle as well as public visibility. Keyset pagination on
+ * (created_at, email_hash) rather than OFFSET, so two profiles created in
+ * the same transaction are not dropped or repeated across pages.
+ */
+export interface ProfileCursor {
+  createdAt: Date;
+  emailHash: string;
+}
+
+export async function listPublicProfiles(
+  opts: { limit?: number; before?: ProfileCursor } = {},
+): Promise<Profile[]> {
   const limit = Math.min(Math.max(opts.limit ?? 50, 1), 100);
 
   return await withConnection(async (client) => {
-    const { rows } = await client.queryObject<ProfileRow>(
-      `SELECT ${COLUMNS} FROM fresh_profiles
-        WHERE visibility = 'public' AND handle IS NOT NULL
-        ORDER BY created_at DESC, email_hash DESC
-        LIMIT $1`,
-      [limit],
-    );
+    const { rows } = opts.before
+      ? await client.queryObject<ProfileRow>(
+        `SELECT ${COLUMNS} FROM fresh_profiles
+          WHERE visibility = 'public' AND handle IS NOT NULL
+            AND (created_at, email_hash) < ($1, $2)
+          ORDER BY created_at DESC, email_hash DESC
+          LIMIT $3`,
+        [opts.before.createdAt, opts.before.emailHash, limit],
+      )
+      : await client.queryObject<ProfileRow>(
+        `SELECT ${COLUMNS} FROM fresh_profiles
+          WHERE visibility = 'public' AND handle IS NOT NULL
+          ORDER BY created_at DESC, email_hash DESC
+          LIMIT $1`,
+        [limit],
+      );
     return rows.map(toProfile);
   });
 }
 
+/**
+ * Profiles for a set of identities, in one round trip.
+ *
+ * Thread lists render a name per correspondent, so the per-row alternative is a
+ * query per thread. Returned as a Map because callers are joining, not
+ * iterating, and an array would put the ordering burden on every one of them.
+ */
+export async function getProfilesFor(emailHashes: string[]): Promise<Map<string, Profile>> {
+  const unique = [...new Set(emailHashes)].filter(Boolean);
+  if (unique.length === 0) return new Map();
+
+  return await withConnection(async (client) => {
+    const { rows } = await client.queryObject<ProfileRow>(
+      `SELECT ${COLUMNS} FROM fresh_profiles WHERE email_hash = ANY($1)`,
+      [unique],
+    );
+    return new Map(rows.map((r) => [r.email_hash, toProfile(r)]));
+  });
+}
+
+/**
+ * What to call someone.
+ *
+ * Falls back through display name, handle, then a fixed string -- never to
+ * anything derived from the identity. An email_hash rendered as a name would
+ * publish a value the rest of the schema works to keep unpublished.
+ */
 export function profileLabel(profile: Profile | null | undefined): string {
   if (!profile) return 'someone';
   return profile.displayName?.trim() || profile.handle?.trim() || 'someone';

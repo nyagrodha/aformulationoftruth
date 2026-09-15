@@ -21,6 +21,7 @@ import {
   ProfileFieldsSchema,
   saveProfile,
 } from '../lib/profiles.ts';
+import TipJar from '../components/TipJar.tsx';
 
 interface ProfileCreateData {
   visibilityChoice: 'private' | 'selected' | 'anonymous-mail';
@@ -332,7 +333,9 @@ export default function ProfileCreatePage({ data }: PageProps<ProfileCreateData>
                         />
                         <label for='private'>
                           private encrypted space. not listed.
-                          <p class='profile-create-note'>The profile exists for you; other visitors do not see it.</p>
+                          <p class='profile-create-note'>
+                            Not listed in /people. A handle someone already has may still resolve at /p/handle.
+                          </p>
                         </label>
                       </div>
                       <div class='profile-create-radio'>
@@ -460,6 +463,7 @@ export default function ProfileCreatePage({ data }: PageProps<ProfileCreateData>
               </a>
             </p>
           </div>
+          <TipJar />
         </footer>
 
         <script src='/js/profile-create.js'></script>

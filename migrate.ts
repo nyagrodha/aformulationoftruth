@@ -101,10 +101,19 @@ async function runMigrations() {
         await client.queryObject('COMMIT');
         console.log(`[migrate] Applied: ${migration}`);
         count++;
-      } catch (error) {
+      } catch {
         await client.queryObject('ROLLBACK');
-        console.error(`[migrate] Failed: ${migration}`, error);
-        throw error;
+        /*
+         * The migration filename is not PII; the pg error carries the failing
+         * SQL and its bound parameters, which on a data migration is user rows.
+         * So it is neither logged nor rethrown -- rethrowing hands the same
+         * object to the runtime's top-level handler, which prints it with the
+         * stack, and the redaction two lines up buys nothing. Exit non-zero
+         * instead: a caller in CI or a deploy script reads the status, not the
+         * trace, and the failing migration is named above.
+         */
+        console.error(`[migrate] Failed: ${migration}`);
+        Deno.exit(1);
       }
     }
 

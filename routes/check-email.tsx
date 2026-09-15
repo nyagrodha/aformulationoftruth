@@ -7,8 +7,8 @@
  */
 
 import { Handlers } from '$fresh/server.ts';
-import Nav from '../islands/Nav.tsx';
-import { NAV_NOSCRIPT_CSS, PAGE_NAV } from '../components/nav-shared.ts';
+import { WordmarkGlyphs } from '../components/Wordmark.tsx';
+import TipJar from '../components/TipJar.tsx';
 
 export const handler: Handlers = {
   GET(_req, ctx) {
@@ -28,19 +28,32 @@ export default function CheckEmail() {
         <link rel='stylesheet' href='/css/landing.css' />
         <link rel='stylesheet' href='/css/nav-mark.css' />
         {/* The toggle is inert without JS, so leave the menu open instead. */}
-        <noscript>
-          <style>{NAV_NOSCRIPT_CSS}</style>
-        </noscript>
       </head>
       <body class='landing'>
-        <header class='site-header'>
-          <Nav items={PAGE_NAV} />
-        </header>
-
         <main>
           <section class='hero landing-hero'>
             <div class='hero-content'>
-              <div class='at-symbol' aria-hidden='true'>@</div>
+              {
+                /*
+                 * The irendu, then the wordmark, then the name it spells. The mark
+                 * is empty-alt ornament and the glyphs are hidden from assistive
+                 * technology, so the plain-text name beneath speaks for both.
+                 */
+              }
+              <div class='check-lockup'>
+                <img
+                  class='check-irendu'
+                  src='/images/nav-irendu-372.webp'
+                  alt=''
+                  width='372'
+                  height='252'
+                  decoding='async'
+                />
+                <p class='check-wordmark' aria-hidden='true'>
+                  <WordmarkGlyphs />
+                </p>
+                <p class='check-wordmark-sub'>a formulation of truth</p>
+              </div>
               <h1 class='title'>
                 check your inbox
                 <span class='title-truth'>to begin</span>
@@ -77,7 +90,7 @@ export default function CheckEmail() {
             <p class='footer-copy'>
               Encrypted database hosted in Iceland by{' '}
               <a
-                href='https://fobdongle.com'
+                href='https://billing.flokinet.is/aff.php?aff=543'
                 target='_blank'
                 rel='noopener noreferrer'
                 style='color: var(--neon-emerald); text-decoration: none;'
@@ -86,6 +99,7 @@ export default function CheckEmail() {
               </a>
             </p>
           </div>
+          <TipJar />
         </footer>
       </body>
     </html>
