@@ -4,6 +4,7 @@
 User-agent: *
 Allow: /
 Allow: /about
+Allow: /people
 Allow: /contact.html
 Allow: /privacy
 

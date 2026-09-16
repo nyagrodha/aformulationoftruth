@@ -1,38 +1,76 @@
 /**
- * Reading profiles.
+ * Optional profiles: write, read, and the handle rules they share.
  *
- * fresh_profiles has existed since migration 006 and until now NOTHING HAS EVER
- * READ IT. The only statement touching the table in the whole codebase is the
- * upsert in routes/api/profile.ts, there is no /p/[handle] route, and the table
- * holds zero rows in production. The write half was built and the read half
- * never was, so a profile has so far been somewhere to put a handle and nowhere
- * to see one.
+ * A profile is keyed to email_hash (never an email). Only content the owner
+ * chooses to publish lives here, so handle / display_name / bio_public are
+ * plaintext by design. The encrypted answer store is not touched.
  *
- * This module is that missing half.
- *
- * WHY THIS TABLE MAY HOLD PLAINTEXT, when nothing else here does
- *
- * 006_profiles.sql states it directly: "Only content a visitor deliberately
- * publishes lives here, so handle / display_name / bio_public are plaintext by
- * design." Publication is the point -- a handle nobody can read is not a handle.
- * That reasoning covers this table and does not extend to message bodies, which
- * are sealed in the browser and stored as ciphertext.
- *
- * VISIBILITY AND OPT-IN ARE DIFFERENT QUESTIONS
- *
- *   visibility='public'      -> may be listed in the directory
+ *   visibility='public'      -> listed in /people
  *   accepts_anonymous_mail   -> may be sent a message
  *
- * They are independent on purpose. A profile can be listed and closed to mail,
- * or unlisted and open to it for people who already know the handle. Conflating
- * them would make "let me be found" and "let anyone write to me" the same
- * decision, which they are not.
+ * They are independent. A listed profile can refuse mail. An unlisted one can
+ * still be reached at /p/<handle> by anyone who was given the address — the
+ * directory decision and the addressability decision are separate. Callers
+ * that must not expose an unlisted profile check `visibility` themselves.
  *
- * Zero-logging: this module logs nothing. A handle is chosen for publication,
- * but an email_hash is not, and the two travel together here.
+ * Zero-logging: a handle is chosen for publication, but an email_hash is not,
+ * and the two travel together here.
  */
 
+import { z } from 'zod';
 import { withConnection } from './db.ts';
+
+export const PROFILE_DISPLAY_NAME_MAX = 120;
+export const PROFILE_BIO_MAX = 2000;
+
+export const ProfileFieldsSchema = z.object({
+  handle: z.string().trim().toLowerCase().optional(),
+  displayName: z.string().trim().max(PROFILE_DISPLAY_NAME_MAX, 'That display name is too long.').optional(),
+  bio: z.string().trim().max(PROFILE_BIO_MAX, 'That statement is too long.').optional(),
+  visibility: z.enum(['private', 'public']),
+  acceptsAnonymousMail: z.boolean().optional().default(false),
+});
+
+/** Lowercase letters, digits, internal hyphens. Two to 64 characters. */
+export const HANDLE_RE = /^[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])$/;
+
+export const RESERVED_HANDLES = new Set([
+  'about',
+  'contact',
+  'privacy',
+  'api',
+  'auth',
+  'admin',
+  'p',
+  'profile',
+  'profiles',
+  'people',
+  'login',
+  'logout',
+  'questionnaire',
+  'completion',
+  'gate',
+  'index',
+  'check-email',
+  'profile-choice',
+  'profile-create',
+  'messenger',
+  'encrypted-messenger',
+  'messages',
+  'lotto',
+  'shop',
+  'static',
+  'css',
+  'js',
+  'images',
+  'assets',
+  'fonts',
+  'favicon',
+  'uploads',
+  'w',
+  '4m',
+  'questions',
+]);
 
 export interface Profile {
   emailHash: string;
@@ -42,6 +80,14 @@ export interface Profile {
   visibility: 'private' | 'public';
   acceptsMail: boolean;
   createdAt: Date;
+}
+
+export interface ProfileDraft {
+  handle: string | null;
+  displayName: string | null;
+  bio: string | null;
+  visibility: 'private' | 'public';
+  acceptsAnonymousMail: boolean;
 }
 
 interface ProfileRow {
@@ -68,6 +114,45 @@ function toProfile(row: ProfileRow): Profile {
 
 const COLUMNS = 'email_hash, handle, display_name, bio_public, visibility, accepts_anonymous_mail, created_at';
 
+/**
+ * Why a draft must not be stored, or null if it may.
+ *
+ * Public profiles are addressed at /p/<handle>, so a missing handle is
+ * unroutable and a reserved one would shadow a real page. Private profiles
+ * may omit a handle entirely.
+ */
+export function profileHandleError(
+  handle: string | null,
+  visibility: 'private' | 'public',
+): string | null {
+  if (visibility === 'public' && !handle) {
+    return 'A public profile needs a handle.';
+  }
+  if (handle && (!HANDLE_RE.test(handle) || RESERVED_HANDLES.has(handle))) {
+    return 'That handle is not available.';
+  }
+  return null;
+}
+
+/**
+ * Map the create-form radios onto the stored schema.
+ *
+ * "selected" is listed (public) with no per-answer publish yet.
+ * "anonymous-mail" stays unlisted and opts in to mail.
+ */
+export function formVisibilityToSchema(
+  choice: string,
+): { visibility: 'private' | 'public'; acceptsAnonymousMail: boolean } {
+  if (choice === 'selected') return { visibility: 'public', acceptsAnonymousMail: false };
+  if (choice === 'anonymous-mail') return { visibility: 'private', acceptsAnonymousMail: true };
+  return { visibility: 'private', acceptsAnonymousMail: false };
+}
+
+export function emptyToNull(value: string | undefined): string | null {
+  const trimmed = value?.trim() ?? '';
+  return trimmed.length ? trimmed : null;
+}
+
 /** The profile behind an identity, whether or not it is public. */
 export async function getProfile(emailHash: string): Promise<Profile | null> {
   return await withConnection(async (client) => {
@@ -87,9 +172,9 @@ export async function getProfile(emailHash: string): Promise<Profile | null> {
  * should resolve for whoever was handed it. Callers that must not expose an
  * unlisted profile check `visibility` themselves.
  *
- * Handles are stored lowercase by routes/api/profile.ts, which lowercases in
- * its Zod schema. Lowercasing again here means a link typed with capitals still
- * resolves rather than 404ing on a difference the user cannot see.
+ * Handles are stored lowercase by the write path. Lowercasing again here means
+ * a link typed with capitals still resolves rather than 404ing on a difference
+ * the user cannot see.
  */
 export async function getProfileByHandle(handle: string): Promise<Profile | null> {
   const normalized = handle.trim().toLowerCase();
@@ -104,25 +189,89 @@ export async function getProfileByHandle(handle: string): Promise<Profile | null
   });
 }
 
+/** After a save: listed profiles go to /p/<handle>, private ones to completion. */
+export function profileAfterSavePath(
+  visibility: 'private' | 'public',
+  handle: string | null | undefined,
+): string {
+  if (visibility === 'public' && handle) return `/p/${encodeURIComponent(handle)}`;
+  return '/completion';
+}
+
+export type SaveProfileResult =
+  | { ok: true; handle: string | null; visibility: 'private' | 'public' }
+  | { ok: false; status: 400 | 409 | 500; error: string };
+
+/** Postgres unique-violation error code. */
+function isUniqueViolation(error: unknown): boolean {
+  const code = (error as { fields?: { code?: string }; code?: string })?.fields?.code ??
+    (error as { code?: string })?.code;
+  return code === '23505';
+}
+
+/**
+ * Validate and write a profile for the given identity.
+ * Callers never pass email_hash in from the body — only from the session.
+ */
+export async function saveProfile(
+  emailHash: string,
+  draft: ProfileDraft,
+): Promise<SaveProfileResult> {
+  const handleError = profileHandleError(draft.handle, draft.visibility);
+  if (handleError) {
+    return { ok: false, status: 400, error: handleError };
+  }
+  if ((draft.displayName?.length ?? 0) > PROFILE_DISPLAY_NAME_MAX) {
+    return { ok: false, status: 400, error: 'That display name is too long.' };
+  }
+  if ((draft.bio?.length ?? 0) > PROFILE_BIO_MAX) {
+    return { ok: false, status: 400, error: 'That statement is too long.' };
+  }
+
+  try {
+    await upsertProfile(emailHash, draft);
+  } catch (error) {
+    if (isUniqueViolation(error)) {
+      return { ok: false, status: 409, error: 'That handle is already taken.' };
+    }
+    console.error('[profile] Failed to save profile');
+    return { ok: false, status: 500, error: 'Could not save your profile. Please try again.' };
+  }
+
+  return { ok: true, handle: draft.handle, visibility: draft.visibility };
+}
+
+export async function upsertProfile(emailHash: string, draft: ProfileDraft): Promise<void> {
+  await withConnection(async (client) => {
+    await client.queryObject(
+      `INSERT INTO fresh_profiles
+         (email_hash, handle, display_name, bio_public, visibility, accepts_anonymous_mail, updated_at)
+       VALUES ($1, $2, $3, $4, $5, $6, NOW())
+       ON CONFLICT (email_hash) DO UPDATE SET
+         handle = EXCLUDED.handle,
+         display_name = EXCLUDED.display_name,
+         bio_public = EXCLUDED.bio_public,
+         visibility = EXCLUDED.visibility,
+         accepts_anonymous_mail = EXCLUDED.accepts_anonymous_mail,
+         updated_at = NOW()`,
+      [
+        emailHash,
+        draft.handle,
+        draft.displayName,
+        draft.bio,
+        draft.visibility,
+        draft.acceptsAnonymousMail,
+      ],
+    );
+  });
+}
+
 /**
  * The directory: profiles that chose to be listed.
  *
- * Requires a handle as well as public visibility. A public profile without one
- * cannot be linked to, so listing it would render a row that goes nowhere --
- * routes/api/profile.ts already refuses that combination on write, and this is
- * the matching guard on read for any row that predates it.
- *
- * Keyset pagination on (created_at, email_hash) rather than OFFSET: the tie
- * break matters because two profiles created in the same transaction share a
- * timestamp, and an unstable sort silently drops or repeats them across pages.
- *
- * The cursor is therefore BOTH columns, and the predicate compares the same
- * tuple the ORDER BY sorts on. It used to be `created_at < $1` alone, against
- * an ORDER BY of (created_at, email_hash) -- which is the bug the paragraph
- * above describes, still present in the code that describes it. With a
- * timestamp-only cursor, every profile sharing the last row's timestamp is
- * skipped on the next page: the batch created in one transaction is exactly
- * the group that vanishes, and it vanishes silently.
+ * Requires a handle as well as public visibility. Keyset pagination on
+ * (created_at, email_hash) rather than OFFSET, so two profiles created in
+ * the same transaction are not dropped or repeated across pages.
  */
 export interface ProfileCursor {
   createdAt: Date;
@@ -137,12 +286,6 @@ export async function listPublicProfiles(
   return await withConnection(async (client) => {
     const { rows } = opts.before
       ? await client.queryObject<ProfileRow>(
-        /*
-         * Row-value comparison, so the tuple is compared left to right in one
-         * step and matches the ORDER BY exactly. Writing it as
-         * `created_at < $1 OR (created_at = $1 AND email_hash < $2)` means the
-         * same thing and invites the next edit to change one half only.
-         */
         `SELECT ${COLUMNS} FROM fresh_profiles
           WHERE visibility = 'public' AND handle IS NOT NULL
             AND (created_at, email_hash) < ($1, $2)
@@ -186,9 +329,7 @@ export async function getProfilesFor(emailHashes: string[]): Promise<Map<string,
  *
  * Falls back through display name, handle, then a fixed string -- never to
  * anything derived from the identity. An email_hash rendered as a name would
- * publish a value the rest of the schema works to keep unpublished, and it is
- * stable across the whole site, so it would correlate a person's every
- * appearance.
+ * publish a value the rest of the schema works to keep unpublished.
  */
 export function profileLabel(profile: Profile | null | undefined): string {
   if (!profile) return 'someone';

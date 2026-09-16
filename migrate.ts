@@ -39,12 +39,14 @@ if (!databaseUrl) {
 
 // Parse connection string
 const url = new URL(databaseUrl);
+const isLocalhost = url.hostname === 'localhost' || url.hostname === '127.0.0.1';
 const pool = new Pool({
   hostname: url.hostname,
   port: parseInt(url.port) || 5432,
   database: url.pathname.slice(1),
   user: url.username,
   password: decodeURIComponent(url.password),
+  tls: isLocalhost ? { enabled: false, enforce: false } : undefined,
 }, 1);
 
 async function runMigrations() {

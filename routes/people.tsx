@@ -50,8 +50,8 @@ export default function PeoplePage({ data }: PageProps<Data>) {
         <p class='eyebrow'>directory · opt-in only</p>
         <h1>people</h1>
         <p class='lede'>
-          Everyone who chose to be listed. Messages are sealed in your browser and stored as ciphertext —
-          the server keeps what it cannot read.
+          Everyone who chose to be listed. Messages are sealed in your browser and stored as ciphertext — the server
+          keeps what it cannot read.
         </p>
 
         {people.length === 0

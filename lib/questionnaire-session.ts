@@ -154,6 +154,19 @@ export async function getSessionByToken(
   return await getSessionById(sessionId);
 }
 
+function toSession(row: SessionRow): QuestionnaireSession {
+  return {
+    sessionId: row.session_id,
+    emailHash: row.email_hash,
+    questionOrder: row.question_order,
+    answeredQuestions: row.answered_questions || [],
+    currentIndex: row.current_index || 0,
+    createdAt: new Date(row.created_at),
+    updatedAt: new Date(row.updated_at),
+    completedAt: row.completed_at ? new Date(row.completed_at) : undefined,
+  };
+}
+
 /**
  * Get session by session_id (hash), finished or not.
  *
@@ -162,8 +175,8 @@ export async function getSessionByToken(
  * session says, and getSessionById() -- which drops completed rows -- turns a
  * finished respondent into an unauthenticated stranger. That is right for the
  * questionnaire, which has no next question to serve them, and wrong for every
- * other surface. lib/session-auth.ts uses this one and leaves the completed
- * check to callers that actually care.
+ * other surface. lib/session-auth.ts and lib/profile-session.ts use this one
+ * and leave the completed check to callers that actually care.
  *
  * @param sessionId - HMAC hash of opaque token
  * @returns Session if the row exists, regardless of completion
@@ -179,20 +192,7 @@ export async function getSessionRecord(
        WHERE session_id = $1`,
       [sessionId],
     );
-
-    if (rows.length === 0) return null;
-
-    const row = rows[0];
-    return {
-      sessionId: row.session_id,
-      emailHash: row.email_hash,
-      questionOrder: row.question_order,
-      answeredQuestions: row.answered_questions || [],
-      currentIndex: row.current_index || 0,
-      createdAt: new Date(row.created_at),
-      updatedAt: new Date(row.updated_at),
-      completedAt: row.completed_at ? new Date(row.completed_at) : undefined,
-    };
+    return rows.length ? toSession(rows[0]) : null;
   });
 }
 
