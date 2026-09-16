@@ -17,7 +17,7 @@ export const NEWSLETTER_MESSAGES: Record<string, string> = {
   check: 'Check your inbox: a confirmation link is on its way. Nothing is sent until you follow it.',
   subscribed: 'That address is already subscribed.',
   invalid: "That address doesn't look valid. Try a different one.",
-  error: 'Something went wrong and nothing was saved. Please try again in a moment.',
+  error: 'There was an issue processing your subscription. Please try again in a moment.',
 };
 
 interface NewsletterData {
@@ -27,7 +27,7 @@ interface NewsletterData {
 export const handler: Handlers<NewsletterData> = {
   GET(req, ctx) {
     const status = new URL(req.url).searchParams.get('status') ?? '';
-    const message = NEWSLETTER_MESSAGES[status];
+    const message = Object.hasOwn(NEWSLETTER_MESSAGES, status) ? NEWSLETTER_MESSAGES[status] : undefined;
     // No recognised outcome means nobody was sent here by the form.
     if (!message) return new Response(null, { status: 303, headers: { Location: '/contact.html#newsletter' } });
     return ctx.render({ message });
