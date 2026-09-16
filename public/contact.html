@@ -214,13 +214,15 @@
     <footer>
         <div class="footer-inner">
             <!-- Newsletter -->
-            <div class="footer-newsletter">
+            <div class="footer-newsletter" id="newsletter">
                 <h3>◈ Subscribe to Updates ◈</h3>
                 <p>Occasional updates on new essays, questionnaire features, and contemplative content. No spam. Encrypted storage.</p>
-                <form id="newsletter-form" class="newsletter-form">
+                <!-- method/action/name let the form post itself when script is off; the script below still intercepts it when on -->
+                <form id="newsletter-form" class="newsletter-form" method="post" action="/api/newsletter/subscribe">
                     <input
                         type="email"
                         id="email-input"
+                        name="email"
                         placeholder="your@email.com"
                         required
                         autocomplete="email"
