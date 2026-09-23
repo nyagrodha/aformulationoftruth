@@ -9,8 +9,9 @@ const port = Number.isFinite(parsed) && parsed > 0 ? parsed : 8000;
 // Default binds loopback so production (behind Caddy) cannot be reached
 // directly and X-Forwarded-For cannot be forged. BIND_HOST exists ONLY for
 // LAN development (e.g. `BIND_HOST=0.0.0.0 deno task dev`) and must never be
-// set in the production .env.
-const hostname = Deno.env.get('BIND_HOST') ?? '127.0.0.1';
+// set in the production .env. An empty BIND_HOST value also falls back to
+// loopback (stray blank .env line safety).
+const hostname = Deno.env.get('BIND_HOST') || '127.0.0.1';
 
 export default defineConfig({
   // Serve static files from public directory

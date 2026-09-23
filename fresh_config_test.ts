@@ -46,3 +46,27 @@ Deno.test('BIND_HOST=0.0.0.0 overrides the loopback bind for LAN dev', async () 
     }
   }
 });
+
+Deno.test("BIND_HOST='' (empty) falls back to loopback", async () => {
+  // Save the original env var so we can restore it
+  const originalBindHost = Deno.env.get('BIND_HOST');
+
+  try {
+    // Set BIND_HOST to empty string (stray blank .env line scenario)
+    Deno.env.set('BIND_HOST', '');
+
+    // Cache-busting import: use a unique query param to force re-evaluation
+    const bustId = crypto.randomUUID();
+    const devConfig = await import(`./fresh.config.ts?bind=${bustId}`);
+
+    // Empty BIND_HOST should fall back to loopback default, not bind to ''
+    assertEquals(devConfig.default.server?.hostname, '127.0.0.1');
+  } finally {
+    // Restore the original env var
+    if (originalBindHost !== undefined) {
+      Deno.env.set('BIND_HOST', originalBindHost);
+    } else {
+      Deno.env.delete('BIND_HOST');
+    }
+  }
+});
