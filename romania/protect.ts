@@ -16,16 +16,13 @@
  * worst outcome available to this system.
  */
 
+import { runQuiet } from './subprocess.ts';
+
 /** qpdf reads @argfile as one argument per line; there is no escaping. */
 async function runQpdf(args: string[], argPath: string): Promise<boolean> {
   await Deno.writeTextFile(argPath, args.join('\n'), { mode: 0o600 });
   try {
-    const res = await new Deno.Command('qpdf', {
-      args: [`@${argPath}`],
-      stdout: 'null',
-      stderr: 'null',
-    }).output();
-    return res.success;
+    return await runQuiet('qpdf', [`@${argPath}`]);
   } finally {
     await Deno.remove(argPath).catch(() => {});
   }

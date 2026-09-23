@@ -40,8 +40,12 @@ export interface CompletionData {
  */
 export const COPY_MESSAGES: Record<string, { text: string; problem?: boolean }> = {
   sent: { text: 'Your copy is on its way to the address you signed in with.' },
-  declined: { text: 'No copy will be sent. Should you change your mind, you can still ask for one below.' },
-  retry: { text: "We couldn't send your copy just now. Please try again in a few minutes.", problem: true },
+  queued: { text: "Your copy is queued. If the connection is down for a moment, we'll keep trying." },
+  declined: {
+    text:
+      'No new copy will be sent — though one already sending cannot be recalled. Should you change your mind, you can still ask for one below.',
+  },
+  attention: { text: 'Your previous copy request needs attention. Please contact the webmaster.', problem: true },
   unavailable: {
     text: "A copy isn't available for a questionnaire begun before this feature existed.",
     problem: true,

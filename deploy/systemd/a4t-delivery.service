@@ -1,0 +1,13 @@
+[Unit]
+Description=Deliver queued encrypted questionnaire PDFs
+After=network-online.target postgresql.service a4t-keybox-tunnel.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=ahamahamahakaha
+WorkingDirectory=/var/www/aformulationoftruth
+EnvironmentFile=/var/www/aformulationoftruth/.env
+ExecStart=/usr/local/bin/deno run --allow-net --allow-env --allow-read scripts/deliver-pdfs.ts
+TimeoutStartSec=1600
+NoNewPrivileges=true

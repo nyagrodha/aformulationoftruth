@@ -7,6 +7,7 @@ import { validateBundle } from '../render-service.ts';
 
 const full = (n = 35) => ({
   sessionId: '11111111-2222-3333-4444-555555555555',
+  deliveryId: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee',
   answers: Array.from({ length: n }, (_, i) => ({
     questionIndex: i,
     questionText: `q${i}`,
@@ -19,6 +20,11 @@ const full = (n = 35) => ({
 
 Deno.test('validateBundle - accepts a complete, ordered bundle', () => {
   assertEquals(validateBundle(full()), 'ok');
+});
+
+Deno.test('validateBundle - requires a retry identity before decrypting', () => {
+  assertEquals(validateBundle({ ...full(), deliveryId: undefined }), 'bad delivery id');
+  assertEquals(validateBundle({ ...full(), keyId: '../../outside' }), 'bad key id');
 });
 
 // A short bundle would render as a plausible-looking but incomplete document,

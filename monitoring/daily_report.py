@@ -1116,7 +1116,27 @@ def parse_caddy_logs(target_date: datetime) -> Dict[str, Any]:
     return stats
 
 
-def get_metrics_stats() -> Dict[str, Any]:
+def daily_metrics(data: Dict[str, Any], target_date: datetime, now: datetime) -> Dict[str, int]:
+    """Current-hour snapshot replaces the same hour in history, never adds to it."""
+    stamp = datetime.fromisoformat(data.get('currentHourStart', now.isoformat()).replace('Z', '+00:00'))
+    current_hour = stamp.astimezone(timezone.utc).replace(minute=0, second=0, microsecond=0)
+    day = target_date.astimezone(timezone.utc).date()
+    buckets = {}
+    for item in data.get('history', []):
+        hour = datetime.fromisoformat(item['hour'].replace('Z', '+00:00')).astimezone(timezone.utc)
+        if hour.date() == day:
+            buckets[hour] = item.get('metrics', {})
+    if current_hour.date() == day:
+        buckets[current_hour] = data.get('currentHour', {})
+    totals = defaultdict(int)
+    for metrics in buckets.values():
+        for key, value in metrics.items():
+            if type(value) in (int, float):
+                totals[key] += value
+    return totals
+
+
+def get_metrics_stats(target_date: Optional[datetime] = None) -> Dict[str, Any]:
     """Get stats from /api/metrics endpoint."""
     stats = {
         'source': 'api_metrics',
@@ -1128,22 +1148,9 @@ def get_metrics_stats() -> Dict[str, Any]:
         with urlopen(req, timeout=10) as response:
             data = json.loads(response.read().decode('utf-8'))
 
-            # Sum up historical hours for the day
-            current = data.get('currentHour', {})
-            history = data.get('history', [])
-
-            # Aggregate from history (last 24 hours)
-            totals = defaultdict(int)
-            for hour_data in history[-24:]:
-                metrics = hour_data.get('metrics', {})
-                for key, value in metrics.items():
-                    if isinstance(value, (int, float)):
-                        totals[key] += value
-
-            # Add current hour
-            for key, value in current.items():
-                if isinstance(value, (int, float)):
-                    totals[key] += value
+            now = datetime.now(timezone.utc)
+            totals = daily_metrics(data, target_date or now, now)
+            stats['coverage'] = 'available hourly counters only; resets on restart'
 
             # Core metrics
             stats.update({
@@ -1168,8 +1175,7 @@ def get_metrics_stats() -> Dict[str, Any]:
                 'gate_stored': totals.get('gate.encrypt.stored', 0),
                 'gate_rejected': totals.get('gate.encrypt.rejected', 0),
                 'gate_unreachable': totals.get('gate.encrypt.unreachable', 0),
-                # The PDF path. pdf_delivered_at can only ever show what
-                # succeeded; every failure lives here and nowhere else.
+                # Failed withdrawal is gate cleanup, independent of PDF delivery.
                 'keybox_failed': totals.get('keybox.withdraw_failed', 0),
                 'delivery_pushed': totals.get('delivery.pushed', 0),
                 'delivery_declined': totals.get('delivery.declined', 0),
@@ -1267,6 +1273,57 @@ def get_metrics_stats() -> Dict[str, Any]:
     return stats
 
 
+def get_delivery_health(target_date: datetime) -> Dict[str, Any]:
+    """Live readiness plus durable queue counts. No request bodies or credentials in logs."""
+    result: Dict[str, Any] = {'available': False, 'queue_available': False, 'failures': {}}
+    url = os.environ.get('KEYBOX_RENDER_URL', '')
+    token = os.environ.get('KEYBOX_RENDER_TOKEN', '')
+    if url and token:
+        try:
+            req = Request(url.rstrip('/') + '/health', headers={'Authorization': 'Bearer ' + token})
+            with urlopen(req, timeout=5) as response:
+                health = json.loads(response.read())
+            result['available'] = health.get('ok') is True
+            result['failures'] = health.get('failures', {}).get(target_date.strftime('%Y-%m-%d'), {})
+            result['started_at'] = health.get('startedAt', 'unknown')
+        except Exception:
+            pass
+    counts = _psql("SELECT count(*) FILTER (WHERE state IN ('pending','processing')), "
+                   "count(*) FILTER (WHERE state='failed'), "
+                   "count(*) FILTER (WHERE state IN ('pending','processing') AND attempts > 0) "
+                   "FROM pdf_delivery_jobs")
+    if counts is not None:
+        try:
+            result['pending'], result['failed'], result['retrying'] = map(int, counts.split('|'))
+            result['queue_available'] = True
+        except ValueError:
+            pass
+    return result
+
+
+def pdf_verdict(q: Dict, metrics: Dict, health: Dict) -> tuple:
+    sent = q.get('pdfs_today')
+    parts = [f"{sent} confirmed today" if type(sent) is int else 'confirmed count unavailable']
+    if not health.get('available'):
+        parts.append('renderer unreachable or health unavailable')
+    if health.get('queue_available'):
+        parts.append(f"{health['pending']} queued, {health['failed']} need attention")
+    else:
+        parts.append('queue status unavailable')
+    failed = metrics.get('delivery_keybox_unavailable', 0)
+    if failed:
+        parts.append(f'{failed} delivery requests failed')
+    if metrics.get('error'):
+        parts.append('app counters unavailable')
+    stages = health.get('failures', {})
+    if any(stages.values()):
+        parts.append('renderer failures: ' + ', '.join(f'{key}={value}' for key, value in sorted(stages.items()) if value))
+    ok = (type(sent) is int and not metrics.get('error') and health.get('available')
+          and health.get('queue_available') and not health.get('failed') and not failed
+          and not any(health.get('failures', {}).values()))
+    return bool(ok), '; '.join(parts)
+
+
 def generate_report(
     target_date: Optional[datetime] = None,
 ) -> tuple:
@@ -1285,7 +1342,8 @@ def generate_report(
     # Collect stats from all sources
     caddy_stats = parse_caddy_logs(target_date)
     audience_stats = get_audience_stats(target_date)
-    metrics_stats = get_metrics_stats()
+    metrics_stats = get_metrics_stats(target_date)
+    delivery_health = get_delivery_health(target_date)
     newsletter_stats = get_newsletter_stats(target_date)
     q_stats = get_questionnaire_stats(target_date)
     msg_stats = get_messenger_stats(target_date)
@@ -1344,14 +1402,14 @@ def generate_report(
         f"{q_stats['finished_today']} finished, "
         + plural(q_stats['questionnaire_answers_today'], 'answer')))
     if is_today:
+        checks.extend(verdict("PDF return", *pdf_verdict(q_stats, metrics_stats, delivery_health)))
+        checks.extend(verdict("Key cleanup", not h['keybox_failed'] and not metrics_stats.get('error'),
+                              f"{metrics_stats.get('keybox_failed', 'unavailable')} failed withdrawals after gate refusal"))
         checks.extend(verdict(
-            "PDF return", not h['keybox_failed'],
-            plural(h['keybox_failed'], 'signing') + " failed at the key box"
-            if h['keybox_failed'] else f"{q_stats.get('pdfs_today', 0)} sent"))
-        checks.extend(verdict(
-            "Server errors", not caddy_stats.get('errors_5xx', 0) and not h['keybox_failed'],
+            "Server errors", not caddy_stats.get('error') and not metrics_stats.get('error')
+            and not caddy_stats.get('errors_5xx', 0) and not metrics_stats.get('errors_5xx', 0),
             f"{caddy_stats.get('errors_5xx', 0)} in the log, "
-            f"{metrics_stats.get('errors_5xx', 0)} in the app"))
+            f"{metrics_stats.get('errors_5xx', 'unavailable')} in the app"))
     else:
         checks.extend(verdict(
             "PDF return", True, f"{q_stats.get('pdfs_today', 0)} sent"))
@@ -1454,10 +1512,14 @@ def generate_report(
                   "The column does not exist yet. Not a zero.")
     ) + line(
         "Key box withdrawals failed", metrics_stats.get('keybox_failed', 'N/A'),
-        "The key box is what signs the returned PDF, so this is the ceiling "
-        "on PDFs that can be sent. It is also, today, every server error the "
-        "app reported."
+        "Cleanup of keys after refused gate submissions. These are not PDF failures."
         if _num(metrics_stats.get('keybox_failed')) else "",
+    ) + line("PDF jobs awaiting delivery", delivery_health.get('pending', 'N/A')) + line(
+        "PDF jobs needing attention", delivery_health.get('failed', 'N/A'),
+    ) + line("Renderer connection now", 'reachable' if delivery_health['available'] else 'unavailable') + line(
+        "Renderer failures on report day", sum(delivery_health['failures'].values()) if delivery_health['available'] else 'N/A',
+        'Counters since renderer start: ' + delivery_health.get('started_at', 'unknown')
+        + '. ' + ', '.join(f'{k}: {v}' for k, v in sorted(delivery_health['failures'].items())),
     ) + line(
         "Gate refused or unreachable", h['gate_rejected'],
         "The encryption service turned an answer away. The answer was handed "
@@ -1714,8 +1776,10 @@ def generate_report(
         'faults': [f for f in (
             f"{h['posts_lost']} gate posts never stored" if h['posts_lost'] else None,
             f"{h['heard_nothing']} submissions got nothing back" if h['heard_nothing'] else None,
-            f"{h['keybox_failed']} key box failures"
+            f"{h['keybox_failed']} key cleanup failures"
             if h['keybox_failed'] and is_today else None,
+            pdf_verdict(q_stats, metrics_stats, delivery_health)[1]
+            if is_today and not pdf_verdict(q_stats, metrics_stats, delivery_health)[0] else None,
             f"no addresses today, {h['expected']:.0f} is usual" if h['quiet'] else None,
         ) if f],
         'open_rate': h.get('open_rate'),
@@ -1725,6 +1789,17 @@ def generate_report(
         ),
     }
 
+    summary['display_sources'] = {
+        'health_available': (
+            not caddy_stats.get('error') and not metrics_stats.get('error')
+            and all(type(q_stats.get(k)) is int for k in
+                    ('gate_submissions_today', 'links_sent_today', 'links_used_today'))
+        ),
+        'audience_available': bool(audience_stats.get('available')),
+        'audience_rows': bool(audience_stats.get('any_rows')),
+        'audience_truncated': bool(audience_stats.get('truncated')),
+        'audience_split': bool(audience_stats.get('split_windows')),
+    }
     return "\n".join(report_lines), summary, metrics_stats
 
 
@@ -1824,7 +1899,13 @@ def send_report(
 
 — a formulation of truth —
 """
-    send_email_report(subject, email_body)
+    email_sent = send_email_report(subject, email_body)
+    try:
+        from e290_report import publish
+        publish(summary, target_date, bool(email_sent))
+        logger.info('E290 report snapshot published')
+    except Exception as exc:
+        logger.error('E290 snapshot failed (%s)', type(exc).__name__)
 
 
 def main():

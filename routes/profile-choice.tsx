@@ -111,10 +111,6 @@ export default function ProfileChoicePage() {
                 <p class='section-text'>
                   A public profile should also include a way to unpublish answers later.
                 </p>
-                <p class='section-text'>
-                  The same profile path can support paid anonymous mail to other folks without requiring the sender to
-                  make their own answers public.
-                </p>
               </div>
 
               <div style='display: flex; flex-wrap: wrap; justify-content: center; gap: 1rem;'>

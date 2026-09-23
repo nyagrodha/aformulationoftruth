@@ -17,6 +17,7 @@
  */
 
 import { fromFileUrl } from 'https://deno.land/std@0.216.0/path/mod.ts';
+import { runQuiet } from './subprocess.ts';
 
 export interface DeliveryMail {
   to: string;
@@ -84,14 +85,7 @@ export async function sendDelivery(mail: DeliveryMail): Promise<void> {
       { mode: 0o600 },
     );
 
-    const res = await new Deno.Command('python3', {
-      args: [SENDER, specPath],
-      stdout: 'null',
-      // Discarded: an SMTP error can echo the envelope, and the address is the
-      // one piece of PII here.
-      stderr: 'null',
-    }).output();
-    if (!res.success) throw new Error('smtp send failed');
+    if (!await runQuiet('python3', [SENDER, specPath], 120_000)) throw new Error('smtp send failed');
   } finally {
     for (const p of [pdfPath, specPath]) await Deno.remove(p).catch(() => {});
   }

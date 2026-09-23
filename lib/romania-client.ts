@@ -13,7 +13,7 @@
 
 const KEYBOX_URL = Deno.env.get('KEYBOX_RENDER_URL') || '';
 const KEYBOX_TOKEN = Deno.env.get('KEYBOX_RENDER_TOKEN') || '';
-const PUSH_TIMEOUT_MS = 20_000;
+const PUSH_TIMEOUT_MS = 300_000;
 
 export interface BundleAnswer {
   questionIndex: number;
@@ -25,6 +25,9 @@ export interface BundleAnswer {
 
 export interface DeliveryBundle {
   sessionId: string;
+  /** The gate token names the private key; sessionId names the callback row. */
+  keyId?: string;
+  deliveryId?: string;
   answers: BundleAnswer[];
   encryptedEmail: string;
   /** age-armored, or null when no password was chosen. */
@@ -33,7 +36,7 @@ export interface DeliveryBundle {
 
 /** Raised when the key box could not be handed the bundle. */
 export class KeyboxUnavailableError extends Error {
-  constructor() {
+  constructor(public readonly stage = 'transport', public readonly permanent = false) {
     // Contentless by design: the bundle and the session id must not reach a log.
     super('key box unavailable');
     this.name = 'KeyboxUnavailableError';
@@ -71,7 +74,9 @@ export async function pushBundle(bundle: DeliveryBundle): Promise<void> {
     throw new KeyboxUnavailableError();
   }
 
-  // Drain rather than read: the body could echo what we sent.
+  const stages = ['identity', 'decrypt', 'render', 'protect', 'smtp', 'uncertain', 'receipt', 'callback', 'validation'];
+  const reported = res.headers.get('X-Delivery-Stage') || '';
+  const stage = stages.includes(reported) ? reported : 'transport';
   await res.body?.cancel();
-  if (!res.ok) throw new KeyboxUnavailableError();
+  if (!res.ok) throw new KeyboxUnavailableError(stage, [400, 409, 410, 422].includes(res.status));
 }

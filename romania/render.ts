@@ -7,6 +7,7 @@
  */
 
 import { fromFileUrl } from 'https://deno.land/std@0.216.0/path/mod.ts';
+import { runQuiet } from './subprocess.ts';
 
 export interface RenderEntry {
   index: number;
@@ -56,14 +57,9 @@ export async function renderPdf(doc: RenderDoc, workDir: string): Promise<Uint8A
     await Deno.writeTextFile(dataPath, JSON.stringify(doc), { mode: 0o600 });
     await Deno.copyFile(TEMPLATE, typPath);
 
-    const res = await new Deno.Command('typst', {
-      args: ['compile', '--root', workDir, typPath, outPath],
-      stdout: 'null',
-      // Discarded rather than captured: Typst echoes source context on failure,
-      // which for this template means answer text.
-      stderr: 'null',
-    }).output();
-    if (!res.success) throw new Error('typst render failed');
+    if (!await runQuiet('typst', ['compile', '--root', workDir, typPath, outPath])) {
+      throw new Error('typst render failed');
+    }
 
     return await Deno.readFile(outPath);
   } finally {

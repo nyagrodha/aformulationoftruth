@@ -23,6 +23,8 @@ NoNewPrivileges=true
 ProtectSystem=strict
 ProtectHome=read-only
 ReadWritePaths=/home/liar/keybox /dev/shm
+StateDirectory=a4t-render
+StateDirectoryMode=0700
 
 [Install]
 WantedBy=multi-user.target

@@ -4,6 +4,7 @@
  */
 
 import { shredExpired } from './keystore.ts';
+import { pruneReceipts } from './delivery.ts';
 
 const KEY_DIR = Deno.env.get('KEYBOX_KEY_DIR') || '/home/liar/keybox';
 const POLICY = {
@@ -14,3 +15,5 @@ const POLICY = {
 const removed = await shredExpired(KEY_DIR, new Date(), POLICY);
 // A count is safe to log; a session id would not be.
 console.log(`[shred] removed ${removed} expired identit${removed === 1 ? 'y' : 'ies'}`);
+const receipts = await pruneReceipts(Deno.env.get('RENDER_RECEIPT_DIR') || '/var/lib/a4t-render/receipts');
+console.log(`[shred] removed ${receipts} expired delivery receipts`);
