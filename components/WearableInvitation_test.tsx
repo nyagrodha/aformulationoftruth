@@ -59,3 +59,25 @@ Deno.test('displayName is never shown, even when present', () => {
     throw new Error('displayName must not be rendered by the new copy');
   }
 });
+
+/* The owner's illuminated H's: one for Hi, one for Hola; nothing for the rest. */
+Deno.test('Hi and Hola open on their own illuminated H; the text still reads whole', () => {
+  for (
+    const [greeting, img, rest] of [
+      ['Hi', '/images/h-illuminated-hi-400.webp', 'i'],
+      ['Hola', '/images/h-illuminated-hola-400.webp', 'ola'],
+    ]
+  ) {
+    const html = render(<WearableInvitation {...BASE} greeting={greeting} />);
+    assertStringIncludes(html, `src="${img}"`);
+    assertStringIncludes(html, `<span class="sr-only">H</span>${rest}`);
+  }
+});
+
+Deno.test('other greetings stay plain text, with no illuminated initial', () => {
+  for (const greeting of ['Vanakkam', 'Bonjour', 'Namaste', 'constructor']) {
+    const html = render(<WearableInvitation {...BASE} greeting={greeting} />);
+    if (html.includes('greeting-initial')) throw new Error(`${greeting} must not get an initial`);
+    assertStringIncludes(html, `${greeting},`);
+  }
+});

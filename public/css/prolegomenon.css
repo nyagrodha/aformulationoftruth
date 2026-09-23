@@ -848,6 +848,20 @@ footer .footer-return {
   text-underline-offset: 2px;
 }
 
+/*
+ * The illuminated H of Hi / Hola: an initial set into the greeting, the way
+ * .drop-cap sets the Y into the incipit. Sized off the title's own em so it
+ * scales with the clamp above; the negative vertical-align seats the painted
+ * letter's foot, not the image box, on the text baseline.
+ */
+.invitation .greeting-initial {
+  display: inline-block;
+  height: 1.9em;
+  width: auto;
+  margin-right: -0.06em;
+  vertical-align: -0.26em;
+}
+
 .invitation .gate-submit {
   margin-top: clamp(2.5rem, 5vw, 3.5rem);
 }

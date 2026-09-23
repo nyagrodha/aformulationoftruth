@@ -21,6 +21,36 @@ export interface WearableInvitationProps extends WearableData {
   greeting: string;
 }
 
+/*
+ * Greetings that open on an illuminated initial, as the landing's incipit opens
+ * on its Y. The owner supplied one H for Hi and another for Hola (2026-09-23);
+ * every other greeting stays plain text. Own-property lookup for the same
+ * reason as lib/greeting.ts: `greeting` is chosen from a request header.
+ */
+const ILLUMINATED: Record<string, string> = {
+  Hi: '/images/h-illuminated-hi-400.webp',
+  Hola: '/images/h-illuminated-hola-400.webp',
+};
+
+function Greeting({ word }: { word: string }) {
+  if (!Object.hasOwn(ILLUMINATED, word)) return <>{word}</>;
+  return (
+    <>
+      <img
+        class='greeting-initial'
+        src={ILLUMINATED[word]}
+        alt=''
+        aria-hidden='true'
+        width={400}
+        height={400}
+        decoding='async'
+      />
+      <span class='sr-only'>{word[0]}</span>
+      {word.slice(1)}
+    </>
+  );
+}
+
 export default function WearableInvitation(data: WearableInvitationProps) {
   return (
     <html lang='en'>
@@ -47,7 +77,9 @@ export default function WearableInvitation(data: WearableInvitationProps) {
         <main>
           <section class='gate-section invitation'>
             <div class='gate-content'>
-              <h1 class='gate-title'>{data.greeting},</h1>
+              <h1 class='gate-title'>
+                <Greeting word={data.greeting} />,
+              </h1>
 
               <p class='gate-description'>
                 That QR code you just scanned has landed you <a href='/'>@aformulationoftruth.com</a>. Welcome.
