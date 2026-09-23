@@ -125,6 +125,32 @@ function printRecoveryHint(port: string): void {
   );
 }
 
+/**
+ * Runs `fn`, and guarantees `cleanup` runs before this returns -- on success,
+ * on a thrown error (in which case `onError` runs first), or on both. This
+ * exists because `try { ... } catch { ...; Deno.exit(1); } finally { cleanup() }`
+ * never reaches the finally: `Deno.exit()` terminates the process immediately,
+ * so cleanup (zeroing the key buffer, here) silently never ran on exactly the
+ * failure paths that most need it. Setting `Deno.exitCode` instead of calling
+ * `Deno.exit()` inside `onError`, and letting this function return normally,
+ * is what lets `finally` -- and therefore `cleanup` -- actually execute.
+ * Pure aside from calling the three functions it's given; exported for tests.
+ */
+export async function runGuarded<T>(
+  fn: () => Promise<T>,
+  onError: (err: unknown) => void,
+  cleanup: () => void,
+): Promise<{ ok: true; value: T } | { ok: false }> {
+  try {
+    return { ok: true, value: await fn() };
+  } catch (err) {
+    onError(err);
+    return { ok: false };
+  } finally {
+    cleanup();
+  }
+}
+
 /** Send one line; return the first PROV1-OK/PROV1-ERR/ERR line, or null on timeout. */
 async function exchange(
   port: string,
@@ -198,56 +224,70 @@ async function main() {
 
   let keyWritten = false;
   let keyRaw: Uint8Array<ArrayBuffer> | null = null;
-  try {
-    await configurePort(port);
-    keyRaw = randomBytes(32);
-    const key = await importBroochKey(keyRaw);
-    const wearerHash = await hashEmail(wearerEmail);
-    const issuerHash = await hashEmail(issuerEmail);
 
-    const broochId = await withTransaction(async (client) => {
-      const { rows } = await client.queryObject<{ id: number }>(
-        `SELECT (COALESCE(MAX(id), 0) + 1)::int4 AS id FROM fresh_brooches`,
-      );
-      const id = rows[0].id;
-      const token = randomToken(12);
-      await client.queryObject(
-        `INSERT INTO fresh_wearables (token, owner_email_hash, display_name, label) VALUES ($1, $2, $3, $4)`,
-        [token, wearerHash, args['display-name'] ?? null, label],
-      );
-      await client.queryObject(
-        `INSERT INTO fresh_brooches (id, wearable_token, issuer_email_hash, wearer_email_hash, key_enc)
-         VALUES ($1, $2, $3, $4, $5)`,
-        [id, token, issuerHash, wearerHash, await wrapBroochKey(keyRaw!, kek)],
-      );
+  const result = await runGuarded(
+    async () => {
+      await configurePort(port);
+      keyRaw = randomBytes(32);
+      const key = await importBroochKey(keyRaw);
+      const wearerHash = await hashEmail(wearerEmail);
+      const issuerHash = await hashEmail(issuerEmail);
 
-      const idHex = id.toString(16).padStart(8, '0');
-      const reply = await exchange(
-        port,
-        `PROV1 ${idHex} ${encodeBase64Url(keyRaw!)}`,
-        () => {
-          keyWritten = true;
-        },
-      );
-      if (!reply?.startsWith('PROV1-OK ')) {
-        // Throwing rolls the rows back. sanitizeReply() never lets the raw
-        // reply through unless it is already known to be a short status line.
-        throw new Error(`brooch did not accept provisioning: ${sanitizeReply(reply)}`);
-      }
-      if (reply.slice(9).trim() !== await encodeCode(key, id, 0)) {
-        throw new Error('brooch self-test code does not verify; rolled back');
-      }
-      return id;
-    });
+      return await withTransaction(async (client) => {
+        const { rows } = await client.queryObject<{ id: number }>(
+          `SELECT (COALESCE(MAX(id), 0) + 1)::int4 AS id FROM fresh_brooches`,
+        );
+        const id = rows[0].id;
+        const token = randomToken(12);
+        await client.queryObject(
+          `INSERT INTO fresh_wearables (token, owner_email_hash, display_name, label) VALUES ($1, $2, $3, $4)`,
+          [token, wearerHash, args['display-name'] ?? null, label],
+        );
+        await client.queryObject(
+          `INSERT INTO fresh_brooches (id, wearable_token, issuer_email_hash, wearer_email_hash, key_enc)
+           VALUES ($1, $2, $3, $4, $5)`,
+          [id, token, issuerHash, wearerHash, await wrapBroochKey(keyRaw!, kek)],
+        );
 
-    console.log(`brooch provisioned: ${label} (id ${broochId})`);
-  } catch (err) {
-    if (keyWritten) printRecoveryHint(port);
-    console.error(`provisioning failed: ${err instanceof Error ? err.message : 'unknown error'}`);
-    Deno.exit(1);
-  } finally {
-    keyRaw?.fill(0);
+        const idHex = id.toString(16).padStart(8, '0');
+        const reply = await exchange(
+          port,
+          `PROV1 ${idHex} ${encodeBase64Url(keyRaw!)}`,
+          () => {
+            keyWritten = true;
+          },
+        );
+        if (!reply?.startsWith('PROV1-OK ')) {
+          // Throwing rolls the rows back. sanitizeReply() never lets the raw
+          // reply through unless it is already known to be a short status line.
+          throw new Error(`brooch did not accept provisioning: ${sanitizeReply(reply)}`);
+        }
+        if (reply.slice(9).trim() !== await encodeCode(key, id, 0)) {
+          throw new Error('brooch self-test code does not verify; rolled back');
+        }
+        return id;
+      });
+    },
+    (err) => {
+      // Deno.exitCode, not Deno.exit(): the latter terminates the process
+      // before runGuarded's finally (cleanup, below) can zero the key buffer.
+      if (keyWritten) printRecoveryHint(port);
+      console.error(`provisioning failed: ${err instanceof Error ? err.message : 'unknown error'}`);
+      Deno.exitCode = 1;
+    },
+    () => keyRaw?.fill(0),
+  );
+
+  if (result.ok) {
+    console.log(`brooch provisioned: ${label} (id ${result.value})`);
   }
 }
 
-if (import.meta.main) await main();
+if (import.meta.main) {
+  await main();
+  // Some pending handle (the postgres pool, a timer) can otherwise keep the
+  // event loop alive past main() returning; force the process to actually
+  // exit with whatever code the run settled on. This runs after main()'s
+  // internal finally, so it never races the key-zeroing cleanup above.
+  Deno.exit(Deno.exitCode);
+}
