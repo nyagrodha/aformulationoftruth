@@ -35,6 +35,10 @@ interface Verified {
 async function loadVerified(client: Client, code: string, lock: boolean): Promise<Verified | null> {
   const parsed = parseCode(code);
   if (!parsed) return null;
+  // fresh_brooches.id is INT4: a broochId outside its range would make the
+  // query below throw (Postgres 22003) instead of returning no rows, turning
+  // an unauthenticated request into a 500 rather than the uniform 404.
+  if (parsed.broochId < 1 || parsed.broochId > 0x7fffffff) return null;
   const kek = await loadKek();
   if (!kek) {
     increment('errors.config.brooch_kek_missing');
