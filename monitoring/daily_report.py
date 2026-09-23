@@ -801,15 +801,57 @@ def _audience_lines(a: Dict[str, Any]) -> List[str]:
             indent='  ')
 
     out = line(
-        "People, at most", a['visitors'],
-        "Distinct visitors per 4-hour window, summed. Someone returning in a "
-        "later window is counted twice, so this is a ceiling and never a "
-        "tally of unique people.",
+        "People (real page views, bots and link previews excluded)",
+        a['visitors'],
+        "Distinct visitors per 4-hour window, summed, under the stricter "
+        "person-only navigation rule (2026-09-23): a real top-level page "
+        "load -- GET, outside /api/, answered 2xx HTML -- not a status poll, "
+        "an API call or a preview fetch. Someone returning in a later window "
+        "is counted twice, so this is a ceiling and never a tally of unique "
+        "people.",
     ) + line(
-        "Link previews", a['bot_visitors'],
+        "Bots and link previews", a['bot_visitors'],
         "Crawlers and chat apps fetching preview cards, excluded from the "
         "figure above.",
-    ) + _coverage_lines(a)
+    )
+
+    # unclassified_visitors/optout_navigations are migration 017's columns.
+    # Even once they exist, a row written before 017 landed has them
+    # DEFAULT-backfilled to 0 -- indistinguishable from a real zero by value
+    # alone -- so a day whose window(s) predate the migration gets "n/a"
+    # here rather than a confident, wrong zero. `buckets_cutover` is set by
+    # get_audience_stats only when that applies to THIS day.
+    cutover = a.get('buckets_cutover')
+    if a.get('has_buckets') and not cutover:
+        out += line(
+            "Unclassified", a['unclassified_visitors'],
+            "Passed every check above except having any Sec-Fetch-* header "
+            "at all (pre-2026 browsers, some in-app webviews), and are not a "
+            "known bot. A correction line, never folded into People above.",
+        ) + line(
+            "Opted out (GPC/DNT)", a['optout_navigations'],
+            "A plain count of navigations, not people -- no pseudonym is "
+            "ever computed for an opted-out request.",
+        ) + line(
+            "Route requests (app counter)", a['requests'],
+            "Every request the app's middleware saw this window, any method "
+            "or eventual status. Not the same figure as Requests further "
+            "down, which reads Caddy's access log instead.",
+        )
+    else:
+        note = (
+            f"n/a (before {cutover}): migration 017 lands on or after this "
+            "day, so these columns are still DEFAULT-backfilled zeros for "
+            "it rather than real counts."
+            if cutover else
+            "n/a: this database predates migration 017, which adds these "
+            "columns."
+        )
+        out += line("Unclassified", 'n/a', note)
+        out += line("Opted out (GPC/DNT)", 'n/a')
+        out += line("Route requests (app counter)", 'n/a')
+
+    out += _coverage_lines(a)
 
     if a.get('split_windows'):
         out.extend(line(
@@ -824,10 +866,53 @@ def _audience_lines(a: Dict[str, Any]) -> List[str]:
     return out
 
 
+def _audience_buckets_available() -> bool:
+    """Does fresh_audience_windows have migration 017's columns?
+
+    Feature-detected via information_schema, rather than assumed, so this
+    script surviving a deploy that lands ahead of (or without) that migration
+    is a design property, not a hope: get_audience_stats falls back to the
+    pre-017 query below instead of asking Postgres for a column that does not
+    exist yet and turning "not migrated" into "counter unreachable".
+    """
+    result = _psql(
+        "SELECT COUNT(*) FROM information_schema.columns "
+        "WHERE table_name = 'fresh_audience_windows' "
+        "AND column_name IN ('unclassified_visitors', 'optout_navigations')"
+    )
+    return (result or '').strip() == '2'
+
+
+def _audience_rule_change_date() -> Optional[str]:
+    """The date migration 017 actually landed, as 'YYYY-MM-DD', or None.
+
+    Ruling S14 deploys this migration together with the application code
+    that tightens `visitors` to real navigations only, so `_migrations`
+    (migrate.ts's own bookkeeping table) recording when 017 ran is also the
+    one place that records when that meaning changed -- the actual date, not
+    a guessed constant baked into this file. Rows the new
+    unclassified_visitors/optout_navigations columns DEFAULT-backfill to 0
+    are exactly the rows written before this date, which is why both the
+    per-day bucket cutover below and the gate-conversion note in
+    send_report() key off the same value.
+
+    None whenever this can't be answered -- no _migrations row for 017 (not
+    deployed yet, or the columns were added by hand), or the database is
+    unreachable. Callers treat that the same way: no caveat is added, because
+    with `_audience_buckets_available()` already False in that case there is
+    nothing left to caveat.
+    """
+    applied = _psql(
+        "SELECT applied_at::date FROM _migrations "
+        "WHERE name = '017_audience_buckets.sql'"
+    )
+    return applied or None
+
+
 def get_audience_stats(target_date: datetime) -> Dict[str, Any]:
     """Visitor counts from the app-side counter (fresh_audience_windows).
 
-    Two questions are asked of one table and they need different scopes.
+    Three questions are asked of one table and they need different scopes.
 
     The FIGURES -- people, previews, requests -- are about this site, so they
     stay filtered to site='a4t'. COVERAGE, meaning "was the counter running",
@@ -843,6 +928,13 @@ def get_audience_stats(target_date: datetime) -> Dict[str, Any]:
     healthy counter of having stopped every single day, and, through
     windows_complete, drop the Telegram gate-conversion line along with it.
     Closed against closed, and the boundary stops mattering.
+
+    The BUCKETS added by migration 017 (unclassified_visitors,
+    optout_navigations) are asked for only when `_audience_buckets_available`
+    says the columns exist -- see that function -- and even then are
+    reported as unavailable ('buckets_cutover' set) for a day that migration
+    017 lands on or after, since rows written before it DEFAULT-backfill to
+    0 there, indistinguishable from a real zero by value alone.
     """
     day = target_date.strftime('%Y-%m-%d')
     span_end = (target_date + timedelta(days=1)).strftime('%Y-%m-%d') + 'T00:00:00+00'
@@ -857,9 +949,16 @@ def get_audience_stats(target_date: datetime) -> Dict[str, Any]:
         expected = 6
         cutoff = span_end
 
+    has_buckets = _audience_buckets_available()
+    bucket_select = (
+        "COALESCE(SUM(unclassified_visitors) FILTER (WHERE site='a4t'),0), "
+        "COALESCE(SUM(optout_navigations) FILTER (WHERE site='a4t'),0), "
+    ) if has_buckets else ""
+
     row = _psql(
         "SELECT COALESCE(SUM(visitors) FILTER (WHERE site='a4t'),0), "
         "COALESCE(SUM(bot_visitors) FILTER (WHERE site='a4t'),0), "
+        f"{bucket_select}"
         "COALESCE(SUM(requests) FILTER (WHERE site='a4t'),0), "
         "COALESCE(BOOL_OR(truncated) FILTER (WHERE site='a4t'),false), "
         f"COUNT(DISTINCT window_start) FILTER (WHERE window_start < '{cutoff}'), "
@@ -876,7 +975,21 @@ def get_audience_stats(target_date: datetime) -> Dict[str, Any]:
     )
     if not row:
         return {'available': False}
-    v, b, r, trunc, windows, runs, split, rows = (row.split('|') + [''] * 8)[:8]
+
+    fields = row.split('|')
+    if has_buckets:
+        v, b, unc, optout, r, trunc, windows, runs, split, rows = (fields + [''] * 10)[:10]
+    else:
+        v, b, r, trunc, windows, runs, split, rows = (fields + [''] * 8)[:8]
+        unc = optout = ''
+
+    rule_changed = _audience_rule_change_date()
+    # A day is only caveated if 017 lands ON or AFTER it starts -- a day
+    # entirely after the migration needs no asterisk. String comparison is
+    # safe: both sides are 'YYYY-MM-DD'.
+    buckets_cutover = (
+        rule_changed if has_buckets and rule_changed and rule_changed >= day else None
+    )
 
     return {
         'available': True,
@@ -892,6 +1005,15 @@ def get_audience_stats(target_date: datetime) -> Dict[str, Any]:
         # legitimately zero on every report run before 04:00 UTC.
         'any_rows': int(rows or 0) > 0,
         'expected_windows': expected,
+        'has_buckets': has_buckets,
+        'buckets_cutover': buckets_cutover,
+        'unclassified_visitors': (
+            int(unc or 0) if has_buckets and not buckets_cutover else None
+        ),
+        'optout_navigations': (
+            int(optout or 0) if has_buckets and not buckets_cutover else None
+        ),
+        'rule_changed_date': rule_changed,
     }
 
 
@@ -1723,6 +1845,14 @@ def generate_report(
             audience_stats.get('windows') >= audience_stats.get('expected_windows')
             if audience_stats.get('available') else False
         ),
+        # The date 'visitors' tightened to real navigations only (Ruling
+        # S14/migration 017), or None if that hasn't landed yet. Carried
+        # through so send_report's gate-conversion line can say a jump on
+        # that date is the definition changing, not a trend.
+        'audience_rule_changed': (
+            audience_stats.get('rule_changed_date')
+            if audience_stats.get('available') else None
+        ),
     }
 
     summary['display_sources'] = {
@@ -1793,9 +1923,22 @@ def send_report(
                 "counter did not cover the whole day"
             )
         else:
+            # 'people' is the headline audience figure, which tightened to
+            # real navigations only when migration 017 landed (Ruling S14).
+            # That is a one-time, deliberate drop in the denominator, not a
+            # trend -- state the date so a reader who watches this ratio
+            # over time does not mistake the jump for one.
+            changed = summary.get('audience_rule_changed')
+            change_note = (
+                f" (definition of 'people' changed {changed} to real "
+                "navigations only -- a jump on that date is the definition, "
+                "not a trend)"
+                if changed else ""
+            )
             funnel_summary = (
                 f"\n📈 Gate conversion: <b>{addresses * 100 / people:.0f}%</b> "
                 f"at least ({addresses} addresses, at most {people} people)"
+                f"{change_note}"
             )
 
     # Faults first. A phone message is read in the time it takes to glance at
