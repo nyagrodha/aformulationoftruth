@@ -1,10 +1,11 @@
 /**
  * The tip jar's contents — the one place its payment details live.
  *
- * Every footer renders these through components/TipJar.tsx. The two static
- * pages (public/contact.html, public/accessibility.html) carry a rendered copy
- * written by scripts/sync-tip-jar.tsx, and tests/tip_jar_test.tsx fails if that
- * copy drifts from this file, or while any entry below is still unset.
+ * Every footer renders these through components/TipJar.tsx. The two verbatim
+ * pages (pages/contact.html, pages/accessibility.html -- served by
+ * routes/contact.html.ts and routes/accessibility.html.ts) carry a rendered
+ * copy written by scripts/sync-tip-jar.tsx, and tests/tip_jar_test.tsx fails
+ * if that copy drifts from this file, or while any entry below is still unset.
  *
  * Addresses are case-sensitive and checksummed: paste them, never retype them.
  * An unset entry (null) is not rendered at all, so a half-filled jar never

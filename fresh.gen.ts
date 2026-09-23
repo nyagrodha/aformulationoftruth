@@ -10,6 +10,7 @@ import * as $_middleware from './routes/_middleware.ts';
 import * as $about from './routes/about.tsx';
 import * as $about_confession_albums from './routes/about/confession-albums.tsx';
 import * as $about_respondents from './routes/about/respondents.tsx';
+import * as $accessibility_html from './routes/accessibility.html.ts';
 import * as $api_auth_magic_link from './routes/api/auth/magic-link.ts';
 import * as $api_brooch_status from './routes/api/brooch/status.ts';
 import * as $api_contact from './routes/api/contact.ts';
@@ -33,6 +34,7 @@ import * as $api_responses_delivered from './routes/api/responses/delivered.ts';
 import * as $auth_verify from './routes/auth/verify.tsx';
 import * as $check_email from './routes/check-email.tsx';
 import * as $completion from './routes/completion.tsx';
+import * as $contact_html from './routes/contact.html.ts';
 import * as $e_code_ from './routes/e/[code].tsx';
 import * as $encrypted_messenger from './routes/encrypted-messenger.tsx';
 import * as $gate from './routes/gate.tsx';
@@ -45,10 +47,13 @@ import * as $messenger from './routes/messenger.tsx';
 import * as $privacy from './routes/privacy.tsx';
 import * as $profile_choice from './routes/profile-choice.tsx';
 import * as $profile_create from './routes/profile-create.tsx';
+import * as $proust_index_html from './routes/proust/index.html.ts';
 import * as $questionnaire from './routes/questionnaire.tsx';
 import * as $questions from './routes/questions.tsx';
 import * as $shop from './routes/shop.tsx';
+import * as $showmenotell_index_html from './routes/showmenotell/index.html.ts';
 import * as $w_token_ from './routes/w/[token].tsx';
+import * as $zcash_html from './routes/zcash.html.ts';
 import * as $Folio from './islands/Folio.tsx';
 import * as $Nav from './islands/Nav.tsx';
 import * as $QuaternarySpheroid from './islands/QuaternarySpheroid.tsx';
@@ -65,6 +70,7 @@ const manifest = {
     './routes/about.tsx': $about,
     './routes/about/confession-albums.tsx': $about_confession_albums,
     './routes/about/respondents.tsx': $about_respondents,
+    './routes/accessibility.html.ts': $accessibility_html,
     './routes/api/auth/magic-link.ts': $api_auth_magic_link,
     './routes/api/brooch/status.ts': $api_brooch_status,
     './routes/api/contact.ts': $api_contact,
@@ -88,6 +94,7 @@ const manifest = {
     './routes/auth/verify.tsx': $auth_verify,
     './routes/check-email.tsx': $check_email,
     './routes/completion.tsx': $completion,
+    './routes/contact.html.ts': $contact_html,
     './routes/e/[code].tsx': $e_code_,
     './routes/encrypted-messenger.tsx': $encrypted_messenger,
     './routes/gate.tsx': $gate,
@@ -100,10 +107,13 @@ const manifest = {
     './routes/privacy.tsx': $privacy,
     './routes/profile-choice.tsx': $profile_choice,
     './routes/profile-create.tsx': $profile_create,
+    './routes/proust/index.html.ts': $proust_index_html,
     './routes/questionnaire.tsx': $questionnaire,
     './routes/questions.tsx': $questions,
     './routes/shop.tsx': $shop,
+    './routes/showmenotell/index.html.ts': $showmenotell_index_html,
     './routes/w/[token].tsx': $w_token_,
+    './routes/zcash.html.ts': $zcash_html,
   },
   islands: {
     './islands/Folio.tsx': $Folio,

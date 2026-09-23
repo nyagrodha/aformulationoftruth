@@ -174,6 +174,25 @@ Deno.test('a genuine navigation records a person', async () => {
   }
 });
 
+// Task 5c (audit F13): these pages used to be static files under public/,
+// so ctx.destination was 'static' and the "non-route destinations never
+// reach the counter" test above swallowed them -- a real visit to
+// /contact.html was never counted. Now that they are routes
+// (routes/contact.html.ts, etc.), the middleware sees ctx.destination ===
+// 'route' for them like any other page, and a genuine navigation counts.
+Deno.test('a navigation to a page moved from public/ to a route (task 5c) records a person', async () => {
+  const visit = spy<[string | null, string, string, string, Date?]>();
+  audience.recordVisit = visit.fn as typeof audience.recordVisit;
+  try {
+    const ctx = stubCtx('route', () => Promise.resolve(htmlResponse()));
+    await handler(req('/contact.html', NAV_HEADERS), ctx);
+    assertEquals(visit.calls.length, 1);
+    assertEquals(visit.calls[0][3], 'person');
+  } finally {
+    restoreAudience();
+  }
+});
+
 Deno.test('a brooch-shaped navigation (ESP32 UA, no Sec-Fetch) records a bot', async () => {
   const visit = spy<[string | null, string, string, string, Date?]>();
   audience.recordVisit = visit.fn as typeof audience.recordVisit;
