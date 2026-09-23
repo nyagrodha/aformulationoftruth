@@ -61,6 +61,13 @@ Deno.test('buildBundle - carries the encrypted password through untouched', () =
   assertEquals(bundle.encryptedPassword, 'AGE-ARMORED-PW');
 });
 
+Deno.test('buildBundle - gate key ID differs from questionnaire callback ID', () => {
+  const bundle = buildBundle('session-hash', rows, 'enc-email', null, 'gate-token');
+  assertEquals(bundle.keyId, 'gate-token');
+  assertEquals(bundle.sessionId, 'session-hash');
+  assertEquals(bundle.answers[0].ciphertext, 'ct0');
+});
+
 Deno.test('buildBundle - no password means null, never an empty string', () => {
   // The key box branches on null to decide whether to protect the PDF; '' would
   // be truthy-adjacent and invites a "protect with empty password" bug.

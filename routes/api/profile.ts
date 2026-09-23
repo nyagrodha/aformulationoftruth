@@ -61,7 +61,7 @@ const ProfileSchema = z.object({
   displayName: z.string().trim().max(120).optional(),
   bio: z.string().trim().max(2000).optional(),
   visibility: z.enum(['private', 'public']),
-  acceptsAnonymousMail: z.boolean().optional().default(false),
+  acceptsAnonymousMail: z.literal(false).optional().default(false),
 });
 
 function getCookie(cookieHeader: string | null, name: string): string | null {

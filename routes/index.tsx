@@ -41,7 +41,6 @@ const LANDING_NAV: NavItem[] = [
   { label: 'begin', href: '#begin' },
   { label: 'about', href: '#about' },
   { label: 'people', href: '/people' },
-  { label: 'messenger', href: '/messenger' },
   { label: 'gift shop', href: '/shop' },
 ];
 
@@ -162,9 +161,9 @@ export default function Home({ data }: PageProps<IndexData>) {
           <section class='hero' id='top' aria-labelledby='prolegomenon'>
             <div class='hero-copy'>
               <p class='hero-title'>
-                Every reader finds themselves. The writer’s work is merely a kind of optical instrument that makes it
-                possible for the reader to discern what, without this book, they would perhaps never have seen in
-                themselves.
+                Every reader finds herself. The writer’s work is merely a kind of optical instrument that makes it
+                possible for the reader to discern what, without this book, she would perhaps never have seen in
+                herself.
               </p>
 
               <p class='eyebrow' id='prolegomenon'>PROLEGOMENON:</p>
@@ -178,28 +177,26 @@ export default function Home({ data }: PageProps<IndexData>) {
                   height={560}
                 />
                 <span class='sr-only'>Y</span>our answers — anyone's answers — may become for another reader just such
-                an ātmanopticon: that optical lens-like perspective one among you composes that, without having read it,
-                another reader may not ever have recognized that quality or trait within themselves.
+                an ātmanopticon: that optical lens-like perspective someone composes that another reader, without having read it,
+                may not ever have recognized that quality or trait within himself.
               </p>
 
               <div class='hero-prose'>
                 <p>
-                  A practice/<i lang='sa-Latn'>sādhana</i>: the questions invite an unguarded, thoughtful state, and at
-                  times the answer astonishes in what it describes of some interior (<span lang='ta'>அகம்</span>) — a
-                  subject, the grammatical <em>I</em>, a formulation of truth.
+                  A practice/<i lang='sa-Latn'>sādhana</i>: the questions invite unguarded, thoughtful states of introspection. Time to time
+                  the answer astonishes in what it describes--an interior (<span lang='ta'>அகம்</span>) — a
+                  subject, the grammatical <em>I</em>, that which remains, a formulation of truth.
                 </p>
                 <p>
-                  Return, after enough time and a species of amnesia, to respond again. The earlier answers belong to
-                  someone else; the one answering now is provisional too. Another self emerges where the past collides
-                  with the present, out of the memories we make and their associations. This is not a tragedy. It’s more
-                  like the weather.
+                  Return, after some time and a species of amnesia, to respond again. The earlier answers belong to
+                  someone else; the one answering now is provisional too. This is not a tragedy; it's more like the weather.
                 </p>
                 <p>
-                  The questionnaire keeps their record — so many persons in succession, bearing one name: <em>I</em>.
+                  The questionnaire keeps a record — subject as excavated persons in succession, bearing one name: <em>I</em>.
                 </p>
                 <p>
                   Insofar as recognition adds nothing new — points to nothing that hasn’t always been known — it is well
-                  captured by doubling the ‘I’: ‘I-I’ sees the ones already given, who you were when you answered then;
+                  captured by doubling the ‘I’ observes 'I', sees the ones already offered, recalls who you were when you answered then;
                   who answers now; who will — as one light regarding itself.
                 </p>
                 <p>Find who sleeps.</p>
@@ -209,8 +206,8 @@ export default function Home({ data }: PageProps<IndexData>) {
 
             {
               /*
-              The figure: a linear slope of desire, real-valued over expectation,
-              meeting the hot possibility function f(x) — unbounded, racing its
+              The figure: a linear slope of desire over expectation,
+              meeting a hot possibility function f(x) — unbounded, racing its
               asymptote — at the single force-point of habit. The shaded region
               left of habit, where desire outruns what is possible, is misery.
             */
@@ -226,7 +223,7 @@ export default function Home({ data }: PageProps<IndexData>) {
                 </title>
                 <desc id='figure-desc'>
                   A linear slope of desire, defined as a real number over expectation, meets the possibility function
-                  f(x) — which is unbounded, diverging toward an asymptote of any possible value — at a single point,
+                  f(x) — which is unbounded, diverging toward an asymptote — at a single point,
                   habit. The region between them, where desire exceeds possibility, is misery.
                 </desc>
 

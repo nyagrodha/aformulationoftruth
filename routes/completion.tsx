@@ -11,6 +11,7 @@ import { Handlers, PageProps } from '$fresh/server.ts';
 
 interface CompletionData {
   resumeToken: string;
+  copyStatus?: string;
 }
 
 function getCookie(cookieHeader: string | null, name: string): string | null {
@@ -25,8 +26,20 @@ export const handler: Handlers<CompletionData> = {
     // opaque resume token is already the client's handle on its session, so it
     // is threaded through the form rather than inventing a second identifier.
     const resumeToken = getCookie(req.headers.get('Cookie'), 'resume_token') ?? '';
-    return ctx.render({ resumeToken });
+    const status = new URL(req.url).searchParams.get('copy') || '';
+    return ctx.render({ resumeToken, copyStatus: COPY_STATUS[status] });
   },
+};
+
+export const COPY_STATUS: Record<string, string> = {
+  queued: 'Your copy is queued. We will retry delivery if the connection is unavailable.',
+  sent: 'Your copy has been sent.',
+  declined: 'No new copy requested. A copy already sending cannot be recalled.',
+  attention: 'Your previous copy request needs attention. Please contact the webmaster.',
+  error: 'We could not save your request. Please try again.',
+  invalid: 'Please check your request. Passwords must be at most 256 characters without line breaks.',
+  nosession: 'This session is no longer available.',
+  unavailable: 'A copy is unavailable for this older questionnaire.',
 };
 
 /**
@@ -124,6 +137,7 @@ export default function CompletionPage(props: PageProps<CompletionData>) {
                 that reveals the interior landscape of a person.
               </p>
 
+              {props.data.copyStatus && <p role='status'>{props.data.copyStatus}</p>}
               <ConsentForm resumeToken={props.data.resumeToken} />
 
               <div style='display: flex; flex-wrap: wrap; justify-content: center; gap: 1rem;'>

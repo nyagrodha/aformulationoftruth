@@ -48,6 +48,7 @@ copy changed nothing that runs. Install after every edit, or the divergence
 starts again:
 
     sudo install -m0755 monitoring/daily_report.py /usr/local/bin/a4t-daily-report.py
+    sudo install -m0644 monitoring/e290_report.py /usr/local/bin/e290_report.py
     sudo systemctl start a4t-report.service        # run once, now
     journalctl -u a4t-report.service -n 30
 
@@ -56,8 +57,51 @@ in git history permanently, so an unset value skips the email channel and logs
 that it did, rather than quietly mailing someone. `a4t-report.service.d/smtp.conf`
 supplies it in production.
 
-Not yet fixed, and worth knowing when reading its output: the service runs as
-root with no `User=`, unlike qr-salt-prune; every "visitor statistics" number is
-summed across every vhost sharing the access log, not just aformulationoftruth.com;
-and `Unique Visitors` has structurally always been 0, because the field it reads
-is one the Caddyfile deletes.
+The service runs as root to read its sources. Traffic is filtered by report
+vhost and audience comes from integer windows. App counters cover only the
+selected UTC date and are lost on app restart; confirmed deliveries are durable.
+Failed key withdrawal means cleanup after a refused gate submission, not a PDF
+failure. `/health` on the renderer uses the existing render bearer token and
+exposes aggregate stage failures since renderer start. Queue counts are current
+status, even when generating a historical report.
+
+## PDF delivery queue
+
+Apply `db/migrations/015_pdf_delivery_queue.sql` as the schema owner, and grant
+SELECT/INSERT/UPDATE/DELETE on `pdf_delivery_jobs` to the web/worker database role.
+Deploy the renderer (including `delivery.ts`, `subprocess.ts`, and its updated
+unit) before restarting Fresh and enabling the worker. Its systemd
+`StateDirectory=a4t-render` stores only opaque delivery receipts, never answers.
+
+    sudo install -m0644 deploy/systemd/a4t-delivery.service /etc/systemd/system/
+    sudo install -m0644 deploy/systemd/a4t-delivery.timer /etc/systemd/system/
+    sudo systemctl daemon-reload
+    sudo systemctl enable --now a4t-delivery.timer
+
+The worker leases jobs for ten minutes and retries pre-send failures with
+exponential backoff for up to 24 hours. A sent receipt allows callback retries
+without another email. SMTP failure after a send has started is uncertain:
+the job stops for operator attention because automatic retry could duplicate
+a message the server already accepted. Review SMTP and renderer logs before
+authorizing another request. Terminal jobs discard ciphertext immediately and
+expire after seven days; receipts expire after eight. Pending jobs can be
+cancelled, but mail already sending cannot be recalled. Repeated consent keeps
+the original queued copy and password. A cancelled request may be submitted
+again; a failed request needs operator attention.
+
+    python3 -B -m unittest discover -s monitoring -p 'test_*.py'
+    deno test --allow-env --allow-read --allow-write romania/tests/delivery_test.ts tests/deliver_bundle_test.ts
+
+`tests/delivery_queue_test.ts` requires an isolated database whose name matches
+`a4t_delivery_test_[0-9]+`, supplied in `DELIVERY_TEST_DATABASE`. It derives the
+connection credentials from DATABASE_URL but replaces the database name before
+connecting. Fixtures must never target the live schema.
+
+## Direct SSH transport
+
+Install `a4t-keybox-direct.conf` as `a4t-keybox-tunnel.service.d/zz-direct-ssh.conf`.
+Disable any previous `mesh.conf` drop-in (retain it as `mesh.conf.disabled`),
+reload systemd, and restart the tunnel. Both ports remain loopback-only and
+StrictHostKeyChecking verifies the existing host key. SSH encrypts the channel
+directly over the public network; WireGuard is not a dependency. Keep the
+existing retry backoff drop-in.

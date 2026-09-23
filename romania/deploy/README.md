@@ -73,9 +73,9 @@ authenticated ssh channel:
     -L 127.0.0.1:8793:127.0.0.1:8791   gimbal -> here, to push bundles
     -R 127.0.0.1:8794:127.0.0.1:7268   here -> gimbal, to confirm delivery
 
-So the confirmation never crosses the public internet. It used to: the key box
-posted to `https://aformulationoftruth.com` from a public IP, through Caddy,
-protected by a bearer token alone. Now both directions ride the same channel,
+The SSH channel uses the public host directly, with strict host-key checking;
+WireGuard is no longer a dependency. The key box previously posted to
+`https://aformulationoftruth.com` through Caddy. Now both directions ride the same channel,
 both ends bind loopback only, and `ExitOnForwardFailure=yes` means a tunnel
 that cannot establish *both* forwards exits and retries rather than running
 half-open with one direction silently dead.
@@ -86,6 +86,25 @@ nothing.
     SMTP_HOST/PORT/SECURE/USER/PASS, FROM_EMAIL
 
 Port 465 is blocked outbound from some hosts in this fleet; 587/STARTTLS works.
+
+## Delivery retries
+
+The bundle carries three distinct identifiers: `sessionId` for the web callback,
+`keyId` for the gate-created private key, and `deliveryId` for one queued request.
+The renderer requires a delivery ID. Deploy it before enabling the web queue.
+`StateDirectory=a4t-render` creates private persistent storage for receipts at
+`/var/lib/a4t-render/receipts` (override with `RENDER_RECEIPT_DIR`). Only opaque
+IDs, time, and send state are stored there. No PDF, address, or answers persist.
+
+Receipts are synced before SMTP starts and after it succeeds. A successful send
+can retry its callback without resending the document. An interrupted or failed
+SMTP send is held for operator attention because the relay may already have
+accepted it. The daily shred job removes receipts after eight days, longer than
+the web queue's 24-hour retry lifetime. Preserve this directory across deploys.
+
+Authenticated `GET /health` returns aggregate failures by UTC day and the
+renderer start time. Counters reset on restart. Failure stages distinguish
+identity lookup, decryption, rendering, protection, SMTP, receipts, and callbacks.
 
 ## Shredding
 

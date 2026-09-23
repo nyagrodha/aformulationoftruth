@@ -23,6 +23,7 @@ export const handler: Handlers = {
     return new Response(
       JSON.stringify({
         currentHour: current,
+        currentHourStart: new Date(Math.floor(Date.now() / 3600000) * 3600000).toISOString(),
         history: historical,
         _note: 'Aggregated counts only. No individual user data.',
       }),

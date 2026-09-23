@@ -1,0 +1,10 @@
+[Unit]
+Description=Retry queued questionnaire PDF deliveries
+
+[Timer]
+OnBootSec=60
+OnUnitInactiveSec=60
+Unit=a4t-delivery.service
+
+[Install]
+WantedBy=timers.target

@@ -1,14 +1,9 @@
 /**
  * The directory: profiles that chose to be listed.
  *
- * Server-rendered rather than fetched, because a list of people is content and
- * should exist without scripting. The only thing here that needs a browser is
- * the link to write to someone, and that is an anchor.
- *
  * Nothing on this page is private. Every row is a profile whose owner set
  * visibility='public', which routes/api/profile.ts only accepts alongside a
- * handle. Whether that person also accepts messages is a separate flag, and the
- * card says which rather than offering a button that would be refused.
+ * handle. Profile links work without scripting.
  */
 
 import { Head } from '$fresh/runtime.ts';
@@ -17,7 +12,7 @@ import { increment } from '../lib/metrics.ts';
 import { listPublicProfiles, type Profile } from '../lib/profiles.ts';
 
 interface Data {
-  people: Array<Pick<Profile, 'handle' | 'displayName' | 'bio' | 'acceptsMail'>>;
+  people: Array<Pick<Profile, 'handle' | 'displayName' | 'bio'>>;
 }
 
 export const handler: Handlers<Data> = {
@@ -29,7 +24,6 @@ export const handler: Handlers<Data> = {
         handle: p.handle,
         displayName: p.displayName,
         bio: p.bio,
-        acceptsMail: p.acceptsMail,
       })),
     });
   },
@@ -50,8 +44,7 @@ export default function PeoplePage({ data }: PageProps<Data>) {
         <p class='eyebrow'>directory · opt-in only</p>
         <h1>people</h1>
         <p class='lede'>
-          Everyone who chose to be listed. Messages are sealed in your browser and stored as ciphertext —
-          the server keeps what it cannot read.
+          Everyone who chose to be listed.
         </p>
 
         {people.length === 0
@@ -71,9 +64,7 @@ export default function PeoplePage({ data }: PageProps<Data>) {
                   <span class='handle'>@{p.handle}</span>
                   {p.bio ? <p class='bio'>{p.bio}</p> : null}
                   <div class='foot'>
-                    {p.acceptsMail
-                      ? <a class='pill' href={`/p/${p.handle}`}>message</a>
-                      : <span class='closed'>not accepting messages</span>}
+                    <a class='pill' href={`/p/${p.handle}`}>view profile</a>
                   </div>
                 </li>
               ))}

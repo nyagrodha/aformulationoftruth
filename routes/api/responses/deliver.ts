@@ -16,8 +16,10 @@ import { withConnection } from '../../../lib/db.ts';
 import { increment } from '../../../lib/metrics.ts';
 import { ageEncryptTo } from '../../../lib/age-encrypt.ts';
 import { breakglassRecipient } from '../../../lib/session-keys.ts';
-import { getSessionByToken } from '../../../lib/questionnaire-session.ts';
-import { type DeliveryBundle, KeyboxUnavailableError, pushBundle } from '../../../lib/romania-client.ts';
+import { getSessionRecord } from '../../../lib/questionnaire-session.ts';
+import { hashResumeToken } from '../../../lib/crypto.ts';
+import { type DeliveryBundle } from '../../../lib/romania-client.ts';
+import { cancelDelivery, enqueueDelivery } from '../../../lib/delivery-queue.ts';
 import { GATE_QUESTIONS } from '../../../lib/gate_encrypt.ts';
 import { QUESTIONS as TAMIL_QUESTIONS } from '../../../lib/questions_dakshinaparvanuvadam.ts';
 
@@ -59,6 +61,7 @@ export function buildBundle(
   rows: AnswerRow[],
   encryptedEmail: string,
   encryptedPassword: string | null,
+  keyId: string = sessionId,
 ): DeliveryBundle {
   const byIndex = new Map<number, AnswerRow>();
   for (const r of rows) {
@@ -91,7 +94,7 @@ export function buildBundle(
     };
   });
 
-  return { sessionId, answers, encryptedEmail, encryptedPassword };
+  return { sessionId, keyId, answers, encryptedEmail, encryptedPassword };
 }
 
 /**
@@ -110,10 +113,14 @@ export function consentFrom(body: Record<string, unknown>): 'yes' | 'no' {
 async function readBody(req: Request): Promise<Record<string, unknown> | null> {
   const contentType = req.headers.get('content-type') || '';
   try {
-    if (contentType.includes('application/json')) return await req.json();
+    if (contentType.includes('application/json')) {
+      const body = await req.json();
+      return body && typeof body === 'object' && !Array.isArray(body) ? body : null;
+    }
     const form = await req.formData();
     const obj: Record<string, unknown> = {};
     for (const [key, value] of form.entries()) {
+      if (Object.hasOwn(obj, key)) return null;
       if (typeof value === 'string') obj[key] = value;
     }
     return obj;
@@ -145,14 +152,22 @@ export const handler: Handlers = {
       return done(400, 'Invalid request body', 'copy=invalid');
     }
 
+    if (body.consent !== 'yes' && body.consent !== 'no') {
+      return done(400, 'Choose whether you want a copy.', 'copy=invalid');
+    }
     const consent = consentFrom(body);
     const resumeToken = typeof body.resume_token === 'string' ? body.resume_token : '';
 
-    // "No" ends here. Nothing is pushed, nothing is decrypted; the completion
-    // page offers deletion from there.
     if (consent === 'no') {
+      if (resumeToken) {
+        try {
+          await cancelDelivery(await hashResumeToken(resumeToken));
+        } catch {
+          return done(503, 'Unable to cancel the pending copy. Please try again.', 'copy=error');
+        }
+      }
       increment('delivery.declined');
-      return done(200, 'No copy will be sent.', 'copy=declined');
+      return done(200, 'No new copy requested. Any copy already sending cannot be recalled.', 'copy=declined');
     }
 
     if (!resumeToken) {
@@ -161,17 +176,20 @@ export const handler: Handlers = {
     }
 
     try {
-      const session = await getSessionByToken(resumeToken);
-      if (!session) {
+      const session = await getSessionRecord(await hashResumeToken(resumeToken));
+      if (!session || Date.now() - session.updatedAt.getTime() > 30 * 86400_000) {
         increment('errors.4xx');
         return done(404, 'Session not found or already closed.', 'copy=nosession');
       }
 
       const row = await withConnection(async (client) => {
-        const r = await client.queryObject<{ session_pubkey: string | null; encrypted_email: string | null }>(
-          `SELECT session_pubkey, encrypted_email
+        const r = await client.queryObject<
+          { gate_token: string; session_pubkey: string | null; encrypted_email: string | null }
+        >(
+          `SELECT gate_token, session_pubkey, encrypted_email
              FROM fresh_gate_responses
             WHERE linked_session_id = $1
+            ORDER BY created_at DESC
             LIMIT 1`,
           [session.sessionId],
         );
@@ -197,38 +215,39 @@ export const handler: Handlers = {
       // NFC-normalised first: the same characters typed on different systems
       // can differ byte-for-byte, and a password that will not reopen the
       // document is worse than none.
+      if (body.password !== undefined && typeof body.password !== 'string') {
+        return done(400, 'Invalid password.', 'copy=invalid');
+      }
       const raw = typeof body.password === 'string' ? body.password : '';
       const password = raw.normalize('NFC');
+      if (password.length > 256 || /[\r\n]/.test(password)) {
+        return done(400, 'Use a password of at most 256 characters without line breaks.', 'copy=invalid');
+      }
       const encryptedPassword = password.length > 0 ? await ageEncryptTo(password, recipients) : null;
 
       const rows = await withConnection(async (client) => {
         const r = await client.queryObject<AnswerRow>(
-          `SELECT question_index, question_text, ciphertext, skipped
+          `SELECT question_index::int AS question_index, question_text, ciphertext, skipped
              FROM gate_encrypted_answers
-            WHERE session_id = $1
+            WHERE (session_id = $1 AND question_index >= 2)
+               OR (session_id = $2 AND question_index IN (0, 1))
             ORDER BY question_index`,
-          [session.sessionId],
+          [session.sessionId, row.gate_token],
         );
         return r.rows;
       });
 
-      const bundle = buildBundle(session.sessionId, rows, row.encrypted_email, encryptedPassword);
-
-      try {
-        await pushBundle(bundle);
-        increment('delivery.pushed');
-        return done(200, 'Your copy is on its way.', 'copy=sent');
-      } catch (e) {
-        if (e instanceof KeyboxUnavailableError) {
-          // The respondent consented; that consent must not evaporate because
-          // the mesh was down for a moment. Task 8b makes this durable -- until
-          // then, say plainly that it did not go rather than implying it did.
-          increment('delivery.keybox_unavailable');
-          console.error('[deliver] key box unavailable; copy not sent');
-          return done(503, 'We could not send your copy just now. Please try again shortly.', 'copy=retry');
-        }
-        throw e;
+      const bundle = buildBundle(session.sessionId, rows, row.encrypted_email, encryptedPassword, row.gate_token);
+      const state = await enqueueDelivery({ ...bundle, keyId: row.gate_token });
+      if (state === 'failed' || state === 'cancelled') {
+        return done(409, 'Your previous request needs attention. Please contact the webmaster.', 'copy=attention');
       }
+      increment('delivery.queued');
+      return done(
+        202,
+        state === 'sent' ? 'Your copy has been sent.' : 'Your copy is queued for delivery.',
+        state === 'sent' ? 'copy=sent' : 'copy=queued',
+      );
     } catch {
       // Category only: the thrown error could carry ciphertext or an address.
       console.error('[deliver] delivery request failed');

@@ -247,16 +247,9 @@ export default function ProfileCreatePage() {
                       <div class='profile-create-radio'>
                         <input type='radio' id='selected' name='visibility' value='selected' />
                         <label for='selected'>
-                          selected answers may become public.
-                          <p class='profile-create-note'>Nothing appears publicly until you choose the answers.</p>
-                        </label>
-                      </div>
-                      <div class='profile-create-radio'>
-                        <input type='radio' id='anonymous-mail' name='visibility' value='anonymous-mail' />
-                        <label for='anonymous-mail'>
-                          private profile plus anonymous mail.
+                          list my profile in the directory.
                           <p class='profile-create-note'>
-                            A paid channel for leaving mail without making yourself public.
+                            Your name, handle, and note will be public. Your answers stay private.
                           </p>
                         </label>
                       </div>
@@ -312,7 +305,6 @@ export default function ProfileCreatePage() {
                   <ol>
                     <li>private is a complete choice.</li>
                     <li>public answers require explicit selection.</li>
-                    <li>anonymous mail is separate from answer visibility.</li>
                     <li>unpublishing should remain available later.</li>
                   </ol>
 
@@ -355,7 +347,7 @@ export default function ProfileCreatePage() {
           {`
           // Progressive enhancement: POST the profile metadata to /api/profile.
           // Per-answer publishing (the "public answers" fieldset) is deferred,
-          // so only visibility, nameplate, and anonymous-mail are sent here.
+          // so only visibility and nameplate are sent here.
           (function () {
             var btn = document.getElementById('profile-save-btn');
             if (!btn) return;
@@ -371,7 +363,6 @@ export default function ProfileCreatePage() {
               var vis = radio('visibility');
               // Map the form's visibility choice onto the profile schema.
               var visibility = vis === 'selected' ? 'public' : 'private';
-              var acceptsAnonymousMail = vis === 'anonymous-mail';
               var handle = val('profile-handle').toLowerCase();
 
               if (visibility === 'public' && !handle) {
@@ -390,7 +381,6 @@ export default function ProfileCreatePage() {
                   headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify({
                     visibility: visibility,
-                    acceptsAnonymousMail: acceptsAnonymousMail,
                     displayName: val('profile-name'),
                     bio: val('profile-note'),
                     handle: handle,
