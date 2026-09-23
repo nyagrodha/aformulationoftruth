@@ -7,6 +7,7 @@ import { encodeBase64 } from '$std/encoding/base64.ts';
 import { encodeCode, importBroochKey } from './brooch_code.ts';
 import { loadKek, wrapBroochKey } from './brooch_keys.ts';
 import { acceptEncounter, codeStatus, dbForTesting, stampEncounterFromCookie, stampScanner } from './brooch.ts';
+import { encounterCookie } from './wearable.ts';
 import { sha256 } from './crypto.ts';
 
 const TEST_KEY = new Uint8Array(Array.from({ length: 32 }, (_, i) => i));
@@ -226,35 +227,29 @@ Deno.test('stampScanner fills scanner_email_hash once', async () => {
   assertEquals(db.codes.get(r.codeHash)?.scanner_email_hash, 'hash-a');
 });
 
-Deno.test('stampEncounterFromCookie: well-formed encounter cookie returns true and stamps', async () => {
+Deno.test("stampEncounterFromCookie: end-to-end with the route's cookie format", async () => {
   const db = await fakeDb(0);
   const c = await code(1);
   const r = await acceptEncounter(c, t0);
   assert(r);
 
-  const encounterCode = 'a'.repeat(64); // 64 lowercase hex chars
-  const cookie = `a=1; encounter=${encounterCode}; b=2`;
-  const emailHash = 'email-hash-value';
+  // Build the cookie exactly as the route does: encounterCookie(r.codeHash)
+  // This cookie carries sha256(code) as the value, NOT the raw code
+  const cookieHeader = encounterCookie(r.codeHash);
+  const emailHash = 'email-hash-a';
 
-  // Manually insert a code to have something to update
-  const codeHash = await sha256(encounterCode);
-  db.codes.set(codeHash, {
-    brooch_id: 1,
-    counter: 1,
-    first_seen: t0,
-    scanner_email_hash: null,
-  });
+  // Clear calls from acceptEncounter
+  db.calls.length = 0;
 
-  const result = await stampEncounterFromCookie(cookie, emailHash);
-  assertEquals(result, true, 'should return true when encounter code is present');
+  const result = await stampEncounterFromCookie(cookieHeader, emailHash);
+  assertEquals(result, true, 'should return true when encounter cookie is present');
 
-  // Verify the UPDATE was called
-  const updateCall = db.calls.find((call) =>
-    call.sql.replace(/\s+/g, ' ').trim().startsWith('UPDATE fresh_encounter_codes SET scanner_email_hash')
+  // The scanner_email_hash should be set on the SAME code row that acceptEncounter created
+  assertEquals(
+    db.codes.get(r.codeHash)?.scanner_email_hash,
+    emailHash,
+    'scanner_email_hash should match the code row created by acceptEncounter',
   );
-  assert(updateCall, 'expected UPDATE fresh_encounter_codes query');
-  assertEquals(updateCall.args, [codeHash, emailHash], 'UPDATE args should be [codeHash, emailHash]');
-  assertEquals(db.codes.get(codeHash)?.scanner_email_hash, emailHash, 'scanner_email_hash should be set');
 });
 
 Deno.test('stampEncounterFromCookie: no/malformed cookie returns false and does not query', async () => {
@@ -277,40 +272,28 @@ Deno.test('stampEncounterFromCookie: no/malformed cookie returns false and does 
   assertEquals(db.calls.length, 0, 'no database queries when encounter is missing');
 });
 
-Deno.test('stampEncounterFromCookie: first-writer-wins (two calls with different emails)', async () => {
+Deno.test("stampEncounterFromCookie: first-writer-wins with route's cookie format", async () => {
   const db = await fakeDb(0);
-  const encounterCode = 'b'.repeat(64);
-  const codeHash = await sha256(encounterCode);
-  const cookie = `encounter=${encounterCode}`;
+  const c = await code(1);
+  const r = await acceptEncounter(c, t0);
+  assert(r);
 
-  // Manually insert a code to have something to update
-  db.codes.set(codeHash, {
-    brooch_id: 1,
-    counter: 1,
-    first_seen: t0,
-    scanner_email_hash: null,
-  });
+  // Build the cookie exactly as the route does
+  const cookieHeader = encounterCookie(r.codeHash);
 
-  // First call with email A
-  const resultA = await stampEncounterFromCookie(cookie, 'email-hash-a');
-  assertEquals(resultA, true);
-  assertEquals(db.codes.get(codeHash)?.scanner_email_hash, 'email-hash-a');
+  // First stamp with email A
+  let result = await stampEncounterFromCookie(cookieHeader, 'email-hash-a');
+  assertEquals(result, true);
+  assertEquals(db.codes.get(r.codeHash)?.scanner_email_hash, 'email-hash-a');
 
-  // Clear calls to check the second call
+  // Clear calls to check the second stamp
   db.calls.length = 0;
 
-  // Second call with email B should also return true (the UPDATE runs)
-  // but scanner_email_hash stays set to the first email due to IS NULL guard
-  const resultB = await stampEncounterFromCookie(cookie, 'email-hash-b');
-  assertEquals(resultB, true);
+  // Second stamp with email B should also return true (UPDATE runs)
+  // but scanner_email_hash stays A due to IS NULL guard
+  result = await stampEncounterFromCookie(cookieHeader, 'email-hash-b');
+  assertEquals(result, true);
 
-  // Verify UPDATE was still called but did not change the value
-  const updateCall = db.calls.find((call) =>
-    call.sql.replace(/\s+/g, ' ').trim().startsWith('UPDATE fresh_encounter_codes SET scanner_email_hash')
-  );
-  assert(updateCall);
-  assertEquals(updateCall.args, [codeHash, 'email-hash-b']);
-
-  // The value in the database should still be the first one (first writer wins)
-  assertEquals(db.codes.get(codeHash)?.scanner_email_hash, 'email-hash-a', 'first writer should win');
+  // The value should still be the first email (first writer wins)
+  assertEquals(db.codes.get(r.codeHash)?.scanner_email_hash, 'email-hash-a', 'first writer should win');
 });

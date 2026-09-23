@@ -121,13 +121,13 @@ export async function stampScanner(codeHash: string, emailHash: string): Promise
 
 /**
  * gate-submit's Step 4c: if the visitor arrived through /e/:code, stamp who
- * continued past that encounter. True iff a well-formed encounter cookie was
- * present (and the first-writer-wins UPDATE ran).
+ * continued past that encounter. The cookie carries sha256(code) already (see
+ * encounterCookie); no hashing here. True iff a well-formed encounter cookie
+ * was present (and the first-writer-wins UPDATE ran).
  */
 export async function stampEncounterFromCookie(cookieHeader: string | null, emailHash: string): Promise<boolean> {
-  const code = encounterFromCookie(cookieHeader);
-  if (!code) return false;
-  const codeHash = await sha256(code);
+  const codeHash = encounterFromCookie(cookieHeader);
+  if (!codeHash) return false;
   await stampScanner(codeHash, emailHash);
   return true;
 }
