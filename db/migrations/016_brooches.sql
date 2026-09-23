@@ -24,3 +24,9 @@ CREATE TABLE IF NOT EXISTS fresh_encounter_codes (
 
 CREATE INDEX IF NOT EXISTS fresh_encounter_codes_brooch_idx
   ON fresh_encounter_codes (brooch_id, first_seen);
+
+-- Applied by hand as the owner role (see scripts/bootstrap-migrations.ts);
+-- the application role is DML-only and needs these, or /e/ fails closed with
+-- "permission denied" on the first scan:
+--   GRANT SELECT, INSERT, UPDATE ON fresh_brooches TO a4m_app;
+--   GRANT SELECT, INSERT, UPDATE ON fresh_encounter_codes TO a4m_app;
