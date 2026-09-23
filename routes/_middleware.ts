@@ -14,11 +14,19 @@
  * from the pre-2026-09-23 version of this file, which recorded before the
  * response existed and so counted redirects, 404s and API calls as visits;
  * see docs/superpowers/notes/2026-09-23-audience-metric-audit.md (F4, F6, F7).
+ *
+ * `noteRequest` (Ruling S17, fix round 1) runs for EVERY request that reaches
+ * this point, before classification and independent of it -- including
+ * `/api/*`, every method, every eventual status, and opted-out requests. It
+ * is a plain integer with no pseudonym, so there is nothing to gate it on.
+ * Without it, a window containing nothing but 404 probes or API traffic gets
+ * no row at all once persisted, and the daily report reads "no row" as "the
+ * counter wasn't running" rather than as ordinary non-navigation traffic.
  */
 
 import { FreshContext } from '$fresh/server.ts';
 import { getClientIp } from '../lib/client-ip.ts';
-import { recordOptOutNavigation, recordVisit, startAudienceFlush } from '../lib/audience.ts';
+import { noteRequest, recordOptOutNavigation, recordVisit, startAudienceFlush } from '../lib/audience.ts';
 import { classifyVisit, optedOut } from '../lib/visit-class.ts';
 import { increment } from '../lib/metrics.ts';
 
@@ -27,7 +35,7 @@ import { increment } from '../lib/metrics.ts';
  * call, without touching Postgres or lib/audience.ts's real hashing --
  * the same pattern as `brooch.status` in routes/api/brooch/status.ts.
  */
-export const audience = { recordVisit, recordOptOutNavigation };
+export const audience = { noteRequest, recordVisit, recordOptOutNavigation };
 
 // The flush timer is unref'd, so starting it at module load neither holds the
 // process open nor delays shutdown.
@@ -43,6 +51,12 @@ export async function handler(req: Request, ctx: FreshContext): Promise<Response
   const res = await ctx.next(); // classification needs the response; response is untouched below
 
   try {
+    const host = req.headers.get('host');
+
+    // Every request that reaches here, regardless of method, status or
+    // classification -- see the file header (Ruling S17).
+    await audience.noteRequest(host);
+
     const cls = classifyVisit(req.method, pathname, req.headers, res.status, res.headers.get('content-type'));
 
     // Global Privacy Control and Do Not Track. Honoured strictly: an opted-out
@@ -53,7 +67,7 @@ export async function handler(req: Request, ctx: FreshContext): Promise<Response
     if (optedOut(req.headers)) {
       increment('visits.optout');
       if (cls === 'person') {
-        await audience.recordOptOutNavigation(req.headers.get('host'));
+        await audience.recordOptOutNavigation(host);
       }
       return res;
     }
@@ -62,7 +76,7 @@ export async function handler(req: Request, ctx: FreshContext): Promise<Response
 
     const remoteHost = (ctx as { remoteAddr?: { hostname?: string } }).remoteAddr?.hostname;
     const ip = getClientIp(req, remoteHost);
-    await audience.recordVisit(req.headers.get('host'), ip, req.headers.get('user-agent') ?? '', cls);
+    await audience.recordVisit(host, ip, req.headers.get('user-agent') ?? '', cls);
   } catch {
     // Category only, never the error: it could carry the address. recordVisit
     // does no I/O, so this should be unreachable -- which is exactly why it is

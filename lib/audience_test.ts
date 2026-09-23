@@ -15,8 +15,11 @@ import { hmacKey, randomBytes } from './crypto.ts';
 import { visitorHash } from './qr-scans.ts';
 import {
   _countersForTest,
+  _persistHooks,
   _resetForTest,
   audienceHash,
+  noteRequest,
+  type OpenWindow,
   recordOptOutNavigation,
   recordVisit,
   siteFor,
@@ -195,7 +198,10 @@ Deno.test('017 adds no address-derived column either', async () => {
   const sql = await Deno.readTextFile(
     new URL('../db/migrations/017_audience_buckets.sql', import.meta.url),
   );
-  const body = sql.slice(sql.indexOf('ALTER TABLE'), sql.indexOf(';'));
+  const alterStart = sql.indexOf('ALTER TABLE');
+  // Search for the terminating ';' from the ALTER, not from file start --
+  // the surrounding comment prose (deliberately) contains semicolons too.
+  const body = sql.slice(alterStart, sql.indexOf(';', alterStart));
   for (const banned of [/\bvisitor_hash\b/, /\bip\b\s+\w/, /\buser_agent\b/, /\binet\b/, /\bcidr\b/]) {
     assert(!banned.test(body), `017 declares a forbidden column: ${banned}`);
   }
@@ -226,6 +232,10 @@ Deno.test('person, bot and unclassified buckets stay separate, and opting out en
     assertEquals(counters.bot, 1);
     assertEquals(counters.unclassified, 1);
     assertEquals(counters.optoutNavigations, 1);
+    // Ruling S17: recordVisit/recordOptOutNavigation no longer touch
+    // `requests` at all -- only noteRequest does, and it was never called
+    // here, so this must stay 0 rather than double-counting.
+    assertEquals(counters.requests, 0);
   } finally {
     _resetForTest();
   }
@@ -242,4 +252,160 @@ Deno.test('recordOptOutNavigation never computes a pseudonym', async () => {
     !body.includes('audienceHash('),
     'recordOptOutNavigation must never compute a pseudonym -- Sec-GPC/DNT gets none at all',
   );
+});
+
+// --- Ruling S17: noteRequest gives every window somewhere to put a row ----
+
+type CapturedCounters = {
+  person: number;
+  bot: number;
+  unclassified: number;
+  optoutNavigations: number;
+  requests: number;
+};
+
+/** Snapshot a window's counts as plain numbers, keyed by site. Test-only. */
+function snapshotWindow(w: OpenWindow): Record<string, CapturedCounters> {
+  const out: Record<string, CapturedCounters> = {};
+  for (const [site, c] of w.bySite) {
+    out[site] = {
+      person: c.person.size,
+      bot: c.bot.size,
+      unclassified: c.unclassified.size,
+      optoutNavigations: c.optoutNavigations,
+      requests: c.requests,
+    };
+  }
+  return out;
+}
+
+// Before Ruling S17, a window touched only by noteRequest-shaped traffic
+// (404s, /api/*, POSTs -- nothing that ever reached recordVisit or
+// recordOptOutNavigation) never created a Counters entry at all, so
+// `persist` (bySite.size === 0) skipped it entirely: the window got NO row,
+// and monitoring/daily_report.py reads "no row" as "the counter wasn't
+// running". noteRequest existing, and creating that entry, is the fix.
+Deno.test('a window touched only by noteRequest still has something to persist', async () => {
+  _resetForTest();
+  const captured: Record<string, CapturedCounters>[] = [];
+  _persistHooks.persist = (w: OpenWindow) => {
+    captured.push(snapshotWindow(w));
+    return Promise.resolve();
+  };
+  try {
+    const now = at('2026-09-23T10:00:00Z');
+    await noteRequest('aformulationoftruth.com', now);
+    await noteRequest('aformulationoftruth.com', now);
+
+    // Force the window to close by rotating to a later one.
+    await noteRequest('aformulationoftruth.com', at('2026-09-23T14:00:00Z'));
+
+    assertEquals(captured.length, 1, 'the first window should have been persisted exactly once');
+    assertEquals(captured[0]['a4t'], {
+      person: 0,
+      bot: 0,
+      unclassified: 0,
+      optoutNavigations: 0,
+      requests: 2,
+    });
+  } finally {
+    _resetForTest();
+  }
+});
+
+// --- F14: the window-rotation race (Ruling S18) ----------------------------
+
+// The bug this pins: the pre-fix openCounters() re-checked the *global*
+// `open` after its own `await mint(start)`, so two concurrent callers who
+// both saw the window stale would each mint their OWN window, and whichever
+// finished last silently overwrote the other -- discarding every count
+// already added to the one it replaced. 50 concurrent calls landing in the
+// SAME just-opened window is exactly the shape that triggered it: with
+// `open` starting null, every one of the 50 sees "no window yet" before any
+// of them has minted one.
+Deno.test('rotation race: 50 concurrent recordVisit calls into a freshly-opened window lose nobody', async () => {
+  _resetForTest();
+  try {
+    const now = at('2026-09-23T10:00:00Z');
+    await Promise.all(
+      Array.from(
+        { length: 50 },
+        (_, i) => recordVisit('aformulationoftruth.com', `203.0.113.${i}`, 'ua', 'person', now),
+      ),
+    );
+    const counters = _countersForTest('a4t');
+    assert(counters);
+    assertEquals(counters.person, 50, 'no distinct visitor should have been lost to the mint race');
+  } finally {
+    _resetForTest();
+  }
+});
+
+// The harder case: 50 concurrent recordVisit calls straddling a REAL
+// boundary, half with a `now` just before it and half just after. Whichever
+// window ends up superseded gets persisted via the hook below (never a real
+// database); whichever is still open is read via _countersForTest. Their
+// combined total must be exactly 50, proving no count was lost to the race
+// AND none was double-attributed (counted in both).
+Deno.test('rotation race: 50 concurrent recordVisit calls straddling a real boundary sum to 50, not lost or doubled', async () => {
+  _resetForTest();
+  const persistedPersons: number[] = [];
+  _persistHooks.persist = (w: OpenWindow) => {
+    const snap = snapshotWindow(w);
+    persistedPersons.push(snap['a4t']?.person ?? 0);
+    return Promise.resolve();
+  };
+  try {
+    const boundary = windowStart(at('2026-09-23T12:00:01Z')).getTime();
+    const before = new Date(boundary - 1); // last ms of the earlier window
+    const after = new Date(boundary); // first ms of the later window
+
+    const calls: Promise<void>[] = [];
+    for (let i = 0; i < 25; i++) {
+      calls.push(recordVisit('aformulationoftruth.com', `203.0.113.${i}`, 'ua', 'person', before));
+    }
+    for (let i = 25; i < 50; i++) {
+      calls.push(recordVisit('aformulationoftruth.com', `203.0.113.${i}`, 'ua', 'person', after));
+    }
+    await Promise.all(calls);
+
+    const stillOpen = _countersForTest('a4t');
+    assert(stillOpen, 'one of the two windows should still be open');
+    const total = persistedPersons.reduce((a, b) => a + b, 0) + stillOpen.person;
+    assertEquals(total, 50, `expected no count lost or double-attributed across the boundary, got ${total}`);
+  } finally {
+    _resetForTest();
+  }
+});
+
+// Same shape, but for noteRequest -- the ruling asked for the rotation-race
+// coverage to also cover it, not only recordVisit. requests is a plain
+// integer (no distinct-pseudonym set to dedupe against), so the invariant
+// here is simpler: the sum across both windows must equal the call count
+// exactly, every time.
+Deno.test('rotation race: 20 concurrent noteRequest calls straddling a boundary sum to 20', async () => {
+  _resetForTest();
+  const persistedRequests: number[] = [];
+  _persistHooks.persist = (w: OpenWindow) => {
+    const snap = snapshotWindow(w);
+    persistedRequests.push(snap['a4t']?.requests ?? 0);
+    return Promise.resolve();
+  };
+  try {
+    const boundary = windowStart(at('2026-09-23T16:00:01Z')).getTime();
+    const before = new Date(boundary - 1);
+    const after = new Date(boundary);
+
+    const calls: Promise<void>[] = [];
+    for (let i = 0; i < 10; i++) calls.push(noteRequest('aformulationoftruth.com', before));
+    for (let i = 0; i < 10; i++) calls.push(noteRequest('aformulationoftruth.com', after));
+    await Promise.all(calls);
+
+    const stillOpen = _countersForTest('a4t');
+    assert(stillOpen);
+    const total = persistedRequests.reduce((a, b) => a + b, 0) + stillOpen.requests;
+    assertEquals(total, 20, `expected exactly 20 requests across both windows, got ${total}`);
+  } finally {
+    _resetForTest();
+  }
 });

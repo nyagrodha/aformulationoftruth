@@ -58,10 +58,12 @@ function spy<A extends unknown[]>(): { calls: A[]; fn: (...args: A) => Promise<v
   };
 }
 
+const originalNoteRequest = audience.noteRequest;
 const originalRecordVisit = audience.recordVisit;
 const originalRecordOptOutNavigation = audience.recordOptOutNavigation;
 
 function restoreAudience(): void {
+  audience.noteRequest = originalNoteRequest;
   audience.recordVisit = originalRecordVisit;
   audience.recordOptOutNavigation = originalRecordOptOutNavigation;
 }
@@ -72,8 +74,10 @@ function metricCount(name: string): number {
 
 // --- destination gating ------------------------------------------------------
 
-Deno.test('non-route destinations never reach the counter', async () => {
+Deno.test('non-route destinations never reach the counter, including noteRequest', async () => {
+  const note = spy<[string | null, Date?]>();
   const visit = spy<[string | null, string, string, string, Date?]>();
+  audience.noteRequest = note.fn as typeof audience.noteRequest;
   audience.recordVisit = visit.fn as typeof audience.recordVisit;
   try {
     for (const destination of ['static', 'internal', 'notFound']) {
@@ -82,6 +86,7 @@ Deno.test('non-route destinations never reach the counter', async () => {
       const out = await handler(req('/whatever', NAV_HEADERS), ctx);
       assertStrictEquals(out, res);
     }
+    assertEquals(note.calls.length, 0);
     assertEquals(visit.calls.length, 0);
   } finally {
     restoreAudience();
@@ -122,14 +127,21 @@ Deno.test('the response is the exact object ctx.next() produced, on every path',
 
 // --- the brooch poll and other /api/ traffic ---------------------------------
 
-Deno.test('POST /api/brooch/status never reaches the counter', async () => {
+// Ruling S17: the poll must still count toward `requests` (a plain integer,
+// no pseudonym) even though it is excluded from `visitors` -- otherwise a
+// window with nothing else in it gets no row at all, and the daily report
+// reads that silence as an outage rather than as API traffic.
+Deno.test('POST /api/brooch/status: requests +1, visitors +0', async () => {
+  const note = spy<[string | null, Date?]>();
   const visit = spy<[string | null, string, string, string, Date?]>();
+  audience.noteRequest = note.fn as typeof audience.noteRequest;
   audience.recordVisit = visit.fn as typeof audience.recordVisit;
   try {
     const res = new Response('{}', { status: 200, headers: { 'content-type': 'application/json' } });
     const ctx = stubCtx('route', () => Promise.resolve(res));
     await handler(req('/api/brooch/status', {}, { method: 'POST' }), ctx);
-    assertEquals(visit.calls.length, 0);
+    assertEquals(note.calls.length, 1, 'requests should still be +1');
+    assertEquals(visit.calls.length, 0, 'visitors should stay +0');
   } finally {
     restoreAudience();
   }
@@ -230,12 +242,15 @@ Deno.test('a redirect hop never counts; the destination it lands on does', async
   }
 });
 
-Deno.test('a 404 from a dynamic route never counts', async () => {
+Deno.test('a 404 from a dynamic route: requests +1, but never a visitor', async () => {
+  const note = spy<[string | null, Date?]>();
   const visit = spy<[string | null, string, string, string, Date?]>();
+  audience.noteRequest = note.fn as typeof audience.noteRequest;
   audience.recordVisit = visit.fn as typeof audience.recordVisit;
   try {
     const ctx = stubCtx('route', () => Promise.resolve(htmlResponse(404)));
     await handler(req('/e/not-a-code', NAV_HEADERS), ctx);
+    assertEquals(note.calls.length, 1, 'a 404 still counts toward requests');
     assertEquals(visit.calls.length, 0);
   } finally {
     restoreAudience();
@@ -244,14 +259,20 @@ Deno.test('a 404 from a dynamic route never counts', async () => {
 
 // --- opt-out -------------------------------------------------------------------
 
-Deno.test('GPC/DNT: a navigation that would have been a person goes only to recordOptOutNavigation', async () => {
+// Ruling S17: opting out still counts toward `requests` (a plain integer --
+// noteRequest never touches a pseudonym), on top of the pre-existing
+// optout_navigations count.
+Deno.test('GPC/DNT: a navigation that would have been a person: requests +1, optout_navigations +1, no pseudonym', async () => {
+  const note = spy<[string | null, Date?]>();
   const visit = spy<[string | null, string, string, string, Date?]>();
   const optOut = spy<[string | null, Date?]>();
+  audience.noteRequest = note.fn as typeof audience.noteRequest;
   audience.recordVisit = visit.fn as typeof audience.recordVisit;
   audience.recordOptOutNavigation = optOut.fn as typeof audience.recordOptOutNavigation;
   try {
     const ctx = stubCtx('route', () => Promise.resolve(htmlResponse()));
     await handler(req('/', { ...NAV_HEADERS, 'sec-gpc': '1' }), ctx);
+    assertEquals(note.calls.length, 1, 'requests should still be +1');
     assertEquals(visit.calls.length, 0, 'an opted-out person must never get a pseudonym');
     assertEquals(optOut.calls.length, 1);
   } finally {
@@ -259,9 +280,11 @@ Deno.test('GPC/DNT: a navigation that would have been a person goes only to reco
   }
 });
 
-Deno.test('GPC/DNT: a bot or unclassified opt-out is not counted anywhere', async () => {
+Deno.test('GPC/DNT: a bot or unclassified opt-out reaches no pseudonym bucket, but still counts as a request', async () => {
+  const note = spy<[string | null, Date?]>();
   const visit = spy<[string | null, string, string, string, Date?]>();
   const optOut = spy<[string | null, Date?]>();
+  audience.noteRequest = note.fn as typeof audience.noteRequest;
   audience.recordVisit = visit.fn as typeof audience.recordVisit;
   audience.recordOptOutNavigation = optOut.fn as typeof audience.recordOptOutNavigation;
   try {
@@ -275,6 +298,7 @@ Deno.test('GPC/DNT: a bot or unclassified opt-out is not counted anywhere', asyn
       req('/', { 'sec-gpc': '1' }),
       stubCtx('route', () => Promise.resolve(htmlResponse())),
     );
+    assertEquals(note.calls.length, 2, 'requests should still be +1 for each');
     assertEquals(visit.calls.length, 0);
     assertEquals(optOut.calls.length, 0);
   } finally {
