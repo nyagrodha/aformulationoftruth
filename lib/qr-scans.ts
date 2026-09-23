@@ -61,6 +61,39 @@ export const BOT_USER_AGENT_MARKERS = [
   'python-requests',
   'go-http-client',
   'headlesschrome',
+
+  // Added 2026-09-23 for the audience-metric audit (F3): fetch libraries,
+  // fediverse unfurlers, AI-agent fetchers and the brooch's own HTTP client,
+  // none of which the list above catches. Most of these are also filtered
+  // out by the Sec-Fetch navigation rule in lib/visit-class.ts before this
+  // list ever runs -- it only decides bot vs. unclassified for whatever
+  // reaches it without those headers, e.g. curl-style clients and the brooch.
+  'python-urllib',
+  'python-httpx',
+  'aiohttp',
+  'okhttp',
+  'axios',
+  'node-fetch',
+  'undici',
+  'deno/',
+  'java/',
+  'libwww',
+  'zgrab',
+  'masscan',
+  'nmap',
+  'censys',
+  'nuclei',
+  'mastodon/',
+  'cardyb', // Bluesky's link-card fetcher
+  'iframely',
+  'externalagent', // meta-externalagent
+  'externalfetcher', // meta-externalfetcher
+  '-user', // ChatGPT-User, Perplexity-User, Claude-User
+  'inspectiontool', // Google-InspectionTool
+  'lighthouse',
+  'esp32',
+  'esp-idf',
+  'headless',
 ];
 
 /**
