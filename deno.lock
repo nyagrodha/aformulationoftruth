@@ -329,6 +329,8 @@
     "https://deno.land/std@0.216.0/crypto/timing_safe_equal.ts": "bc3622b5aec05e2d8b735bf60633425c34333c06cfb6c4a9f102e4a0f3931ced",
     "https://deno.land/std@0.216.0/datetime/constants.ts": "5c198b3b47fbcc4d913e61dcae1c37e053937affc2c9a6a5ad7e5473bab3e4a6",
     "https://deno.land/std@0.216.0/encoding/_util.ts": "beacef316c1255da9bc8e95afb1fa56ed69baef919c88dc06ae6cb7a6103d376",
+    "https://deno.land/std@0.216.0/encoding/base64.ts": "96e61a556d933201266fea84ae500453293f2aff130057b579baafda096a96bc",
+    "https://deno.land/std@0.216.0/encoding/base64url.ts": "9cc46cf510436be63ac00ebf97a7de1993e603ca58e1853b344bf90d80ea9945",
     "https://deno.land/std@0.216.0/encoding/hex.ts": "4d47d3b25103cf81a2ed38f54b394d39a77b63338e1eaa04b70c614cb45ec2e6",
     "https://deno.land/std@0.216.0/flags/mod.ts": "9f13f3a49c54618277ac49195af934f1c7d235731bcf80fd33b8b234e6839ce9",
     "https://deno.land/std@0.216.0/fmt/colors.ts": "d239d84620b921ea520125d778947881f62c50e78deef2657073840b8af9559a",
