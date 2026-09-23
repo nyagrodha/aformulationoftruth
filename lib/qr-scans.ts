@@ -46,7 +46,10 @@ export const SALT_RETENTION_DAYS = 1;
  * which apps matter depends on the audience, so it is the operator's call.
  */
 export const BOT_USER_AGENT_MARKERS = [
-  'bot', // Slackbot, Twitterbot, TelegramBot, Discordbot, Googlebot
+  // 'bot' itself is handled by GENERIC_BOT_RE below, not a plain substring:
+  // Slackbot, Twitterbot, TelegramBot, Discordbot, Googlebot, bingbot,
+  // AhrefsBot and Applebot all match it; see that constant's comment for why
+  // a bare substring test cannot be used here.
   'crawler',
   'spider',
   'facebookexternalhit',
@@ -144,6 +147,26 @@ export function saltCutoffDay(now: Date): string {
 }
 
 /**
+ * The generic 'bot' marker, as a regex rather than a bare substring.
+ *
+ * Fixed 2026-09-23: `ua.includes('bot')` flagged real Android phones from the
+ * brand Cubot ("CUBOT X30", "CUBOT KingKong 7") as bots, because "bot" is a
+ * substring of "Cubot" too, followed by a space and an unrelated model
+ * name -- nothing else in that UA says "crawler". Every genuine bot UA this
+ * list exists for instead has "bot" immediately followed by a version/name
+ * separator (`/`, `-`, `_`, `;`, `)`, `.`), sitting at the very end of the
+ * string, or standing alone as its own word (preceded by a non-letter, with
+ * a word boundary after). Matching only those shapes keeps every named
+ * crawler this was written for (Googlebot/2.1, bingbot/2.0, Applebot/0.1,
+ * AhrefsBot/7.0, Slackbot-LinkExpanding, Discordbot/2.0, Twitterbot/1.0 --
+ * note the letter immediately before "bot" in most of these, which is why
+ * the rule cannot simply require "not preceded by a letter") while excluding
+ * a phone whose brand name happens to end in "bot" followed by whitespace
+ * and something else.
+ */
+const GENERIC_BOT_RE = /(?<![a-z])bot\b|bot[/\-_;).]|bot$/i;
+
+/**
  * Whether a user agent looks like an automated fetch rather than a person.
  *
  * An empty user agent is deliberately NOT treated as a bot. Privacy-hardened
@@ -153,6 +176,7 @@ export function saltCutoffDay(now: Date): string {
 export function isBotUserAgent(userAgent: string): boolean {
   const ua = userAgent.toLowerCase();
   if (!ua) return false;
+  if (GENERIC_BOT_RE.test(ua)) return true;
   return BOT_USER_AGENT_MARKERS.some((marker) => ua.includes(marker));
 }
 
