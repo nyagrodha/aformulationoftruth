@@ -13,7 +13,16 @@
 import { assert, assertEquals, assertNotEquals } from '$std/assert/mod.ts';
 import { hmacKey, randomBytes } from './crypto.ts';
 import { visitorHash } from './qr-scans.ts';
-import { audienceHash, siteFor, WINDOW_MS, windowStart } from './audience.ts';
+import {
+  _countersForTest,
+  _resetForTest,
+  audienceHash,
+  recordOptOutNavigation,
+  recordVisit,
+  siteFor,
+  WINDOW_MS,
+  windowStart,
+} from './audience.ts';
 
 const at = (iso: string) => new Date(iso);
 
@@ -146,12 +155,17 @@ Deno.test('the persisted column set contains no digest, address or user agent', 
   const columns = insert.slice(insert.indexOf('(') + 1, insert.indexOf(')'))
     .split(',').map((c) => c.trim()).filter(Boolean);
 
+  // Updated 2026-09-23 (task 5b): unclassified_visitors and
+  // optout_navigations joined the row. Both are integers -- see the banned-name
+  // loop below, which still runs over this exact list.
   assertEquals(columns, [
     'window_start',
     'site',
     'run_id',
     'visitors',
     'bot_visitors',
+    'unclassified_visitors',
+    'optout_navigations',
     'requests',
     'truncated',
     'updated_at',
@@ -174,4 +188,58 @@ Deno.test('the migration declares no address-derived column', async () => {
   for (const banned of [/\bvisitor_hash\b/, /\bip\b\s+\w/, /\buser_agent\b/, /\binet\b/, /\bcidr\b/]) {
     assert(!banned.test(body), `migration declares a forbidden column: ${banned}`);
   }
+});
+
+// 017 is additive-only; the same invariant applies to what it adds.
+Deno.test('017 adds no address-derived column either', async () => {
+  const sql = await Deno.readTextFile(
+    new URL('../db/migrations/017_audience_buckets.sql', import.meta.url),
+  );
+  const body = sql.slice(sql.indexOf('ALTER TABLE'), sql.indexOf(';'));
+  for (const banned of [/\bvisitor_hash\b/, /\bip\b\s+\w/, /\buser_agent\b/, /\binet\b/, /\bcidr\b/]) {
+    assert(!banned.test(body), `017 declares a forbidden column: ${banned}`);
+  }
+  assert(/unclassified_visitors\s+INT/.test(body));
+  assert(/optout_navigations\s+INT/.test(body));
+});
+
+// --- classified buckets (task 5b, 2026-09-23) ------------------------------
+
+// person/bot/unclassified are independent sets keyed by the same digest
+// space, and opting out must never touch any of them -- only its own plain
+// counter. _resetForTest clears in-memory state without touching Postgres,
+// so this stays hermetic as long as it never crosses a window boundary.
+Deno.test('person, bot and unclassified buckets stay separate, and opting out enters none of them', async () => {
+  _resetForTest();
+  try {
+    const now = at('2026-09-23T10:00:00Z');
+    // Same (ip, UA) in three different buckets: the bucket is the caller's
+    // classification, not something recordVisit re-derives from the UA.
+    await recordVisit('aformulationoftruth.com', '203.0.113.9', 'same-ua', 'person', now);
+    await recordVisit('aformulationoftruth.com', '203.0.113.9', 'same-ua', 'bot', now);
+    await recordVisit('aformulationoftruth.com', '203.0.113.9', 'same-ua', 'unclassified', now);
+    await recordOptOutNavigation('aformulationoftruth.com', now);
+
+    const counters = _countersForTest('a4t');
+    assert(counters);
+    assertEquals(counters.person, 1);
+    assertEquals(counters.bot, 1);
+    assertEquals(counters.unclassified, 1);
+    assertEquals(counters.optoutNavigations, 1);
+  } finally {
+    _resetForTest();
+  }
+});
+
+Deno.test('recordOptOutNavigation never computes a pseudonym', async () => {
+  const src = await Deno.readTextFile(new URL('./audience.ts', import.meta.url));
+  const start = src.indexOf('export async function recordOptOutNavigation');
+  assert(start !== -1, 'recordOptOutNavigation not found in lib/audience.ts');
+  const end = src.indexOf('\n}\n', start);
+  assert(end !== -1, 'could not find the end of recordOptOutNavigation');
+  const body = src.slice(start, end);
+  assert(
+    !body.includes('audienceHash('),
+    'recordOptOutNavigation must never compute a pseudonym -- Sec-GPC/DNT gets none at all',
+  );
 });

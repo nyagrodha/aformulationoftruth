@@ -21,9 +21,10 @@
  * swap, so it has no disk representation at all.
  *
  * What that buys, stated precisely: nothing survives the window. It does not
- * mean nothing exists during it. While a window is open, `seen` holds live
- * pseudonyms, and anyone who can read this process's memory has both those and
- * the key. The claim is bounded exposure, not zero exposure.
+ * mean nothing exists during it. While a window is open, the `person`/`bot`/
+ * `unclassified` sets hold live pseudonyms, and anyone who can read this
+ * process's memory has both those and the key. The claim is bounded exposure,
+ * not zero exposure.
  *
  * ## Why fixed four-hour windows
  *
@@ -50,7 +51,6 @@
  */
 
 import { hmacKey, hmacSignWith, randomBytes, randomToken } from './crypto.ts';
-import { isBotUserAgent } from './qr-scans.ts';
 import { withConnection } from './db.ts';
 import { increment } from './metrics.ts';
 
@@ -100,9 +100,24 @@ const SITE_BY_HOST: ReadonlyMap<string, Site> = new Map([
  */
 const RUN_ID = randomToken(8);
 
+/**
+ * Which set a classified request's pseudonym lands in.
+ *
+ * Deliberately not `optout` -- an opted-out request never gets a pseudonym at
+ * all (see recordOptOutNavigation), so it cannot be a value of this type.
+ */
+export type VisitBucket = 'person' | 'bot' | 'unclassified';
+
 interface Counters {
-  seen: Set<string>;
-  botSeen: Set<string>;
+  person: Set<string>;
+  bot: Set<string>;
+  unclassified: Set<string>;
+  /**
+   * Plain count, not a set. Sec-GPC/DNT requests that would otherwise have
+   * been `person` are tallied here instead -- no pseudonym is ever computed
+   * for them, so there is nothing to put in a set.
+   */
+  optoutNavigations: number;
   requests: number;
 }
 
@@ -146,7 +161,13 @@ export function audienceHash(key: CryptoKey, ip: string, userAgent: string): Pro
 }
 
 function emptyCounters(): Counters {
-  return { seen: new Set(), botSeen: new Set(), requests: 0 };
+  return {
+    person: new Set(),
+    bot: new Set(),
+    unclassified: new Set(),
+    optoutNavigations: 0,
+    requests: 0,
+  };
 }
 
 /**
@@ -165,22 +186,15 @@ async function mint(start: number): Promise<OpenWindow> {
 }
 
 /**
- * Record one request. Never throws.
+ * Ensure a window is open for `now`, rotating (and fire-and-forget persisting
+ * the old one) if its boundary has passed, then return this site's counters
+ * within it.
  *
- * Returns nothing on purpose: a caller able to see whether this visitor was new
- * could observe the count from outside, which is why lib/qr-scans.ts's
- * recordScan returns void too.
- *
- * Does no database work, so it cannot stall the request path — the write
- * happens on the flush timer and at rotation. That is a real benefit of holding
- * state in memory, and it is why no withDeadline wrapper is needed here.
+ * Shared by recordVisit and recordOptOutNavigation so the rotation logic --
+ * the part worth getting right once -- exists in one place regardless of
+ * which bucket a caller is about to touch.
  */
-export async function recordVisit(
-  host: string | null,
-  ip: string,
-  userAgent: string,
-  now: Date = new Date(),
-): Promise<void> {
+async function openCounters(host: string | null, now: Date): Promise<{ win: OpenWindow; counters: Counters }> {
   const start = windowStart(now).getTime();
 
   if (!open || open.start !== start) {
@@ -200,19 +214,61 @@ export async function recordVisit(
     counters = emptyCounters();
     open.bySite.set(site, counters);
   }
+  return { win: open, counters };
+}
+
+/**
+ * Record one classified request. Never throws.
+ *
+ * `bucket` is the caller's classification (lib/visit-class.ts's
+ * `classifyVisit`), computed from the response as well as the request, so
+ * this function trusts it rather than re-deriving it from the user agent
+ * alone the way the pre-2026-09-23 version did.
+ *
+ * Returns nothing on purpose: a caller able to see whether this visitor was new
+ * could observe the count from outside, which is why lib/qr-scans.ts's
+ * recordScan returns void too.
+ *
+ * Does no database work, so it cannot stall the request path — the write
+ * happens on the flush timer and at rotation. That is a real benefit of holding
+ * state in memory, and it is why no withDeadline wrapper is needed here.
+ */
+export async function recordVisit(
+  host: string | null,
+  ip: string,
+  userAgent: string,
+  bucket: VisitBucket,
+  now: Date = new Date(),
+): Promise<void> {
+  const { win, counters } = await openCounters(host, now);
   counters.requests += 1;
 
-  const digest = await audienceHash(open.key, ip, userAgent);
-  const bucket = isBotUserAgent(userAgent) ? counters.botSeen : counters.seen;
+  const digest = await audienceHash(win.key, ip, userAgent);
+  const set = counters[bucket];
 
-  if (bucket.size >= MAX_TRACKED && !bucket.has(digest)) {
-    if (!open.truncated) {
-      open.truncated = true;
+  if (set.size >= MAX_TRACKED && !set.has(digest)) {
+    if (!win.truncated) {
+      win.truncated = true;
       increment('visits.set_capped');
     }
     return;
   }
-  bucket.add(digest);
+  set.add(digest);
+}
+
+/**
+ * Record an opted-out navigation. Never throws, never computes a pseudonym.
+ *
+ * Sec-GPC/DNT is a stricter promise than "counted anonymously": no address or
+ * user agent is ever hashed for these requests, not even into the in-heap,
+ * never-persisted key every other bucket uses. `optout_navigations` is
+ * therefore a plain integer, incremented only when the request would
+ * otherwise have classified as `person` -- a bot or unclassified opt-out
+ * request is simply not counted anywhere, per the owner's ruling.
+ */
+export async function recordOptOutNavigation(host: string | null, now: Date = new Date()): Promise<void> {
+  const { counters } = await openCounters(host, now);
+  counters.optoutNavigations += 1;
 }
 
 /** Write one window's counts through. Idempotent per (window, site, run). */
@@ -224,15 +280,28 @@ async function persist(w: OpenWindow): Promise<void> {
     for (const [site, c] of w.bySite) {
       await client.queryObject(
         `INSERT INTO fresh_audience_windows
-           (window_start, site, run_id, visitors, bot_visitors, requests, truncated, updated_at)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())
+           (window_start, site, run_id, visitors, bot_visitors, unclassified_visitors,
+            optout_navigations, requests, truncated, updated_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW())
          ON CONFLICT (window_start, site, run_id) DO UPDATE
-           SET visitors     = EXCLUDED.visitors,
-               bot_visitors = EXCLUDED.bot_visitors,
-               requests     = EXCLUDED.requests,
-               truncated    = EXCLUDED.truncated,
-               updated_at   = NOW()`,
-        [startedAt, site, RUN_ID, c.seen.size, c.botSeen.size, c.requests, w.truncated],
+           SET visitors              = EXCLUDED.visitors,
+               bot_visitors          = EXCLUDED.bot_visitors,
+               unclassified_visitors = EXCLUDED.unclassified_visitors,
+               optout_navigations    = EXCLUDED.optout_navigations,
+               requests              = EXCLUDED.requests,
+               truncated             = EXCLUDED.truncated,
+               updated_at            = NOW()`,
+        [
+          startedAt,
+          site,
+          RUN_ID,
+          c.person.size,
+          c.bot.size,
+          c.unclassified.size,
+          c.optoutNavigations,
+          c.requests,
+          w.truncated,
+        ],
       );
     }
   });
@@ -293,4 +362,28 @@ export function _resetForTest(): void {
 /** Test hook: the open window's key, or null. Never exported to callers. */
 export function _openKeyForTest(): CryptoKey | null {
   return open?.key ?? null;
+}
+
+/**
+ * Test hook: the open window's counts for one site, as plain numbers, or null
+ * if that site has no counters yet this window. Reads the in-memory state
+ * only -- never touches the database -- so tests stay hermetic as long as
+ * they do not cross a window boundary (which would trigger persist()).
+ */
+export function _countersForTest(site: Site): {
+  person: number;
+  bot: number;
+  unclassified: number;
+  optoutNavigations: number;
+  requests: number;
+} | null {
+  const c = open?.bySite.get(site);
+  if (!c) return null;
+  return {
+    person: c.person.size,
+    bot: c.bot.size,
+    unclassified: c.unclassified.size,
+    optoutNavigations: c.optoutNavigations,
+    requests: c.requests,
+  };
 }
