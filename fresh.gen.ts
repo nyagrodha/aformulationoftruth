@@ -11,6 +11,7 @@ import * as $about from './routes/about.tsx';
 import * as $about_confession_albums from './routes/about/confession-albums.tsx';
 import * as $about_respondents from './routes/about/respondents.tsx';
 import * as $api_auth_magic_link from './routes/api/auth/magic-link.ts';
+import * as $api_brooch_status from './routes/api/brooch/status.ts';
 import * as $api_contact from './routes/api/contact.ts';
 import * as $api_gate_submit from './routes/api/gate-submit.ts';
 import * as $api_gate from './routes/api/gate.ts';
@@ -65,6 +66,7 @@ const manifest = {
     './routes/about/confession-albums.tsx': $about_confession_albums,
     './routes/about/respondents.tsx': $about_respondents,
     './routes/api/auth/magic-link.ts': $api_auth_magic_link,
+    './routes/api/brooch/status.ts': $api_brooch_status,
     './routes/api/contact.ts': $api_contact,
     './routes/api/gate-submit.ts': $api_gate_submit,
     './routes/api/gate.ts': $api_gate,
