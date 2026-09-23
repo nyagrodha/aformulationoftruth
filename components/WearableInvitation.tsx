@@ -11,6 +11,7 @@
  * Drawn in the landing page's look (task 5h): prolegomenon.css, the site nav,
  * the landing's gate for the greeting and the begin button, and SiteFooter.
  */
+import NoParkingSign from './NoParkingSign.tsx';
 import type { WearableData } from '../lib/wearable.ts';
 import Nav from '../islands/Nav.tsx';
 import SiteFooter from './SiteFooter.tsx';
@@ -23,15 +24,16 @@ export interface WearableInvitationProps extends WearableData {
 
 /*
  * Greetings that open on an illuminated initial, as the landing's incipit opens
- * on its Y. The owner supplied one H for Hi, another for Hola, and an N crowned
- * with a Devanagari headstroke for Namaste (2026-09-23); every other greeting
- * stays plain text. Own-property lookup for the same
+ * on its Y. The owner supplied one H for Hi, another for Hola, an N crowned
+ * with a Devanagari headstroke for Namaste, and a temple V (Nandi, a lamp) for
+ * Vanakkam (2026-09-23). Bonjour has no initial; it gets the no-parking sign. Own-property lookup for the same
  * reason as lib/greeting.ts: `greeting` is chosen from a request header.
  */
 const ILLUMINATED: Record<string, { src: string; width: number; height: number }> = {
   Hi: { src: '/images/h-illuminated-hi-400.webp', width: 400, height: 400 },
   Hola: { src: '/images/h-illuminated-hola-400.webp', width: 400, height: 400 },
   Namaste: { src: '/images/n-illuminated-namaste-400.webp', width: 387, height: 400 },
+  Vanakkam: { src: '/images/v-illuminated-vanakkam-400.webp', width: 385, height: 400 },
 };
 
 function Greeting({ word }: { word: string }) {
@@ -83,6 +85,7 @@ export default function WearableInvitation(data: WearableInvitationProps) {
               <h1 class='gate-title'>
                 <Greeting word={data.greeting} />,
               </h1>
+              {data.greeting === 'Bonjour' && <NoParkingSign />}
 
               <p class='gate-description'>
                 That QR code you just scanned has landed you <a href='/'>@aformulationoftruth.com</a>. Welcome.

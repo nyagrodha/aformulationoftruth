@@ -862,6 +862,19 @@ footer .footer-return {
   vertical-align: -0.26em;
 }
 
+/*
+ * The French no-parking sign (components/NoParkingSign.tsx), shown only to
+ * visitors greeted with Bonjour: posted to the right of the greeting like a
+ * sign on the door, slightly askew.
+ */
+.invitation .no-parking-sign {
+  float: right;
+  width: clamp(88px, 13vw, 150px);
+  height: auto;
+  margin: -0.5rem 0 1rem 1.5rem;
+  transform: rotate(4deg);
+}
+
 .invitation .gate-submit {
   margin-top: clamp(2.5rem, 5vw, 3.5rem);
 }
