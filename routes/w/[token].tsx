@@ -4,11 +4,12 @@
  * GET /w/:token
  *
  * The QR on a wearable (or coffee-table) object points here. The page
- * greets the scanner in the owner's chosen voice (display_name, or the
- * site's own voice when NULL), states the reciprocity enticement when the
- * owner has elected it, and leads into the site's normal entry ritual
- * (the gate). The wearable token is planted as an HttpOnly cookie;
- * gate-submit records the encounter when the scanner leaves their email.
+ * greets the scanner using a language chosen from Accept-Language
+ * (lib/greeting.ts), never the owner's display_name, which is loaded but
+ * not shown (task 5g). It states the reciprocity enticement when the owner
+ * has elected it, and leads into the site's normal entry ritual (the gate).
+ * The wearable token is planted as an HttpOnly cookie; gate-submit records
+ * the encounter when the scanner leaves their email.
  *
  * Privacy: unknown tokens 404 like any other page (no oracle); the URL
  * names no one; nothing is collected here.

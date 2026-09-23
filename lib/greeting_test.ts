@@ -60,3 +60,32 @@ Deno.test('a 10 KB header still returns quickly and correctly', () => {
   assertEquals(result, 'Bonjour');
   assertEquals(elapsed < 50, true);
 });
+
+// I1 (review fix round 1): GREETINGS is a plain object literal, so a naive
+// `primary in GREETINGS` lookup also matches inherited Object.prototype
+// members. Each of these tags names one, and each must fall through to the
+// default greeting -- not to whatever inherited value that name resolves to.
+Deno.test('a tag matching an inherited Object.prototype member never resolves through the prototype chain', () => {
+  for (const tag of ['constructor', 'toString', '__proto__', 'hasOwnProperty']) {
+    const g = greetingFor(tag);
+    assertEquals(typeof g, 'string');
+    assertEquals(g, 'Hi');
+  }
+});
+
+Deno.test('constructor,fr -> Bonjour (constructor is skipped, not matched)', () => {
+  assertEquals(greetingFor('constructor,fr'), 'Bonjour');
+});
+
+// M1 (review fix round 1): q is clamped to [0, 1]. An explicitly malformed or
+// negative q (anything that isn't a plain non-negative decimal) drops the
+// WHOLE entry -- see the comment in greeting.ts for why. A q that parses but
+// exceeds 1 is clamped down to 1 rather than being allowed to outrank a
+// legitimate q=1 entry that appears later in the header.
+Deno.test('en;q=1.5,es -> Hi (q>1 clamps to 1; ties keep header order)', () => {
+  assertEquals(greetingFor('en;q=1.5,es'), 'Hi');
+});
+
+Deno.test('es;q=-1,fr -> Bonjour (an explicit negative q drops the entry)', () => {
+  assertEquals(greetingFor('es;q=-1,fr'), 'Bonjour');
+});
