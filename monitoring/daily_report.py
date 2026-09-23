@@ -1725,6 +1725,18 @@ def generate_report(
         ),
     }
 
+    summary['display_sources'] = {
+        'health_available': (
+            not caddy_stats.get('error') and not metrics_stats.get('error')
+            and all(type(q_stats.get(k)) is int for k in
+                    ('gate_submissions_today', 'links_sent_today', 'links_used_today'))
+        ),
+        'audience_available': bool(audience_stats.get('available')),
+        'audience_rows': bool(audience_stats.get('any_rows')),
+        'audience_truncated': bool(audience_stats.get('truncated')),
+        'audience_split': bool(audience_stats.get('split_windows')),
+    }
+
     return "\n".join(report_lines), summary, metrics_stats
 
 
@@ -1824,7 +1836,13 @@ def send_report(
 
 — a formulation of truth —
 """
-    send_email_report(subject, email_body)
+    email_sent = send_email_report(subject, email_body)
+    try:
+        from e290_report import publish
+        publish(summary, target_date, bool(email_sent))
+        logger.info('E290 report snapshot published')
+    except Exception as exc:
+        logger.error('E290 snapshot failed (%s)', type(exc).__name__)
 
 
 def main():
