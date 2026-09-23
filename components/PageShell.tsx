@@ -1,7 +1,6 @@
 import type { ComponentChildren } from 'preact';
 import Nav from '../islands/Nav.tsx';
-import { WordmarkGlyphs } from './Wordmark.tsx';
-import TipJar from './TipJar.tsx';
+import SiteFooter from './SiteFooter.tsx';
 import { NAV_NOSCRIPT_CSS, PAGE_NAV } from './nav-shared.ts';
 
 /**
@@ -28,6 +27,9 @@ export function Ornament() {
  * Previously this used madras-theme.css and carried a Tamas/Nila/Uruvam theme
  * switcher, both inherited from a stale public/about.html. The switcher was
  * retired from the site long ago; see the regression test.
+ *
+ * The footer is the landing's own SiteFooter (task 5h), so every prose page
+ * closes the way the landing does rather than on an older copy of it.
  */
 export function PageShell(
   { title, description, children }: {
@@ -59,23 +61,7 @@ export function PageShell(
           {children}
         </main>
 
-        <footer>
-          <a class='wordmark' href='/' aria-label='a formulation of truth'>
-            <WordmarkGlyphs />
-          </a>
-
-          <div>
-            <p>
-              a questionnaire to become acquainted oneself with a sequence of selves this lifetime.
-            </p>
-            <p style='margin-top: 1rem;'>
-              <a href='/about'>About</a> · <a href='/shop'>Gift Shop</a> · <a href='/contact.html'>Contact</a> ·{' '}
-              <a href='/privacy'>Privacy</a>
-            </p>
-          </div>
-
-          <TipJar />
-        </footer>
+        <SiteFooter />
       </body>
     </html>
   );

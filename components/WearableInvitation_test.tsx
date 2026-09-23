@@ -24,7 +24,20 @@ Deno.test('contains the three links and the begin button', () => {
   assertStringIncludes(html, 'https://cock.li');
   assertStringIncludes(html, 'https://maildrop.cc');
   assertStringIncludes(html, '/privacy');
-  assertStringIncludes(html, "href='/' class='button button-primary'>begin</a>".replace(/'/g, '"'));
+  assertStringIncludes(html, "href='/' class='gate-submit'>begin</a>".replace(/'/g, '"'));
+});
+
+/* Task 5h: drawn in the landing's look, not main.css's dark one. */
+Deno.test("renders on the landing's stylesheet, nav and footer", () => {
+  const html = render(<WearableInvitation {...BASE} />);
+  assertStringIncludes(html, '/css/prolegomenon.css');
+  assertStringIncludes(html, '/css/nav-mark.css');
+  assertStringIncludes(html, 'class="site-header"');
+  assertStringIncludes(html, 'class="gate-title"');
+  // SiteFooter's own lines, which no other footer carries.
+  assertStringIncludes(html, 'FlokiNET');
+  assertStringIncludes(html, 'Onion mirror');
+  if (html.includes('/css/main.css')) throw new Error('main.css must no longer be loaded');
 });
 
 Deno.test('shareOwnerResponses: true includes the reciprocity paragraph', () => {
