@@ -5,6 +5,13 @@ const portEnv = Deno.env.get('PORT');
 const parsed = parseInt(portEnv || '8000', 10);
 const port = Number.isFinite(parsed) && parsed > 0 ? parsed : 8000;
 
+// Bind host with dev override (task 5f):
+// Default binds loopback so production (behind Caddy) cannot be reached
+// directly and X-Forwarded-For cannot be forged. BIND_HOST exists ONLY for
+// LAN development (e.g. `BIND_HOST=0.0.0.0 deno task dev`) and must never be
+// set in the production .env.
+const hostname = Deno.env.get('BIND_HOST') ?? '127.0.0.1';
+
 export default defineConfig({
   // Serve static files from public directory
   staticDir: './public',
@@ -17,6 +24,6 @@ export default defineConfig({
     // when TRUST_PROXY is on -- see lib/client-ip.ts's header comment.
     // Loopback closes that path structurally instead of relying on a
     // firewall rule staying correct forever.
-    hostname: '127.0.0.1',
+    hostname,
   },
 });
