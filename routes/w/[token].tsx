@@ -17,11 +17,12 @@
  */
 
 import { Handlers, PageProps } from '$fresh/server.ts';
-import WearableInvitation from '../../components/WearableInvitation.tsx';
-import { loadWearable, wearableCookie, type WearableData } from '../../lib/wearable.ts';
+import WearableInvitation, { type WearableInvitationProps } from '../../components/WearableInvitation.tsx';
+import { greetingFor } from '../../lib/greeting.ts';
+import { loadWearable, wearableCookie } from '../../lib/wearable.ts';
 
-export const handler: Handlers<WearableData> = {
-  async GET(_req, ctx) {
+export const handler: Handlers<WearableInvitationProps> = {
+  async GET(req, ctx) {
     const token = ctx.params.token;
     // Opaque tokens are URL-safe random; anything else is a fast 404.
     if (!/^[A-Za-z0-9_-]{16,64}$/.test(token)) {
@@ -30,12 +31,14 @@ export const handler: Handlers<WearableData> = {
     const data = await loadWearable(token);
     if (!data) return ctx.renderNotFound();
 
-    const resp = await ctx.render(data);
+    // Never logged (see lib/greeting.ts and CLAUDE.md's Zero-Logging Policy).
+    const greeting = greetingFor(req.headers.get('Accept-Language'));
+    const resp = await ctx.render({ ...data, greeting });
     resp.headers.append('Set-Cookie', wearableCookie(token));
     return resp;
   },
 };
 
-export default function WearablePage({ data }: PageProps<WearableData>) {
+export default function WearablePage({ data }: PageProps<WearableInvitationProps>) {
   return <WearableInvitation {...data} />;
 }

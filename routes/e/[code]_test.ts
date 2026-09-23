@@ -50,3 +50,12 @@ Deno.test('an accepted code renders the invitation and plants both cookies', asy
   assertStringIncludes(cookies[0], 'wearable_token=tok_0123456789abcdef;');
   assertStringIncludes(cookies[1], `encounter=${HASH};`);
 });
+
+Deno.test('Accept-Language: fr gets data with greeting Bonjour', async () => {
+  brooch.accept = () => Promise.resolve({ wearableToken: 'tok_0123456789abcdef', codeHash: HASH });
+  stubWearable(true);
+  const req = new Request(`http://localhost/e/${CODE}`, { headers: { 'Accept-Language': 'fr' } });
+  const res = await handler.GET!(req, ctx(CODE));
+  const data = await res.json();
+  assertEquals(data.greeting, 'Bonjour');
+});
