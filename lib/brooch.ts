@@ -15,6 +15,7 @@ import { increment } from './metrics.ts';
 import { parseCode, type ParsedCode, verifyCode } from './brooch_code.ts';
 import { type CodeState, codeState, decideEncounter } from './brooch_policy.ts';
 import { loadKek, unwrapBroochKey } from './brooch_keys.ts';
+import { encounterFromCookie } from './wearable.ts';
 
 /** Test seam, as in routes/api/gate-submit.ts. */
 export const dbForTesting: {
@@ -116,4 +117,17 @@ export async function stampScanner(codeHash: string, emailHash: string): Promise
       [codeHash, emailHash],
     );
   });
+}
+
+/**
+ * gate-submit's Step 4c: if the visitor arrived through /e/:code, stamp who
+ * continued past that encounter. True iff a well-formed encounter cookie was
+ * present (and the first-writer-wins UPDATE ran).
+ */
+export async function stampEncounterFromCookie(cookieHeader: string | null, emailHash: string): Promise<boolean> {
+  const code = encounterFromCookie(cookieHeader);
+  if (!code) return false;
+  const codeHash = await sha256(code);
+  await stampScanner(codeHash, emailHash);
+  return true;
 }

@@ -32,8 +32,7 @@ import {
   pushIdentity,
   shredRemoteIdentity,
 } from '../../lib/session-keys.ts';
-import { stampScanner } from '../../lib/brooch.ts';
-import { encounterFromCookie } from '../../lib/wearable.ts';
+import { stampEncounterFromCookie } from '../../lib/brooch.ts';
 
 /**
  * Test seam for the identity push. Undefined in production, which is what
@@ -272,9 +271,7 @@ export const handler: Handlers = {
       // cookie), stamp who continued past that encounter. Hash only; first
       // writer wins; never blocks the gate flow.
       try {
-        const encounterHash = encounterFromCookie(req.headers.get('Cookie'));
-        if (encounterHash) {
-          await stampScanner(encounterHash, emailHash);
+        if (await stampEncounterFromCookie(req.headers.get('Cookie'), emailHash)) {
           console.log('[gate-submit] Brooch encounter stamped');
         }
       } catch {
