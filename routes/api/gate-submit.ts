@@ -27,11 +27,12 @@ import { ageEncryptTo } from '../../lib/age-encrypt.ts';
 import {
   breakglassRecipient,
   generateSessionKeypair,
-  type IdentityTransport,
   IdentityPushFailed,
+  type IdentityTransport,
   pushIdentity,
   shredRemoteIdentity,
 } from '../../lib/session-keys.ts';
+import { stampEncounterFromCookie } from '../../lib/brooch.ts';
 
 /**
  * Test seam for the identity push. Undefined in production, which is what
@@ -264,6 +265,17 @@ export const handler: Handlers = {
         }
       } catch (encounterErr) {
         console.error('[gate-submit] Encounter recording failed (non-fatal):', encounterErr);
+      }
+
+      // Step 4c: If this entry began at a brooch QR (/e/:code planted the
+      // cookie), stamp who continued past that encounter. Hash only; first
+      // writer wins; never blocks the gate flow.
+      try {
+        if (await stampEncounterFromCookie(req.headers.get('Cookie'), emailHash)) {
+          console.log('[gate-submit] Brooch encounter stamped');
+        }
+      } catch {
+        console.error('[gate-submit] Brooch encounter stamping failed (non-fatal)');
       }
 
       // Step 5: Create or resume questionnaire session with gateToken

@@ -821,6 +821,64 @@ footer .footer-return {
   outline-offset: 4px;
 }
 
+/*
+ * The wearable invitation (/w/, /e/ -- components/WearableInvitation.tsx) is
+ * drawn as a gate that stands alone: no rule above it, since it opens straight
+ * under the site header, and prose links marked the way the gate's own notes
+ * mark theirs. Its begin is an <a class='gate-submit'>, which the rule above
+ * already draws as the landing's button.
+ */
+.invitation {
+  border-top: 0;
+}
+
+.invitation .gate-description {
+  margin-bottom: clamp(1.8rem, 3vw, 2.6rem);
+}
+
+.invitation .hero-prose {
+  max-width: none;
+  margin-top: 0;
+}
+
+.invitation .hero-prose a,
+.invitation .gate-description a {
+  color: var(--saffron);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/*
+ * The illuminated H of Hi / Hola: an initial set into the greeting, the way
+ * .drop-cap sets the Y into the incipit. Sized off the title's own em so it
+ * scales with the clamp above; the negative vertical-align seats the painted
+ * letter's foot, not the image box, on the text baseline.
+ */
+.invitation .greeting-initial {
+  display: inline-block;
+  height: 1.9em;
+  width: auto;
+  margin-right: -0.06em;
+  vertical-align: -0.26em;
+}
+
+/*
+ * The French no-parking sign (components/NoParkingSign.tsx), shown only to
+ * visitors greeted with Bonjour: posted to the right of the greeting like a
+ * sign on the door, slightly askew.
+ */
+.invitation .no-parking-sign {
+  float: right;
+  width: clamp(88px, 13vw, 150px);
+  height: auto;
+  margin: -0.5rem 0 1rem 1.5rem;
+  transform: rotate(4deg);
+}
+
+.invitation .gate-submit {
+  margin-top: clamp(2.5rem, 5vw, 3.5rem);
+}
+
 .gate-error {
   margin-bottom: 2rem;
   padding: 1rem 1.2rem;
@@ -1216,23 +1274,85 @@ footer .footer-return {
   margin: 0 auto clamp(2rem, 5vw, 3.5rem);
 }
 
+/*
+ * The page's name is set as the landing's eyebrow ("PROLEGOMENON:"), and the
+ * line beneath it and the .lead take the hero-title's large, tight Georgia.
+ * Headings used to inherit the reset's `font-size: inherit` -- the body's
+ * 16px -- under prose set at up to 1.95rem, so they read smaller than the
+ * text they introduce.
+ */
+.about-header h1,
+.about-content h2 {
+  color: var(--saffron);
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: clamp(0.62rem, 0.76vw, 0.72rem);
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
 .about-header h1 {
-  margin-bottom: 0.35em;
+  margin-bottom: 1.2rem;
 }
 
 .about-header p {
   color: var(--muted);
-  font-style: italic;
+  font-size: clamp(1.4rem, 2.4vw, 2.4rem);
+  line-height: 1.12;
+  letter-spacing: -0.03em;
+  text-wrap: balance;
 }
 
 .about-content .lead {
-  font-size: 1.18em;
-  line-height: 1.55;
+  margin-bottom: clamp(2rem, 4vw, 3rem);
   color: var(--ink);
+  font-size: clamp(1.5rem, 3vw, 3.1rem);
+  line-height: 1.08;
+  letter-spacing: -0.03em;
+  text-wrap: balance;
 }
 
-.about-content h2.subtle {
-  color: var(--muted);
+/*
+ * Section labels sit on the prose column, not on .movement's wider edge.
+ * Every h2 in .about-content, .subtle or not: the plain ones were just as
+ * tiny and just as out-dented. The top margin is modest because an Ornament
+ * usually precedes one and already carries the section's air.
+ */
+.about-content h2 {
+  width: min(790px, 100%);
+  margin: clamp(2.5rem, 5vw, 4rem) auto 1.2rem;
+}
+
+/*
+ * .movement p darkens every paragraph's first line; on these display-size
+ * lines that split one sentence into two greys.
+ */
+.about-header p::first-line,
+.about-content .lead::first-line {
+  color: inherit;
+}
+
+/* Sub-heads (privacy's, the shop's titles), a step above the prose size. */
+.about-content h3 {
+  width: min(790px, 100%);
+  margin: 1.6em auto 0.4em;
+  font-size: clamp(1.35rem, 2.3vw, 2.1rem);
+  line-height: 1.3;
+  letter-spacing: -0.02em;
+}
+
+/*
+ * Paragraphs apart, as .hero-prose sets them; .movement p zeroes margins, so
+ * the prose ran together. Direct children only: a .shop-item's meta, blurb
+ * and links are one entry and stay tight.
+ */
+.about-content > p + p {
+  margin-top: 1.1em;
+}
+
+/* A label straight over a sub-head (privacy) needs no second gap. */
+.about-content h2 + h3 {
+  margin-top: 0;
 }
 
 .about-links {

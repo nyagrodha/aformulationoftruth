@@ -166,3 +166,48 @@ Deno.test('bot matching is case-insensitive', () => {
 Deno.test('an empty user agent is not assumed to be a bot', () => {
   assertEquals(isBotUserAgent(''), false);
 });
+
+// --- generic 'bot' marker: word-shaped, not a bare substring (2026-09-23) --
+
+// Real phones from the brand Cubot were false-flagged because 'bot' is a
+// substring of 'Cubot' too. Neither UA below has anything else in the bot
+// list, so a false positive here is entirely the generic marker's fault.
+Deno.test('Cubot phones are not bots', () => {
+  const cubotX30 =
+    'Mozilla/5.0 (Linux; Android 10; CUBOT X30) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36';
+  const cubotKingKong =
+    'Mozilla/5.0 (Linux; Android 12; CUBOT KingKong 7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Mobile Safari/537.36';
+  assertEquals(isBotUserAgent(cubotX30), false);
+  assertEquals(isBotUserAgent(cubotKingKong), false);
+});
+
+Deno.test('mainstream browsers are not bots', () => {
+  const uas = [
+    'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1',
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:128.0) Gecko/20100101 Firefox/128.0',
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+    'Mozilla/5.0 (Linux; Android 13; SM-S918B) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/23.0 Chrome/115.0.0.0 Mobile Safari/537.36',
+  ];
+  for (const ua of uas) {
+    assertEquals(isBotUserAgent(ua), false, `expected not-bot: ${ua}`);
+  }
+});
+
+// Every crawler the generic marker exists to catch must still be caught, even
+// though most of these have a LETTER immediately before "bot" (Googlebot,
+// bingbot, Applebot, AhrefsBot) -- the word-boundary-only rule alone would
+// have missed them, which is why the marker also matches "bot" followed by a
+// name/version separator regardless of what precedes it.
+Deno.test('named crawlers with a letter before "bot" are still flagged', () => {
+  const uas = [
+    'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)',
+    'Mozilla/5.0 (compatible; bingbot/2.0; +http://www.bing.com/bingbot.htm)',
+    'Twitterbot/1.0',
+    'Mozilla/5.0 (compatible; AhrefsBot/7.0; +http://ahrefs.com/robot/)',
+    'Slackbot-LinkExpanding 1.0 (+https://api.slack.com/robots)',
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.1.1 Safari/605.1.15 (Applebot/0.1; +http://www.apple.com/go/applebot)',
+  ];
+  for (const ua of uas) {
+    assert(isBotUserAgent(ua), `expected bot: ${ua}`);
+  }
+});

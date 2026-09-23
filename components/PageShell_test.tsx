@@ -56,7 +56,20 @@ Deno.test('PageShell nav reaches the gift shop', () => {
     </PageShell>,
   );
   assertStringIncludes(html, 'href="/shop"');
-  assertStringIncludes(html, 'Gift Shop');
+  assertStringIncludes(html, 'gift shop');
+});
+
+/* Task 5h: the landing's SiteFooter, not the shell's older copy of it. */
+Deno.test('PageShell closes on the landing SiteFooter', () => {
+  const html = render(
+    <PageShell title='t' description='d'>
+      <span />
+    </PageShell>,
+  );
+  assertStringIncludes(html, 'FlokiNET');
+  assertStringIncludes(html, 'Onion mirror');
+  assertStringIncludes(html, 'class="footer-links"');
+  assertEquals(html.includes('a sequence of selves this lifetime'), false);
 });
 
 Deno.test('PageShell keeps the menu usable without JS', () => {
