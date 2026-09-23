@@ -26,7 +26,8 @@ export interface WearableInvitationProps extends WearableData {
  * Greetings that open on an illuminated initial, as the landing's incipit opens
  * on its Y. The owner supplied one H for Hi, another for Hola, an N crowned
  * with a Devanagari headstroke for Namaste, and a temple V (Nandi, a lamp) for
- * Vanakkam (2026-09-23). Bonjour has no initial; it gets the no-parking sign. Own-property lookup for the same
+ * Vanakkam, and a B (lion, bird) for Bonjour, which also gets the no-parking
+ * sign (2026-09-23). Own-property lookup for the same
  * reason as lib/greeting.ts: `greeting` is chosen from a request header.
  */
 const ILLUMINATED: Record<string, { src: string; width: number; height: number }> = {
@@ -34,6 +35,7 @@ const ILLUMINATED: Record<string, { src: string; width: number; height: number }
   Hola: { src: '/images/h-illuminated-hola-400.webp', width: 400, height: 400 },
   Namaste: { src: '/images/n-illuminated-namaste-400.webp', width: 387, height: 400 },
   Vanakkam: { src: '/images/v-illuminated-vanakkam-400.webp', width: 385, height: 400 },
+  Bonjour: { src: '/images/b-illuminated-bonjour-400.webp', width: 382, height: 400 },
 };
 
 function Greeting({ word }: { word: string }) {

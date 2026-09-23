@@ -2,11 +2,11 @@ import { assertStringIncludes } from '$std/assert/mod.ts';
 import { render } from 'preact-render-to-string';
 import WearableInvitation from './WearableInvitation.tsx';
 
-const BASE = { displayName: null, shareOwnerResponses: false, greeting: 'Bonjour' };
+const BASE = { displayName: null, shareOwnerResponses: false, greeting: 'Hey' };
 
 Deno.test('renders the greeting line', () => {
   const html = render(<WearableInvitation {...BASE} />);
-  assertStringIncludes(html, 'Bonjour,');
+  assertStringIncludes(html, 'Hey,');
 });
 
 Deno.test("contains every paragraph's distinctive phrase", () => {
@@ -61,13 +61,14 @@ Deno.test('displayName is never shown, even when present', () => {
 });
 
 /* The owner's illuminated initials: an H each for Hi and Hola, an N for Namaste; nothing for the rest. */
-Deno.test('Hi, Hola, Namaste and Vanakkam open on their own illuminated initial; the text still reads whole', () => {
+Deno.test('all five greetings open on their own illuminated initial; the text still reads whole', () => {
   for (
     const [greeting, img, rest] of [
       ['Hi', '/images/h-illuminated-hi-400.webp', 'i'],
       ['Hola', '/images/h-illuminated-hola-400.webp', 'ola'],
       ['Namaste', '/images/n-illuminated-namaste-400.webp', 'amaste'],
       ['Vanakkam', '/images/v-illuminated-vanakkam-400.webp', 'anakkam'],
+      ['Bonjour', '/images/b-illuminated-bonjour-400.webp', 'onjour'],
     ]
   ) {
     const html = render(<WearableInvitation {...BASE} greeting={greeting} />);
@@ -77,7 +78,7 @@ Deno.test('Hi, Hola, Namaste and Vanakkam open on their own illuminated initial;
 });
 
 Deno.test('other greetings stay plain text, with no illuminated initial', () => {
-  for (const greeting of ['Bonjour', 'constructor']) {
+  for (const greeting of ['Hey', 'constructor']) {
     const html = render(<WearableInvitation {...BASE} greeting={greeting} />);
     if (html.includes('greeting-initial')) throw new Error(`${greeting} must not get an initial`);
     assertStringIncludes(html, `${greeting},`);
