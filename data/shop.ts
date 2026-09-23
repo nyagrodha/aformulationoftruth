@@ -74,9 +74,25 @@ export type ShopItem =
  */
 export const AMAZON_TAG = 'a4mulasatya-20';
 
+/**
+ * Amazon's /dp/ path takes an ASIN, and for a print book the ASIN is its ISBN-10.
+ * The ISBN-13 we store 404s there (verified 2026-09-23 for all eight books), so
+ * convert. 979-prefixed ISBNs have no ISBN-10; they fall back to an Amazon search.
+ */
+export function isbn13to10(isbn13: string): string | null {
+  const digits = isbn13.replace(/-/g, '');
+  if (!/^978\d{10}$/.test(digits)) return null;
+  const core = digits.slice(3, 12);
+  const sum = [...core].reduce((acc, d, i) => acc + (10 - i) * Number(d), 0);
+  const check = (11 - (sum % 11)) % 11;
+  return core + (check === 10 ? 'X' : String(check));
+}
+
 export function buildAmazonUrl(isbn: string): string {
-  const base = `https://www.amazon.com/dp/${isbn}`;
-  return AMAZON_TAG ? `${base}?tag=${AMAZON_TAG}` : base;
+  const asin = isbn13to10(isbn);
+  const base = asin ? `https://www.amazon.com/dp/${asin}` : `https://www.amazon.com/s?k=${encodeURIComponent(isbn)}`;
+  if (!AMAZON_TAG) return base;
+  return `${base}${base.includes('?') ? '&' : '?'}tag=${AMAZON_TAG}`;
 }
 
 /**
