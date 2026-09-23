@@ -60,22 +60,23 @@ Deno.test('displayName is never shown, even when present', () => {
   }
 });
 
-/* The owner's illuminated H's: one for Hi, one for Hola; nothing for the rest. */
-Deno.test('Hi and Hola open on their own illuminated H; the text still reads whole', () => {
+/* The owner's illuminated initials: an H each for Hi and Hola, an N for Namaste; nothing for the rest. */
+Deno.test('Hi, Hola and Namaste open on their own illuminated initial; the text still reads whole', () => {
   for (
     const [greeting, img, rest] of [
       ['Hi', '/images/h-illuminated-hi-400.webp', 'i'],
       ['Hola', '/images/h-illuminated-hola-400.webp', 'ola'],
+      ['Namaste', '/images/n-illuminated-namaste-400.webp', 'amaste'],
     ]
   ) {
     const html = render(<WearableInvitation {...BASE} greeting={greeting} />);
     assertStringIncludes(html, `src="${img}"`);
-    assertStringIncludes(html, `<span class="sr-only">H</span>${rest}`);
+    assertStringIncludes(html, `<span class="sr-only">${greeting[0]}</span>${rest}`);
   }
 });
 
 Deno.test('other greetings stay plain text, with no illuminated initial', () => {
-  for (const greeting of ['Vanakkam', 'Bonjour', 'Namaste', 'constructor']) {
+  for (const greeting of ['Vanakkam', 'Bonjour', 'constructor']) {
     const html = render(<WearableInvitation {...BASE} greeting={greeting} />);
     if (html.includes('greeting-initial')) throw new Error(`${greeting} must not get an initial`);
     assertStringIncludes(html, `${greeting},`);

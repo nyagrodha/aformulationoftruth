@@ -23,26 +23,29 @@ export interface WearableInvitationProps extends WearableData {
 
 /*
  * Greetings that open on an illuminated initial, as the landing's incipit opens
- * on its Y. The owner supplied one H for Hi and another for Hola (2026-09-23);
- * every other greeting stays plain text. Own-property lookup for the same
+ * on its Y. The owner supplied one H for Hi, another for Hola, and an N crowned
+ * with a Devanagari headstroke for Namaste (2026-09-23); every other greeting
+ * stays plain text. Own-property lookup for the same
  * reason as lib/greeting.ts: `greeting` is chosen from a request header.
  */
-const ILLUMINATED: Record<string, string> = {
-  Hi: '/images/h-illuminated-hi-400.webp',
-  Hola: '/images/h-illuminated-hola-400.webp',
+const ILLUMINATED: Record<string, { src: string; width: number; height: number }> = {
+  Hi: { src: '/images/h-illuminated-hi-400.webp', width: 400, height: 400 },
+  Hola: { src: '/images/h-illuminated-hola-400.webp', width: 400, height: 400 },
+  Namaste: { src: '/images/n-illuminated-namaste-400.webp', width: 387, height: 400 },
 };
 
 function Greeting({ word }: { word: string }) {
   if (!Object.hasOwn(ILLUMINATED, word)) return <>{word}</>;
+  const { src, width, height } = ILLUMINATED[word];
   return (
     <>
       <img
         class='greeting-initial'
-        src={ILLUMINATED[word]}
+        src={src}
         alt=''
         aria-hidden='true'
-        width={400}
-        height={400}
+        width={width}
+        height={height}
         decoding='async'
       />
       <span class='sr-only'>{word[0]}</span>
