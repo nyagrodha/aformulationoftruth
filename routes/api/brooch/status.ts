@@ -28,13 +28,45 @@ function json(status: number, body: unknown): Response {
   });
 }
 
+/** Reads at most `cap` bytes of the body; null if it is longer (the rest is never buffered). */
+async function readCapped(req: Request, cap: number): Promise<string | null> {
+  if (!req.body) return '';
+  const reader = req.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+  try {
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      total += value.byteLength;
+      if (total > cap) {
+        await reader.cancel();
+        return null;
+      }
+      chunks.push(value);
+    }
+  } finally {
+    reader.releaseLock();
+  }
+  const buf = new Uint8Array(total);
+  let off = 0;
+  for (const c of chunks) {
+    buf.set(c, off);
+    off += c.byteLength;
+  }
+  return new TextDecoder().decode(buf);
+}
+
 export const handler: Handlers = {
   async POST(req) {
     increment('requests.api');
-    const text = await req.text();
+    const declared = req.headers.get('content-length');
+    if (declared !== null && !(Number(declared) <= MAX_BODY)) return json(404, { error: 'not found' });
+    const text = await readCapped(req, MAX_BODY);
+    if (text === null) return json(404, { error: 'not found' });
     let code: unknown;
     try {
-      code = text.length <= MAX_BODY ? JSON.parse(text)?.code : undefined;
+      code = JSON.parse(text)?.code;
     } catch {
       code = undefined;
     }
