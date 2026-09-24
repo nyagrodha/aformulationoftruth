@@ -117,10 +117,12 @@
                 </div>
                 <div class="feature sign-in-feature">
                     <h3>Begin</h3>
-                    <form id="sign-in-form" class="sign-in-form">
-                        <input type="email" name="email" placeholder="Enter your email" required>
-                        <button type="submit">Send Magic Link</button>
-                    </form>
+                    <!--
+                      Was a JSON form driven by an inline script, which sent
+                      nothing with JavaScript off and bypassed the gate's image
+                      challenge. /login is the no-JS form with that challenge.
+                    -->
+                    <p><a href="/login" class="cta-button">Send me a sign-in link</a></p>
                     <p class="sign-in-note">We'll send you a link to sign in—no password needed.</p>
                 </div>
             </div>
@@ -157,49 +159,5 @@
         </footer>
     </div>
 
-    <script>
-        document.getElementById('sign-in-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const form = e.target;
-            const button = form.querySelector('button');
-            const email = form.querySelector('input[name="email"]').value;
-
-            // Remove any existing message
-            const existingMsg = form.parentElement.querySelector('.sign-in-message');
-            if (existingMsg) existingMsg.remove();
-
-            button.disabled = true;
-            button.textContent = 'Sending...';
-
-            try {
-                const response = await fetch('/api/auth/magic-link', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email })
-                });
-
-                const data = await response.json();
-
-                const msg = document.createElement('p');
-                msg.className = 'sign-in-message ' + (response.ok ? 'success' : 'error');
-                msg.textContent = response.ok
-                    ? 'Check your email for the magic link.'
-                    : (data.error || 'Something went wrong. Please try again.');
-                form.parentElement.appendChild(msg);
-
-                if (response.ok) {
-                    form.reset();
-                }
-            } catch (err) {
-                const msg = document.createElement('p');
-                msg.className = 'sign-in-message error';
-                msg.textContent = 'Network error. Please try again.';
-                form.parentElement.appendChild(msg);
-            } finally {
-                button.disabled = false;
-                button.textContent = 'Send Magic Link';
-            }
-        });
-    </script>
 </body>
 </html>

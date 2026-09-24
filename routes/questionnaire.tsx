@@ -86,7 +86,7 @@ export const handler: Handlers<QuestionnaireData> = {
       console.log('[questionnaire] No JWT cookie, redirecting to login');
       return new Response(null, {
         status: 302,
-        headers: { Location: '/' },
+        headers: { Location: '/login?error=session' },
       });
     }
 
@@ -95,7 +95,7 @@ export const handler: Handlers<QuestionnaireData> = {
       console.log('[questionnaire] Invalid JWT, redirecting to login');
       return new Response(null, {
         status: 302,
-        headers: { Location: '/' },
+        headers: { Location: '/login?error=session' },
       });
     }
 
@@ -105,7 +105,7 @@ export const handler: Handlers<QuestionnaireData> = {
       console.log('[questionnaire] Session not found, redirecting to login');
       return new Response(null, {
         status: 302,
-        headers: { Location: '/' },
+        headers: { Location: '/login?error=session' },
       });
     }
 
@@ -148,28 +148,36 @@ export const handler: Handlers<QuestionnaireData> = {
     const cookies = req.headers.get('Cookie');
     const jwtToken = getCookie(cookies, 'jwt');
 
-    // Verify JWT authentication
+    /*
+     * Each refusal below is logged by category. They used to be silent, which
+     * is why an answer POST bouncing to the landing page (2026-09-18 and -22:
+     * mail link scanners submitting the form without the cookie) could only
+     * be reconstructed from Caddy's access log.
+     */
     if (!jwtToken) {
+      console.log('[questionnaire] POST without JWT cookie, redirecting to login');
       return new Response(null, {
         status: 302,
-        headers: { Location: '/' },
+        headers: { Location: '/login?error=session' },
       });
     }
 
     const jwtPayload = await verifyQuestionnaireJWT(jwtToken);
     if (!jwtPayload) {
+      console.log('[questionnaire] POST with invalid JWT, redirecting to login');
       return new Response(null, {
         status: 302,
-        headers: { Location: '/' },
+        headers: { Location: '/login?error=session' },
       });
     }
 
     // Get session from database
     const session = await getSessionById(jwtPayload.session_id);
     if (!session) {
+      console.log('[questionnaire] POST for unknown session, redirecting to login');
       return new Response(null, {
         status: 302,
-        headers: { Location: '/' },
+        headers: { Location: '/login?error=session' },
       });
     }
 

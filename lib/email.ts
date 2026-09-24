@@ -327,13 +327,24 @@ export async function sendEmail(
 export async function sendMagicLinkEmail(email: string, magicLinkUrl: string): Promise<EmailResult> {
   const subject = Deno.env.get('EMAIL_SUBJECT') || 'Your link to a formulation of truth';
 
+  /*
+   * The URL carries `?token=...&resume=...`. A bare `&` inside an HTML
+   * attribute is tolerated by browsers but not by every mail client or link
+   * scanner; one that cuts at it delivers a token without its resume half and
+   * /auth/verify refuses it (token-only requests of exactly that shape
+   * arrived on 2026-09-18 and -22). Escaped, it is
+   * unambiguous everywhere. The plain-text part keeps the raw URL.
+   */
+  const htmlLink = magicLinkUrl.replace(/&/g, '&amp;');
+
   const text = `
 You requested access to a formulation of truth.
 
 Click here to continue your questionnaire:
 ${magicLinkUrl}
 
-This link expires in 15 minutes and can only be used once.
+This link works for 24 hours. If it has run out, ask for a new one at
+https://aformulationoftruth.com/login
 
 If you didn't request this, you can safely ignore this email.
 
@@ -413,14 +424,15 @@ https://aformulationoftruth.com
     <p>You requested access to continue your questionnaire.</p>
 
     <p>
-      <a href="${magicLinkUrl}" class="button">Continue Questionnaire</a>
+      <a href="${htmlLink}" class="button">Continue Questionnaire</a>
     </p>
 
     <p>Or copy this link:</p>
-    <p class="link">${magicLinkUrl}</p>
+    <p class="link">${htmlLink}</p>
 
     <p style="color: #666; font-size: 13px;">
-      This link expires in 15 minutes and can only be used once.
+      This link works for 24 hours. If it has run out, ask for a new one at
+      <a href="https://aformulationoftruth.com/login" style="color: #999;">aformulationoftruth.com/login</a>.
     </p>
 
     <div class="footer">
