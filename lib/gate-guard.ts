@@ -118,8 +118,10 @@ const GLOBAL_BUCKET = 'global:magiclink';
  * Call once SMTP has accepted the message, and only then; see steps 5-6.
  */
 export async function recordSent(emailHash: string): Promise<void> {
-  await record(emailBucket(emailHash), DAY);
-  await record(GLOBAL_BUCKET, HOUR);
+  await record(
+    { bucket: emailBucket(emailHash), windowSeconds: DAY },
+    { bucket: GLOBAL_BUCKET, windowSeconds: HOUR },
+  );
 }
 
 /**

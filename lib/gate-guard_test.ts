@@ -25,9 +25,13 @@ function fakePostgres() {
   const client = {
     queryObject(sql: string, params: unknown[] = []) {
       if (sql.includes('INSERT INTO fresh_rate_limits')) {
-        const key = `${params[0]}@${params[1]}`;
-        const n = (counters.get(key) ?? 0) + 1;
-        counters.set(key, n);
+        // hit() upserts one row; record() upserts several in one statement.
+        let n = 0;
+        for (let i = 0; i < params.length; i += 2) {
+          const key = `${params[i]}@${params[i + 1]}`;
+          n = (counters.get(key) ?? 0) + 1;
+          counters.set(key, n);
+        }
         return Promise.resolve({ rows: [{ count: n }] });
       }
       if (sql.includes('SELECT count FROM fresh_rate_limits')) {
@@ -335,4 +339,18 @@ Deno.test('guard: the question answer alone gets through the guard', async () =>
     await input({ captchaToken: token, captchaAnswer: '', questionAnswer: q.answers[0] }),
   );
   assertEquals(decision, { kind: 'allow' });
+});
+
+Deno.test('recordSent: counts the address and the site-wide ceiling in one statement', async () => {
+  const statements: Array<{ sql: string; params: unknown[] }> = [];
+  rateLimitDbForTesting.withConnection = (<T>(handler: (c: never) => Promise<T>) =>
+    handler({
+      queryObject: (sql: string, params: unknown[]) => {
+        statements.push({ sql, params });
+        return Promise.resolve({ rows: [] });
+      },
+    } as never)) as typeof rateLimitDbForTesting.withConnection;
+  await recordSent('hash-atomic');
+  assertEquals(statements.length, 1, 'one statement, so both counts move together or not at all');
+  assertEquals(statements[0].params.filter((_, i) => i % 2 === 0), ['email:hash-atomic', 'global:magiclink']);
 });

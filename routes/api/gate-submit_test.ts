@@ -152,7 +152,7 @@ async function loadHandler() {
     handler({
       queryObject: (sql: string, params: unknown[]) => {
         if (sql.includes('INSERT INTO fresh_rate_limits')) {
-          recorded.push(String(params[0]));
+          for (let i = 0; i < params.length; i += 2) recorded.push(String(params[i]));
           return Promise.resolve({ rows: [{ count: 1 }] });
         }
         return Promise.resolve({ rows: [] });

@@ -91,9 +91,30 @@ export async function peek(bucket: string, windowSeconds: number, limit: number)
   return { allowed: count < limit, count, limit, retryAfter: windowStart + windowSeconds - now };
 }
 
-/** Count one completed event against `bucket` in the current window. */
-export async function record(bucket: string, windowSeconds: number): Promise<void> {
-  await hit(bucket, windowSeconds, Number.MAX_SAFE_INTEGER);
+/**
+ * Count one completed event against each bucket, each in its own current
+ * window, in a single statement -- so the counts move together or not at all.
+ * lib/gate-guard.ts records a sent link against the address and the site-wide
+ * ceiling this way; two separate writes could leave a sent link in one and
+ * not the other.
+ */
+export async function record(...entries: Array<{ bucket: string; windowSeconds: number }>): Promise<void> {
+  if (entries.length === 0) return;
+  const now = Math.floor(Date.now() / 1000);
+  const params: Array<string | number> = [];
+  const rows = entries.map(({ bucket, windowSeconds }) => {
+    params.push(bucket, now - (now % windowSeconds));
+    return `($${params.length - 1}, to_timestamp($${params.length}), 1)`;
+  });
+  await withConnection((client) =>
+    client.queryObject(
+      `INSERT INTO fresh_rate_limits (bucket, window_start, count)
+       VALUES ${rows.join(', ')}
+       ON CONFLICT (bucket, window_start)
+       DO UPDATE SET count = fresh_rate_limits.count + 1`,
+      params,
+    )
+  );
 }
 
 /**
