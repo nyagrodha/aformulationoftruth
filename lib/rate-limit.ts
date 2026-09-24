@@ -66,23 +66,34 @@ export async function hit(bucket: string, windowSeconds: number, limit: number):
 }
 
 /**
- * Give back one event counted by hit() in the current window.
+ * Read a bucket's count for the current window without changing it, and
+ * report whether one more event would still be within `limit`.
  *
- * For allowances that should be spent only by an outcome, not an attempt: the
- * per-address link allowance is charged when the guard admits a request, and
- * handed back if no mail then goes out (a later refusal, a failed send), so a
- * person is never capped by mail they did not receive.
+ * For limits on outcomes rather than attempts. The per-address and site-wide
+ * link limits count mail actually SENT: the guard peeks, and the route calls
+ * record() only after a send succeeds. Nothing is charged up front, so there
+ * is nothing to hand back when a request is refused or a send fails.
+ *
+ * The cost is a race: two concurrent requests can both see room and both
+ * send, overshooting by the number in flight. For a limit of two a day, that
+ * is an acceptable price for never capping someone by mail they did not get.
  */
-export async function unhit(bucket: string, windowSeconds: number): Promise<void> {
+export async function peek(bucket: string, windowSeconds: number, limit: number): Promise<RateResult> {
   const now = Math.floor(Date.now() / 1000);
   const windowStart = now - (now % windowSeconds);
-  await withConnection((client) =>
-    client.queryObject(
-      `UPDATE fresh_rate_limits SET count = GREATEST(count - 1, 0)
-       WHERE bucket = $1 AND window_start = to_timestamp($2)`,
+  const count = await withConnection(async (client) => {
+    const { rows } = await client.queryObject<{ count: number }>(
+      `SELECT count FROM fresh_rate_limits WHERE bucket = $1 AND window_start = to_timestamp($2)`,
       [bucket, windowStart],
-    )
-  );
+    );
+    return Number(rows[0]?.count ?? 0);
+  });
+  return { allowed: count < limit, count, limit, retryAfter: windowStart + windowSeconds - now };
+}
+
+/** Count one completed event against `bucket` in the current window. */
+export async function record(bucket: string, windowSeconds: number): Promise<void> {
+  await hit(bucket, windowSeconds, Number.MAX_SAFE_INTEGER);
 }
 
 /**

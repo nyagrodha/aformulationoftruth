@@ -19,8 +19,8 @@ import type { Captcha } from '../lib/captcha.ts';
 export type RetryReason = 'captcha' | 'email';
 
 const REASONS: Record<RetryReason, string> = {
-  captcha: "The digits didn't match, or the image had expired. Your answers are kept below; type the new digits and " +
-    'begin again.',
+  captcha: "That didn't match, or the challenge had expired. Your answers are kept below; answer the new image or " +
+    'question and begin again.',
   email: "That address's domain doesn't accept mail, so a link sent there would never arrive. Check it for a typo; " +
     'your answers are kept below.',
 };

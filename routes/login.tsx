@@ -31,7 +31,7 @@ interface LoginData {
 const ERROR_MESSAGES: Record<string, string> = {
   invalid: "The server didn't capture your request. Please try again.",
   email: "That address isn't valid, or its domain doesn't accept mail. Check it for a typo.",
-  captcha: "The digits didn't match, or the image had expired. Here is a new one.",
+  captcha: "That didn't match, or the challenge had expired. Here is a new image and a new question.",
   rate: 'Too many attempts from your connection. Please wait an hour and try again.',
   busy: 'The site is sending more links than it allows itself right now. Please try again in a little while.',
   send: "We couldn't deliver your link just now. Try again in a moment.",

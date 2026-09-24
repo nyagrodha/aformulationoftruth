@@ -36,7 +36,7 @@ import {
   shredRemoteIdentity,
 } from '../../lib/session-keys.ts';
 import { stampEncounterFromCookie } from '../../lib/brooch.ts';
-import { type Guard, guardMagicLinkRequest, releaseEmailAllowance, waitSilently } from '../../lib/gate-guard.ts';
+import { type Guard, guardMagicLinkRequest, recordSent, waitSilently } from '../../lib/gate-guard.ts';
 import { issueCaptcha } from '../../lib/captcha.ts';
 import { renderGateRetry } from '../../components/GateRetryPage.tsx';
 
@@ -93,6 +93,7 @@ const GateSubmitSchema = z.object({
   // lib/gate-guard.ts inputs; see components/GateForm.tsx for the field names.
   captcha_token: z.string().max(64).optional(),
   captcha: z.string().max(32).optional(),
+  riddle: z.string().max(200).optional(),
   website: z.string().max(2000).optional(),
 });
 
@@ -186,6 +187,7 @@ export const handler: Handlers = {
         emailHash,
         captchaToken: parsed.data.captcha_token,
         captchaAnswer: parsed.data.captcha,
+        questionAnswer: parsed.data.riddle,
         honeypot: parsed.data.website,
       });
     } catch {
@@ -224,12 +226,6 @@ export const handler: Handlers = {
       return fail(status, messages[decision.code], decision.code, decision.retryAfter);
     }
 
-    /*
-     * The guard charged this address one link. It is only a link if it is
-     * sent: every path below that does not reach a successful send hands the
-     * charge back, so the per-address cap counts mail received, not attempts.
-     */
-    let mailed = false;
     try {
       // Step 1: Generate server-side gate token
       const gateToken = crypto.randomUUID();
@@ -401,7 +397,10 @@ export const handler: Handlers = {
         increment('errors.email');
         return fail(500, 'Failed to send magic link email. Please try again.', 'send');
       }
-      mailed = true;
+      // Count it only now that it is sent; see lib/gate-guard.ts steps 5-6.
+      // Best-effort: the link is already on its way and the visitor must not
+      // be told otherwise because a counter write failed.
+      await recordSent(emailHash).catch(() => increment('errors.gate_guard.record'));
 
       increment('gate.submit.accepted');
       increment('auth.magiclink.sent');
@@ -417,12 +416,6 @@ export const handler: Handlers = {
       increment('errors.5xx');
 
       return fail(500, 'Failed to process submission', 'server');
-    } finally {
-      if (!mailed) {
-        // Best-effort: the visitor is already being refused, and must not be
-        // refused differently because the counter could not be decremented.
-        await releaseEmailAllowance(emailHash).catch(() => {});
-      }
     }
   },
 };

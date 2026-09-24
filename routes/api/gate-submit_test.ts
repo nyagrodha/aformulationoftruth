@@ -144,22 +144,25 @@ async function loadHandler() {
   // A silenced request pads its reply to look like a real send; not here.
   silentPause.ms = () => 0;
   /*
-   * lib/rate-limit.ts's own database seam, so releaseEmailAllowance() is
-   * observable instead of failing against the unparseable DATABASE_URL.
+   * lib/rate-limit.ts's own database seam, so recordSent() is observable
+   * instead of failing against the unparseable DATABASE_URL.
    */
-  released.length = 0;
+  recorded.length = 0;
   rateLimitDbForTesting.withConnection = (<T>(handler: (client: never) => Promise<T>) =>
     handler({
       queryObject: (sql: string, params: unknown[]) => {
-        if (sql.includes('UPDATE fresh_rate_limits')) released.push(String(params[0]));
+        if (sql.includes('INSERT INTO fresh_rate_limits')) {
+          recorded.push(String(params[0]));
+          return Promise.resolve({ rows: [{ count: 1 }] });
+        }
         return Promise.resolve({ rows: [] });
       },
     } as never)) as typeof rateLimitDbForTesting.withConnection;
   return mod.handler.POST!;
 }
 
-/** Buckets handed back via releaseEmailAllowance() during the current test. */
-const released: string[] = [];
+/** Buckets counted via recordSent() during the current test. */
+const recorded: string[] = [];
 
 function jsonRequest(body: unknown): Request {
   return new Request('http://localhost/api/gate-submit', {
@@ -553,7 +556,7 @@ Deno.test({
 });
 
 Deno.test({
-  name: 'gate-submit: a submission admitted by the guard but never mailed hands its address charge back',
+  name: 'gate-submit: a submission admitted by the guard but never mailed is not counted against the address',
   async fn() {
     setupTestEnv();
     const gate = stubGate(() => null); // encryption fails, so nothing is sent
@@ -562,9 +565,7 @@ Deno.test({
       const response = await post(jsonRequest({ email: 'visitor@example.com', answer1: 'a' }), {} as never);
       await response.body?.cancel();
       assertEquals(response.status, 503);
-      assertEquals(released.length, 1, 'exactly one charge handed back');
-      assert(released[0].startsWith('email:'), 'it is the per-address bucket');
-      assert(!released[0].includes('@'), 'keyed on the hash, never the address');
+      assertEquals(recorded, [], 'only a sent link counts');
     } finally {
       gate.restore();
       restoreEnv();
@@ -573,7 +574,7 @@ Deno.test({
 });
 
 Deno.test({
-  name: 'gate-submit: a refused or silenced request never releases a charge it was not given',
+  name: 'gate-submit: refused and silenced requests are never counted as sent',
   async fn() {
     setupTestEnv();
     const gate = stubGate();
@@ -582,7 +583,7 @@ Deno.test({
         const post = await loadHandlerWithGuard(decision);
         const response = await post(jsonRequest({ email: 'visitor@example.com' }), {} as never);
         await response.body?.cancel();
-        assertEquals(released.length, 0, JSON.stringify(decision));
+        assertEquals(recorded, [], JSON.stringify(decision));
       }
     } finally {
       gate.restore();

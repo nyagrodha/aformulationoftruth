@@ -28,12 +28,14 @@
  *
  * ACCESSIBILITY
  *
- * An image challenge excludes anyone who cannot see it. The form says so and
- * names a way round it (the webmaster address), because there is no no-JS
- * audio alternative that a script could not read just as easily.
+ * An image challenge excludes anyone who cannot see it, so every token also
+ * carries a question in words (lib/text-challenge.ts) -- a constellation or an
+ * element -- and either answer passes. The question reads aloud like any
+ * other label and needs no JavaScript or media.
  */
 
 import { encodeGreyscalePng } from './png.ts';
+import { textAnswerMatches, type TextChallenge, textChallengeFor } from './text-challenge.ts';
 
 const encoder = new TextEncoder();
 
@@ -97,40 +99,63 @@ export interface Captcha {
   token: string;
   /** `data:image/png;base64,...`, ready for an <img src>. */
   image: string;
+  /** The same token's question in words, for anyone who cannot see the image. */
+  question: string;
+}
+
+/** The question a token stands for. Deterministic in (key, token). */
+export async function questionFor(token: string): Promise<TextChallenge> {
+  return textChallengeFor(await mac(`question:${token}`));
 }
 
 /** Mint a challenge. `issuedAt` is injectable for tests. */
 export async function issueCaptcha(issuedAt: number = nowSeconds()): Promise<Captcha> {
   const token = `${issuedAt}.${randomNonce()}`;
   const png = await renderCaptchaPng(await answerFor(token), await mac(`noise:${token}`));
-  return { token, image: `data:image/png;base64,${btoa(String.fromCharCode(...png))}` };
+  return {
+    token,
+    image: `data:image/png;base64,${btoa(String.fromCharCode(...png))}`,
+    question: (await questionFor(token)).prompt,
+  };
 }
 
 export type CaptchaVerdict =
-  | { ok: true; nonce: string }
+  | { ok: true; nonce: string; via: 'digits' | 'question' }
   | { ok: false; reason: 'malformed' | 'expired' | 'wrong' };
 
+/** What the visitor typed: the digits, the answer to the question, or both. */
+export interface ChallengeAnswer {
+  digits?: string;
+  text?: string;
+}
+
 /**
- * Check an answer against a token. Does NOT record the spend -- the caller
- * does that (lib/gate-guard.ts), so this stays free of I/O and testable.
+ * Check an answer against a token; either the digits or the question passes.
+ * Does NOT record the spend -- the caller does that (lib/gate-guard.ts), so
+ * this stays free of I/O and testable. A bare string is taken as the digits.
  */
 export async function verifyCaptcha(
   token: string | undefined,
-  answer: string | undefined,
+  answer: string | ChallengeAnswer | undefined,
   now: number = nowSeconds(),
 ): Promise<CaptchaVerdict> {
+  const { digits, text } = typeof answer === 'string' ? { digits: answer, text: undefined } : (answer ?? {});
   if (!token || !/^\d{1,12}\.[A-Za-z0-9_-]{16}$/.test(token)) return { ok: false, reason: 'malformed' };
   const [issuedRaw, nonce] = token.split('.');
   const age = now - Number(issuedRaw);
   if (age > CAPTCHA_MAX_AGE_SECONDS || age < -60) return { ok: false, reason: 'expired' };
 
   // Forgive what a person plausibly types around six digits.
-  const given = (answer ?? '').replace(/[\s\-.]/g, '');
+  const given = (digits ?? '').replace(/[\s\-.]/g, '');
   const expected = await answerFor(token);
-  if (given.length !== expected.length) return { ok: false, reason: 'wrong' };
-  let diff = 0;
-  for (let i = 0; i < expected.length; i++) diff |= given.charCodeAt(i) ^ expected.charCodeAt(i);
-  return diff === 0 ? { ok: true, nonce } : { ok: false, reason: 'wrong' };
+  if (given.length === expected.length) {
+    let diff = 0;
+    for (let i = 0; i < expected.length; i++) diff |= given.charCodeAt(i) ^ expected.charCodeAt(i);
+    if (diff === 0) return { ok: true, nonce, via: 'digits' };
+  }
+
+  if (textAnswerMatches(await questionFor(token), text)) return { ok: true, nonce, via: 'question' };
+  return { ok: false, reason: 'wrong' };
 }
 
 // ---------------------------------------------------------------------------

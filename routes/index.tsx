@@ -77,7 +77,7 @@ const ERROR_MESSAGES: Record<string, VNode> = {
       <a href='https://cock.li' target='_blank' rel='noopener noreferrer'>cockmail</a> both work.
     </>
   ),
-  captcha: <>The digits didn't match, or the image had expired. Here is a new one.</>,
+  captcha: <>That didn't match, or the challenge had expired. Here is a new image and a new question.</>,
   rate: <>Too many attempts from your connection. Please wait an hour and try again.</>,
   busy: (
     <>

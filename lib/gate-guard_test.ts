@@ -10,10 +10,11 @@
  */
 
 import { assert, assertEquals } from '$std/assert/mod.ts';
-import { answerFor, CAPTCHA_MAX_AGE_SECONDS, issueCaptcha, verifyCaptcha } from './captcha.ts';
+import { answerFor, CAPTCHA_MAX_AGE_SECONDS, issueCaptcha, questionFor, verifyCaptcha } from './captcha.ts';
+import { normaliseAnswer, TEXT_CHALLENGE_COUNT, textAnswerMatches, textChallengeFor } from './text-challenge.ts';
 import { rateLimitDbForTesting } from './rate-limit.ts';
 import { clearMailDomainCache, mailDomainResolverForTesting } from './mail-domain.ts';
-import { clientKey, type GuardInput, guardMagicLinkRequest, releaseEmailAllowance } from './gate-guard.ts';
+import { clientKey, type GuardInput, guardMagicLinkRequest, recordSent } from './gate-guard.ts';
 
 Deno.env.set('JWT_SECRET', 'test-jwt-secret-key');
 Deno.env.set('TRUST_PROXY', 'true');
@@ -29,10 +30,9 @@ function fakePostgres() {
         counters.set(key, n);
         return Promise.resolve({ rows: [{ count: n }] });
       }
-      if (sql.includes('UPDATE fresh_rate_limits')) {
+      if (sql.includes('SELECT count FROM fresh_rate_limits')) {
         const key = `${params[0]}@${params[1]}`;
-        if (counters.has(key)) counters.set(key, Math.max(0, counters.get(key)! - 1));
-        return Promise.resolve({ rows: [] });
+        return Promise.resolve({ rows: counters.has(key) ? [{ count: counters.get(key)! }] : [] });
       }
       if (sql.includes('INSERT INTO fresh_captcha_spent')) {
         const nonce = String(params[0]);
@@ -177,45 +177,62 @@ Deno.test('guard: a DNS failure that is not NXDOMAIN does not turn a person away
   assertEquals((await guardMagicLinkRequest(await input())).kind, 'allow');
 });
 
+/** Admit one request for `emailHash` and, if admitted, send it. */
+async function sendTo(emailHash: string): Promise<string> {
+  const decision = await guardMagicLinkRequest(await input({ emailHash }));
+  if (decision.kind === 'allow') await recordSent(emailHash);
+  return decision.kind;
+}
+
 Deno.test('guard: one address receives at most two links a day; the third is silenced', async () => {
   fakePostgres();
   mxFor({ 'mail.test': 'mx' });
-  const emailHash = 'hash-of-one-victim';
   const kinds = [];
-  for (let i = 0; i < 3; i++) kinds.push((await guardMagicLinkRequest(await input({ emailHash }))).kind);
+  for (let i = 0; i < 3; i++) kinds.push(await sendTo('hash-of-one-victim'));
   assertEquals(kinds, ['allow', 'allow', 'silent']);
 });
 
-Deno.test('guard: the daily cap counts links sent -- a released charge is not a link received', async () => {
+Deno.test('guard: the daily cap counts links sent -- admitted requests whose send failed do not count', async () => {
   fakePostgres();
   mxFor({ 'mail.test': 'mx' });
   const emailHash = 'hash-whose-sends-failed';
-  // Two admitted requests whose sends then failed, each handing its charge back.
-  for (let i = 0; i < 2; i++) {
+  // Five admitted requests, none sent (recordSent never called).
+  for (let i = 0; i < 5; i++) {
     assertEquals((await guardMagicLinkRequest(await input({ emailHash }))).kind, 'allow');
-    await releaseEmailAllowance(emailHash);
   }
   // Nothing was received, so the full allowance remains.
   const kinds = [];
-  for (let i = 0; i < 3; i++) kinds.push((await guardMagicLinkRequest(await input({ emailHash }))).kind);
+  for (let i = 0; i < 3; i++) kinds.push(await sendTo(emailHash));
   assertEquals(kinds, ['allow', 'allow', 'silent']);
 });
 
-Deno.test('guard: a busy refusal does not spend the address allowance', async () => {
-  fakePostgres();
+Deno.test('guard: silenced and busy requests leave the address count untouched', async () => {
+  const db = fakePostgres();
   mxFor({ 'mail.test': 'mx' });
   const emailHash = 'hash-of-a-patient-person';
   Deno.env.set('GATE_GLOBAL_HOURLY_MAX', '1');
   try {
-    assertEquals((await guardMagicLinkRequest(await input())).kind, 'allow'); // fills the hour
-    for (let i = 0; i < 3; i++) {
-      assertEquals((await guardMagicLinkRequest(await input({ emailHash }))).kind, 'refuse');
-    }
+    assertEquals(await sendTo('someone-else'), 'allow'); // fills the hour
+    for (let i = 0; i < 3; i++) assertEquals(await sendTo(emailHash), 'refuse');
   } finally {
     Deno.env.delete('GATE_GLOBAL_HOURLY_MAX');
   }
-  // The hour has room again; the three busy refusals must not have capped them.
-  assertEquals((await guardMagicLinkRequest(await input({ emailHash }))).kind, 'allow');
+  assert(![...db.counters.keys()].some((k) => k.startsWith(`email:${emailHash}@`)), 'busy refusals charged nothing');
+  // The hour has room again (default ceiling); the refusals did not cap them.
+  assertEquals(await sendTo(emailHash), 'allow');
+});
+
+Deno.test('guard: the site-wide hourly ceiling refuses once reached', async () => {
+  fakePostgres();
+  mxFor({ 'mail.test': 'mx' });
+  Deno.env.set('GATE_GLOBAL_HOURLY_MAX', '2');
+  try {
+    const kinds = [];
+    for (let i = 0; i < 3; i++) kinds.push(await sendTo(`hash-${i}`));
+    assertEquals(kinds, ['allow', 'allow', 'refuse']);
+  } finally {
+    Deno.env.delete('GATE_GLOBAL_HOURLY_MAX');
+  }
 });
 
 Deno.test('guard: IPv6 clients are counted per /64, so rotating the interface id gains nothing', async () => {
@@ -266,15 +283,56 @@ Deno.test('guard: onion traffic (loopback, no X-Forwarded-For) shares one larger
   assert([...db.counters.keys()].some((k) => k.startsWith('ip:onion:h@')));
 });
 
-Deno.test('guard: the site-wide hourly ceiling refuses once reached', async () => {
+// ---------------------------------------------------------------------------
+// The question in words (lib/text-challenge.ts)
+// ---------------------------------------------------------------------------
+
+Deno.test('question: every challenge carries one, and its answer passes instead of the digits', async () => {
+  const { token } = await issueCaptcha(Math.floor(Date.now() / 1000) - 10);
+  const q = await questionFor(token);
+  assert(q.prompt.endsWith('?'));
+  const verdict = await verifyCaptcha(token, { digits: '', text: q.answers[0] });
+  assert(verdict.ok && verdict.via === 'question');
+});
+
+Deno.test('question: a wrong answer and an empty one are both refused', async () => {
+  const { token } = await issueCaptcha(Math.floor(Date.now() / 1000) - 10);
+  assertEquals(await verifyCaptcha(token, { text: 'definitely not it' }), { ok: false, reason: 'wrong' });
+  assertEquals(await verifyCaptcha(token, { text: '   ' }), { ok: false, reason: 'wrong' });
+});
+
+Deno.test('question: capitals, accents, punctuation and a leading "the" are forgiven', () => {
+  assertEquals(normaliseAnswer('  The Great-Bear! '), 'great bear');
+  assertEquals(normaliseAnswer('Boötes'), 'bootes');
+  const lion = textChallengeFor(new Uint8Array([0, 0])); // first in the bank
+  assert(textAnswerMatches(lion, 'LEO'));
+  assert(textAnswerMatches(lion, 'the leo'));
+  assert(!textAnswerMatches(lion, 'lion'), 'the question names the lion; the answer is its constellation');
+});
+
+Deno.test('question: every question in the bank is reachable and has an answer', () => {
+  const seen = new Set<string>();
+  for (let i = 0; i < 4096; i++) {
+    const q = textChallengeFor(new Uint8Array([i >> 8, i & 0xff]));
+    assert(q.answers.length > 0 && q.answers.every((a) => a !== ''), q.prompt);
+    seen.add(q.prompt);
+  }
+  assertEquals(seen.size, TEXT_CHALLENGE_COUNT);
+});
+
+Deno.test('question: an element symbol is spelled out for screen readers', () => {
+  const prompts = new Set<string>();
+  for (let i = 0; i < 4096; i++) prompts.add(textChallengeFor(new Uint8Array([i >> 8, i & 0xff])).prompt);
+  assert([...prompts].some((p) => p.includes('symbol Fe (capital F, lowercase e)')));
+});
+
+Deno.test('guard: the question answer alone gets through the guard', async () => {
   fakePostgres();
   mxFor({ 'mail.test': 'mx' });
-  Deno.env.set('GATE_GLOBAL_HOURLY_MAX', '2');
-  try {
-    const kinds = [];
-    for (let i = 0; i < 3; i++) kinds.push((await guardMagicLinkRequest(await input())).kind);
-    assertEquals(kinds, ['allow', 'allow', 'refuse']);
-  } finally {
-    Deno.env.delete('GATE_GLOBAL_HOURLY_MAX');
-  }
+  const { token } = await solved();
+  const q = await questionFor(token);
+  const decision = await guardMagicLinkRequest(
+    await input({ captchaToken: token, captchaAnswer: '', questionAnswer: q.answers[0] }),
+  );
+  assertEquals(decision, { kind: 'allow' });
 });

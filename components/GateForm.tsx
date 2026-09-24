@@ -20,21 +20,28 @@ export interface GateFormValues {
 }
 
 /**
- * The image, its answer field, the signed token, and the honeypot. Field
- * names are the contract with lib/gate-guard.ts via the two endpoints:
- * captcha_token, captcha, website.
+ * The challenge -- six digits in an image, or the same token's question in
+ * words -- plus the signed token and the honeypot. Either answer passes (see
+ * lib/captcha.ts), so neither field is `required`; the server says so if both
+ * are wrong. Field names are the contract with lib/gate-guard.ts via the two
+ * endpoints: captcha_token, captcha, riddle, website.
+ *
+ * Order matters for a screen reader: the image's alt text points on to the
+ * question, which follows it directly, so nobody is left at a picture.
  */
 export function CaptchaFields({ captcha }: { captcha: Captcha }) {
   return (
     <>
-      <div class='form-group'>
-        <label for='captcha'>Type the six digits you see</label>
+      <fieldset class='form-group gate-challenge' aria-describedby='captcha-note'>
+        <legend>Show you're a person — either way works</legend>
+
+        <label for='captcha'>Type the six digits in the image</label>
         <img
           class='gate-captcha-image'
           src={captcha.image}
           width={CAPTCHA_WIDTH}
           height={CAPTCHA_HEIGHT}
-          alt='Six digits, drawn as an image to keep automated submissions out.'
+          alt='Six digits drawn as an image. If you cannot see it, answer the question that follows instead.'
         />
         <input type='hidden' name='captcha_token' value={captcha.token} />
         <input
@@ -45,14 +52,23 @@ export function CaptchaFields({ captcha }: { captcha: Captcha }) {
           inputMode='numeric'
           autocomplete='off'
           maxLength={CAPTCHA_LENGTH + 4}
-          required
-          aria-describedby='captcha-note'
         />
+
+        <label for='riddle' class='gate-riddle-label'>Or answer this instead: {captcha.question}</label>
+        <input
+          type='text'
+          id='riddle'
+          name='riddle'
+          class='gate-riddle-input'
+          autocomplete='off'
+          maxLength={200}
+        />
+
         <p class='accessibility-note' id='captcha-note'>
-          This keeps scripts from using the site to mail strangers. If you can't read it, reload the page for another,
-          or write to the <a href='mailto:formitselfisemptiness@aformulationoftruth.com'>webmaster</a>.
+          This keeps scripts from using the site to mail strangers. Capitals and accents don't matter. A wrong answer
+          brings a new image and a new question, with everything else you wrote kept.
         </p>
-      </div>
+      </fieldset>
 
       <div class='gate-hp' aria-hidden='true'>
         <label for='website'>Leave this field empty</label>

@@ -34,7 +34,7 @@ import { createQuestionnaireSession, findActiveSession } from '../../../lib/ques
 import { createQuestionnaireJWT } from '../../../lib/jwt.ts';
 import { increment } from '../../../lib/metrics.ts';
 import { sendMagicLinkEmail } from '../../../lib/email.ts';
-import { type Guard, guardMagicLinkRequest, releaseEmailAllowance, waitSilently } from '../../../lib/gate-guard.ts';
+import { type Guard, guardMagicLinkRequest, recordSent, waitSilently } from '../../../lib/gate-guard.ts';
 
 const RequestSchema = z.object({
   email: z.string().email(),
@@ -42,6 +42,7 @@ const RequestSchema = z.object({
   // lib/gate-guard.ts inputs; see CaptchaFields in components/GateForm.tsx.
   captcha_token: z.string().max(64).optional(),
   captcha: z.string().max(32).optional(),
+  riddle: z.string().max(200).optional(),
   website: z.string().max(2000).optional(),
 });
 
@@ -126,6 +127,7 @@ export const handler: Handlers = {
         emailHash,
         captchaToken: parsed.data.captcha_token,
         captchaAnswer: parsed.data.captcha,
+        questionAnswer: parsed.data.riddle,
         honeypot: parsed.data.website,
       });
     } catch {
@@ -160,9 +162,6 @@ export const handler: Handlers = {
       return new Response(JSON.stringify({ error: 'Request refused', code: decision.code }), { status, headers });
     }
 
-    // The guard charged this address one link; hand it back unless one is
-    // actually sent. See the same block in routes/api/gate-submit.ts.
-    let mailed = false;
     try {
       // Step 1: Create magic link (for email delivery verification)
       const { token: magicToken, expiresAt } = await createMagicLink(email);
@@ -207,7 +206,8 @@ export const handler: Handlers = {
         );
       }
 
-      mailed = true;
+      // Count it only now that it is sent; see lib/gate-guard.ts steps 5-6.
+      await recordSent(emailHash).catch(() => increment('errors.gate_guard.record'));
       increment('auth.magiclink.sent');
 
       // Log only that a link was created, not for whom
@@ -238,8 +238,6 @@ export const handler: Handlers = {
         JSON.stringify({ error: 'Failed to send magic link' }),
         { status: 500, headers: { 'Content-Type': 'application/json' } },
       );
-    } finally {
-      if (!mailed) await releaseEmailAllowance(emailHash).catch(() => {});
     }
   },
 };

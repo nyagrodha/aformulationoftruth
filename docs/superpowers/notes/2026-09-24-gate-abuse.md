@@ -63,13 +63,23 @@ stranger-typed address (`/api/gate-submit`, `/api/auth/magic-link`):
 1. per-client rate limit (Postgres, HMAC'd address; IPv6 counted per /64;
    onion traffic shares one larger bucket);
 2. honeypot field → silent;
-3. image challenge (`lib/captcha.ts`, PNG, no JS, single-use nonce);
+3. challenge (`lib/captcha.ts`, no JS, single-use nonce): six digits in a
+   PNG image, **or** the same token's question in words — a constellation
+   ("Which constellation is known as the Lion?") or an element ("Which
+   element has the chemical symbol Fe?") from `lib/text-challenge.ts`. The
+   question is the way through for screen-reader users;
 4. MX check on the address's domain (`lib/mail-domain.ts`) → the visitor can
    fix a typo; nothing bounces in the site's name;
-5. at most two links per address per day → silent. The cap counts mail
-   actually sent: the charge is handed back if the request is then refused
-   or the send fails;
+5. at most two links per address per day → silent;
 6. site-wide hourly ceiling on links sent.
+
+Steps 5 and 6 count mail actually sent. The guard only reads the counters;
+the route records a link once SMTP accepts it (`recordSent`). A refusal, a
+failed send or a silenced request charges nothing. Charge-then-refund was
+tried first and dropped in review: denied attempts stayed charged, and a
+refund could land in the next day's window. The cost of reading first is
+that simultaneous requests for one address can overshoot by the number in
+flight.
 
 Silenced requests answer exactly as success does: same status, same body,
 and a padded delay matching a real send's key provisioning and SMTP time.
@@ -85,8 +95,10 @@ submission is refused.
 
 - The image stops generic form scripts, not a determined OCR attacker; the
   per-address and site-wide caps bound what one could do.
-- An image challenge excludes people who cannot see it. The form names the
-  webmaster address as the way round.
+- The question bank is weaker than the image against a bot written for this
+  site, and a language model answers it easily. It holds against the generic
+  scripts seen; the caps bound the rest. `gate.guard.passed_via_question`
+  against `..._via_digits` shows how much load it carries.
 - Answers are still stored at submission, before the address is proven. A
   stricter design defers the gate write until the link is opened.
 

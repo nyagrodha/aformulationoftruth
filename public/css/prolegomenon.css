@@ -751,7 +751,8 @@ footer .footer-return {
 
 .gate-form textarea,
 .gate-form input[type='email'],
-.gate-form input.gate-captcha-input {
+.gate-form input.gate-captcha-input,
+.gate-form input.gate-riddle-input {
   display: block;
   width: 100%;
   padding: 1rem 1.1rem;
@@ -766,14 +767,16 @@ footer .footer-return {
 
 .gate-form textarea::placeholder,
 .gate-form input[type='email']::placeholder,
-.gate-form input.gate-captcha-input::placeholder {
+.gate-form input.gate-captcha-input::placeholder,
+.gate-form input.gate-riddle-input::placeholder {
   color: var(--muted);
   font-style: italic;
 }
 
 .gate-form textarea:focus,
 .gate-form input[type='email']:focus,
-.gate-form input.gate-captcha-input:focus {
+.gate-form input.gate-captcha-input:focus,
+.gate-form input.gate-riddle-input:focus {
   outline: none;
   border-color: var(--cyan);
   box-shadow: 0 0 0 4px #078f9a1a;
@@ -905,6 +908,37 @@ footer .footer-return {
   margin-bottom: 1rem;
   border: 1px solid var(--rule);
   image-rendering: pixelated;
+}
+
+/*
+ * The challenge is a fieldset (digits OR question); drawn without the
+ * browser's box so it reads as one more group of the form, its legend set
+ * like the other labels.
+ */
+.gate-challenge {
+  border: 0;
+  padding: 0;
+  min-width: 0;
+}
+
+.gate-challenge legend {
+  margin-bottom: 1rem;
+  padding: 0;
+  font-size: clamp(1.2rem, 2vw, 1.7rem);
+  line-height: 1.4;
+  letter-spacing: -0.02em;
+}
+
+.gate-challenge label {
+  font-size: 1.05rem;
+}
+
+.gate-challenge .gate-riddle-label {
+  margin-top: 1.8rem;
+}
+
+.gate-form input.gate-riddle-input {
+  max-width: 24rem;
 }
 
 .gate-form input.gate-captcha-input {

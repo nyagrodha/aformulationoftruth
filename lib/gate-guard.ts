@@ -20,12 +20,15 @@
  *      mail exchanger, so a typo can be fixed and nothing bounces in the
  *      site's name. After the challenge, so the site is not a free DNS oracle.
  *   5. Per-address cap: two links a day by default (GATE_EMAIL_DAILY_MAX).
- *      Only now is the address counted, so a script cannot exhaust a real
- *      person's allowance without solving a challenge each time. The cap
- *      counts mail actually SENT: the charge is handed back if step 6 refuses
- *      or the caller then fails to send (releaseEmailAllowance).
  *   6. Site-wide hourly ceiling on mail sent, so that no failure of the checks
  *      above can turn into enough volume to cost the iCloud account.
+ *
+ * Steps 5 and 6 count mail actually SENT. The guard only peeks at them; the
+ * caller records a send with recordSent() once SMTP has accepted it. Nothing
+ * is charged up front, so a refusal, a failed send, or a request silenced by
+ * the cap leaves the counts untouched -- the design review of 2026-09-24
+ * settled on this after charge-then-refund kept growing edge cases (denied
+ * attempts left charged, refunds landing in the next day's window).
  *
  * 'silent' outcomes answer exactly as success does -- same status, same body,
  * and (via silentPause) about the same delay, since a real success waits on
@@ -38,7 +41,7 @@
 
 import { getClientIp } from './client-ip.ts';
 import { verifyCaptcha } from './captcha.ts';
-import { hit, ipBucket, spendNonce, unhit } from './rate-limit.ts';
+import { hit, ipBucket, peek, record, spendNonce } from './rate-limit.ts';
 import { increment } from './metrics.ts';
 import { checkMailDomain } from './mail-domain.ts';
 
@@ -55,7 +58,10 @@ export interface GuardInput {
   email: string;
   emailHash: string;
   captchaToken: string | undefined;
+  /** The six digits from the image. */
   captchaAnswer: string | undefined;
+  /** Or the answer to the token's question in words (lib/text-challenge.ts). */
+  questionAnswer?: string | undefined;
   honeypot: string | undefined;
 }
 
@@ -105,13 +111,15 @@ function emailBucket(emailHash: string): string {
   return `email:${emailHash}`;
 }
 
+const GLOBAL_BUCKET = 'global:magiclink';
+
 /**
- * Hand back the per-address charge taken by an 'allow' decision. Callers must
- * call this on every path after 'allow' that does not end in a sent email, so
- * the daily cap counts links a person received, not attempts.
+ * Record one link as sent, against the address and the site-wide ceiling.
+ * Call once SMTP has accepted the message, and only then; see steps 5-6.
  */
-export async function releaseEmailAllowance(emailHash: string): Promise<void> {
-  await unhit(emailBucket(emailHash), DAY);
+export async function recordSent(emailHash: string): Promise<void> {
+  await record(emailBucket(emailHash), DAY);
+  await record(GLOBAL_BUCKET, HOUR);
 }
 
 /**
@@ -160,10 +168,16 @@ export const guardMagicLinkRequest: Guard = async (input) => {
   }
 
   // 3. Challenge, then spend it.
-  const verdict = await verifyCaptcha(input.captchaToken, input.captchaAnswer);
+  const verdict = await verifyCaptcha(input.captchaToken, {
+    digits: input.captchaAnswer,
+    text: input.questionAnswer,
+  });
   if (!verdict.ok) {
     return outcome({ kind: 'refuse', code: 'captcha' }, `captcha_${verdict.reason}`);
   }
+  // Which way through people take: tells whether the question is carrying
+  // real load, and so whether its weakness matters. A bare count.
+  increment(`gate.guard.passed_via_${verdict.via}`);
   if (!(await spendNonce(verdict.nonce))) {
     return outcome({ kind: 'refuse', code: 'captcha' }, 'captcha_replay');
   }
@@ -174,7 +188,7 @@ export const guardMagicLinkRequest: Guard = async (input) => {
   }
 
   // 5. Per address.
-  const perAddress = await hit(
+  const perAddress = await peek(
     emailBucket(input.emailHash),
     DAY,
     envInt('GATE_EMAIL_DAILY_MAX', DEFAULT_EMAIL_DAILY_MAX),
@@ -184,11 +198,9 @@ export const guardMagicLinkRequest: Guard = async (input) => {
   }
 
   // 6. Site-wide.
-  const global = await hit('global:magiclink', HOUR, envInt('GATE_GLOBAL_HOURLY_MAX', 30));
+  const global = await peek(GLOBAL_BUCKET, HOUR, envInt('GATE_GLOBAL_HOURLY_MAX', 30));
   if (!global.allowed) {
     console.error('[gate-guard] Site-wide magic-link ceiling reached');
-    // Nothing will be sent, so this must not count against the address.
-    await releaseEmailAllowance(input.emailHash);
     return outcome({ kind: 'refuse', code: 'busy', retryAfter: global.retryAfter }, 'global_limited');
   }
 
