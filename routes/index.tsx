@@ -212,11 +212,6 @@ export default function Home({ data }: PageProps<IndexData>) {
                   The questionnaire keeps a record — subject as excavated persons in succession, bearing one name:{' '}
                   <em>I</em>.
                 </p>
-                <p>
-                  Insofar as recognition adds nothing new — points to nothing that hasn’t always been known — it is well
-                  captured by doubling the ‘I’ observes 'I', sees the ones already offered, recalls who you were when
-                  you answered then; who answers now; who will — as one light regarding itself.
-                </p>
                 <p>Find who sleeps.</p>
                 <p>That is what this instrument is for.</p>
               </div>
