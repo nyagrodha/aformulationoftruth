@@ -67,11 +67,12 @@ export default function CheckEmail() {
           <section class='section'>
             <div class='section-inner' style='text-align: center;'>
               <p class='section-text'>
-                We've sent you a one-time link. Click it within 15 minutes to launch your questionnaire. The link can be
-                used once.
+                We've sent you a link. It works for 24 hours; open it to launch your questionnaire.
               </p>
               <p class='section-text' style='opacity: 0.7;'>
-                Not in your inbox? Check spam, or wait a minute — iCloud sometimes takes a moment.
+                Not in your inbox? Check spam, or wait a minute — iCloud sometimes takes a moment. To keep the site from
+                being used to flood anyone's inbox, no address receives more than three links a day. Use the most recent
+                link you received; asking again replaces it.
               </p>
               <p style='margin-top: 2rem;'>
                 <a href='/' class='cta'>Back to start</a>

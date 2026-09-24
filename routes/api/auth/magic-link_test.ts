@@ -364,3 +364,75 @@ Deno.test({
     assertStringIncludes(gateQuestions[1].text, 'fear');
   },
 });
+
+// ---------------------------------------------------------------------------
+// The no-JS /login form path, and lib/gate-guard.ts in front of it
+// ---------------------------------------------------------------------------
+
+function loginForm(fields: Record<string, string>): Request {
+  return new Request('http://localhost/api/auth/magic-link', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams(fields).toString(),
+  });
+}
+
+Deno.test({
+  name: 'magic-link: a native form post with a bad address bounces to /login with a category, not the address',
+  async fn() {
+    setupTestEnv();
+    try {
+      const { handler } = await import('./magic-link.ts');
+      const response = await handler.POST!(loginForm({ email: 'not-an-address' }), {} as never);
+      assertEquals(response.status, 303);
+      assertEquals(response.headers.get('Location'), '/login?error=email');
+    } finally {
+      restoreEnv();
+    }
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});
+
+Deno.test({
+  name: 'magic-link: every guard outcome is answered before a session is created or mail is sent',
+  async fn() {
+    setupTestEnv();
+    const mod = await import('./magic-link.ts');
+    try {
+      const cases: Array<[import('../../../lib/gate-guard.ts').GuardDecision, string]> = [
+        [{ kind: 'refuse', code: 'captcha' }, '/login?error=captcha'],
+        [{ kind: 'refuse', code: 'email' }, '/login?error=email'],
+        [{ kind: 'refuse', code: 'rate' }, '/login?error=rate'],
+        [{ kind: 'refuse', code: 'busy' }, '/login?error=busy'],
+        // Silent answers as success does.
+        [{ kind: 'silent' }, '/check-email'],
+      ];
+      for (const [decision, location] of cases) {
+        mod.guardForTesting.current = () => Promise.resolve(decision);
+        // DATABASE_URL is unset here, so any path that went on to create a
+        // session would throw and land on /login?error=server instead.
+        const response = await mod.handler.POST!(loginForm({ email: 'person@example.com' }), {} as never);
+        assertEquals(response.status, 303, JSON.stringify(decision));
+        assertEquals(response.headers.get('Location'), location, JSON.stringify(decision));
+      }
+
+      mod.guardForTesting.current = () => Promise.resolve({ kind: 'refuse', code: 'captcha' });
+      const json = await mod.handler.POST!(
+        new Request('http://localhost/api/auth/magic-link', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: 'person@example.com' }),
+        }),
+        {} as never,
+      );
+      assertEquals(json.status, 400);
+      assertEquals((await json.json()).code, 'captcha', 'JSON clients cannot skip the challenge either');
+    } finally {
+      mod.guardForTesting.current = undefined;
+      restoreEnv();
+    }
+  },
+  sanitizeOps: false,
+  sanitizeResources: false,
+});

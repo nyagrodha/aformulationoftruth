@@ -750,7 +750,8 @@ footer .footer-return {
 }
 
 .gate-form textarea,
-.gate-form input[type='email'] {
+.gate-form input[type='email'],
+.gate-form input.gate-captcha-input {
   display: block;
   width: 100%;
   padding: 1rem 1.1rem;
@@ -764,13 +765,15 @@ footer .footer-return {
 }
 
 .gate-form textarea::placeholder,
-.gate-form input[type='email']::placeholder {
+.gate-form input[type='email']::placeholder,
+.gate-form input.gate-captcha-input::placeholder {
   color: var(--muted);
   font-style: italic;
 }
 
 .gate-form textarea:focus,
-.gate-form input[type='email']:focus {
+.gate-form input[type='email']:focus,
+.gate-form input.gate-captcha-input:focus {
   outline: none;
   border-color: var(--cyan);
   box-shadow: 0 0 0 4px #078f9a1a;
@@ -888,6 +891,40 @@ footer .footer-return {
   font-family: Arial, Helvetica, sans-serif;
   font-size: 0.85rem;
   line-height: 1.6;
+}
+
+/*
+ * The image challenge (components/GateForm.tsx, lib/captcha.ts). The bitmap
+ * is drawn at 1:1 and scaled up here; pixelated keeps its blocks crisp rather
+ * than letting the browser blur digits into one another.
+ */
+.gate-captcha-image {
+  display: block;
+  width: min(360px, 100%);
+  height: auto;
+  margin-bottom: 1rem;
+  border: 1px solid var(--rule);
+  image-rendering: pixelated;
+}
+
+.gate-form input.gate-captcha-input {
+  max-width: 14rem;
+  font-family: 'Courier New', monospace;
+  font-size: 1.3rem;
+  letter-spacing: 0.3em;
+}
+
+/*
+ * The honeypot. Moved off-screen rather than display:none, which some form
+ * scripts check for; hidden from assistive technology by aria-hidden on the
+ * wrapper and from the tab order by tabindex=-1 on the field.
+ */
+.gate-hp {
+  position: absolute;
+  left: -10000px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
 }
 
 /* ── completion (/completion) ──────────────────────────────────────────── */

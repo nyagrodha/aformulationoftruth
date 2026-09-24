@@ -44,7 +44,15 @@ interface GateCall {
 
 const originalFetch = globalThis.fetch;
 const originalEnv = Deno.env.toObject();
-const TEST_ENV_KEYS = ['DATABASE_URL', 'JWT_SECRET', 'RESUME_TOKEN_SECRET', 'BASE_URL', 'DENO_ENV', 'EMAIL_TRANSPORT', 'BREAKGLASS_AGE_RECIPIENT'] as const;
+const TEST_ENV_KEYS = [
+  'DATABASE_URL',
+  'JWT_SECRET',
+  'RESUME_TOKEN_SECRET',
+  'BASE_URL',
+  'DENO_ENV',
+  'EMAIL_TRANSPORT',
+  'BREAKGLASS_AGE_RECIPIENT',
+] as const;
 
 function setupTestEnv() {
   /*
@@ -122,8 +130,15 @@ async function loadHandler() {
    * -- the gate write is last, so a failing INSERT means the gate is never
    * called and every assertion about it is vacuous.
    */
-  mod.dbForTesting.withConnection = (<T,>(handler: (client: never) => Promise<T>) =>
-    handler({ queryObject: () => Promise.resolve({ rows: [] }) } as never)) as typeof mod.dbForTesting.withConnection;
+  mod.dbForTesting.withConnection =
+    (<T>(handler: (client: never) => Promise<T>) =>
+      handler({ queryObject: () => Promise.resolve({ rows: [] }) } as never)) as typeof mod.dbForTesting.withConnection;
+  /*
+   * Let every request past lib/gate-guard.ts. The guard has its own suite
+   * (lib/gate-guard_test.ts); these tests are about what happens after it.
+   * The guard-outcome tests below override this per test.
+   */
+  mod.guardForTesting.current = () => Promise.resolve({ kind: 'allow' });
   return mod.handler.POST!;
 }
 
@@ -371,5 +386,145 @@ Deno.test({
     // Three bound parameters: the gate token, this session's public key, and
     // the address encrypted to it. No answer text, and no plaintext address.
     assertEquals(insert[0].match(/\$\d+/g)?.length, 3, 'gate token, pubkey and ciphertext only');
+  },
+});
+
+// ---------------------------------------------------------------------------
+// lib/gate-guard.ts outcomes -- nothing is provisioned, stored or mailed
+// unless the guard allows it. The gate recorder is the witness: a request the
+// guard stopped must leave gate.calls empty.
+// ---------------------------------------------------------------------------
+
+async function loadHandlerWithGuard(decision: import('../../lib/gate-guard.ts').GuardDecision) {
+  const post = await loadHandler();
+  const mod = await import('./gate-submit.ts');
+  mod.guardForTesting.current = () => Promise.resolve(decision);
+  return post;
+}
+
+Deno.test({
+  name: 'gate-submit: a wrong challenge answer re-draws the gate with the answers kept, and stores nothing',
+  async fn() {
+    setupTestEnv();
+    const gate = stubGate();
+    try {
+      const post = await loadHandlerWithGuard({ kind: 'refuse', code: 'captcha' });
+      const response = await post(
+        formRequest({ email: 'visitor@example.com', answer1: 'a hammock', answer2: 'the dark <b>' }),
+        {} as never,
+      );
+
+      assertEquals(response.status, 422);
+      assertStringIncludes(response.headers.get('Content-Type') ?? '', 'text/html');
+      assertEquals(response.headers.get('Cache-Control'), 'no-store');
+      const html = await response.text();
+
+      assertStringIncludes(html, 'a hammock', 'first answer is re-filled');
+      // Re-filled answers are escaped, never injected as markup.
+      assertStringIncludes(html, 'the dark &lt;b>');
+      assert(!html.includes('the dark <b>'), 'answer text must be escaped');
+      assertStringIncludes(html, 'name="captcha_token"', 'a fresh challenge is issued');
+      assertStringIncludes(html, 'data:image/png;base64,');
+      assert(!html.includes('<script'), 'the re-drawn gate has no JavaScript');
+
+      assertEquals(gate.calls.length, 0, 'nothing reaches the gate before the challenge passes');
+    } finally {
+      gate.restore();
+      restoreEnv();
+    }
+  },
+});
+
+Deno.test({
+  name: 'gate-submit: an address whose domain takes no mail re-draws the gate and sends nothing',
+  async fn() {
+    setupTestEnv();
+    const gate = stubGate();
+    try {
+      const post = await loadHandlerWithGuard({ kind: 'refuse', code: 'email' });
+      const response = await post(
+        formRequest({ email: 'visitor@gmial.com', answer1: 'one', answer2: 'two' }),
+        {} as never,
+      );
+      assertEquals(response.status, 422);
+      assertStringIncludes(await response.text(), "doesn't accept mail");
+      assertEquals(gate.calls.length, 0);
+    } finally {
+      gate.restore();
+      restoreEnv();
+    }
+  },
+});
+
+Deno.test({
+  name: 'gate-submit: a silenced request answers exactly as success does, and does nothing',
+  async fn() {
+    setupTestEnv();
+    const gate = stubGate();
+    try {
+      const post = await loadHandlerWithGuard({ kind: 'silent' });
+
+      const form = await post(formRequest({ email: 'victim@example.com', answer1: 'x', answer2: 'y' }), {} as never);
+      await form.body?.cancel();
+      assertEquals(form.status, 303);
+      assertEquals(form.headers.get('Location'), '/check-email');
+
+      const json = await post(jsonRequest({ email: 'victim@example.com' }), {} as never);
+      assertEquals(json.status, 200);
+      assertEquals((await json.json()).message, 'Magic link sent');
+
+      assertEquals(gate.calls.length, 0, 'a silenced submission stores nothing');
+    } finally {
+      gate.restore();
+      restoreEnv();
+    }
+  },
+});
+
+Deno.test({
+  name: 'gate-submit: a rate-limited client is bounced with a category and a Retry-After',
+  async fn() {
+    setupTestEnv();
+    const gate = stubGate();
+    try {
+      const post = await loadHandlerWithGuard({ kind: 'refuse', code: 'rate', retryAfter: 1234 });
+
+      const form = await post(formRequest({ email: 'visitor@example.com' }), {} as never);
+      await form.body?.cancel();
+      assertEquals(form.status, 303);
+      assertEquals(form.headers.get('Location'), '/?error=rate#begin');
+
+      const json = await post(jsonRequest({ email: 'visitor@example.com' }), {} as never);
+      assertEquals(json.status, 429);
+      assertEquals(json.headers.get('Retry-After'), '1234');
+      assertEquals((await json.json()).code, 'rate');
+
+      assertEquals(gate.calls.length, 0);
+    } finally {
+      gate.restore();
+      restoreEnv();
+    }
+  },
+});
+
+Deno.test({
+  name: 'gate-submit: fails closed when the guard itself cannot run',
+  async fn() {
+    setupTestEnv();
+    const gate = stubGate();
+    try {
+      const post = await loadHandler();
+      const mod = await import('./gate-submit.ts');
+      mod.guardForTesting.current = () => Promise.reject(new Error('postgres down'));
+
+      const response = await post(formRequest({ email: 'visitor@example.com' }), {} as never);
+      await response.body?.cancel();
+      assertEquals(response.status, 303);
+      assertEquals(response.headers.get('Location'), '/?error=server#begin');
+      assertEquals(gate.calls.length, 0, 'no mail and no storage without the guard');
+    } finally {
+      gate.restore();
+      restoreEnv();
+    }
   },
 });

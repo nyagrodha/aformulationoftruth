@@ -3,6 +3,10 @@
  *
  * POST /api/auth/magic-link
  * - Request a magic link for email authentication
+ * - Accepts a native form post from /login (no JavaScript) or JSON
+ * - Passes lib/gate-guard.ts first, exactly as /api/gate-submit does: this is
+ *   the other endpoint that mails a stranger-typed address, and leaving it
+ *   open would simply move the abuse here
  *
  * Response includes:
  * - Magic link URL with JWT + opaque resume token
@@ -30,25 +34,52 @@ import { createQuestionnaireSession, findActiveSession } from '../../../lib/ques
 import { createQuestionnaireJWT } from '../../../lib/jwt.ts';
 import { increment } from '../../../lib/metrics.ts';
 import { sendMagicLinkEmail } from '../../../lib/email.ts';
+import { type Guard, guardMagicLinkRequest } from '../../../lib/gate-guard.ts';
 
 const RequestSchema = z.object({
   email: z.string().email(),
   gateToken: z.string().optional(), // Optional gate token to link gate responses
+  // lib/gate-guard.ts inputs; see CaptchaFields in components/GateForm.tsx.
+  captcha_token: z.string().max(64).optional(),
+  captcha: z.string().max(32).optional(),
+  website: z.string().max(2000).optional(),
 });
 
+/** Test seam for lib/gate-guard.ts, as in routes/api/gate-submit.ts. */
+export const guardForTesting: { current?: Guard } = {};
+
+/** /login?error=<code> -- keys must match ERROR_MESSAGES in routes/login.tsx. */
+function formRedirect(location: string): Response {
+  return new Response(null, { status: 303, headers: { Location: location } });
+}
+
 export const handler: Handlers = {
-  async POST(req, _ctx) {
+  async POST(req, ctx) {
     increment('requests.api');
 
+    const isJson = (req.headers.get('content-type') || '').includes('application/json');
+
     let body: unknown;
-    try {
-      body = await req.json();
-    } catch {
-      increment('errors.4xx');
-      return new Response(
-        JSON.stringify({ error: 'Invalid JSON body' }),
-        { status: 400, headers: { 'Content-Type': 'application/json' } },
-      );
+    if (isJson) {
+      try {
+        body = await req.json();
+      } catch {
+        increment('errors.4xx');
+        return new Response(
+          JSON.stringify({ error: 'Invalid JSON body' }),
+          { status: 400, headers: { 'Content-Type': 'application/json' } },
+        );
+      }
+    } else {
+      // The no-JS /login form.
+      try {
+        body = Object.fromEntries(
+          [...(await req.formData()).entries()].filter(([, v]) => typeof v === 'string'),
+        );
+      } catch {
+        increment('errors.4xx');
+        return formRedirect('/login?error=invalid');
+      }
     }
 
     const parsed = RequestSchema.safeParse(body);
@@ -75,20 +106,59 @@ export const handler: Handlers = {
        */
       const field = (body as { email?: unknown } | null)?.email;
       const missing = typeof field !== 'string';
+      if (!isJson) return formRedirect('/login?error=email');
       return new Response(
         JSON.stringify({ error: missing ? 'Email required' : 'Valid email required' }),
         { status: 400, headers: { 'Content-Type': 'application/json' } },
       );
     }
 
-    try {
-      const { email, gateToken } = parsed.data;
+    const { email, gateToken } = parsed.data;
+    const emailHash = await hashEmail(email);
 
+    // Before any session is created or mail sent. See lib/gate-guard.ts.
+    let decision;
+    try {
+      decision = await (guardForTesting.current ?? guardMagicLinkRequest)({
+        req,
+        remoteHost: (ctx as { remoteAddr?: { hostname?: string } } | undefined)?.remoteAddr?.hostname,
+        email,
+        emailHash,
+        captchaToken: parsed.data.captcha_token,
+        captchaAnswer: parsed.data.captcha,
+        honeypot: parsed.data.website,
+      });
+    } catch {
+      console.error('[auth] Guard unavailable; request refused');
+      increment('errors.5xx');
+      if (!isJson) return formRedirect('/login?error=server');
+      return new Response(
+        JSON.stringify({ error: 'Unable to send links right now' }),
+        { status: 503, headers: { 'Content-Type': 'application/json' } },
+      );
+    }
+
+    if (decision.kind === 'silent') {
+      increment('auth.magiclink.silenced');
+      if (!isJson) return formRedirect('/check-email');
+      return new Response(
+        JSON.stringify({ message: 'Magic link sent' }),
+        { status: 200, headers: { 'Content-Type': 'application/json' } },
+      );
+    }
+
+    if (decision.kind === 'refuse') {
+      increment(`auth.magiclink.refused.${decision.code}`);
+      if (!isJson) return formRedirect(`/login?error=${decision.code}`);
+      const status = decision.code === 'captcha' || decision.code === 'email' ? 400 : 429;
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (decision.retryAfter) headers['Retry-After'] = String(decision.retryAfter);
+      return new Response(JSON.stringify({ error: 'Request refused', code: decision.code }), { status, headers });
+    }
+
+    try {
       // Step 1: Create magic link (for email delivery verification)
       const { token: magicToken, expiresAt } = await createMagicLink(email);
-
-      // Step 2: Hash email immediately
-      const emailHash = await hashEmail(email);
 
       // Step 3: Create or resume questionnaire session
       // Check if user has an existing incomplete session
@@ -123,6 +193,7 @@ export const handler: Handlers = {
       if (!emailResult.success) {
         console.error('[auth] Email delivery failed');
         increment('errors.email');
+        if (!isJson) return formRedirect('/login?error=send');
         return new Response(
           JSON.stringify({ error: 'Failed to send magic link' }),
           { status: 500, headers: { 'Content-Type': 'application/json' } },
@@ -133,6 +204,8 @@ export const handler: Handlers = {
 
       // Log only that a link was created, not for whom
       console.log('[auth] Magic link created, expires:', expiresAt.toISOString());
+
+      if (!isJson) return formRedirect('/check-email');
 
       return new Response(
         JSON.stringify({
@@ -152,6 +225,7 @@ export const handler: Handlers = {
       console.error('[auth] Failed to create magic link');
       increment('errors.5xx');
 
+      if (!isJson) return formRedirect('/login?error=server');
       return new Response(
         JSON.stringify({ error: 'Failed to send magic link' }),
         { status: 500, headers: { 'Content-Type': 'application/json' } },

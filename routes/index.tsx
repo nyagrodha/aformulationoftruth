@@ -28,6 +28,8 @@ import Spheroid from '../islands/Spheroid.tsx';
 import Folio, { type FolioPart } from '../islands/Folio.tsx';
 import SiteFooter from '../components/SiteFooter.tsx';
 import { NAV_NOSCRIPT_CSS } from '../components/nav-shared.ts';
+import GateForm from '../components/GateForm.tsx';
+import { type Captcha, issueCaptcha } from '../lib/captcha.ts';
 
 /*
  * The landing page is one long page, so its nav is fragment anchors that scroll
@@ -56,11 +58,13 @@ const FOLIO_PARTS: FolioPart[] = [
 
 interface IndexData {
   error?: VNode;
+  captcha: Captcha;
 }
 
 /*
  * These keys must match the codes routes/api/gate-submit.ts actually redirects
- * with — fail(..., 'invalid' | 'email' | 'send' | 'server'). They drifted apart
+ * with — fail(..., 'invalid' | 'email' | 'send' | 'server' | 'captcha' | 'rate'
+ * | 'busy'). They drifted apart
  * once already, which silently swallowed every error but 'server': the visitor
  * was bounced back to the form with nothing to read. Change one, change both.
  */
@@ -71,6 +75,13 @@ const ERROR_MESSAGES: Record<string, VNode> = {
       The email address you submitted isn't valid. Try a different one —{' '}
       <a href='https://maildrop.cc' target='_blank' rel='noopener noreferrer'>maildrop.cc</a> and{' '}
       <a href='https://cock.li' target='_blank' rel='noopener noreferrer'>cockmail</a> both work.
+    </>
+  ),
+  captcha: <>The digits didn't match, or the image had expired. Here is a new one.</>,
+  rate: <>Too many attempts from your connection. Please wait an hour and try again.</>,
+  busy: (
+    <>
+      The site is sending more links than it allows itself right now. Please try again in a little while.
     </>
   ),
   send: <>We couldn't deliver your authorization link right meow. Try again in a moment.</>,
@@ -96,15 +107,19 @@ const SHARE_IMAGE_ALT =
   'A collage of quotations, photographs, and a poem, centred on the line: if a little dreaming is dangerous the cure is not to dream less but to dream more, to dream all the time.';
 
 export const handler: Handlers<IndexData> = {
-  GET(req, ctx) {
+  async GET(req, ctx) {
     const code = new URL(req.url).searchParams.get('error') || undefined;
     const error = code && ERROR_MESSAGES[code] ? ERROR_MESSAGES[code] : undefined;
-    return ctx.render({ error });
+    // Each render carries a fresh single-use challenge, so the page must not
+    // be served from any cache: a cached token is a spent token.
+    const res = await ctx.render({ error, captcha: await issueCaptcha() });
+    res.headers.set('Cache-Control', 'no-store');
+    return res;
   },
 };
 
 export default function Home({ data }: PageProps<IndexData>) {
-  const { error } = data;
+  const { error, captcha } = data;
   return (
     <html lang='en'>
       <head>
@@ -161,8 +176,9 @@ export default function Home({ data }: PageProps<IndexData>) {
           <section class='hero' id='top' aria-labelledby='prolegomenon'>
             <div class='hero-copy'>
               <p class='hero-title'>
-                Every reader, as he reads, is actually the reader of himself. The writer’s work is only a kind of optical instrument he provides the reader so he
-                can discern what he might never have seen in himself without this book. The reader's recognition of what the book says is proof of the book's truth.
+                Every reader, as he reads, is actually the reader of himself. The writer’s work is only a kind of
+                optical instrument he provides the reader so he can discern what he might never have seen in himself
+                without this book. The reader's recognition of what the book says is proof of the book's truth.
               </p>
 
               <p class='eyebrow' id='prolegomenon'>PROLEGOMENON:</p>
@@ -176,27 +192,30 @@ export default function Home({ data }: PageProps<IndexData>) {
                   height={560}
                 />
                 <span class='sr-only'>Y</span>our answers — anyone's answers — may become for another reader just such
-                an ātmanopticon: that optical lens-like perspective someone composes that another reader, without having read it,
-                may not ever have recognized that quality or trait within himself.
+                an ātmanopticon: that optical lens-like perspective someone composes that another reader, without having
+                read it, may not ever have recognized that quality or trait within himself.
               </p>
 
               <div class='hero-prose'>
                 <p>
-                  A practice/<i lang='sa-Latn'>sādhana</i>: the questions invite unguarded, thoughtful states of introspection. Time to time
-                  the answer astonishes in what it describes--an interior (<span lang='ta'>அகம்</span>) — a
-                  subject, the grammatical <em>I</em>, that which remains, a formulation of truth.
+                  A practice/<i lang='sa-Latn'>sādhana</i>: the questions invite unguarded, thoughtful states of
+                  introspection. Time to time the answer astonishes in what it describes--an interior (<span lang='ta'>
+                    அகம்
+                  </span>) — a subject, the grammatical <em>I</em>, that which remains, a formulation of truth.
                 </p>
                 <p>
                   Return, after some time and a species of amnesia, to respond again. The earlier answers belong to
-                  someone else; the one answering now is provisional too. This is not a tragedy; it's more like the weather.
+                  someone else; the one answering now is provisional too. This is not a tragedy; it's more like the
+                  weather.
                 </p>
                 <p>
-                  The questionnaire keeps a record — subject as excavated persons in succession, bearing one name: <em>I</em>.
+                  The questionnaire keeps a record — subject as excavated persons in succession, bearing one name:{' '}
+                  <em>I</em>.
                 </p>
                 <p>
                   Insofar as recognition adds nothing new — points to nothing that hasn’t always been known — it is well
-                  captured by doubling the ‘I’ observes 'I', sees the ones already offered, recalls who you were when you answered then;
-                  who answers now; who will — as one light regarding itself.
+                  captured by doubling the ‘I’ observes 'I', sees the ones already offered, recalls who you were when
+                  you answered then; who answers now; who will — as one light regarding itself.
                 </p>
                 <p>Find who sleeps.</p>
                 <p>That is what this instrument is for.</p>
@@ -222,8 +241,8 @@ export default function Home({ data }: PageProps<IndexData>) {
                 </title>
                 <desc id='figure-desc'>
                   A linear slope of desire, defined as a real number over expectation, meets the possibility function
-                  f(x) — which is unbounded, diverging toward an asymptote — at a single point,
-                  habit. The region between them, where desire exceeds possibility, is misery.
+                  f(x) — which is unbounded, diverging toward an asymptote — at a single point, habit. The region
+                  between them, where desire exceeds possibility, is misery.
                 </desc>
 
                 {/* misery: bounded above by desire, below by f(x), left of habit */}
@@ -295,76 +314,7 @@ export default function Home({ data }: PageProps<IndexData>) {
                 </div>
               )}
 
-              <form
-                id='gate-form'
-                class='gate-form'
-                method='POST'
-                action='/api/gate-submit'
-                enctype='application/x-www-form-urlencoded'
-                autocomplete='off'
-              >
-                <div class='form-group'>
-                  <label for='answer1'>What is your idea of perfect happiness?</label>
-                  <textarea
-                    id='answer1'
-                    name='answer1'
-                    rows={4}
-                    maxLength={20000}
-                    placeholder='Answer every question in one sitting, or complete the questionnaire over several days… When you return, simply sign in with the same email address you use today.'
-                    aria-describedby='accessibility-hint'
-                  >
-                  </textarea>
-                </div>
-
-                <div class='form-group'>
-                  <label for='answer2'>What is your greatest fear?</label>
-                  <textarea
-                    id='answer2'
-                    name='answer2'
-                    rows={4}
-                    maxLength={20000}
-                    placeholder="You may submit one questionnaire at a time. A waiting period follows each submission; you'll be emailed when you're able to submit another set of responses."
-                    aria-describedby='accessibility-hint'
-                  >
-                  </textarea>
-                  <p class='accessibility-note' id='accessibility-hint'>
-                    For voice input, use{' '}
-                    <a
-                      href='https://github.com/cjpais/Handy'
-                      target='_blank'
-                      rel='noopener noreferrer'
-                    >
-                      Handy
-                    </a>{' '}
-                    — free offline speech-to-text.
-                  </p>
-                </div>
-
-                <div class='form-group'>
-                  <label for='email'>Email</label>
-                  <input
-                    type='email'
-                    id='email'
-                    name='email'
-                    autocomplete='email'
-                    required
-                    placeholder='your.email@example.com'
-                  />
-                  <p class='privacy-notice'>
-                    Your answers are age-encrypted before storage, and so is your address. The database keeps a SHA-256
-                    hash of it, to recognise your session, and an age-encrypted copy that only the key box which mails
-                    your finished questionnaire can open. We have no wish to see your email address. We use it for three
-                    things and nothing else: to send you your link, to deliver your answers to you as a PDF, and to
-                    remind you, some time later, to answer the questions again. Each of those goes out through Apple's
-                    mail servers. There is no tracking, no profiling, no analytics, and nothing is shared with anyone
-                    beyond that delivery.
-                  </p>
-                </div>
-
-                <button type='submit' id='gate-submit-btn' class='gate-submit'>
-                  Begin
-                </button>
-              </form>
+              <GateForm captcha={captcha} />
             </div>
           </section>
 

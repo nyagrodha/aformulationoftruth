@@ -3,6 +3,9 @@
  *
  * POST /api/gate-submit
  * - Accepts email and gate answers in a single request
+ * - Passes lib/gate-guard.ts (rate limits, honeypot, image challenge, mail
+ *   domain check, per-address cap) before anything is provisioned, stored or
+ *   sent
  * - Generates gateToken server-side
  * - Stores gate answers
  * - Creates and sends magic link
@@ -33,6 +36,9 @@ import {
   shredRemoteIdentity,
 } from '../../lib/session-keys.ts';
 import { stampEncounterFromCookie } from '../../lib/brooch.ts';
+import { type Guard, guardMagicLinkRequest } from '../../lib/gate-guard.ts';
+import { issueCaptcha } from '../../lib/captcha.ts';
+import { renderGateRetry } from '../../components/GateRetryPage.tsx';
 
 /**
  * Test seam for the identity push. Undefined in production, which is what
@@ -58,10 +64,21 @@ export const dbForTesting: { withConnection?: typeof realWithConnection } = {};
 const withConnection: typeof realWithConnection = (handler) =>
   (dbForTesting.withConnection ?? realWithConnection)(handler);
 
+/**
+ * Test seam for lib/gate-guard.ts. Undefined in production. The guard needs
+ * Postgres for its counters and DNS for the mail-domain check, neither of
+ * which the suites here have.
+ */
+export const guardForTesting: { current?: Guard } = {};
+
 const GateSubmitSchema = z.object({
   email: z.string().email(),
   answer1: z.string().max(20000).optional().default(''),
   answer2: z.string().max(20000).optional().default(''),
+  // lib/gate-guard.ts inputs; see components/GateForm.tsx for the field names.
+  captcha_token: z.string().max(64).optional(),
+  captcha: z.string().max(32).optional(),
+  website: z.string().max(2000).optional(),
 });
 
 /**
@@ -89,7 +106,7 @@ async function readBody(req: Request): Promise<Record<string, unknown> | null> {
 }
 
 export const handler: Handlers = {
-  async POST(req, _ctx) {
+  async POST(req, ctx) {
     increment('requests.api');
     increment('gate.submit.received');
 
@@ -97,7 +114,7 @@ export const handler: Handlers = {
     const wantsJson = (req.headers.get('content-type') || '').includes('application/json') ||
       (req.headers.get('accept') || '').includes('application/json');
 
-    const fail = (status: number, error: string, redirectError: string) => {
+    const fail = (status: number, error: string, redirectError: string, retryAfter?: number) => {
       /*
        * Counted here rather than at the call sites, so no branch can forget.
        *
@@ -113,10 +130,9 @@ export const handler: Handlers = {
       increment(`gate.submit.refused.${redirectError}`);
 
       if (wantsJson) {
-        return new Response(
-          JSON.stringify({ error }),
-          { status, headers: { 'Content-Type': 'application/json' } },
-        );
+        const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+        if (retryAfter) headers['Retry-After'] = String(retryAfter);
+        return new Response(JSON.stringify({ error, code: redirectError }), { status, headers });
       }
       // No-JS form path: bounce back to the gate with an error flag (no PII in URL).
       return new Response(null, {
@@ -138,6 +154,63 @@ export const handler: Handlers = {
     }
 
     const { email, answer1, answer2 } = parsed.data;
+
+    /*
+     * The guard runs before anything else touches the outside world: before a
+     * keypair is pushed to the key box, before the irreversible gate write,
+     * and before any mail. A refused or silent request costs a few counter
+     * increments and nothing more.
+     */
+    const emailHash = await hashEmail(email);
+    let decision;
+    try {
+      decision = await (guardForTesting.current ?? guardMagicLinkRequest)({
+        req,
+        remoteHost: (ctx as { remoteAddr?: { hostname?: string } } | undefined)?.remoteAddr?.hostname,
+        email,
+        emailHash,
+        captchaToken: parsed.data.captcha_token,
+        captchaAnswer: parsed.data.captcha,
+        honeypot: parsed.data.website,
+      });
+    } catch {
+      // Fail closed: no counters, no mail.
+      console.error('[gate-submit] Guard unavailable; submission refused');
+      increment('errors.5xx');
+      return fail(503, 'Unable to accept submissions right now. Please try again.', 'server');
+    }
+
+    if (decision.kind === 'silent') {
+      // Answer exactly as success does; see lib/gate-guard.ts.
+      increment('gate.submit.silenced');
+      return wantsJson
+        ? new Response(JSON.stringify({ message: 'Magic link sent' }), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        })
+        : new Response(null, { status: 303, headers: { Location: '/check-email' } });
+    }
+
+    if (decision.kind === 'refuse') {
+      if ((decision.code === 'captcha' || decision.code === 'email') && !wantsJson) {
+        // Re-draw the gate with the answers still in it: nothing was stored, and
+        // the site has no JavaScript to keep them. Counted like every refusal.
+        increment('gate.submit.refused');
+        increment(`gate.submit.refused.${decision.code}`);
+        return new Response(
+          renderGateRetry(await issueCaptcha(), { answer1, answer2, email }, decision.code),
+          { status: 422, headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' } },
+        );
+      }
+      const messages = {
+        captcha: 'The challenge answer was wrong or expired.',
+        email: 'That address cannot receive mail.',
+        rate: 'Too many attempts. Please try again later.',
+        busy: 'Too many links are being sent right now. Please try again later.',
+      } as const;
+      const status = decision.code === 'captcha' || decision.code === 'email' ? 400 : 429;
+      return fail(status, messages[decision.code], decision.code, decision.retryAfter);
+    }
 
     try {
       // Step 1: Generate server-side gate token
@@ -234,9 +307,6 @@ export const handler: Handlers = {
 
       // Step 3: Create magic link
       const { token: magicToken, expiresAt } = await createMagicLink(email);
-
-      // Step 4: Hash email immediately
-      const emailHash = await hashEmail(email);
 
       // Step 4b: If this entry began at a wearable's QR (/w/:token planted
       // the cookie), record the encounter -- pseudonymous, hash only.
