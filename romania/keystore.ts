@@ -21,15 +21,28 @@ function markerPath(dir: string, sessionId: string, kind: 'delivered' | 'seen'):
   return `${dir}/${sessionId}.${kind}`;
 }
 
+async function rejectSymlink(path: string): Promise<void> {
+  try {
+    const info = await Deno.lstat(path);
+    if (info.isSymlink) throw new Error('refusing to follow symlink');
+  } catch (e) {
+    if (e instanceof Deno.errors.NotFound) return;
+    throw e;
+  }
+}
+
 export async function storeIdentity(dir: string, sessionId: string, identity: string): Promise<void> {
   const path = keyPath(dir, sessionId);
+  await rejectSymlink(path);
   await Deno.writeTextFile(path, identity, { mode: 0o600 });
   // umask can weaken the create mode; be explicit.
   await Deno.chmod(path, 0o600);
 }
 
 export async function loadIdentity(dir: string, sessionId: string): Promise<string> {
-  return (await Deno.readTextFile(keyPath(dir, sessionId))).trim();
+  const path = keyPath(dir, sessionId);
+  await rejectSymlink(path);
+  return (await Deno.readTextFile(path)).trim();
 }
 
 /**
