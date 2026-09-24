@@ -15,6 +15,15 @@ import { withConnection, withTransaction } from './db.ts';
 // Token validity period: 15 minutes
 const TOKEN_VALIDITY_MS = 15 * 60 * 1000;
 
+/**
+ * The expiresAt createMagicLink() reports. Exported so a response that must
+ * be indistinguishable from a real send (lib/gate-guard.ts, 'silent') reports
+ * the same value without creating a link.
+ */
+export function magicLinkExpiresAt(from: number = Date.now()): Date {
+  return new Date(from + TOKEN_VALIDITY_MS);
+}
+
 // Session validity period: 24 hours
 const SESSION_VALIDITY_MS = 24 * 60 * 60 * 1000;
 
@@ -52,7 +61,7 @@ export async function createMagicLink(email: string): Promise<MagicLinkResult> {
   // Hash the token for storage (we never store plaintext tokens)
   const tokenHash = await sha256(token);
 
-  const expiresAt = new Date(Date.now() + TOKEN_VALIDITY_MS);
+  const expiresAt = magicLinkExpiresAt();
 
   await withConnection(async (client) => {
     // Invalidate any existing tokens for this email hash

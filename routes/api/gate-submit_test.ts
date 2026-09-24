@@ -24,6 +24,8 @@
 import { assert, assertEquals, assertStringIncludes } from '$std/assert/mod.ts';
 import { GATE_QUESTIONS } from '../../lib/gate_encrypt.ts';
 import { generateSessionKeypair } from '../../lib/session-keys.ts';
+import { silentPause } from '../../lib/gate-guard.ts';
+import { rateLimitDbForTesting } from '../../lib/rate-limit.ts';
 
 /*
  * A real age recipient, minted once for the suite. The handler encrypts the
@@ -139,8 +141,25 @@ async function loadHandler() {
    * The guard-outcome tests below override this per test.
    */
   mod.guardForTesting.current = () => Promise.resolve({ kind: 'allow' });
+  // A silenced request pads its reply to look like a real send; not here.
+  silentPause.ms = () => 0;
+  /*
+   * lib/rate-limit.ts's own database seam, so releaseEmailAllowance() is
+   * observable instead of failing against the unparseable DATABASE_URL.
+   */
+  released.length = 0;
+  rateLimitDbForTesting.withConnection = (<T>(handler: (client: never) => Promise<T>) =>
+    handler({
+      queryObject: (sql: string, params: unknown[]) => {
+        if (sql.includes('UPDATE fresh_rate_limits')) released.push(String(params[0]));
+        return Promise.resolve({ rows: [] });
+      },
+    } as never)) as typeof rateLimitDbForTesting.withConnection;
   return mod.handler.POST!;
 }
+
+/** Buckets handed back via releaseEmailAllowance() during the current test. */
+const released: string[] = [];
 
 function jsonRequest(body: unknown): Request {
   return new Request('http://localhost/api/gate-submit', {
@@ -471,7 +490,11 @@ Deno.test({
 
       const json = await post(jsonRequest({ email: 'victim@example.com' }), {} as never);
       assertEquals(json.status, 200);
-      assertEquals((await json.json()).message, 'Magic link sent');
+      const body = await json.json();
+      // The same fields a real send returns, so JSON clients cannot tell.
+      assertEquals(Object.keys(body).sort(), ['expiresAt', 'message']);
+      assertEquals(body.message, 'Magic link sent');
+      assert(!Number.isNaN(Date.parse(body.expiresAt)));
 
       assertEquals(gate.calls.length, 0, 'a silenced submission stores nothing');
     } finally {
@@ -522,6 +545,45 @@ Deno.test({
       assertEquals(response.status, 303);
       assertEquals(response.headers.get('Location'), '/?error=server#begin');
       assertEquals(gate.calls.length, 0, 'no mail and no storage without the guard');
+    } finally {
+      gate.restore();
+      restoreEnv();
+    }
+  },
+});
+
+Deno.test({
+  name: 'gate-submit: a submission admitted by the guard but never mailed hands its address charge back',
+  async fn() {
+    setupTestEnv();
+    const gate = stubGate(() => null); // encryption fails, so nothing is sent
+    try {
+      const post = await loadHandler();
+      const response = await post(jsonRequest({ email: 'visitor@example.com', answer1: 'a' }), {} as never);
+      await response.body?.cancel();
+      assertEquals(response.status, 503);
+      assertEquals(released.length, 1, 'exactly one charge handed back');
+      assert(released[0].startsWith('email:'), 'it is the per-address bucket');
+      assert(!released[0].includes('@'), 'keyed on the hash, never the address');
+    } finally {
+      gate.restore();
+      restoreEnv();
+    }
+  },
+});
+
+Deno.test({
+  name: 'gate-submit: a refused or silenced request never releases a charge it was not given',
+  async fn() {
+    setupTestEnv();
+    const gate = stubGate();
+    try {
+      for (const decision of [{ kind: 'silent' }, { kind: 'refuse', code: 'rate' }] as const) {
+        const post = await loadHandlerWithGuard(decision);
+        const response = await post(jsonRequest({ email: 'visitor@example.com' }), {} as never);
+        await response.body?.cancel();
+        assertEquals(released.length, 0, JSON.stringify(decision));
+      }
     } finally {
       gate.restore();
       restoreEnv();

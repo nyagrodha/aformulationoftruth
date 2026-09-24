@@ -11,11 +11,11 @@ index 0.
 **Almost no submissions were from people.** Every retained Caddy log was
 fingerprinted by protocol for `POST /api/gate-submit`:
 
-| client                        | submissions |
-| ----------------------------- | ----------- |
-| HTTP/1.0, TLS 1.2, no ALPN    | 445         |
-| HTTP/1.1, TLS 1.3, no ALPN    | 156         |
-| HTTP/2, TLS 1.3, ALPN h2      | 3           |
+| client                     | submissions |
+| -------------------------- | ----------- |
+| HTTP/1.0, TLS 1.2, no ALPN | 445         |
+| HTTP/1.1, TLS 1.3, no ALPN | 156         |
+| HTTP/2, TLS 1.3, ALPN h2   | 3           |
 
 Current browsers negotiate h2 over TLS 1.3. The first two rows are scripts:
 `GET /`, then `POST` four seconds later, uncompressed, a different address
@@ -60,14 +60,19 @@ links were not reaching inboxes.
 `lib/gate-guard.ts` now stands in front of both endpoints that mail a
 stranger-typed address (`/api/gate-submit`, `/api/auth/magic-link`):
 
-1. per-client rate limit (Postgres, HMAC'd address; onion traffic shares one
-   larger bucket);
+1. per-client rate limit (Postgres, HMAC'd address; IPv6 counted per /64;
+   onion traffic shares one larger bucket);
 2. honeypot field → silent;
 3. image challenge (`lib/captcha.ts`, PNG, no JS, single-use nonce);
 4. MX check on the address's domain (`lib/mail-domain.ts`) → the visitor can
    fix a typo; nothing bounces in the site's name;
-5. at most three links per address per day → silent;
+5. at most two links per address per day → silent. The cap counts mail
+   actually sent: the charge is handed back if the request is then refused
+   or the send fails;
 6. site-wide hourly ceiling on links sent.
+
+Silenced requests answer exactly as success does: same status, same body,
+and a padded delay matching a real send's key provisioning and SMTP time.
 
 A wrong challenge answer re-draws the gate with the answers kept. `/login`
 is a plain form with the same challenge. Copy now says 24 hours.
@@ -89,7 +94,7 @@ submission is refused.
 
 Environment overrides (defaults in brackets): `GATE_IP_HOURLY_MAX` [6],
 `GATE_IP_DAILY_MAX` [20], `GATE_ONION_HOURLY_MAX` [40],
-`GATE_ONION_DAILY_MAX` [200], `GATE_EMAIL_DAILY_MAX` [3],
+`GATE_ONION_DAILY_MAX` [200], `GATE_EMAIL_DAILY_MAX` [2],
 `GATE_GLOBAL_HOURLY_MAX` [30]. `CAPTCHA_SECRET` is optional; without it the
 key is derived from `JWT_SECRET`.
 

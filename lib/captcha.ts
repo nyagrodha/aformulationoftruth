@@ -40,14 +40,16 @@ const encoder = new TextEncoder();
 export const CAPTCHA_LENGTH = 6;
 const ALPHABET = '23456789';
 
-/** Tokens older than this are refused; the form has to be reloaded. */
-export const CAPTCHA_MAX_AGE_SECONDS = 30 * 60;
 /**
- * Tokens younger than this are refused. A person reads two questions and
- * writes something; the scripts observed post four seconds after fetching.
- * Kept low so a visitor who skips both answers is not caught by it.
+ * Tokens older than this are refused; the form has to be reloaded.
+ *
+ * There is deliberately no minimum age. One was tried (3 s) and removed in
+ * review: the retry page and /login mint a challenge in the very response the
+ * visitor answers, where six digits is all there is to type, so a quick
+ * person was refused and charged against their hourly limit -- while the
+ * scripts it was aimed at already wait four seconds.
  */
-export const CAPTCHA_MIN_AGE_SECONDS = 3;
+export const CAPTCHA_MAX_AGE_SECONDS = 30 * 60;
 
 /**
  * Read the key lazily, like lib/jwt.ts: main.ts loads .env after the route
@@ -106,7 +108,7 @@ export async function issueCaptcha(issuedAt: number = nowSeconds()): Promise<Cap
 
 export type CaptchaVerdict =
   | { ok: true; nonce: string }
-  | { ok: false; reason: 'malformed' | 'expired' | 'too_fast' | 'wrong' };
+  | { ok: false; reason: 'malformed' | 'expired' | 'wrong' };
 
 /**
  * Check an answer against a token. Does NOT record the spend -- the caller
@@ -121,7 +123,6 @@ export async function verifyCaptcha(
   const [issuedRaw, nonce] = token.split('.');
   const age = now - Number(issuedRaw);
   if (age > CAPTCHA_MAX_AGE_SECONDS || age < -60) return { ok: false, reason: 'expired' };
-  if (age < CAPTCHA_MIN_AGE_SECONDS) return { ok: false, reason: 'too_fast' };
 
   // Forgive what a person plausibly types around six digits.
   const given = (answer ?? '').replace(/[\s\-.]/g, '');

@@ -66,6 +66,26 @@ export async function hit(bucket: string, windowSeconds: number, limit: number):
 }
 
 /**
+ * Give back one event counted by hit() in the current window.
+ *
+ * For allowances that should be spent only by an outcome, not an attempt: the
+ * per-address link allowance is charged when the guard admits a request, and
+ * handed back if no mail then goes out (a later refusal, a failed send), so a
+ * person is never capped by mail they did not receive.
+ */
+export async function unhit(bucket: string, windowSeconds: number): Promise<void> {
+  const now = Math.floor(Date.now() / 1000);
+  const windowStart = now - (now % windowSeconds);
+  await withConnection((client) =>
+    client.queryObject(
+      `UPDATE fresh_rate_limits SET count = GREATEST(count - 1, 0)
+       WHERE bucket = $1 AND window_start = to_timestamp($2)`,
+      [bucket, windowStart],
+    )
+  );
+}
+
+/**
  * Record a spent challenge nonce. Returns false if it was already spent, i.e.
  * the submission is a replay.
  */

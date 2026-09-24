@@ -399,6 +399,8 @@ Deno.test({
   async fn() {
     setupTestEnv();
     const mod = await import('./magic-link.ts');
+    const { silentPause } = await import('../../../lib/gate-guard.ts');
+    silentPause.ms = () => 0;
     try {
       const cases: Array<[import('../../../lib/gate-guard.ts').GuardDecision, string]> = [
         [{ kind: 'refuse', code: 'captcha' }, '/login?error=captcha'],

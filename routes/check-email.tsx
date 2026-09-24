@@ -71,7 +71,7 @@ export default function CheckEmail() {
               </p>
               <p class='section-text' style='opacity: 0.7;'>
                 Not in your inbox? Check spam, or wait a minute — iCloud sometimes takes a moment. To keep the site from
-                being used to flood anyone's inbox, no address receives more than three links a day. Use the most recent
+                being used to flood anyone's inbox, no address receives more than two links a day. Use the most recent
                 link you received; asking again replaces it.
               </p>
               <p style='margin-top: 2rem;'>

@@ -13,7 +13,7 @@ import { assert, assertEquals } from '$std/assert/mod.ts';
 import { answerFor, CAPTCHA_MAX_AGE_SECONDS, issueCaptcha, verifyCaptcha } from './captcha.ts';
 import { rateLimitDbForTesting } from './rate-limit.ts';
 import { clearMailDomainCache, mailDomainResolverForTesting } from './mail-domain.ts';
-import { type GuardInput, guardMagicLinkRequest } from './gate-guard.ts';
+import { clientKey, type GuardInput, guardMagicLinkRequest, releaseEmailAllowance } from './gate-guard.ts';
 
 Deno.env.set('JWT_SECRET', 'test-jwt-secret-key');
 Deno.env.set('TRUST_PROXY', 'true');
@@ -28,6 +28,11 @@ function fakePostgres() {
         const n = (counters.get(key) ?? 0) + 1;
         counters.set(key, n);
         return Promise.resolve({ rows: [{ count: n }] });
+      }
+      if (sql.includes('UPDATE fresh_rate_limits')) {
+        const key = `${params[0]}@${params[1]}`;
+        if (counters.has(key)) counters.set(key, Math.max(0, counters.get(key)! - 1));
+        return Promise.resolve({ rows: [] });
       }
       if (sql.includes('INSERT INTO fresh_captcha_spent')) {
         const nonce = String(params[0]);
@@ -85,7 +90,7 @@ Deno.test('captcha: the right answer passes; spacing is forgiven', async () => {
   assert((await verifyCaptcha(token, ` ${answer.slice(0, 3)} ${answer.slice(3)} `)).ok);
 });
 
-Deno.test('captcha: wrong, missing, forged, too fast and expired are all refused', async () => {
+Deno.test('captcha: wrong, missing, forged and expired are all refused', async () => {
   const { token, answer } = await solved();
   const wrong = answer.replace(/./, (d) => (d === '2' ? '3' : '2'));
   assertEquals(await verifyCaptcha(token, wrong), { ok: false, reason: 'wrong' });
@@ -94,10 +99,14 @@ Deno.test('captcha: wrong, missing, forged, too fast and expired are all refused
   assertEquals(await verifyCaptcha('not-a-token', answer), { ok: false, reason: 'malformed' });
 
   const now = Math.floor(Date.now() / 1000);
-  const fresh = (await issueCaptcha(now)).token;
-  assertEquals(await verifyCaptcha(fresh, await answerFor(fresh), now), { ok: false, reason: 'too_fast' });
   const old = (await issueCaptcha(now - CAPTCHA_MAX_AGE_SECONDS - 1)).token;
   assertEquals(await verifyCaptcha(old, await answerFor(old), now), { ok: false, reason: 'expired' });
+});
+
+Deno.test('captcha: a challenge can be answered the moment it is issued (the retry page and /login do this)', async () => {
+  const now = Math.floor(Date.now() / 1000);
+  const { token } = await issueCaptcha(now);
+  assert((await verifyCaptcha(token, await answerFor(token), now)).ok);
 });
 
 Deno.test('captcha: an answer is bound to the key; another deployment cannot mint valid pairs', async () => {
@@ -168,13 +177,68 @@ Deno.test('guard: a DNS failure that is not NXDOMAIN does not turn a person away
   assertEquals((await guardMagicLinkRequest(await input())).kind, 'allow');
 });
 
-Deno.test('guard: one address receives at most three links a day; the fourth is silenced', async () => {
+Deno.test('guard: one address receives at most two links a day; the third is silenced', async () => {
   fakePostgres();
   mxFor({ 'mail.test': 'mx' });
   const emailHash = 'hash-of-one-victim';
   const kinds = [];
-  for (let i = 0; i < 4; i++) kinds.push((await guardMagicLinkRequest(await input({ emailHash }))).kind);
-  assertEquals(kinds, ['allow', 'allow', 'allow', 'silent']);
+  for (let i = 0; i < 3; i++) kinds.push((await guardMagicLinkRequest(await input({ emailHash }))).kind);
+  assertEquals(kinds, ['allow', 'allow', 'silent']);
+});
+
+Deno.test('guard: the daily cap counts links sent -- a released charge is not a link received', async () => {
+  fakePostgres();
+  mxFor({ 'mail.test': 'mx' });
+  const emailHash = 'hash-whose-sends-failed';
+  // Two admitted requests whose sends then failed, each handing its charge back.
+  for (let i = 0; i < 2; i++) {
+    assertEquals((await guardMagicLinkRequest(await input({ emailHash }))).kind, 'allow');
+    await releaseEmailAllowance(emailHash);
+  }
+  // Nothing was received, so the full allowance remains.
+  const kinds = [];
+  for (let i = 0; i < 3; i++) kinds.push((await guardMagicLinkRequest(await input({ emailHash }))).kind);
+  assertEquals(kinds, ['allow', 'allow', 'silent']);
+});
+
+Deno.test('guard: a busy refusal does not spend the address allowance', async () => {
+  fakePostgres();
+  mxFor({ 'mail.test': 'mx' });
+  const emailHash = 'hash-of-a-patient-person';
+  Deno.env.set('GATE_GLOBAL_HOURLY_MAX', '1');
+  try {
+    assertEquals((await guardMagicLinkRequest(await input())).kind, 'allow'); // fills the hour
+    for (let i = 0; i < 3; i++) {
+      assertEquals((await guardMagicLinkRequest(await input({ emailHash }))).kind, 'refuse');
+    }
+  } finally {
+    Deno.env.delete('GATE_GLOBAL_HOURLY_MAX');
+  }
+  // The hour has room again; the three busy refusals must not have capped them.
+  assertEquals((await guardMagicLinkRequest(await input({ emailHash }))).kind, 'allow');
+});
+
+Deno.test('guard: IPv6 clients are counted per /64, so rotating the interface id gains nothing', async () => {
+  fakePostgres();
+  mxFor({ 'mail.test': 'mx' });
+  const kinds = [];
+  for (let i = 1; i <= 7; i++) {
+    const req = new Request('http://localhost/', {
+      method: 'POST',
+      headers: { 'x-forwarded-for': `2001:db8:aa:bb::${i.toString(16)}` },
+    });
+    kinds.push((await guardMagicLinkRequest(await input({ req }))).kind);
+  }
+  assertEquals(kinds, ['allow', 'allow', 'allow', 'allow', 'allow', 'allow', 'refuse']);
+});
+
+Deno.test('clientKey: IPv4 unchanged, mapped IPv4 unwrapped, IPv6 reduced to its /64', () => {
+  assertEquals(clientKey('203.0.113.9'), '203.0.113.9');
+  assertEquals(clientKey('::ffff:198.51.100.7'), '198.51.100.7');
+  assertEquals(clientKey('2a06:1700:2:20c::3804:466a'), '2a06:1700:0002:020c::/64');
+  assertEquals(clientKey('2A06:1700:0002:020C:5e1f:1dea:0:1'), '2a06:1700:0002:020c::/64');
+  assertEquals(clientKey('[2001:db8::1]'), '2001:0db8:0000:0000::/64');
+  assertEquals(clientKey('fe80::1%eth0'), 'fe80:0000:0000:0000::/64');
 });
 
 Deno.test('guard: one client is refused after six attempts in an hour, whatever it submits', async () => {

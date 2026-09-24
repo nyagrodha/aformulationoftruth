@@ -19,7 +19,7 @@
 import { Handlers } from '$fresh/server.ts';
 import { z } from 'zod';
 import { withConnection as realWithConnection } from '../../lib/db.ts';
-import { createMagicLink } from '../../lib/auth.ts';
+import { createMagicLink, magicLinkExpiresAt } from '../../lib/auth.ts';
 import { hashEmail } from '../../lib/crypto.ts';
 import { createQuestionnaireSession, findActiveSession } from '../../lib/questionnaire-session.ts';
 import { createQuestionnaireJWT } from '../../lib/jwt.ts';
@@ -36,7 +36,7 @@ import {
   shredRemoteIdentity,
 } from '../../lib/session-keys.ts';
 import { stampEncounterFromCookie } from '../../lib/brooch.ts';
-import { type Guard, guardMagicLinkRequest } from '../../lib/gate-guard.ts';
+import { type Guard, guardMagicLinkRequest, releaseEmailAllowance, waitSilently } from '../../lib/gate-guard.ts';
 import { issueCaptcha } from '../../lib/captcha.ts';
 import { renderGateRetry } from '../../components/GateRetryPage.tsx';
 
@@ -59,6 +59,21 @@ export const identityTransportForTesting: { current?: IdentityTransport } = {};
  * ordering rather than stop short of it.
  */
 export const dbForTesting: { withConnection?: typeof realWithConnection } = {};
+
+/**
+ * The one success response, used by a real send and by a silenced request
+ * alike, so the two cannot drift apart into an oracle.
+ */
+function accepted(wantsJson: boolean, expiresAt: Date): Response {
+  if (!wantsJson) {
+    // Native form path: 303-redirect to the no-JS success page.
+    return new Response(null, { status: 303, headers: { Location: '/check-email' } });
+  }
+  return new Response(
+    JSON.stringify({ message: 'Magic link sent', expiresAt: expiresAt.toISOString() }),
+    { status: 200, headers: { 'Content-Type': 'application/json' } },
+  );
+}
 
 /** Every database touch in this route resolves the seam first. */
 const withConnection: typeof realWithConnection = (handler) =>
@@ -181,14 +196,11 @@ export const handler: Handlers = {
     }
 
     if (decision.kind === 'silent') {
-      // Answer exactly as success does; see lib/gate-guard.ts.
+      // Answer exactly as success does -- body and timing; see lib/gate-guard.ts.
       increment('gate.submit.silenced');
-      return wantsJson
-        ? new Response(JSON.stringify({ message: 'Magic link sent' }), {
-          status: 200,
-          headers: { 'Content-Type': 'application/json' },
-        })
-        : new Response(null, { status: 303, headers: { Location: '/check-email' } });
+      const expiresAt = magicLinkExpiresAt();
+      await waitSilently();
+      return accepted(wantsJson, expiresAt);
     }
 
     if (decision.kind === 'refuse') {
@@ -212,6 +224,12 @@ export const handler: Handlers = {
       return fail(status, messages[decision.code], decision.code, decision.retryAfter);
     }
 
+    /*
+     * The guard charged this address one link. It is only a link if it is
+     * sent: every path below that does not reach a successful send hands the
+     * charge back, so the per-address cap counts mail received, not attempts.
+     */
+    let mailed = false;
     try {
       // Step 1: Generate server-side gate token
       const gateToken = crypto.randomUUID();
@@ -383,6 +401,7 @@ export const handler: Handlers = {
         increment('errors.email');
         return fail(500, 'Failed to send magic link email. Please try again.', 'send');
       }
+      mailed = true;
 
       increment('gate.submit.accepted');
       increment('auth.magiclink.sent');
@@ -390,22 +409,7 @@ export const handler: Handlers = {
 
       console.log('[gate-submit] Magic link sent, expires:', expiresAt.toISOString());
 
-      // Native form path: 303-redirect to the no-JS success page.
-      // JSON clients get the structured response.
-      if (!wantsJson) {
-        return new Response(null, {
-          status: 303,
-          headers: { Location: '/check-email' },
-        });
-      }
-
-      return new Response(
-        JSON.stringify({
-          message: 'Magic link sent',
-          expiresAt: expiresAt.toISOString(),
-        }),
-        { status: 200, headers: { 'Content-Type': 'application/json' } },
-      );
+      return accepted(wantsJson, expiresAt);
     } catch {
       // Category only. The error object can carry the submitted answers or the
       // email address, so it is never logged (CLAUDE.md: zero-logging).
@@ -413,6 +417,12 @@ export const handler: Handlers = {
       increment('errors.5xx');
 
       return fail(500, 'Failed to process submission', 'server');
+    } finally {
+      if (!mailed) {
+        // Best-effort: the visitor is already being refused, and must not be
+        // refused differently because the counter could not be decremented.
+        await releaseEmailAllowance(emailHash).catch(() => {});
+      }
     }
   },
 };

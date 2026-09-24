@@ -28,13 +28,13 @@
 
 import { Handlers } from '$fresh/server.ts';
 import { z } from 'zod';
-import { createMagicLink } from '../../../lib/auth.ts';
+import { createMagicLink, magicLinkExpiresAt } from '../../../lib/auth.ts';
 import { hashEmail } from '../../../lib/crypto.ts';
 import { createQuestionnaireSession, findActiveSession } from '../../../lib/questionnaire-session.ts';
 import { createQuestionnaireJWT } from '../../../lib/jwt.ts';
 import { increment } from '../../../lib/metrics.ts';
 import { sendMagicLinkEmail } from '../../../lib/email.ts';
-import { type Guard, guardMagicLinkRequest } from '../../../lib/gate-guard.ts';
+import { type Guard, guardMagicLinkRequest, releaseEmailAllowance, waitSilently } from '../../../lib/gate-guard.ts';
 
 const RequestSchema = z.object({
   email: z.string().email(),
@@ -139,10 +139,14 @@ export const handler: Handlers = {
     }
 
     if (decision.kind === 'silent') {
+      // Indistinguishable from the production success below: same body
+      // (message + expiresAt), and about the same wait. See lib/gate-guard.ts.
       increment('auth.magiclink.silenced');
+      const expiresAt = magicLinkExpiresAt();
+      await waitSilently();
       if (!isJson) return formRedirect('/check-email');
       return new Response(
-        JSON.stringify({ message: 'Magic link sent' }),
+        JSON.stringify({ message: 'Magic link sent', expiresAt: expiresAt.toISOString() }),
         { status: 200, headers: { 'Content-Type': 'application/json' } },
       );
     }
@@ -156,6 +160,9 @@ export const handler: Handlers = {
       return new Response(JSON.stringify({ error: 'Request refused', code: decision.code }), { status, headers });
     }
 
+    // The guard charged this address one link; hand it back unless one is
+    // actually sent. See the same block in routes/api/gate-submit.ts.
+    let mailed = false;
     try {
       // Step 1: Create magic link (for email delivery verification)
       const { token: magicToken, expiresAt } = await createMagicLink(email);
@@ -200,6 +207,7 @@ export const handler: Handlers = {
         );
       }
 
+      mailed = true;
       increment('auth.magiclink.sent');
 
       // Log only that a link was created, not for whom
@@ -230,6 +238,8 @@ export const handler: Handlers = {
         JSON.stringify({ error: 'Failed to send magic link' }),
         { status: 500, headers: { 'Content-Type': 'application/json' } },
       );
+    } finally {
+      if (!mailed) await releaseEmailAllowance(emailHash).catch(() => {});
     }
   },
 };
