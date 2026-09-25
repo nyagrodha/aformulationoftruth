@@ -205,8 +205,7 @@ export default function Home({ data }: PageProps<IndexData>) {
                 </p>
                 <p>
                   Return, after some time and a species of amnesia, to respond again. The earlier answers belong to
-                  someone else; the one answering now is provisional too. This is not a tragedy; it's more like the
-                  weather.
+                  someone else; the one answering now is provisional too.
                 </p>
                 <p>
                   The questionnaire keeps a record — subject as excavated persons in succession, bearing one name:{' '}
