@@ -21,6 +21,23 @@ function markerPath(dir: string, sessionId: string, kind: 'delivered' | 'seen'):
   return `${dir}/${sessionId}.${kind}`;
 }
 
+/*
+ * Symlink defense. A symlink planted in the key directory would turn a read
+ * into an arbitrary-file read and a write into an arbitrary-file overwrite.
+ *
+ * Checking the path with lstat and then opening it by name is not enough: the
+ * name can be repointed between the two calls (time-of-check to time-of-use).
+ * So the check is repeated against what was actually opened -- reads compare
+ * the open handle with the name -- and writes never open the final name at all:
+ * they create a fresh file with createNew (O_EXCL, which refuses any existing
+ * entry, symlinks included) and rename it into place, which replaces the
+ * directory entry itself rather than following it. Deno exposes no O_NOFOLLOW,
+ * or that would be the whole of it.
+ *
+ * rejectSymlink stays as a pre-check so a symlink planted in advance is refused
+ * without ever being opened -- opening one could block on a FIFO or touch a
+ * device before any comparison runs.
+ */
 async function rejectSymlink(path: string): Promise<void> {
   try {
     const info = await Deno.lstat(path);
@@ -31,18 +48,45 @@ async function rejectSymlink(path: string): Promise<void> {
   }
 }
 
-export async function storeIdentity(dir: string, sessionId: string, identity: string): Promise<void> {
-  const path = keyPath(dir, sessionId);
+async function readNoFollow(path: string): Promise<string> {
   await rejectSymlink(path);
-  await Deno.writeTextFile(path, identity, { mode: 0o600 });
-  // umask can weaken the create mode; be explicit.
-  await Deno.chmod(path, 0o600);
+  const file = await Deno.open(path, { read: true });
+  try {
+    const held = await file.stat();
+    const named = await Deno.lstat(path);
+    if (named.isSymlink || !held.isFile || held.ino !== named.ino || held.dev !== named.dev) {
+      throw new Error('refusing to follow symlink');
+    }
+    return await new Response(file.readable).text();
+  } finally {
+    // file.readable closes the handle once consumed; close() on an already
+    // closed handle throws, and the error that matters is the one above.
+    try {
+      file.close();
+    } catch { /* already closed */ }
+  }
+}
+
+async function writeNoFollow(path: string, data: string): Promise<void> {
+  await rejectSymlink(path);
+  const tmp = `${path}.tmp-${crypto.randomUUID()}`;
+  try {
+    await Deno.writeTextFile(tmp, data, { mode: 0o600, createNew: true });
+    // umask can weaken the create mode; be explicit.
+    await Deno.chmod(tmp, 0o600);
+    await Deno.rename(tmp, path);
+  } catch (e) {
+    await Deno.remove(tmp).catch(() => {});
+    throw e;
+  }
+}
+
+export async function storeIdentity(dir: string, sessionId: string, identity: string): Promise<void> {
+  await writeNoFollow(keyPath(dir, sessionId), identity);
 }
 
 export async function loadIdentity(dir: string, sessionId: string): Promise<string> {
-  const path = keyPath(dir, sessionId);
-  await rejectSymlink(path);
-  return (await Deno.readTextFile(path)).trim();
+  return (await readNoFollow(keyPath(dir, sessionId))).trim();
 }
 
 /**
@@ -90,7 +134,7 @@ export async function markDelivered(dir: string, sessionId: string, at: Date): P
  * ACTIVITY, not from when the key was minted.
  */
 export async function touchActivity(dir: string, sessionId: string, at: Date): Promise<void> {
-  await Deno.writeTextFile(markerPath(dir, sessionId, 'seen'), at.toISOString(), { mode: 0o600 });
+  await writeNoFollow(markerPath(dir, sessionId, 'seen'), at.toISOString());
 }
 
 export interface ShredPolicy {

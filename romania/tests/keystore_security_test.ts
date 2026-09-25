@@ -161,6 +161,60 @@ Deno.test('storeIdentity - succeeds when overwriting a regular file', async () =
   await Deno.remove(dir, { recursive: true });
 });
 
+// ── TOCTOU: writes replace the entry, never write through the name ───
+
+Deno.test('storeIdentity - replaces the directory entry rather than writing in place', async () => {
+  // A new inode proves the write went to a fresh file renamed over the name.
+  // Writing in place (the old behaviour) keeps the inode -- and is what would
+  // follow a symlink swapped in after the check.
+  const dir = await tmp();
+  const id = 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee';
+  await storeIdentity(dir, id, 'old');
+  const before = (await Deno.lstat(`${dir}/${id}.key`)).ino;
+  await storeIdentity(dir, id, 'new');
+  const after = await Deno.lstat(`${dir}/${id}.key`);
+  assert(before !== after.ino, 'the key must be a new file, not the old one rewritten');
+  assertEquals(after.mode! & 0o777, 0o600);
+  await Deno.remove(dir, { recursive: true });
+});
+
+Deno.test('storeIdentity - leaves no temporary files behind', async () => {
+  const dir = await tmp();
+  await storeIdentity(dir, 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee', 'k');
+  const names = [];
+  for await (const e of Deno.readDir(dir)) names.push(e.name);
+  assertEquals(names, ['aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee.key']);
+  await Deno.remove(dir, { recursive: true });
+});
+
+Deno.test('storeIdentity - a failed write cleans up and reports the failure', async () => {
+  const dir = await tmp();
+  await Deno.chmod(dir, 0o500);
+  try {
+    // Root ignores directory permissions, so the write would not fail at all.
+    const probe = await Deno.writeTextFile(`${dir}/probe`, '').then(() => true, () => false);
+    if (probe) return;
+    await assertRejects(() => storeIdentity(dir, 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee', 'k'));
+  } finally {
+    await Deno.chmod(dir, 0o700);
+  }
+  const names = [];
+  for await (const e of Deno.readDir(dir)) names.push(e.name);
+  assertEquals(names, []);
+  await Deno.remove(dir, { recursive: true });
+});
+
+Deno.test('touchActivity - refuses to write through a symlinked marker', async () => {
+  const dir = await tmp();
+  const target = `${dir}/target.txt`;
+  await Deno.writeTextFile(target, 'original content');
+  const id = 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee';
+  await Deno.symlink(target, `${dir}/${id}.seen`);
+  await assertRejects(() => touchActivity(dir, id, new Date()), Error, 'symlink');
+  assertEquals(await Deno.readTextFile(target), 'original content');
+  await Deno.remove(dir, { recursive: true });
+});
+
 // ── Concurrent store ─────────────────────────────────────────────────
 
 Deno.test('two concurrent storeIdentity calls for the same session do not corrupt', async () => {
