@@ -50,6 +50,7 @@ import * as $gate from './routes/gate.tsx';
 import * as $index from './routes/index.tsx';
 import * as $login from './routes/login.tsx';
 import * as $lotto from './routes/lotto.tsx';
+import * as $mesh from './routes/mesh.tsx';
 import * as $messages from './routes/messages.tsx';
 import * as $messenger from './routes/messenger.tsx';
 import * as $p_handle_ from './routes/p/[handle].tsx';
@@ -120,6 +121,7 @@ const manifest = {
     './routes/index.tsx': $index,
     './routes/login.tsx': $login,
     './routes/lotto.tsx': $lotto,
+    './routes/mesh.tsx': $mesh,
     './routes/messages.tsx': $messages,
     './routes/messenger.tsx': $messenger,
     './routes/p/[handle].tsx': $p_handle_,
