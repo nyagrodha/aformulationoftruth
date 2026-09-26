@@ -101,28 +101,54 @@ Deno.test('validateBundle - reason strings never contain the email', () => {
   assertEquals(reason2.includes('victim@example.com'), false);
 });
 
-// ── Mailer spec file permissions ─────────────────────────────────────
+// ── Mailer: what sendDelivery actually hands the sender ──────────────
+//
+// Both tests drive the real sendDelivery with a fake runner in place of
+// python3 and inspect what it produced. Nothing is mailed.
 
-Deno.test('mailer spec file is written 0600', async () => {
-  const dir = await Deno.makeTempDir({ prefix: 'mailer-perm-' });
-  const specPath = `${dir}/mail.json`;
-  // Reproduce the mailer's write pattern.
-  await Deno.writeTextFile(specPath, JSON.stringify({ to: 'x', from: 'y' }), { mode: 0o600 });
-  const info = await Deno.stat(specPath);
-  assertEquals(info.mode! & 0o777, 0o600, 'spec file must be owner-only');
-  await Deno.remove(dir, { recursive: true });
+import { assert } from 'https://deno.land/std@0.208.0/assert/mod.ts';
+import { sendDelivery, SENDER } from '../mailer.ts';
+import { fakeRunner, TEST_EMAIL } from './fixtures.ts';
+
+async function captureSend(): Promise<{ args: string[]; specMode: number; spec: Record<string, unknown> }> {
+  const dir = await Deno.makeTempDir({ prefix: 'mailer-' });
+  const saved = Deno.env.get('FROM_EMAIL');
+  Deno.env.set('FROM_EMAIL', 'sender@example.invalid');
+  let specMode = 0;
+  let spec: Record<string, unknown> = {};
+  const { run, calls } = fakeRunner({
+    python3: async (args) => {
+      specMode = (await Deno.stat(args[1])).mode! & 0o777;
+      spec = JSON.parse(await Deno.readTextFile(args[1]));
+      return true; // report success; the fake never sends
+    },
+  });
+  try {
+    await sendDelivery(
+      { to: TEST_EMAIL, pdf: new Uint8Array([0x25]), filename: 't.pdf', protected: false, workDir: dir },
+      run,
+    );
+  } finally {
+    if (saved === undefined) Deno.env.delete('FROM_EMAIL');
+    else Deno.env.set('FROM_EMAIL', saved);
+    await Deno.remove(dir, { recursive: true });
+  }
+  assertEquals(calls.length, 1);
+  return { args: calls[0].args, specMode, spec };
+}
+
+Deno.test('sendDelivery - writes the spec file 0600', async () => {
+  const { specMode, spec } = await captureSend();
+  assertEquals(spec.to, TEST_EMAIL, 'sanity: this is the file that holds the address');
+  assertEquals(specMode, 0o600, 'spec file must be owner-only');
 });
 
-// ── Mailer: address must never appear on argv ────────────────────────
-// The mailer passes only the spec file PATH to python3, never the address.
-// We verify by reading the sendDelivery source contract: it constructs
-// `[SENDER, specPath]` as args. This is a structural test.
-
-import { fromFileUrl } from 'https://deno.land/std@0.216.0/path/mod.ts';
-
-Deno.test('mailer SENDER path resolves to a .py file', () => {
-  const sender = fromFileUrl(new URL('../send_mail.py', import.meta.url));
-  // The path must end with send_mail.py; if someone renames it, this breaks
-  // loudly rather than silently sending addresses on argv.
-  assertEquals(sender.endsWith('send_mail.py'), true);
+Deno.test('sendDelivery - passes only the sender script and the spec path on argv', async () => {
+  const { args } = await captureSend();
+  assertEquals(args.length, 2);
+  assertEquals(args[0], SENDER);
+  assert(SENDER.endsWith('/send_mail.py'), 'the sender must be send_mail.py');
+  assert(args[1].endsWith('/mail.json'));
+  // argv is world-readable via /proc/<pid>/cmdline.
+  assert(!args.some((a) => a.includes(TEST_EMAIL)), 'the address must never be on argv');
 });

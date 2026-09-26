@@ -161,6 +161,23 @@ Deno.test('storeIdentity - succeeds when overwriting a regular file', async () =
   await Deno.remove(dir, { recursive: true });
 });
 
+// ── Non-regular files: refused before any open that could block ──────
+
+Deno.test('loadIdentity - refuses a FIFO without blocking on it', async () => {
+  const dir = await tmp();
+  const id = 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee';
+  const made = await new Deno.Command('mkfifo', { args: [`${dir}/${id}.key`] }).output();
+  if (!made.success) throw new Error('mkfifo unavailable');
+  // A read-only open of a FIFO with no writer blocks forever; the 2 s race
+  // turns that regression into a failure instead of a hung suite.
+  const outcome = await Promise.race([
+    loadIdentity(dir, id).then(() => 'read', (e: Error) => e.message),
+    new Promise<string>((r) => setTimeout(() => r('blocked'), 2000)),
+  ]);
+  assertEquals(outcome, 'refusing to open non-regular file');
+  await Deno.remove(dir, { recursive: true });
+});
+
 // ── TOCTOU: writes replace the entry, never write through the name ───
 
 Deno.test('storeIdentity - replaces the directory entry rather than writing in place', async () => {

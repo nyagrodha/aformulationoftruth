@@ -7,7 +7,7 @@
  */
 
 import { fromFileUrl } from 'https://deno.land/std@0.216.0/path/mod.ts';
-import { runQuiet } from './subprocess.ts';
+import { type Runner, runQuiet } from './subprocess.ts';
 
 export interface RenderEntry {
   index: number;
@@ -48,7 +48,7 @@ const TEMPLATE = fromFileUrl(new URL('./template.typ', import.meta.url));
  * The template is copied in rather than referenced in place, because --root
  * must contain both it and the data.
  */
-export async function renderPdf(doc: RenderDoc, workDir: string): Promise<Uint8Array> {
+export async function renderPdf(doc: RenderDoc, workDir: string, run: Runner = runQuiet): Promise<Uint8Array> {
   const dataPath = `${workDir}/data.json`;
   const typPath = `${workDir}/template.typ`;
   const outPath = `${workDir}/out.pdf`;
@@ -57,7 +57,7 @@ export async function renderPdf(doc: RenderDoc, workDir: string): Promise<Uint8A
     await Deno.writeTextFile(dataPath, JSON.stringify(doc), { mode: 0o600 });
     await Deno.copyFile(TEMPLATE, typPath);
 
-    if (!await runQuiet('typst', ['compile', '--root', workDir, typPath, outPath])) {
+    if (!await run('typst', ['compile', '--root', workDir, typPath, outPath])) {
       throw new Error('typst render failed');
     }
 

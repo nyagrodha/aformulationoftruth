@@ -89,8 +89,8 @@ Deno.test('shredExpired - absolute=0 means shred any undelivered key immediately
 Deno.test('loadIdentity - throws NotFound after shred (sequential race simulation)', async () => {
   const dir = await tmp();
   await storeIdentity(dir, ID, 'k');
-  await shredExpired(dir, days(31), POLICY);
-  await assertRejects(() => loadIdentity(dir, ID));
+  assertEquals(await shredExpired(dir, days(31), POLICY), 1, 'the key must actually have been shredded');
+  await assertRejects(() => loadIdentity(dir, ID), Deno.errors.NotFound);
   await Deno.remove(dir, { recursive: true });
 });
 
@@ -106,6 +106,7 @@ Deno.test('loadIdentity - throws for a nonexistent session', async () => {
   const dir = await tmp();
   await assertRejects(
     () => loadIdentity(dir, 'deadbeef-dead-beef-dead-beefdeadbeef'),
+    Deno.errors.NotFound,
   );
   await Deno.remove(dir, { recursive: true });
 });
@@ -124,7 +125,7 @@ Deno.test('shredExpired - removes only the expired key in a mixed set', async ()
 
   assertEquals(await shredExpired(dir, days(8), POLICY), 1);
   // ID should be gone, ID2 should survive.
-  await assertRejects(() => loadIdentity(dir, ID));
+  await assertRejects(() => loadIdentity(dir, ID), Deno.errors.NotFound);
   assertEquals(await loadIdentity(dir, ID2), 'new');
   await Deno.remove(dir, { recursive: true });
 });
@@ -182,5 +183,51 @@ Deno.test('shredExpired - leaves .delivered and .seen orphans alone', async () =
   // They should still be there.
   assert((await Deno.stat(`${dir}/${ID}.delivered`)).isFile);
   assert((await Deno.stat(`${dir}/${ID}.seen`)).isFile);
+  await Deno.remove(dir, { recursive: true });
+});
+
+// ── A new key under a reused id is not killed by stale markers ───────
+
+Deno.test('storeIdentity - clears orphaned markers so a new key is not shredded on sight', async () => {
+  const dir = await tmp();
+  // Markers left behind from an earlier key under the same id: delivered long ago.
+  const longAgo = days(-60);
+  await Deno.writeTextFile(`${dir}/${ID}.delivered`, longAgo.toISOString());
+  await Deno.writeTextFile(`${dir}/${ID}.seen`, longAgo.toISOString());
+
+  await storeIdentity(dir, ID, 'fresh');
+  assertEquals(await shredExpired(dir, new Date(), POLICY), 0, 'the new key must not inherit the old clocks');
+  assertEquals(await loadIdentity(dir, ID), 'fresh');
+  await assertRejects(() => Deno.stat(`${dir}/${ID}.delivered`), Deno.errors.NotFound);
+  await Deno.remove(dir, { recursive: true });
+});
+
+// ── Orphaned temporary files from interrupted writes ─────────────────
+
+Deno.test('shredExpired - removes temporary files an hour old, keeps fresh ones', async () => {
+  const dir = await tmp();
+  const now = new Date();
+  const stale = `${dir}/${ID}.key.tmp-${crypto.randomUUID()}`;
+  const fresh = `${dir}/${ID2}.seen.tmp-${crypto.randomUUID()}`;
+  await Deno.writeTextFile(stale, 'AGE-SECRET-KEY-1ORPHAN', { mode: 0o600 });
+  await Deno.writeTextFile(fresh, now.toISOString(), { mode: 0o600 });
+  const hourAgo = new Date(now.getTime() - 3_600_000);
+  await Deno.utime(stale, hourAgo, hourAgo);
+
+  assertEquals(await shredExpired(dir, now, POLICY), 0, 'temporaries are not counted as identities');
+  await assertRejects(() => Deno.stat(stale), Deno.errors.NotFound);
+  assert((await Deno.stat(fresh)).isFile, 'a write still in progress must be left alone');
+  await Deno.remove(dir, { recursive: true });
+});
+
+Deno.test('shredExpired - leaves files that only look temporary alone', async () => {
+  const dir = await tmp();
+  const hourAgo = new Date(Date.now() - 2 * 3_600_000);
+  for (const name of ['notes.tmp-x', `${ID}.delivered.tmp-${crypto.randomUUID()}`]) {
+    await Deno.writeTextFile(`${dir}/${name}`, '');
+    await Deno.utime(`${dir}/${name}`, hourAgo, hourAgo);
+  }
+  await shredExpired(dir, new Date(), POLICY);
+  assertEquals((await Array.fromAsync(Deno.readDir(dir))).length, 2);
   await Deno.remove(dir, { recursive: true });
 });

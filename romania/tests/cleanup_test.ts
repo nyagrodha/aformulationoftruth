@@ -5,7 +5,11 @@
  * storage, only during one request. These tests verify that intermediate files
  * are removed even when render, protect, or mail fails.
  *
- * Run: deno test --allow-read --allow-write --allow-run --allow-env romania/tests/cleanup_test.ts
+ * Run: deno test --allow-read --allow-write --allow-run --allow-env --allow-net romania/tests/cleanup_test.ts
+ *
+ * No test here reaches typst or SMTP: both are replaced by a fake runner that
+ * fails at a chosen point, so the failure paths run everywhere and nothing is
+ * ever mailed.
  */
 
 import { assert, assertEquals, assertRejects } from 'https://deno.land/std@0.208.0/assert/mod.ts';
@@ -68,92 +72,205 @@ Deno.test({
 });
 
 // ── renderPdf cleanup on failure ─────────────────────────────────────
+//
+// Typst is replaced by a runner that fails on purpose, so the failure path is
+// exercised on every machine -- typst installed or not -- and cannot quietly
+// turn into a success-path test if typst happens to accept the input.
 
-// We test renderPdf cleanup by providing it data that will make typst fail.
-// This requires typst to be installed.
 import { renderPdf } from '../render.ts';
+import { ageFixture, dirContents as contents, fakeRunner, TEST_EMAIL } from './fixtures.ts';
 
-const HAVE_TYPST = await have('typst');
-if (!HAVE_TYPST) console.warn('[cleanup_test] typst absent - render cleanup tests SKIPPED');
-
-Deno.test({
-  name: 'renderPdf - cleans up data.json when typst fails on bad input',
-  ignore: !HAVE_TYPST,
-  async fn() {
-    const dir = await tmp();
-    // An empty entries array may cause the template to error.
-    // If it doesn't, the test still verifies cleanup on the success path.
-    try {
-      await renderPdf({ entries: [] }, dir);
-    } catch {
-      // Expected to fail with some templates.
-    }
-    assertEquals(dirContents(dir), [], 'data.json must not survive a render attempt');
-    await Deno.remove(dir, { recursive: true });
-  },
-});
-
-// ── sendDelivery cleanup ─────────────────────────────────────────────
-
-import { sendDelivery } from '../mailer.ts';
-
-Deno.test('sendDelivery - cleans up spec and pdf when send fails', async () => {
+Deno.test('renderPdf - a failed typst run removes data.json and the template', async () => {
   const dir = await tmp();
-  // sendDelivery will fail because SMTP is not configured or python3 will
-  // fail to connect. Either way, cleanup must happen.
-  try {
-    await sendDelivery({
-      to: 'test@example.com',
-      pdf: new Uint8Array([0x25, 0x50, 0x44, 0x46]),
-      filename: 'test.pdf',
-      protected: false,
-      workDir: dir,
-    });
-  } catch {
-    // Expected: SMTP not configured or send fails.
-  }
-  const remaining = dirContents(dir);
-  assert(!remaining.includes('outgoing.pdf'), 'outgoing.pdf must not survive a failed send');
-  assert(!remaining.includes('mail.json'), 'mail.json must not survive a failed send');
+  let sawPlaintext = false;
+  const { run, calls } = fakeRunner({
+    typst: async () => {
+      // The decrypted data must exist, owner-only, while typst runs...
+      const info = await Deno.stat(`${dir}/data.json`);
+      sawPlaintext = info.isFile && (info.mode! & 0o777) === 0o600;
+      return false; // ...and then the render fails.
+    },
+  });
+  await assertRejects(() => renderPdf({ entries: [] }, dir, run), Error, 'typst render failed');
+  assertEquals(calls.length, 1, 'typst must have been invoked');
+  assert(sawPlaintext, 'data.json must exist, 0600, while typst runs');
+  assertEquals(contents(dir), [], 'data.json must not survive a failed render');
   await Deno.remove(dir, { recursive: true });
 });
 
-// ── handleBundle end-to-end cleanup (mocked) ─────────────────────────
+// ── sendDelivery cleanup ─────────────────────────────────────────────
+//
+// python3 is replaced too. The test must never reach SMTP: on the key box
+// FROM_EMAIL is set, and the old version of this test handed a real spec to
+// send_mail.py.
 
-// We cannot import handleBundle directly and mock its internals without
-// dependency injection. Instead, we test the cleanup contract by simulating
-// the work directory lifecycle: create files, call the cleanup pattern, verify.
+import { sendDelivery } from '../mailer.ts';
 
-Deno.test('handleBundle cleanup pattern - work dir removed even when decryption throws', async () => {
-  const work = await tmp();
-  // Simulate handleBundle's finally block.
+async function withFromEmail<T>(fn: () => Promise<T>): Promise<T> {
+  const saved = Deno.env.get('FROM_EMAIL');
+  Deno.env.set('FROM_EMAIL', 'sender@example.invalid');
   try {
-    // Simulate files created during a request.
-    await Deno.writeTextFile(`${work}/data.json`, '{"entries":[]}', { mode: 0o600 });
-    await Deno.writeTextFile(`${work}/template.typ`, '#set page()', { mode: 0o600 });
-    await Deno.writeFile(`${work}/out.pdf`, new Uint8Array([0x25]), { mode: 0o600 });
-    // Simulate decryption failure.
-    throw new Error('age decryption failed');
-  } catch {
-    // handleBundle's finally:
+    return await fn();
   } finally {
-    await Deno.remove(work, { recursive: true }).catch(() => {});
+    if (saved === undefined) Deno.env.delete('FROM_EMAIL');
+    else Deno.env.set('FROM_EMAIL', saved);
   }
-  // Verify the directory is gone.
-  await assertRejects(() => Deno.stat(work), Deno.errors.NotFound);
+}
+
+Deno.test('sendDelivery - a failed send removes both the spec and the pdf', async () => {
+  const dir = await tmp();
+  let seen: string[] = [];
+  const { run, calls } = fakeRunner({
+    python3: () => {
+      // Both files exist while the sender runs; the failure comes after.
+      seen = contents(dir);
+      return false;
+    },
+  });
+  await withFromEmail(() =>
+    assertRejects(
+      () =>
+        sendDelivery({
+          to: TEST_EMAIL,
+          pdf: new Uint8Array([0x25, 0x50, 0x44, 0x46]),
+          filename: 'test.pdf',
+          protected: false,
+          workDir: dir,
+        }, run),
+      Error,
+      'smtp send failed',
+    )
+  );
+  assertEquals(calls.length, 1, 'the sender must have been invoked exactly once');
+  assertEquals(seen, ['mail.json', 'outgoing.pdf'], 'the failure must come after both files exist');
+  assertEquals(contents(dir), [], 'neither file may survive a failed send');
+  await Deno.remove(dir, { recursive: true });
 });
 
-Deno.test('handleBundle cleanup pattern - work dir removed even when mail throws', async () => {
-  const work = await tmp();
+Deno.test('sendDelivery - without SMTP configured, fails before writing anything', async () => {
+  const dir = await tmp();
+  const saved = [Deno.env.get('FROM_EMAIL'), Deno.env.get('SMTP_USER')];
+  Deno.env.delete('FROM_EMAIL');
+  Deno.env.delete('SMTP_USER');
+  const { run, calls } = fakeRunner({});
   try {
-    await Deno.writeTextFile(`${work}/data.json`, '{}', { mode: 0o600 });
-    await Deno.writeFile(`${work}/outgoing.pdf`, new Uint8Array([0x25]), { mode: 0o600 });
-    await Deno.writeTextFile(`${work}/mail.json`, '{}', { mode: 0o600 });
-    throw new Error('smtp send failed');
-  } catch {
-    // Expected.
+    await assertRejects(
+      () =>
+        sendDelivery(
+          { to: TEST_EMAIL, pdf: new Uint8Array([0x25]), filename: 't.pdf', protected: false, workDir: dir },
+          run,
+        ),
+      Error,
+      'SMTP not configured',
+    );
   } finally {
-    await Deno.remove(work, { recursive: true }).catch(() => {});
+    if (saved[0] !== undefined) Deno.env.set('FROM_EMAIL', saved[0]);
+    if (saved[1] !== undefined) Deno.env.set('SMTP_USER', saved[1]);
   }
-  await assertRejects(() => Deno.stat(work), Deno.errors.NotFound);
+  assertEquals(calls.length, 0);
+  assertEquals(contents(dir), []);
+  await Deno.remove(dir, { recursive: true });
+});
+
+// ── handleBundle: the real delivery path, failing at a chosen tool ───
+//
+// Real age decryption, the real DeliveryRunner and receipt, and the real
+// work-directory cleanup -- only typst and python3 are replaced.
+
+import { makeHandleBundle } from '../render-service.ts';
+import { DeliveryError, DeliveryRunner } from '../delivery.ts';
+import { storeIdentity } from '../keystore.ts';
+
+const KEY_ID = 'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee';
+const SESSION = 'c3ecba99477a562d99bfdf92023aa3173934383197d6d6f8b1184224016d60cf';
+const SECRET_ANSWER = 'a cabin in Montana with good light for reading';
+
+async function deliveryFixture() {
+  const [keyDir, workRoot, receipts] = await Promise.all([tmp(), tmp(), tmp()]);
+  const age = await ageFixture();
+  await storeIdentity(keyDir, KEY_ID, age.identity);
+  const bundle = {
+    sessionId: SESSION,
+    keyId: KEY_ID,
+    deliveryId: crypto.randomUUID(),
+    answers: [
+      {
+        questionIndex: 0,
+        questionText: 'Your idea of perfect happiness?',
+        ciphertext: await age.encrypt(SECRET_ANSWER),
+        skipped: false,
+      },
+      { questionIndex: 1, questionText: 'Your greatest fear?', ciphertext: '', skipped: true },
+    ],
+    encryptedEmail: await age.encrypt(TEST_EMAIL),
+    encryptedPassword: null,
+  };
+  let confirmed = 0;
+  const handle = (run: ReturnType<typeof fakeRunner>['run']) =>
+    makeHandleBundle({
+      keyDir,
+      workRoot,
+      runner: new DeliveryRunner(receipts),
+      confirm: () => {
+        confirmed++;
+        return Promise.resolve();
+      },
+      run,
+    });
+  const cleanupAll = () => Promise.all([keyDir, workRoot, receipts].map((d) => Deno.remove(d, { recursive: true })));
+  return { keyDir, workRoot, receipts, bundle, handle, confirmed: () => confirmed, cleanupAll };
+}
+
+/** Fake typst that checks the decrypted answer reached data.json, then writes a PDF. */
+function typstThatSees(onData: (plaintext: string) => void, succeed: boolean) {
+  return async (args: string[]) => {
+    const root = args[args.indexOf('--root') + 1];
+    onData(await Deno.readTextFile(`${root}/data.json`));
+    if (succeed) await Deno.writeFile(args[args.length - 1], new TextEncoder().encode('%PDF-1.4\n'));
+    return succeed;
+  };
+}
+
+Deno.test('handleBundle - a failed render removes the work directory and writes no receipt', async () => {
+  const f = await deliveryFixture();
+  let data = '';
+  const { run } = fakeRunner({ typst: typstThatSees((d) => (data = d), false) });
+
+  const err = await assertRejects(() => f.handle(run)(f.bundle), DeliveryError);
+  assertEquals(err.stage, 'render');
+  assert(data.includes(SECRET_ANSWER), 'the answer must have been decrypted into the work directory');
+  assertEquals(contents(f.workRoot), [], 'the work directory must be gone');
+  assertEquals(contents(f.receipts), [], 'a pre-SMTP failure leaves no receipt, so it can be retried');
+  assertEquals(f.confirmed(), 0);
+  await f.cleanupAll();
+});
+
+Deno.test('handleBundle - a failed send removes the work directory and records an uncertain receipt', async () => {
+  const f = await deliveryFixture();
+  let data = '';
+  let spec: Record<string, unknown> = {};
+  let specMode = 0;
+  const { run, calls } = fakeRunner({
+    typst: typstThatSees((d) => (data = d), true),
+    python3: async (args) => {
+      specMode = (await Deno.stat(args[1])).mode! & 0o777;
+      spec = JSON.parse(await Deno.readTextFile(args[1]));
+      return false;
+    },
+  });
+
+  const err = await withFromEmail(() => assertRejects(() => f.handle(run)(f.bundle), DeliveryError));
+  assertEquals(err.stage, 'smtp');
+  assert(data.includes(SECRET_ANSWER));
+  assertEquals(spec.to, TEST_EMAIL, 'the decrypted address goes in the spec file');
+  assertEquals(specMode, 0o600, 'the spec file holds the address and must be owner-only');
+  const sender = calls.find((c) => c.command === 'python3')!;
+  assert(!sender.args.some((a) => a.includes(TEST_EMAIL)), 'the address must never be on argv');
+  assertEquals(contents(f.workRoot), [], 'the work directory must be gone');
+  // SMTP may have accepted the message before failing, so the receipt stays
+  // "sending" and a retry is refused rather than risking a second email.
+  const receipt = JSON.parse(await Deno.readTextFile(`${f.receipts}/${f.bundle.deliveryId}.json`));
+  assertEquals(receipt.state, 'sending');
+  assertEquals(f.confirmed(), 0);
+  await f.cleanupAll();
 });
