@@ -17,6 +17,7 @@ import { loadIdentity, markDelivered } from './keystore.ts';
 import { type RenderEntry, renderPdf } from './render.ts';
 import { protectPdf } from './protect.ts';
 import { sendDelivery } from './mailer.ts';
+import { type Runner, runQuiet } from './subprocess.ts';
 import { type Bundle, DeliveryError, DeliveryRunner } from './delivery.ts';
 
 const BIND = Deno.env.get('RENDER_BIND') || '127.0.0.1';
@@ -96,10 +97,15 @@ async function decryptWith(identity: string, ciphertext: string): Promise<string
  * `finally`, so a failure anywhere does not leave the decrypted questionnaire
  * on the floor.
  */
-async function prepareBundle(bundle: DeliveryBundle, work: string): Promise<() => Promise<void>> {
+async function prepareBundle(
+  bundle: DeliveryBundle,
+  work: string,
+  keyDir: string,
+  run: Runner,
+): Promise<() => Promise<void>> {
   let identity: string;
   try {
-    identity = await loadIdentity(KEY_DIR, bundle.keyId || bundle.sessionId);
+    identity = await loadIdentity(keyDir, bundle.keyId || bundle.sessionId);
   } catch (e) {
     throw new DeliveryError('identity', e instanceof Deno.errors.NotFound ? 410 : 503);
   }
@@ -129,7 +135,7 @@ async function prepareBundle(bundle: DeliveryBundle, work: string): Promise<() =
     })));
 
     stage = 'render';
-    let pdf = await renderPdf({ entries }, work);
+    let pdf = await renderPdf({ entries }, work, run);
     stage = 'protect';
     if (password) pdf = await protectPdf(pdf, password, work);
     return () =>
@@ -139,21 +145,47 @@ async function prepareBundle(bundle: DeliveryBundle, work: string): Promise<() =
         filename: 'responses.pdf',
         protected: Boolean(password),
         workDir: work,
-      });
+      }, run);
   } catch {
     throw new DeliveryError(stage, stage === 'decrypt' ? 422 : 503);
   }
 }
 
-export async function handleBundle(bundle: DeliveryBundle): Promise<void> {
-  const work = `${WORK_ROOT}/render-${crypto.randomUUID()}`;
-  await runner.run(bundle, {
-    prepare: (b) => prepareBundle(b, work),
-    mark: (keyId, at) => markDelivered(KEY_DIR, keyId, at),
-    confirm: notifyDelivered,
-    cleanup: () => Deno.remove(work, { recursive: true }),
-  });
+export interface HandlerDeps {
+  keyDir: string;
+  workRoot: string;
+  runner: DeliveryRunner;
+  confirm: (sessionId: string) => Promise<void>;
+  /** External tools (typst, python3 for SMTP). Defaults to runQuiet. */
+  run?: Runner;
 }
+
+/**
+ * Built from its dependencies so tests can drive the real delivery path --
+ * decryption, the runner and its receipt, and the work-directory cleanup --
+ * with temporary directories and a runner that fails at a chosen tool, instead
+ * of re-enacting the cleanup pattern by hand. Production uses the defaults
+ * below.
+ */
+export function makeHandleBundle(deps: HandlerDeps): (bundle: DeliveryBundle) => Promise<void> {
+  const run = deps.run ?? runQuiet;
+  return async (bundle) => {
+    const work = `${deps.workRoot}/render-${crypto.randomUUID()}`;
+    await deps.runner.run(bundle, {
+      prepare: (b) => prepareBundle(b, work, deps.keyDir, run),
+      mark: (keyId, at) => markDelivered(deps.keyDir, keyId, at),
+      confirm: deps.confirm,
+      cleanup: () => Deno.remove(work, { recursive: true }),
+    });
+  };
+}
+
+export const handleBundle = makeHandleBundle({
+  keyDir: KEY_DIR,
+  workRoot: WORK_ROOT,
+  runner,
+  confirm: notifyDelivered,
+});
 
 /** Tell the web tier the copy went, so it can stamp pdf_delivered_at. */
 async function notifyDelivered(sessionId: string): Promise<void> {
