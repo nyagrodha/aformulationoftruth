@@ -43,9 +43,9 @@ Deno.test('questionText reads the canonical list and refuses the gate questions'
 });
 
 Deno.test('every mesh question fits one Meshtastic text with tag and site name', () => {
-  // P<n> <text> Reply to answer · aformulationoftruth.com/mesh  -- the bridge's exact frame
+  // P<n> <text> Reply to answer · aformulationoftruth.com/loramesh  -- the bridge's exact frame
   for (let i = FIRST_INDEX; i <= LAST_INDEX; i++) {
-    const line = `P${i} ${questionText(i)} Reply to answer · aformulationoftruth.com/mesh`;
+    const line = `P${i} ${questionText(i)} Reply to answer · aformulationoftruth.com/loramesh`;
     assert(new TextEncoder().encode(line).length <= 200, `Q${i} is ${line.length} chars`);
   }
 });

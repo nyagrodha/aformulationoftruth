@@ -1,5 +1,5 @@
 /**
- * /mesh — Proust questions asked over the Meshtastic LongFast channel, and the
+ * /loramesh — Proust questions asked over the Meshtastic LongFast channel, and the
  * answers heard back. Public by design: every answer here was broadcast in
  * plaintext over the air. Server-rendered, no JavaScript. Node ids are never
  * shown; wall() does not even select them.

@@ -1,7 +1,8 @@
 import { assert, assertEquals, assertStringIncludes } from '$std/assert/mod.ts';
 import { render } from 'preact-render-to-string';
 import type { PageProps } from '$fresh/server.ts';
-import MeshPage, { type MeshData } from './mesh.tsx';
+import MeshPage, { type MeshData } from './loramesh.tsx';
+import { handler as oldPath } from './mesh.ts';
 
 function page(data: MeshData): string {
   return render(<MeshPage {...({ data } as unknown as PageProps<MeshData>)} />);
@@ -36,7 +37,7 @@ Deno.test('answer text and names are escaped, never markup', () => {
 
 Deno.test('the page never renders a node id', async () => {
   assertEquals(/![0-9a-f]{8}/.test(page(ONE)), false);
-  const source = await Deno.readTextFile(new URL('./mesh.tsx', import.meta.url));
+  const source = await Deno.readTextFile(new URL('./loramesh.tsx', import.meta.url));
   assertEquals(source.includes('from_id'), false);
   assertEquals(source.includes('dangerouslySetInnerHTML'), false);
 });
@@ -56,4 +57,10 @@ Deno.test('an unavailable wall still renders a page', () => {
   const html = page({ questions: [], unavailable: true });
   assertStringIncludes(html, "can't be read right now");
   assert(html.includes('Heard on the mesh'));
+});
+
+Deno.test('the old /mesh address redirects permanently to /loramesh', async () => {
+  const res = await (oldPath.GET as CallableFunction)(new Request('https://aformulationoftruth.com/mesh'), {});
+  assertEquals(res.status, 301);
+  assertEquals(res.headers.get('Location'), '/loramesh');
 });
