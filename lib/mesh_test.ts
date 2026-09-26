@@ -56,8 +56,8 @@ Deno.test('cleanText turns controls into spaces and collapses runs', () => {
 });
 
 Deno.test('cleanText strips bidi controls', () => {
-  assertEquals(cleanText('abc‮gfed‬', 240), 'abcgfed');
-  assertEquals(cleanText('x⁦y⁩‏z', 240), 'xyz');
+  assertEquals(cleanText('abc\u202egfed\u202c', 240), 'abcgfed');
+  assertEquals(cleanText('x\u2066y\u2069\u200fz', 240), 'xyz');
 });
 
 Deno.test('cleanText cuts on a character boundary, never inside one', () => {
@@ -122,4 +122,23 @@ Deno.test('bridgeAuth refuses missing, wrong and wrong-length tokens', () => {
   assertEquals(bridgeAuth(req('Bearer short'), t)?.status, 401);
   assertEquals(bridgeAuth(req(`Basic ${t}`), t)?.status, 401);
   assertEquals(bridgeAuth(req(`Bearer ${t}`), t), null);
+});
+
+Deno.test('cleanText strips zero-width characters, so an invisible answer is empty', () => {
+  assertEquals(cleanText('a\u200bb\u200c\u200dc\u2060\u061c\u00ad\ufeffd', 240), 'abcd');
+  assertEquals(validateAnswer({ ...GOOD, text: '\u200b\u200b' }).ok, false);
+  assertEquals(validateAnswer({ ...GOOD, short_name: '\u200b\u2060' }).ok, false);
+});
+
+Deno.test('validateSent carries the radio send time, bounded to the last 36 h', () => {
+  const now = Math.floor(Date.now() / 1000);
+  const r = validateSent({ question_index: 2, packet_id: 7, sent_time: now - 3600 });
+  assert(r.ok);
+  assertEquals(r.value.sent_at?.getTime(), (now - 3600) * 1000);
+  assertEquals(validateSent({ question_index: 2, packet_id: 7, sent_time: now + 3600 }).ok, false);
+  assertEquals(validateSent({ question_index: 2, packet_id: 7, sent_time: now - 48 * 3600 }).ok, false);
+  assertEquals(validateSent({ question_index: 2, packet_id: 7, sent_time: 'x' }).ok, false);
+  const legacy = validateSent({ question_index: 2, packet_id: 7 });
+  assert(legacy.ok);
+  assertEquals(legacy.value.sent_at, undefined);
 });

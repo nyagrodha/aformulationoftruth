@@ -19,7 +19,7 @@ export const handler: Handlers = {
     const v = validateSent(body);
     if (!v.ok) return json({ ok: false, error: v.error }, 400);
     try {
-      const { status, row } = await recordSent(v.value.question_index, v.value.packet_id);
+      const { status, row } = await recordSent(v.value.question_index, v.value.packet_id, v.value.sent_at);
       return json(
         { ok: status === 'inserted', question_index: row.question_index, packet_id: row.packet_id },
         status === 'inserted' ? 201 : 409,

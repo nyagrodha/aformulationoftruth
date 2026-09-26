@@ -21,7 +21,7 @@ export interface SentRow {
 const SENT_COLUMNS = 'id, question_index::int AS question_index, packet_id, sent_at';
 type SentDbRow = Omit<SentRow, 'packet_id'> & { packet_id: bigint };
 const toSent = (r: SentDbRow): SentRow => ({ ...r, packet_id: Number(r.packet_id) });
-const CHICAGO_TODAY = "(now() AT TIME ZONE 'America/Chicago')::date";
+const CHICAGO_DAY_OF_3 = "($3::timestamptz AT TIME ZONE 'America/Chicago')::date";
 
 export function lastSent(): Promise<SentRow | null> {
   return withConnection(async (c) => {
@@ -32,21 +32,30 @@ export function lastSent(): Promise<SentRow | null> {
   });
 }
 
+/**
+ * One explicit time drives both statements: the day the INSERT would claim is
+ * exactly the day the conflict lookup reads, so a conflict at 23:59:59 can no
+ * longer look for its row in the next day and come back empty.
+ */
 export function recordSent(
   questionIndex: number,
   packetId: number,
+  sentAt: Date = new Date(),
 ): Promise<{ status: 'inserted' | 'conflict'; row: SentRow }> {
   return withConnection(async (c) => {
     const ins = await c.queryObject<SentDbRow>(
-      `INSERT INTO mesh_questions_sent (question_index, packet_id) VALUES ($1, $2)
+      `INSERT INTO mesh_questions_sent (question_index, packet_id, sent_at, sent_day)
+       VALUES ($1, $2, $3, ${CHICAGO_DAY_OF_3})
        ON CONFLICT (sent_day) DO NOTHING RETURNING ${SENT_COLUMNS}`,
-      [questionIndex, packetId],
+      [questionIndex, packetId, sentAt],
     );
     if (ins.rows[0]) return { status: 'inserted' as const, row: toSent(ins.rows[0]) };
-    const today = await c.queryObject<SentDbRow>(
-      `SELECT ${SENT_COLUMNS} FROM mesh_questions_sent WHERE sent_day = ${CHICAGO_TODAY}`,
+    const same = await c.queryObject<SentDbRow>(
+      `SELECT ${SENT_COLUMNS} FROM mesh_questions_sent WHERE sent_day = ($1::timestamptz AT TIME ZONE 'America/Chicago')::date`,
+      [sentAt],
     );
-    return { status: 'conflict' as const, row: toSent(today.rows[0]) };
+    if (!same.rows[0]) throw new Error('mesh: sent_day conflict without a row');
+    return { status: 'conflict' as const, row: toSent(same.rows[0]) };
   });
 }
 

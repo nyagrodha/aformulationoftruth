@@ -35,15 +35,17 @@ export function questionText(index: number): string | null {
   return getQuestionById(index)?.english ?? null;
 }
 
-// C0, DEL and C1 controls become spaces. Bidi embeddings/overrides/isolates and
-// directional marks are removed outright: on a public page one of them can
-// visually reorder the answers around it.
+// C0, DEL and C1 controls become spaces.
 // deno-lint-ignore no-control-regex -- matching control characters is the point
 const CONTROLS = /[\u0000-\u001f\u007f-\u009f]/g;
-const BIDI = /[‎‏‪-‮⁦-⁩]/g;
+// Bidi controls (LRM/RLM, embeddings/overrides, isolates, Arabic letter mark)
+// and zero-width/invisible characters (ZWSP/ZWNJ/ZWJ, word joiner, soft
+// hyphen, BOM): removed outright. Otherwise an answer of nothing but U+200B
+// passes as non-empty, and a short name can impersonate another node's.
+const INVISIBLE = /[\u00ad\u061c\u200b-\u200f\u202a-\u202e\u2060\u2066-\u2069\ufeff]/g;
 
 export function cleanText(raw: string, maxBytes: number): string {
-  const tidy = raw.replace(BIDI, '').replace(CONTROLS, ' ').replace(/\s+/g, ' ').trim();
+  const tidy = raw.replace(INVISIBLE, '').replace(CONTROLS, ' ').replace(/\s+/g, ' ').trim();
   const enc = new TextEncoder();
   let out = '';
   let bytes = 0;
@@ -105,12 +107,33 @@ export function validateAnswer(body: unknown): Checked<AnswerInput> {
   };
 }
 
-export function validateSent(body: unknown): Checked<{ question_index: number; packet_id: number }> {
+/** How far back a late-recorded sending may be dated: a site outage across one evening and the night after. */
+const SENT_TIME_PAST_S = 36 * 3600;
+const SENT_TIME_FUTURE_S = 5 * 60;
+
+/**
+ * sent_time (epoch seconds, optional) is when the question went out on the
+ * radio. The bridge retries this POST through a site outage, so without it the
+ * sending would be dated when the site finally heard about it: answers heard in
+ * between would attach to an older evening, and a retry past midnight would be
+ * filed under the wrong day.
+ */
+export function validateSent(
+  body: unknown,
+): Checked<{ question_index: number; packet_id: number; sent_at?: Date }> {
   if (!isRecord(body)) return { ok: false, error: 'body' };
-  const { question_index, packet_id } = body;
+  const { question_index, packet_id, sent_time } = body;
   if (!meshIndex(question_index)) return { ok: false, error: 'question_index' };
   if (!packetId(packet_id)) return { ok: false, error: 'packet_id' };
-  return { ok: true, value: { question_index, packet_id } };
+  if (sent_time === undefined) return { ok: true, value: { question_index, packet_id } };
+  const now = Date.now() / 1000;
+  if (
+    typeof sent_time !== 'number' || !Number.isFinite(sent_time) ||
+    sent_time < now - SENT_TIME_PAST_S || sent_time > now + SENT_TIME_FUTURE_S
+  ) {
+    return { ok: false, error: 'sent_time' };
+  }
+  return { ok: true, value: { question_index, packet_id, sent_at: new Date(sent_time * 1000) } };
 }
 
 export function validateForget(body: unknown): Checked<{ from_id: string }> {

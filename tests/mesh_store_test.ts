@@ -130,6 +130,20 @@ Deno.test({
         assert(w[0].answers.length > 0);
         for (const a of w[0].answers) assertEquals(Object.keys(a).sort(), ['rx_at', 'short_name', 'text']);
       });
+      await t.step('a sending recorded late keeps its radio time and its evening', async () => {
+        await sql('TRUNCATE mesh_answers, mesh_questions_sent RESTART IDENTITY CASCADE');
+        const radio = new Date('2026-10-01T00:30:00Z'); // 19:30 CDT on Sep 30, posted hours later
+        const r = await recordSent(5, 900, radio);
+        assertEquals([r.status, r.row.sent_at.toISOString()], ['inserted', radio.toISOString()]);
+        const day = await sql('SELECT sent_day::text AS d FROM mesh_questions_sent WHERE packet_id = 900');
+        assertEquals((day.rows[0] as { d: string }).d, '2026-09-30');
+        // Heard after the radio send but before the site was told: still this evening's answer.
+        const heard = new Date('2026-10-01T00:40:00Z');
+        assertEquals(await insertAnswer(answer({ question_index: 5, packet_id: 1100, rx_at: heard })), 'inserted');
+        // A retry of the same late record, even after midnight, conflicts on the same evening.
+        const again = await recordSent(5, 900, radio);
+        assertEquals([again.status, again.row.packet_id], ['conflict', 900]);
+      });
     } finally {
       await closePool();
     }
