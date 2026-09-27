@@ -30,7 +30,7 @@ export default function MeshPage({ data }: PageProps<MeshData>) {
   return (
     <PageShell
       title='Heard on the mesh - a formulation of truth'
-      description='Proust questions asked over the Meshtastic mesh around Madison, and the answers heard back'
+      description='Proust questions asked over the Meshtastic mesh, and the answers heard back'
     >
       <div class='about-header'>
         <h1>Heard on the mesh</h1>
@@ -40,9 +40,8 @@ export default function MeshPage({ data }: PageProps<MeshData>) {
       <div class='about-content'>
         <p class='lead'>
           Each evening the node <strong>a4mulas4t</strong>{' '}
-          (A4T) asks one question from the Proust questionnaire on the Meshtastic LongFast channel around Madison. Reply
-          to it in your Meshtastic app, or send A4T a direct message, and your answer appears here under your node's
-          short name.
+          (A4T) asks one question from the Proust questionnaire on the Meshtastic LongFast channel. Reply to it in your
+          Meshtastic app, or send A4T a direct message, and your answer appears here under your node's short name.
         </p>
 
         {data.unavailable && <p class='callout'>The wall can't be read right now. Please try again later.</p>}
