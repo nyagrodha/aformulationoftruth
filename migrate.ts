@@ -3,6 +3,11 @@
 /**
  * Database Migration Runner
  * Runs SQL migrations from db/migrations/ directory
+ *
+ * The _migrations ledger below records only what THIS runner applied. In
+ * production migrations are applied by hand as the admin role (a4m_app is
+ * DML-only), so the ledger cannot say what the database actually has. For
+ * that, run scripts/check-schema.ts, which compares the files with the schema.
  */
 
 import { Pool } from 'postgres';
