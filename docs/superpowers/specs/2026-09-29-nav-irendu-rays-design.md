@@ -97,6 +97,14 @@ Markup, in order:
      loads, since following it starts navigation): the wordmark's gold —
      `--wm-gold`, `#ffd600` on the dark ground and `#8a6d00` on `--paper`,
      which already hold contrast on each.
+   - **The page you are on stays gold.** `Nav` takes an optional `current` (a
+     path); the item whose `href` equals it renders with
+     `aria-current='page'`, styled the same gold. It is decided on the server,
+     so it shows without JavaScript and does not flash in after hydration. Only
+     the four destinations pass it — `/about`, `/people`, `/shop`, `/loramesh`
+     — through `PageShell`'s new optional `current` prop where they use it.
+     Fragment items (`#begin`, `#about` on the landing page) are never
+     current.
    - A pipeline item is a `<span>` reading **"messenger · in the pipeline"**,
      with no link and no hit area.
 
@@ -133,7 +141,10 @@ Additions to `islands/Nav_test.tsx` (server render, no DOM):
 
 - `Nav` renders seven items in `PAGE_NAV` order.
 - Pipeline items render as text containing "in the pipeline" and **no `<a>`**.
-- The stylesheet gives `.nav-rays a:active` the `--wm-gold` colour.
+- The stylesheet gives `.nav-rays a:active` and `.nav-rays [aria-current='page']`
+  the `--wm-gold` colour.
+- Given `current='/about'`, exactly the about item carries `aria-current='page'`;
+  given nothing, no item does.
 - Every non-pipeline `href` in `PAGE_NAV` resolves to a route (the existing
   "points at nothing that does not exist" test, extended to `/loramesh`).
 - The rays `<img>` has empty `alt` and declared intrinsic size.
