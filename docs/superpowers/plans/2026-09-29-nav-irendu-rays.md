@@ -573,6 +573,8 @@ Co-Authored-By: Claude Opus 5.5 (1M context) <noreply@anthropic.com>"
 - Modify: `public/css/main.css` (append the dark-art swap)
 - Modify: `components/PageShell.tsx:34-57` (optional `current` prop passed to `Nav`)
 - Modify: `routes/about.tsx`, `routes/shop.tsx`, `routes/loramesh.tsx` (pass `current`)
+- Modify: `routes/people.tsx`, `public/css/tool.css` (the nav on the dark directory page)
+- Test: `tests/people_nav_test.tsx` (new)
 - Test: `islands/nav_css_test.ts` (new)
 
 **Interfaces:**
@@ -879,7 +881,76 @@ export function PageShell(
           <Nav items={PAGE_NAV} current={current} />
 ```
 
-Then add `current='/about'` to the `<PageShell` in `routes/about.tsx`, `current='/shop'` in `routes/shop.tsx`, and `current='/loramesh'` in `routes/loramesh.tsx`. (`/people` renders no nav, so it passes nothing.)
+Then add `current='/about'` to the `<PageShell` in `routes/about.tsx`, `current='/shop'` in `routes/shop.tsx`, and `current='/loramesh'` in `routes/loramesh.tsx`.
+
+- [ ] **Step 6b: Give `/people` the nav (owner, 2026-09-29)**
+
+`/people` is the opt-in directory of public profiles and a nav destination, but it
+renders no site header: it is a dark `tool.css` page with a `← home` pill. It gets
+the nav without moving to `PageShell` (which would re-dress it in paper).
+
+Failing test first — `tests/people_nav_test.tsx`:
+
+```tsx
+import { assertEquals, assertStringIncludes } from '$std/assert/mod.ts';
+import { render } from 'preact-render-to-string';
+import type { PageProps } from '$fresh/server.ts';
+import PeoplePage from '../routes/people.tsx';
+
+const page = () =>
+  render(<PeoplePage {...({ data: { people: [] } } as unknown as PageProps<{ people: [] }>)} />);
+
+Deno.test('people - carries the site nav, with people current', () => {
+  const html = page();
+  assertStringIncludes(html, 'class="site-nav"');
+  assertStringIncludes(html, 'href="/people" aria-current="page"');
+});
+
+Deno.test('people - the home pill is gone; the wordmark goes home', () => {
+  assertEquals(page().includes('← home'), false);
+});
+```
+
+Run: `deno test --allow-read --allow-env tests/people_nav_test.tsx` — expect FAIL.
+
+In `routes/people.tsx`: import `Nav` from `../islands/Nav.tsx` and `NAV_NOSCRIPT_CSS, PAGE_NAV` from `../components/nav-shared.ts`; in `<Head>` add
+`<link rel='stylesheet' href='/css/nav-mark.css' />` and
+`<noscript><style>{NAV_NOSCRIPT_CSS}</style></noscript>`; put
+`<header class='site-header'><Nav items={PAGE_NAV} current='/people' /></header>`
+before `<main>`; delete `<a class='pill' href='/'>← home</a>`.
+
+Append to `public/css/tool.css` (a dark page, as main.css):
+
+```css
+/* The site nav (nav-mark.css) on this dark page: a header row, and the ink-ground rays. */
+.site-header {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  min-height: 76px;
+  margin: 0 2.5vw;
+  padding: 0.6rem 0.5vw;
+  border-bottom: 1px solid var(--line);
+}
+
+.nav-rays-art--light {
+  display: none;
+}
+
+.nav-rays-art--dark {
+  display: block;
+}
+
+.nav-rays {
+  --wm-gold: #ffd600;
+  background: color-mix(in srgb, var(--bg) 80%, transparent);
+}
+```
+
+Run: `deno test --allow-read --allow-env tests/people_nav_test.tsx` — expect PASS. Add
+`/people` at 1280px and 360px to Step 8's browser checks, and add
+`routes/people.tsx public/css/tool.css tests/people_nav_test.tsx` to Step 9's `git add`.
 
 Run: `deno check components/PageShell.tsx routes/about.tsx routes/shop.tsx routes/loramesh.tsx`
 Expected: clean.
