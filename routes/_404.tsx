@@ -2,6 +2,8 @@
  * 404 Not Found Page
  */
 
+import TipJar from '../components/TipJar.tsx';
+
 export default function NotFoundPage() {
   return (
     <html>
@@ -43,6 +45,7 @@ export default function NotFoundPage() {
           <p>
             <a href='/'>Return home</a>
           </p>
+          <TipJar />
         </div>
       </body>
     </html>

@@ -10,6 +10,7 @@ import { Head } from '$fresh/runtime.ts';
 import { Handlers, PageProps } from '$fresh/server.ts';
 import { increment } from '../lib/metrics.ts';
 import { listPublicProfiles, type Profile } from '../lib/profiles.ts';
+import TipJar from '../components/TipJar.tsx';
 
 interface Data {
   people: Array<Pick<Profile, 'handle' | 'displayName' | 'bio'>>;
@@ -71,6 +72,7 @@ export default function PeoplePage({ data }: PageProps<Data>) {
             </ul>
           )}
       </main>
+      <TipJar />
     </>
   );
 }

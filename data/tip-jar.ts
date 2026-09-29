@@ -18,8 +18,18 @@ export interface TipAddress {
   address: string | null;
 }
 
-/** A Stripe Payment Link where the customer chooses the amount (buy.stripe.com). */
-export const STRIPE_TIP_LINK: string | null = null;
+/**
+ * A Stripe Payment Link where the customer chooses the amount (buy.stripe.com).
+ * Configured in the Stripe dashboard, not here: "customers choose what to pay",
+ * preset and minimum both STRIPE_TIP_PRESET_USD, product named as a tip.
+ */
+export const STRIPE_TIP_LINK: string | null = 'https://buy.stripe.com/fZu6oH5v42Rv0p65BX3ZK04';
+
+/**
+ * The amount the card option names. It is only a label: the amount actually
+ * charged is the Payment Link's preset, so change both together.
+ */
+export const STRIPE_TIP_PRESET_USD = 5;
 
 export const TIP_ADDRESSES: readonly TipAddress[] = [
   { symbol: 'BTC', name: 'Bitcoin', address: null },

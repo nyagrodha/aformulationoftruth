@@ -1,4 +1,5 @@
 import { Head } from "$fresh/runtime.ts";
+import TipJar from "../components/TipJar.tsx";
 
 export default function LottoPage() {
   return (
@@ -73,6 +74,7 @@ winner_index = int(drand_randomness, 16) % entry_count`}</pre>
           </section>
         </div>
       </main>
+      <TipJar />
       <script src="/js/lotto.js"></script>
     </>
   );
