@@ -61,6 +61,9 @@ jobs:
           deno check \
             main.ts \
             lib/gate_encrypt.ts \
+            lib/schema-expectations.ts \
+            lib/schema-check.ts \
+            scripts/check-schema.ts \
             data/shop.ts \
             components/PageShell.tsx \
             routes/about.tsx \
@@ -85,6 +88,13 @@ jobs:
       # QuaternarySpheroid.tsx and Spheroid.tsx predate the singleQuote setting, so
       # widening `deno fmt --check` to it would fail on drift no one here
       # introduced. Format those two, then widen the fmt step separately.
+      #
+      # schema-expectations_test reads db/migrations/ itself, so a migration
+      # written in a style the drift parser cannot read fails here rather than
+      # quietly shrinking what /api/health and scripts/check-schema.ts expect.
+      # It also holds the guard against a new duplicate migration number.
+      # health_test stubs the database; tests/schema_check_test.ts is the
+      # opt-in integration half and, like delivery_queue_test, is not listed.
       - name: Test
         run: |
           deno test --allow-env --allow-read --allow-net \
@@ -95,6 +105,8 @@ jobs:
             lib/csrf_test.ts \
             lib/email_test.ts \
             lib/gate_encrypt_test.ts \
+            lib/schema-expectations_test.ts \
+            routes/api/health_test.ts \
             routes/shop_test.tsx \
             routes/about_test.tsx \
             routes/messenger_test.tsx \
