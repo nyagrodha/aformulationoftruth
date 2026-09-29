@@ -176,9 +176,18 @@ export default function Home({ data }: PageProps<IndexData>) {
           <section class='hero' id='top' aria-labelledby='prolegomenon'>
             <div class='hero-copy'>
               <p class='hero-title'>
-                Every reader, as he reads, is actually the reader of himself. The writer’s work is only a kind of
-                optical instrument he provides the reader so he can discern what he might never have seen in himself
-                without this book. The reader's recognition of what the book says is proof of the book's truth.
+                <img
+                  class='drop-cap drop-cap--hero'
+                  src='/images/e-illuminated-640.webp'
+                  alt=''
+                  aria-hidden='true'
+                  width={640}
+                  height={640}
+                />
+                <span class='sr-only'>E</span>very reader, as he reads, is actually the reader of himself. The writer’s
+                work is only a kind of optical instrument he provides the reader so he can discern what he might never
+                have seen in himself without this book. The reader's recognition of what the book says is proof of the
+                book's truth.
               </p>
 
               <p class='eyebrow' id='prolegomenon'>PROLEGOMENON:</p>
