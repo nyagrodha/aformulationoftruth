@@ -17,6 +17,10 @@
 
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { WordmarkGlyphs } from '../components/Wordmark.tsx';
+import type { NavItem } from '../components/nav-shared.ts';
+import { NAV_RAYS } from '../data/nav-rays.ts';
+
+export type { NavItem };
 
 /*
  * The toggle is the Tamil ௨ (இரண்டு, 2) as drawn artwork, replacing the
@@ -50,12 +54,7 @@ function IrenduMark() {
   );
 }
 
-export interface NavItem {
-  label: string;
-  href: string;
-}
-
-export default function Nav({ items }: { items: NavItem[] }) {
+export default function Nav({ items, current }: { items: NavItem[]; current?: string }) {
   const [open, setOpen] = useState(false);
   const root = useRef<HTMLElement | null>(null);
   const toggle = useRef<HTMLButtonElement | null>(null);
@@ -98,6 +97,9 @@ export default function Nav({ items }: { items: NavItem[] }) {
 
   return (
     <nav class='site-nav' aria-label='Primary navigation' ref={root}>
+      {/* Balances the wordmark so the ௨ sits at the true centre of the header. */}
+      <span class='nav-spacer' aria-hidden='true' />
+
       {
         /*
          * The mark is the control, and it carries the accessible name: the image
@@ -113,7 +115,7 @@ export default function Nav({ items }: { items: NavItem[] }) {
             ref={toggle}
             aria-label='Menu'
             aria-expanded={open}
-            aria-controls='nav-list'
+            aria-controls='nav-rays'
             onClick={() => setOpen((v) => !v)}
           >
             <IrenduMark />
@@ -140,14 +142,54 @@ export default function Nav({ items }: { items: NavItem[] }) {
         </span>
       </a>
 
-      <ul id='nav-list' class='nav-list' hidden={!open}>
-        {items.map(({ label, href }) => (
-          <li key={href}>
-            {/* Fragment links don't unmount the island, so close on the way out. */}
-            <a href={href} onClick={() => setOpen(false)}>{label}</a>
-          </li>
-        ))}
-      </ul>
+      {
+        /*
+         * The rays are artwork (empty alt); the list over them is the navigation.
+         * Two images because the glow that reads on paper vanishes on black and
+         * the reverse -- the stylesheet shows the one that suits the page. Each
+         * label starts where its ray ends: only the label is a link.
+         */
+      }
+      <div id='nav-rays' class='nav-rays' hidden={!open}>
+        <img
+          class='nav-rays-art nav-rays-art--light'
+          src={NAV_RAYS.light}
+          alt=''
+          width={NAV_RAYS.width}
+          height={NAV_RAYS.height}
+          decoding='async'
+        />
+        <img
+          class='nav-rays-art nav-rays-art--dark'
+          src={NAV_RAYS.dark}
+          alt=''
+          width={NAV_RAYS.width}
+          height={NAV_RAYS.height}
+          decoding='async'
+        />
+        <ol class='nav-rays-list'>
+          {items.map((item, i) => {
+            const ray = NAV_RAYS.rays[i];
+            /* Beyond the seventh ray there is no tip; such an item joins the list below the fan. */
+            const side = ray?.side ?? 'below';
+            const style = ray ? `--x:${ray.x}%;--y:${ray.y}%` : undefined;
+            return (
+              <li key={item.label} class={`nav-ray nav-ray--${side}`} style={style}>
+                {item.pipeline || !item.href ? <span class='nav-ray-pipeline'>{item.label} · in the pipeline</span> : (
+                  <a
+                    href={item.href}
+                    aria-current={item.href === current ? 'page' : undefined}
+                    /* Fragment links don't unmount the island, so close on the way out. */
+                    onClick={() => setOpen(false)}
+                  >
+                    {item.label}
+                  </a>
+                )}
+              </li>
+            );
+          })}
+        </ol>
+      </div>
     </nav>
   );
 }

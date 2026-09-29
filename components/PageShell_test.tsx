@@ -79,7 +79,7 @@ Deno.test('PageShell keeps the menu usable without JS', () => {
     </PageShell>,
   );
   assertStringIncludes(html, '<noscript>');
-  assertStringIncludes(html, '.nav-list[hidden]{display:flex}');
+  assertStringIncludes(html, '.nav-rays[hidden]{display:block}');
   /* The revealed list must not sit beside a toggle still claiming to be collapsed. */
   assertEquals(html.includes('aria-expanded'), false);
   assertEquals(html.includes('<button'), false);
