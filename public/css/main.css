@@ -153,6 +153,35 @@ nav {
     color: var(--light);
 }
 
+/*
+ * The a4முலसत्यsya wordmark in place of "A4T" (gate, questionnaire). .logo's
+ * uppercase and wide tracking would turn it into "A4...SYA" and pull the
+ * Tamil and Devanagari clusters apart, so the glyphs opt out of both. Colours
+ * are the ink-ground triad from prolegomenon.css, since these pages are black;
+ * `sya` inherits .logo's grey, as it inherits ink or tan elsewhere.
+ */
+.logo .wordmark-glyphs {
+    font-family: 'Georgia', serif;
+    font-size: 1.05rem;
+    font-weight: 400;
+    letter-spacing: -0.02em;
+    text-transform: none;
+    white-space: nowrap;
+}
+
+.logo .wm-a,
+.logo .wm-sa {
+    color: #ff3cac;
+}
+
+.logo .wm-num {
+    color: #3b82f6;
+}
+
+.logo .wm-ta {
+    color: #ffd600;
+}
+
 .nav-links {
     display: flex;
     gap: 3rem;

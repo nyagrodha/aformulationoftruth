@@ -16,6 +16,7 @@ import { getSessionById, updateSessionIndex, updateSessionProgress } from '../li
 import { parseQuestionOrder } from '../lib/questionnaire.ts';
 import { increment } from '../lib/metrics.ts';
 import TipJar from '../components/TipJar.tsx';
+import { WordmarkGlyphs } from '../components/Wordmark.tsx';
 
 // The 35 Proust questionnaire questions
 const QUESTIONS = [
@@ -491,7 +492,9 @@ export default function QuestionnairePage({ data }: PageProps<QuestionnaireData>
       </head>
       <body>
         <nav>
-          <a href='/' class='logo'>A4T</a>
+          <a href='/' class='logo' aria-label='a formulation of truth, home'>
+            <WordmarkGlyphs />
+          </a>
         </nav>
 
         <main>
