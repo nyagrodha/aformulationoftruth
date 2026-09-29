@@ -19,75 +19,66 @@
  */
 
 /*
- * The nav is a disclosure whose toggle is the ௨ mark, sitting left, with
- * the wordmark opposite it on the right. `.nav-list` opens as a horizontal bar
- * running the width of the header rather than a column dropping out of it.
- *
- * Above 700px the bar is a single row and stays out of flow, so opening it never
- * shoves the hero down the page — the original reason for absolute positioning.
- * Below 700px it wraps to two or three rows, and a wrapped bar of unknown height
- * cannot be cleared by any fixed reserve, so there it returns to normal flow and
- * pushes content instead. Overlap then cannot happen at either size.
+ * The nav is the ௨ centred in the header, the wordmark on the right, and a fan
+ * of seven rays that opens beneath the mark when it is clicked, one destination
+ * at each ray's tip -- after the Brooch wearable's boot screen. See
+ * docs/superpowers/specs/2026-09-29-nav-irendu-rays-design.md; the ray art and
+ * tip positions come from tools/compose-nav-rays.py.
+ */
+/*
+ * Three columns so the ௨ sits at the true centre whatever the wordmark's width:
+ * an empty spacer, the mark, the wordmark. The fan hangs from the mark.
  */
 .site-nav {
+  /*
+   * The fan's width and the open ௨'s width, kept in the 600 : 74 ratio
+   * tools/compose-nav-rays.py drew the rays around. Narrow screens scale both.
+   */
+  --fan-w: 600px;
+  --mark-open: 74px;
   position: relative;
-  display: flex;
+  display: grid;
   flex: 1;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: center;
-  justify-content: space-between;
   gap: 1rem;
 }
 
 .nav-toggle {
   display: flex;
-  align-items: center;
+  justify-content: center;
   padding: 0;
   border: none;
   background: none;
   color: inherit;
   font: inherit;
-  text-align: left;
 }
 
-/* Only the hydrated toggle is a control; before that it is a span. */
 button.nav-toggle {
   cursor: pointer;
 }
 
 /*
- * The ௨ needs room to read: its inner spiral closes to a blur well before the
- * outline does, so the floor here is deliberately larger than a conventional
- * hamburger — the same reason the five-line mark it replaces held this range.
- *
- * The intrinsic image is 372×252 and this paints it at 124px at most, so it is
- * always downscaling. `height: auto` keeps the 1.48 ratio off the attributes in
- * the markup, which is what stops the header reflowing as it loads.
- *
- * The artwork is lit gold with its own highlights and carries no flat fill to
- * recolour, so unlike the five bars it does not answer to the cascade. A caller
- * on a ground it cannot sit on needs a different file, not a different token.
+ * Above the fan: the fan's box starts level with the open mark's top, and its
+ * translucent, blurred backing would otherwise swallow the ௨ it hangs from --
+ * and, where the fan spans the screen, the wordmark beside it.
  */
+.nav-toggle,
+.site-nav a.wordmark-home {
+  position: relative;
+  z-index: 4;
+}
+
+/* 124px closed; 74px open, the size tools/compose-nav-rays.py drew the fan around. */
 .nav-mark {
   display: block;
   width: clamp(96px, 10vw, 124px);
   height: auto;
-  /*
-   * The mark carries the open state itself, as the parting bars used to. A
-   * tenth of a turn is enough to register against a form this curved without
-   * reading as a spin — and it turns anticlockwise, unwinding the spiral
-   * rather than tightening it.
-   */
-  transition: transform 0.22s ease;
+  transition: width 0.25s ease;
 }
 
 .nav-toggle[aria-expanded='true'] .nav-mark {
-  transform: rotate(-36deg);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .nav-mark {
-    transition: none;
-  }
+  width: var(--mark-open);
 }
 
 /*
@@ -99,6 +90,7 @@ button.nav-toggle {
  */
 .site-nav a.wordmark-home {
   flex: none;
+  justify-self: end;
   color: inherit;
   font: inherit;
   letter-spacing: inherit;
@@ -117,81 +109,196 @@ button.nav-toggle {
 }
 
 /*
- * Translucent rather than solid so the page reads through it, and blurred so the
- * links stay legible over whatever they cross. The two together are why the bar
- * can sit over content at all; the flow switch below 700px is what guarantees it
- * never has to.
+ * The fan: 600x230, centred under the mark, its top level with the open mark's
+ * top (the mark is vertically centred in the header; 25px is half its 50px open
+ * height). Out of flow, so opening it never shoves the page down; translucent
+ * and blurred so it can sit over text, as the bar did.
  */
-.nav-list {
+.nav-rays {
   position: absolute;
-  top: 100%;
-  right: 0;
-  left: 0;
+  top: 50%;
+  left: 50%;
   z-index: 3;
-  display: flex;
-  flex-flow: row wrap;
-  gap: 0.2rem 2.4rem;
-  margin: 0.55rem 0 0;
-  padding: 0.75rem 0.2rem;
-  border-top: 1px solid var(--rule, #17171557);
-  border-bottom: 1px solid var(--rule, #17171557);
-  background: color-mix(in srgb, var(--paper, #e8ddc5) 86%, transparent);
-  list-style: none;
+  width: var(--fan-w);
+  aspect-ratio: 600 / 230;
+  /* Level with the open mark's top: half its height (372x252) above centre. */
+  margin-top: calc(var(--mark-open) * -126 / 372);
+  transform: translateX(-50%);
+  border-radius: 0 0 1.5rem 1.5rem;
+  background: color-mix(in srgb, var(--paper, #e8ddc5) 80%, transparent);
   backdrop-filter: blur(7px);
   -webkit-backdrop-filter: blur(7px);
+  animation: nav-rays-in 0.3s ease;
 }
 
 @supports not (background: color-mix(in srgb, red 50%, transparent)) {
-  .nav-list {
+  .nav-rays {
     background: var(--paper, #e8ddc5);
   }
 }
 
-/*
- * The [hidden] attribute only carries `display: none` at UA weight, which the
- * flex above outranks. Restate it, or the closed menu stays on screen.
- */
-.nav-list[hidden] {
+.nav-rays[hidden] {
   display: none;
 }
 
-.nav-list li {
-  margin: 0;
-  padding: 0;
+@keyframes nav-rays-in {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) scale(0.85);
+  }
 }
 
-.nav-list a {
+.nav-rays-art {
   display: block;
-  padding: 0.34rem 0;
+  width: 100%;
+  height: auto;
+  pointer-events: none;
+}
+
+.nav-rays-art--dark {
+  display: none;
+}
+
+.nav-rays-list {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Each label starts where its ray ends: the ray is art, only the label is a link. */
+.nav-ray {
+  position: absolute;
+  top: var(--y);
+  left: var(--x);
+  margin: 0;
   white-space: nowrap;
 }
 
-@media (max-width: 700px) {
-  /*
-   * prolegomenon.css pins .site-header to a fixed height: 68px through 900px,
-   * which is fine while .nav-list is absolutely positioned. Once it wraps onto
-   * its own flex line below it has real height, and a fixed-height header
-   * cannot grow to hold it — the list overflows and overlays the page instead
-   * of pushing it down, defeating the rule below. Keep 68px as the floor.
-   */
-  .site-header {
-    height: auto;
-    min-height: 68px;
-  }
+.nav-ray--right {
+  transform: translate(0.4em, -50%);
+}
 
+.nav-ray--left {
+  transform: translate(calc(-100% - 0.4em), -50%);
+}
+
+.nav-ray--below {
+  transform: translate(-50%, 0.3em);
+}
+
+.nav-rays a,
+.nav-ray-pipeline {
+  display: block;
+  padding: 0.2rem 0;
+}
+
+/*
+ * The labels carry their own type rather than relying on prolegomenon.css's
+ * `.site-nav a`, because the dark pages (main.css, tool.css) do not load it and
+ * would otherwise set them as their own body links. Small uppercase Arial, wide
+ * tracking; the pipeline labels match and are only dimmed, so the seven read as
+ * one row of destinations.
+ */
+.nav-rays a,
+.nav-ray-pipeline {
+  color: inherit;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 0.69rem;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+.nav-ray-pipeline {
+  opacity: 0.6;
+}
+
+/*
+ * The wordmark's glyphs and colours live in prolegomenon.css. On the pages that
+ * do not load it, fall back to the ink-ground triad (these are the dark pages);
+ * where prolegomenon is present its --wm-* values win through the var().
+ */
+.site-nav .wordmark-glyphs {
+  font-family: Georgia, serif;
+  font-size: clamp(1.35rem, 2vw, 2rem);
+  letter-spacing: -0.04em;
+  white-space: nowrap;
+}
+
+.site-nav .wm-a,
+.site-nav .wm-sa {
+  color: var(--wm-magenta, #ff3cac);
+}
+
+.site-nav .wm-num {
+  color: var(--wm-blue, #3b82f6);
+}
+
+.site-nav .wm-ta {
+  color: var(--wm-gold, #ffd600);
+}
+
+.site-nav .wordmark-sub {
+  display: block;
+  margin-top: 0.2rem;
+  color: var(--saffron, #ff9f1c);
+  font: 600 0.6rem / 1 Arial, Helvetica, sans-serif;
+  letter-spacing: 0.2em;
+  text-transform: lowercase;
+}
+
+.nav-rays a:active,
+.nav-rays a[aria-current='page'] {
+  color: var(--wm-gold, #8a6d00);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nav-mark,
+  .nav-rays {
+    transition: none;
+    animation: none;
+  }
+}
+
+/*
+ * Below 480px the fan keeps its geometry, scaled to the screen with the ௨ scaled
+ * alongside it, so the rays still leave its base stroke and every word still
+ * sits where its ray ends (owner, 2026-09-29: preferred to a list beneath). The
+ * labels shrink and may wrap to fit beside their tips.
+ */
+@media (max-width: 480px) {
   .site-nav {
-    flex-wrap: wrap;
+    --fan-w: calc(100vw - 1.5rem);
+    --mark-open: calc(var(--fan-w) * 74 / 600);
+    gap: 0.5rem;
+  }
+
+  .site-nav .wordmark-glyphs {
+    font-size: 1.1rem;
+  }
+
+  .nav-ray {
+    width: max-content;
+    max-width: 24vw;
+    white-space: normal;
+    line-height: 1.25;
+  }
+
+  .nav-rays a,
+  .nav-ray-pipeline {
+    font-size: 0.56rem;
+    letter-spacing: 0.1em;
   }
 
   /*
-   * Wrapped, so it must push rather than overlay — see the note above. Taking a
-   * full basis forces it onto its own flex line; without that it stays a sibling
-   * of the mark and the wordmark, and being the widest of the three it shrinks
-   * the wordmark to nothing.
+   * The 2nd ray (the long one on the left) ends level with the 3rd's tip, and at
+   * this width their labels meet and read as one phrase. Lift the 2nd a line, so
+   * its ray ends at the label's lower corner instead of its middle.
    */
-  .nav-list {
-    position: static;
-    flex-basis: 100%;
-    margin-top: 0.5rem;
+  .nav-ray:nth-child(2) {
+    transform: translate(calc(-100% - 0.3em), -110%);
   }
 }

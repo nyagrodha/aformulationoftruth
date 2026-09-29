@@ -1,12 +1,13 @@
 /**
- * One nav destination. `pipeline` items are listed but not yet built: they
- * render as text reading "<label> · in the pipeline" and carry no href, so
- * nobody lands on an unfinished page.
+ * One nav destination. A `pipeline` item is listed but not yet built: it
+ * renders as text reading "<label> · <pipeline>" (e.g. "lotto · in the
+ * pipeline") and carries no href, so nobody lands on an unfinished page.
  */
 export interface NavItem {
   label: string;
   href?: string;
-  pipeline?: boolean;
+  /** The note shown in place of a link, for a destination not built yet. */
+  pipeline?: string;
 }
 
 /**
@@ -20,7 +21,7 @@ export interface NavItem {
  * The [hidden] attribute only carries `display: none` at UA weight; restate the
  * open display rather than relying on removing `hidden`.
  */
-export const NAV_NOSCRIPT_CSS = '.nav-rays[hidden]{display:block}.nav-mark{width:74px}';
+export const NAV_NOSCRIPT_CSS = '.nav-rays[hidden]{display:block}.nav-mark{width:var(--mark-open,74px)}';
 
 /**
  * The nav for every page that is not the landing page, left to right across the
@@ -36,8 +37,8 @@ export const PAGE_NAV: NavItem[] = [
   { label: 'people', href: '/people' },
   { label: 'gift shop', href: '/shop' },
   { label: 'heard on the mesh', href: '/loramesh' },
-  { label: 'messenger', pipeline: true },
-  { label: 'lotto', pipeline: true },
+  { label: 'messenger', pipeline: 'coming soon' },
+  { label: 'lotto', pipeline: 'in the pipeline' },
 ];
 
 /**

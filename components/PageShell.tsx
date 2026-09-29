@@ -32,9 +32,11 @@ export function Ornament() {
  * closes the way the landing does rather than on an older copy of it.
  */
 export function PageShell(
-  { title, description, children }: {
+  { title, description, current, children }: {
     title: string;
     description: string;
+    /** This page's path when it is a nav destination, so its ray label stays gold. */
+    current?: string;
     children: ComponentChildren;
   },
 ) {
@@ -54,7 +56,7 @@ export function PageShell(
       </head>
       <body>
         <header class='site-header'>
-          <Nav items={PAGE_NAV} />
+          <Nav items={PAGE_NAV} current={current} />
         </header>
 
         <main class='movement'>

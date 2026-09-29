@@ -168,7 +168,7 @@ Deno.test('Nav renders the seven as a fan, one per ray, in order', () => {
 
 Deno.test('pipeline items are not focusable', () => {
   const html = render(<Nav items={PAGE_NAV} />);
-  assertStringIncludes(html, 'messenger · in the pipeline');
+  assertStringIncludes(html, 'messenger · coming soon');
   assertStringIncludes(html, 'lotto · in the pipeline');
   const links = html.match(/<a [^>]*>/g) ?? [];
   /* Five destinations plus the wordmark link home. */
@@ -205,6 +205,6 @@ Deno.test('Nav ships no trace of the retired bar', () => {
 
 Deno.test('without script the fan is open and the mark already small', () => {
   assertStringIncludes(NAV_NOSCRIPT_CSS, '.nav-rays[hidden]{display:block}');
-  assertStringIncludes(NAV_NOSCRIPT_CSS, '.nav-mark{width:74px}');
+  assertStringIncludes(NAV_NOSCRIPT_CSS, '.nav-mark{width:var(--mark-open,74px)}');
   assertEquals(NAV_NOSCRIPT_CSS.includes('nav-list'), false);
 });

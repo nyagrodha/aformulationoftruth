@@ -9,6 +9,7 @@ import { Ornament, PageShell } from '../components/PageShell.tsx';
 export default function AboutPage() {
   return (
     <PageShell
+      current='/about'
       title='welcome - about a formulation of truth'
       description='Learn about the Proust Questionnaire and the practice of self-inquiry'
     >

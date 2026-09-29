@@ -175,16 +175,18 @@ export default function Nav({ items, current }: { items: NavItem[]; current?: st
             const style = ray ? `--x:${ray.x}%;--y:${ray.y}%` : undefined;
             return (
               <li key={item.label} class={`nav-ray nav-ray--${side}`} style={style}>
-                {item.pipeline || !item.href ? <span class='nav-ray-pipeline'>{item.label} · in the pipeline</span> : (
-                  <a
-                    href={item.href}
-                    aria-current={item.href === current ? 'page' : undefined}
-                    /* Fragment links don't unmount the island, so close on the way out. */
-                    onClick={() => setOpen(false)}
-                  >
-                    {item.label}
-                  </a>
-                )}
+                {item.pipeline || !item.href
+                  ? <span class='nav-ray-pipeline'>{item.label} · {item.pipeline ?? 'in the pipeline'}</span>
+                  : (
+                    <a
+                      href={item.href}
+                      aria-current={item.href === current ? 'page' : undefined}
+                      /* Fragment links don't unmount the island, so close on the way out. */
+                      onClick={() => setOpen(false)}
+                    >
+                      {item.label}
+                    </a>
+                  )}
               </li>
             );
           })}

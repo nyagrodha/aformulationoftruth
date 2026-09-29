@@ -412,3 +412,28 @@ pre {
     animation: none !important;
   }
 }
+
+/* The site nav (nav-mark.css) on this dark page: a header row, and the ink-ground rays. */
+.site-header {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  min-height: 76px;
+  margin: 0 2.5vw;
+  padding: 0.6rem 0.5vw;
+  border-bottom: 1px solid var(--line);
+}
+
+.site-nav .nav-rays-art--light {
+  display: none;
+}
+
+.site-nav .nav-rays-art--dark {
+  display: block;
+}
+
+.site-nav .nav-rays {
+  --wm-gold: #ffd600;
+  background: color-mix(in srgb, var(--bg) 80%, transparent);
+}
