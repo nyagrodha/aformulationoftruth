@@ -23,7 +23,7 @@ export interface TipAddress {
  * Configured in the Stripe dashboard, not here: "customers choose what to pay",
  * preset and minimum both STRIPE_TIP_PRESET_USD, product named as a tip.
  */
-export const STRIPE_TIP_LINK: string | null = null;
+export const STRIPE_TIP_LINK: string | null = 'https://buy.stripe.com/fZu6oH5v42Rv0p65BX3ZK04';
 
 /**
  * The amount the card option names. It is only a label: the amount actually
