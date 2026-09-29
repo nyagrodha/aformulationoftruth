@@ -39,9 +39,10 @@ export default function MeshPage({ data }: PageProps<MeshData>) {
 
       <div class='about-content'>
         <p class='lead'>
-          Each evening the node <strong>a4mulas4t</strong>{' '}
-          (A4T) asks one question from the Proust questionnaire on the Meshtastic LongFast channel. Reply to it in your
-          Meshtastic app, or send A4T a direct message, and your answer appears here under your node's short name.
+          Each evening the Meshtastic node <strong>a4mulas4t</strong>{' '}
+          (A4T) asks one question from the Proust questionnaire on the LongFast channel around Southeast WI. Reply to
+          that node in the Meshtastic app, or send A4T a direct message with your response and it'll appear here under
+          your node's short name.
         </p>
 
         {data.unavailable && <p class='callout'>The wall can't be read right now. Please try again later.</p>}
@@ -73,9 +74,10 @@ export default function MeshPage({ data }: PageProps<MeshData>) {
 
         <h2>What is kept</h2>
         <p>
-          For each answer: the question it answers, the text of the answer, and the node's short name as reported by the
-          radio, with the time it was heard. Names are not verified — any radio can transmit under any name. Send{' '}
-          <strong>forget</strong> as a direct message to A4T and every answer from your node is removed from this page.
+          For each response: the question it answers, the text of the response, and the short name of the node as
+          reported by the radio, with the time A4T heard it. Names are not verified — any radio can transmit under any
+          name. Send <strong>forget</strong>{' '}
+          as a direct message to A4T and every answer from your node is removed from this page.
         </p>
       </div>
     </PageShell>
