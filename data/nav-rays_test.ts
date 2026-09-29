@@ -35,3 +35,18 @@ Deno.test('nav rays - image size matches the data, at 3x', async () => {
     assertEquals(webpSize(bytes), [NAV_RAYS.width * 3, NAV_RAYS.height * 3], url);
   }
 });
+
+/*
+ * Size alone cannot catch drift: ray length, spread and the mark's size all move
+ * the tips without changing the image's dimensions. The generator records each
+ * image's sha256 beside the tips it computed; an image regenerated without its
+ * data, or data without its images, no longer matches.
+ */
+Deno.test('nav rays - the committed images are the ones these tips were computed for', async () => {
+  for (const [name, url] of [['light', NAV_RAYS.light], ['dark', NAV_RAYS.dark]] as const) {
+    const bytes = await Deno.readFile(`public${url}`);
+    const digest = new Uint8Array(await crypto.subtle.digest('SHA-256', bytes));
+    const hex = Array.from(digest, (b) => b.toString(16).padStart(2, '0')).join('');
+    assertEquals(hex, NAV_RAYS.sha256[name], `${url} was regenerated without data/nav-rays.ts, or the reverse`);
+  }
+});

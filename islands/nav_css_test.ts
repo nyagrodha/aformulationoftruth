@@ -27,3 +27,16 @@ Deno.test('reduced motion turns off the shrink and the fan', () => {
 Deno.test('the retired bar is gone', () => {
   assert(!navCss.includes('.nav-list'));
 });
+
+/*
+ * The fan is 600px only where there is room for it, and a label beside a ray
+ * wraps before it would leave the screen: "lotto · in the pipeline" at the
+ * rightmost tip is ~220px wide, and at 481-724px it used to run off the page.
+ */
+Deno.test('the fan never outgrows the screen, and side labels stay on it', () => {
+  assertStringIncludes(navCss, '--fan-w: min(600px, 100vw - 1.5rem)');
+  const right = navCss.slice(navCss.indexOf('.nav-ray--right {'));
+  assertStringIncludes(right.slice(0, right.indexOf('}')), 'max-width: calc(');
+  const left = navCss.slice(navCss.indexOf('.nav-ray--left {'));
+  assertStringIncludes(left.slice(0, left.indexOf('}')), 'max-width: calc(');
+});

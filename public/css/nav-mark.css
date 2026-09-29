@@ -34,8 +34,8 @@
    * The fan's width and the open ௨'s width, kept in the 600 : 74 ratio
    * tools/compose-nav-rays.py drew the rays around. Narrow screens scale both.
    */
-  --fan-w: 600px;
-  --mark-open: 74px;
+  --fan-w: min(600px, 100vw - 1.5rem);
+  --mark-open: calc(var(--fan-w) * 74 / 600);
   position: relative;
   display: grid;
   flex: 1;
@@ -167,20 +167,38 @@ button.nav-toggle {
   list-style: none;
 }
 
+/* Items beyond the seventh ray: in flow below the art, so the fan's box grows to hold them. */
+.nav-rays-extra {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.3rem 1.6rem;
+  margin: 0;
+  padding: 0 1rem 0.9rem;
+  list-style: none;
+}
+
 /* Each label starts where its ray ends: the ray is art, only the label is a link. */
 .nav-ray {
   position: absolute;
-  top: var(--y);
-  left: var(--x);
+  top: calc(var(--y) * 1%);
+  left: calc(var(--x) * 1%);
+  width: max-content;
   margin: 0;
-  white-space: nowrap;
 }
 
+/*
+ * A side label wraps only if it would otherwise leave the screen. The fan is
+ * centred, so a tip sits at 50vw - fan/2 + fan * x/100 from the left edge; the
+ * room beside it runs from there to the screen edge, less a 1rem margin.
+ */
 .nav-ray--right {
+  max-width: calc(50vw + var(--fan-w) / 2 - var(--fan-w) * var(--x) / 100 - 1rem);
   transform: translate(0.4em, -50%);
 }
 
 .nav-ray--left {
+  max-width: calc(50vw - var(--fan-w) / 2 + var(--fan-w) * var(--x) / 100 - 1rem);
   transform: translate(calc(-100% - 0.4em), -50%);
 }
 
@@ -271,8 +289,6 @@ button.nav-toggle {
  */
 @media (max-width: 480px) {
   .site-nav {
-    --fan-w: calc(100vw - 1.5rem);
-    --mark-open: calc(var(--fan-w) * 74 / 600);
     gap: 0.5rem;
   }
 
@@ -281,9 +297,6 @@ button.nav-toggle {
   }
 
   .nav-ray {
-    width: max-content;
-    max-width: 24vw;
-    white-space: normal;
     line-height: 1.25;
   }
 

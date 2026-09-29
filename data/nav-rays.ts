@@ -16,6 +16,8 @@ export const NAV_RAYS: {
   markWidth: number;
   light: string;
   dark: string;
+  /** sha256 of each image, written with the tips so the two cannot drift apart. */
+  sha256: { light: string; dark: string };
   rays: NavRay[];
 } = {
   width: 600,
@@ -23,6 +25,10 @@ export const NAV_RAYS: {
   markWidth: 74,
   light: '/images/nav-rays-light.webp',
   dark: '/images/nav-rays-dark.webp',
+  sha256: {
+    light: '8b3d1ca5cb7d14e13771fd27c82f70fcca627a5f575d75169ea8a6889f4ac134',
+    dark: '65f3e9caad254388a247861638166a2de53db4a5b80a586d9ea36e9dcfeaea9d',
+  },
   rays: [
     { x: 28.03, y: 35.69, angle: 162, side: 'left' },
     { x: 28.16, y: 65.26, angle: 138, side: 'left' },

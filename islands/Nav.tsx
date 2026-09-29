@@ -54,6 +54,23 @@ function IrenduMark() {
   );
 }
 
+/** A destination's label: a link, or for a pipeline item its note as plain text. */
+function NavLabel({ item, current, onFollow }: { item: NavItem; current?: string; onFollow: () => void }) {
+  if (item.pipeline || !item.href) {
+    return <span class='nav-ray-pipeline'>{item.label} · {item.pipeline ?? 'in the pipeline'}</span>;
+  }
+  return (
+    <a
+      href={item.href}
+      aria-current={item.href === current ? 'page' : undefined}
+      /* Fragment links don't unmount the island, so close on the way out. */
+      onClick={onFollow}
+    >
+      {item.label}
+    </a>
+  );
+}
+
 export default function Nav({ items, current }: { items: NavItem[]; current?: string }) {
   const [open, setOpen] = useState(false);
   const root = useRef<HTMLElement | null>(null);
@@ -168,29 +185,32 @@ export default function Nav({ items, current }: { items: NavItem[]; current?: st
           decoding='async'
         />
         <ol class='nav-rays-list'>
-          {items.map((item, i) => {
+          {items.slice(0, NAV_RAYS.rays.length).map((item, i) => {
             const ray = NAV_RAYS.rays[i];
-            /* Beyond the seventh ray there is no tip; such an item joins the list below the fan. */
-            const side = ray?.side ?? 'below';
-            const style = ray ? `--x:${ray.x}%;--y:${ray.y}%` : undefined;
+            /* Unitless, so the stylesheet can do arithmetic with them (see .nav-ray). */
             return (
-              <li key={item.label} class={`nav-ray nav-ray--${side}`} style={style}>
-                {item.pipeline || !item.href
-                  ? <span class='nav-ray-pipeline'>{item.label} · {item.pipeline ?? 'in the pipeline'}</span>
-                  : (
-                    <a
-                      href={item.href}
-                      aria-current={item.href === current ? 'page' : undefined}
-                      /* Fragment links don't unmount the island, so close on the way out. */
-                      onClick={() => setOpen(false)}
-                    >
-                      {item.label}
-                    </a>
-                  )}
+              <li
+                key={item.href ?? item.label}
+                class={`nav-ray nav-ray--${ray.side}`}
+                style={`--x:${ray.x};--y:${ray.y}`}
+              >
+                <NavLabel item={item} current={current} onFollow={() => setOpen(false)} />
               </li>
             );
           })}
         </ol>
+        {
+          /* Seven rays; anything past them has no tip to sit at, so it gets a plain list below the fan. */
+        }
+        {items.length > NAV_RAYS.rays.length && (
+          <ul class='nav-rays-extra'>
+            {items.slice(NAV_RAYS.rays.length).map((item) => (
+              <li key={item.href ?? item.label}>
+                <NavLabel item={item} current={current} onFollow={() => setOpen(false)} />
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
     </nav>
   );

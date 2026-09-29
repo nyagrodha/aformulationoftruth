@@ -1,4 +1,4 @@
-import { assertEquals, assertStringIncludes } from '$std/assert/mod.ts';
+import { assert, assertEquals, assertStringIncludes } from '$std/assert/mod.ts';
 import { render } from 'preact-render-to-string';
 import Nav from './Nav.tsx';
 import { LANDING_NAV, NAV_NOSCRIPT_CSS, PAGE_NAV } from '../components/nav-shared.ts';
@@ -188,14 +188,17 @@ Deno.test('fragments are never current', () => {
   assertEquals(html.includes('aria-current'), false);
 });
 
-Deno.test('items beyond the rays still render', () => {
-  const eight = [...PAGE_NAV.slice(0, 5), { label: 'a', href: '/a' }, { label: 'b', href: '/b' }, {
-    label: 'c',
-    href: '/c',
-  }];
+Deno.test('items beyond the rays still render, in a list of their own below the fan', () => {
+  const eight = [...PAGE_NAV.slice(0, 7), { label: 'extra', href: '/extra' }];
   const html = render(<Nav items={eight} />);
-  assertStringIncludes(html, 'href="/c"');
-  assertStringIncludes(html, 'class="nav-ray nav-ray--below"');
+  const extra = html.indexOf('class="nav-rays-extra"');
+  assert(extra > html.indexOf('class="nav-rays-list"'), 'extra list after the rays');
+  assert(html.indexOf('href="/extra"') > extra, 'the eighth item is in it');
+  assertEquals((html.match(/class="nav-ray nav-ray--/g) ?? []).length, 7);
+});
+
+Deno.test('no extra list when every item has a ray', () => {
+  assertEquals(render(<Nav items={PAGE_NAV} />).includes('nav-rays-extra'), false);
 });
 
 Deno.test('Nav ships no trace of the retired bar', () => {

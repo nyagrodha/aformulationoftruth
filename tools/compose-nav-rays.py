@@ -19,6 +19,7 @@ box, so the links are positioned from the same numbers that drew the art.
 
     python3 tools/compose-nav-rays.py && deno fmt data/nav-rays.ts
 """
+import hashlib
 import math
 from pathlib import Path
 
@@ -98,8 +99,12 @@ def side(a):
 
 def main():
     rays = geometry()
+    digests = {}
     for name, (core_rgb, glow_rgb) in VARIANTS.items():
-        draw(core_rgb, glow_rgb, rays).save(ROOT / f"public/images/nav-rays-{name}.webp", "WEBP", lossless=True)
+        path = ROOT / f"public/images/nav-rays-{name}.webp"
+        draw(core_rgb, glow_rgb, rays).save(path, "WEBP", lossless=True)
+        # Recorded beside the tips, so a test can tell images and data apart after a partial regeneration.
+        digests[name] = hashlib.sha256(path.read_bytes()).hexdigest()
     entries = ",\n".join(
         f"    {{ x: {x1 / W * 100:.2f}, y: {y1 / H * 100:.2f}, angle: {a:.0f}, side: '{side(a)}' }}"
         for a, _, (x1, y1) in rays
@@ -122,6 +127,8 @@ export const NAV_RAYS: {{
   markWidth: number;
   light: string;
   dark: string;
+  /** sha256 of each image, written with the tips so the two cannot drift apart. */
+  sha256: {{ light: string; dark: string }};
   rays: NavRay[];
 }} = {{
   width: {W},
@@ -129,6 +136,7 @@ export const NAV_RAYS: {{
   markWidth: {MARK_W},
   light: '/images/nav-rays-light.webp',
   dark: '/images/nav-rays-dark.webp',
+  sha256: {{ light: '{digests["light"]}', dark: '{digests["dark"]}' }},
   rays: [
 {entries},
   ],
