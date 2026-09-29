@@ -89,8 +89,14 @@ Markup, in order:
 3. `<div class='nav-rays' id='nav-list' hidden={!open}>` containing the rays
    `<img>` (empty `alt`: ornament) and an `<ol>` of seven items. Each `<li>` is
    absolutely positioned at its ray's tip from `data/nav-rays.ts`.
-   - A normal item is an `<a>` whose **visible label is its text**. Its hit area
-     covers the label and the outer part of its ray.
+   - **The rays only lead to the links; they are not part of them.** Each ray
+     terminates where its label begins, and the label sits just past the tip.
+     A normal item is an `<a>` whose **visible label is its text**, and its hit
+     area is the label alone — the ray is artwork, never clickable.
+   - **A link turns gold when clicked** (`:active`, held until the next page
+     loads, since following it starts navigation): the wordmark's gold —
+     `--wm-gold`, `#ffd600` on the dark ground and `#8a6d00` on `--paper`,
+     which already hold contrast on each.
    - A pipeline item is a `<span>` reading **"messenger · in the pipeline"**,
      with no link and no hit area.
 
@@ -127,6 +133,7 @@ Additions to `islands/Nav_test.tsx` (server render, no DOM):
 
 - `Nav` renders seven items in `PAGE_NAV` order.
 - Pipeline items render as text containing "in the pipeline" and **no `<a>`**.
+- The stylesheet gives `.nav-rays a:active` the `--wm-gold` colour.
 - Every non-pipeline `href` in `PAGE_NAV` resolves to a route (the existing
   "points at nothing that does not exist" test, extended to `/loramesh`).
 - The rays `<img>` has empty `alt` and declared intrinsic size.
