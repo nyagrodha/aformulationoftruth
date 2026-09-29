@@ -2,12 +2,12 @@
 
 **Date:** 2026-09-29
 **Status:** Draft, awaiting review
-**Supersedes, for every page but the landing:** the top-left toggle and horizontal
-bar of `2026-08-02-nav-five-line-mark-design.md`
+**Supersedes:** the top-left toggle and horizontal bar of
+`2026-08-02-nav-five-line-mark-design.md`, on every page
 
 ## Goal
 
-On every page except the landing page, the primary nav becomes the Brooch
+On every page, the landing page included, the primary nav becomes the Brooch
 wearable's boot screen: the irendu (௨) sits **centred** in the header, and
 clicking it **shrinks** it while **seven glowing rays** fan out beneath it. Each
 ray ends in one nav destination.
@@ -25,7 +25,7 @@ ellipse around the spiral's base stroke, with the 2nd and 5th rays 1.35× longer
 | messenger, lotto | Shown as **in the pipeline**: labelled so, **not links** |
 | Pipeline rays | **Bright**, same as the rest; only the label marks them |
 | Rendering | **Rays baked into an image**, as the Brooch does — closest to the splash |
-| Landing page | **Unchanged** (keeps its own nav and `LANDING_NAV`) |
+| Landing page | **Gets the rays too** (owner, same day); keeps its own in-page `#begin` / `#about` hrefs |
 | Wordmark | Stays top-right, a link home |
 
 ## What changes
@@ -70,14 +70,18 @@ Committed outputs; the script is run by hand after an art change, like
 
 Order is left to right across the fan. A pipeline item has no `href`.
 
-### 3. `islands/Nav.tsx`: `variant='rays'`
+`LANDING_NAV` in `routes/index.tsx` becomes the same seven, differing only in
+that begin and about stay in-page (`#begin`, `#about`) — the reason `Nav` takes
+items as a prop at all. Both lists must keep the same labels in the same order,
+so the fan reads identically on every page; a test pins that.
 
-`Nav` takes `variant?: 'bar' | 'rays'`, default `'bar'` (the landing page's
-current behaviour, untouched). Every non-landing caller passes `'rays'`:
-`PageShell`, `completion`, `profile-choice`, `profile-create`,
-`WearableInvitation`.
+### 3. `islands/Nav.tsx`: the rays replace the bar
 
-Rays variant markup, in order:
+The horizontal bar has no caller left once the landing page moves too, so it is
+removed rather than kept behind a flag. `Nav`'s props do not change (`items`),
+so no caller changes except for the longer item lists.
+
+Markup, in order:
 
 1. The ௨ toggle — a `<button>` once hydrated, a `<span>` before, exactly as
    today — now centred in the header.
@@ -100,7 +104,7 @@ Behaviour:
 
 ### 4. `public/css/nav-mark.css`
 
-A `.site-nav--rays` block: three-column header grid (empty · ௨ · wordmark) so
+The `.nav-list` bar rules are replaced by: three-column header grid (empty · ௨ · wordmark) so
 the mark is truly centred regardless of the wordmark's width; the fan is laid
 over the page below the header (it must not push content down, and must not sit
 on text unreadably — it gets the same translucent backing the current bar has).
@@ -121,13 +125,15 @@ inline the shared constant.
 
 Additions to `islands/Nav_test.tsx` (server render, no DOM):
 
-- The rays variant renders seven items in `PAGE_NAV` order.
+- `Nav` renders seven items in `PAGE_NAV` order.
 - Pipeline items render as text containing "in the pipeline" and **no `<a>`**.
 - Every non-pipeline `href` in `PAGE_NAV` resolves to a route (the existing
   "points at nothing that does not exist" test, extended to `/loramesh`).
 - The rays `<img>` has empty `alt` and declared intrinsic size.
-- The default variant still renders the old bar (landing page unaffected).
-- `NAV_NOSCRIPT_CSS` opens `.nav-rays[hidden]`.
+- `LANDING_NAV` and `PAGE_NAV` have the same labels in the same order, and the
+  same pipeline flags; they differ only in the begin and about hrefs.
+- No trace of the old horizontal bar class remains in the rendered nav.
+- `NAV_NOSCRIPT_CSS` opens `.nav-rays[hidden]` (and no longer mentions `.nav-list`).
 
 New `data/nav-rays_test.ts`:
 
@@ -140,7 +146,6 @@ with and without JavaScript, and with reduced motion.
 
 ## Out of scope
 
-- The landing page nav.
 - Building the messenger or lotto pages; they are listed, not linked.
 - Animating individual rays (the Brooch's per-ray "breathing"). One static glow;
   can follow later.
