@@ -17,7 +17,7 @@
  */
 
 import { fromFileUrl } from 'https://deno.land/std@0.216.0/path/mod.ts';
-import { runQuiet } from './subprocess.ts';
+import { type Runner, runQuiet } from './subprocess.ts';
 
 export interface DeliveryMail {
   to: string;
@@ -61,9 +61,9 @@ function body(mail: DeliveryMail): string {
  * standalone on the key box, which has no deno.json, so an import map is not
  * available to resolve one.
  */
-const SENDER = fromFileUrl(new URL('./send_mail.py', import.meta.url));
+export const SENDER = fromFileUrl(new URL('./send_mail.py', import.meta.url));
 
-export async function sendDelivery(mail: DeliveryMail): Promise<void> {
+export async function sendDelivery(mail: DeliveryMail, run: Runner = runQuiet): Promise<void> {
   const from = Deno.env.get('FROM_EMAIL') || Deno.env.get('SMTP_USER');
   if (!from) throw new Error('SMTP not configured');
 
@@ -85,7 +85,7 @@ export async function sendDelivery(mail: DeliveryMail): Promise<void> {
       { mode: 0o600 },
     );
 
-    if (!await runQuiet('python3', [SENDER, specPath], 120_000)) throw new Error('smtp send failed');
+    if (!await run('python3', [SENDER, specPath], 120_000)) throw new Error('smtp send failed');
   } finally {
     for (const p of [pdfPath, specPath]) await Deno.remove(p).catch(() => {});
   }

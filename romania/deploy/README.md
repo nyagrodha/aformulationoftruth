@@ -28,6 +28,16 @@ it cannot read. The relay key is restricted at gimbal with
 `permitopen="smtp.mail.me.com:587"`, so it can open that one forward and
 nothing else.
 
+**The pin must go in the cloud-init template, not only in `/etc/hosts`.** This
+host runs cloud-init with `manage_etc_hosts: True`, which regenerates
+`/etc/hosts` from `/etc/cloud/templates/hosts.debian.tmpl` at every boot. A
+line added only to `/etc/hosts` survives until the next reboot and then
+vanishes silently: the relay stays up and healthy, the client resolves Apple's
+real address, the provider drops the connection, and every delivery fails at
+`stage=smtp`. That happened after the 2026-09-15 reboot and went unnoticed
+until the first queued copy on 2026-09-24. Check with
+`getent hosts smtp.mail.me.com` — it must print `127.0.0.1`.
+
 Sending is `send_mail.py`, not denomailer: denomailer 1.6.0 fails this exact
 submission (`invalid cmd`, then `Bad resource ID`) on a socket where Python
 smtplib completes STARTTLS and authenticates without complaint.
