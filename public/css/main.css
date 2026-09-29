@@ -776,3 +776,21 @@ footer {
         transition: none !important;
     }
 }
+
+/*
+ * The nav's rays (nav-mark.css) default to the paper-ground art. These pages are
+ * black, where that dark gold all but vanishes, so show the ink-ground art and
+ * the ink gold instead.
+ */
+.site-nav .nav-rays-art--light {
+    display: none;
+}
+
+.site-nav .nav-rays-art--dark {
+    display: block;
+}
+
+.site-nav .nav-rays {
+    --wm-gold: #ffd600;
+    background: color-mix(in srgb, var(--void, #000) 80%, transparent);
+}

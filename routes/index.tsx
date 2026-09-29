@@ -23,28 +23,13 @@
 
 import { Handlers, PageProps } from '$fresh/server.ts';
 import type { VNode } from 'preact';
-import Nav, { type NavItem } from '../islands/Nav.tsx';
+import Nav from '../islands/Nav.tsx';
 import Spheroid from '../islands/Spheroid.tsx';
 import Folio, { type FolioPart } from '../islands/Folio.tsx';
 import SiteFooter from '../components/SiteFooter.tsx';
-import { NAV_NOSCRIPT_CSS } from '../components/nav-shared.ts';
+import { LANDING_NAV, NAV_NOSCRIPT_CSS } from '../components/nav-shared.ts';
 import GateForm from '../components/GateForm.tsx';
 import { type Captcha, issueCaptcha } from '../lib/captcha.ts';
-
-/*
- * The landing page is one long page, so its nav is fragment anchors that scroll
- * it — #about is the footer, #begin the gate form. These bare fragments are why
- * items is a prop: they resolve only on this document, and PAGE_NAV carries the
- * '/#begin' form every other page needs.
- *
- * Messaging and the gift shop are the two that leave the page.
- */
-const LANDING_NAV: NavItem[] = [
-  { label: 'begin', href: '#begin' },
-  { label: 'about', href: '#about' },
-  { label: 'people', href: '/people' },
-  { label: 'gift shop', href: '/shop' },
-];
 
 /*
  * The folio's contents, in page order. Each id opens its part: the quote leads

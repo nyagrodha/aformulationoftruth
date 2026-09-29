@@ -11,6 +11,8 @@ import { Handlers, PageProps } from '$fresh/server.ts';
 import { increment } from '../lib/metrics.ts';
 import { listPublicProfiles, type Profile } from '../lib/profiles.ts';
 import TipJar from '../components/TipJar.tsx';
+import Nav from '../islands/Nav.tsx';
+import { NAV_NOSCRIPT_CSS, PAGE_NAV } from '../components/nav-shared.ts';
 
 interface Data {
   people: Array<Pick<Profile, 'handle' | 'displayName' | 'bio'>>;
@@ -39,9 +41,16 @@ export default function PeoplePage({ data }: PageProps<Data>) {
         <title>people · a formulation of truth</title>
         <meta name='description' content='Profiles that have chosen to be listed.' />
         <link rel='stylesheet' href='/css/tool.css' />
+        <link rel='stylesheet' href='/css/nav-mark.css' />
+        {/* The toggle is inert without JS, so leave the fan open instead. */}
+        <noscript>
+          <style>{NAV_NOSCRIPT_CSS}</style>
+        </noscript>
       </Head>
+      <header class='site-header'>
+        <Nav items={PAGE_NAV} current='/people' />
+      </header>
       <main>
-        <a class='pill' href='/'>← home</a>
         <p class='eyebrow'>directory · opt-in only</p>
         <h1>people</h1>
         <p class='lede'>

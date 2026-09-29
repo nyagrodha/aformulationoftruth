@@ -29,6 +29,7 @@ const DAY = new Intl.DateTimeFormat('en-US', { timeZone: 'America/Chicago', mont
 export default function MeshPage({ data }: PageProps<MeshData>) {
   return (
     <PageShell
+      current='/loramesh'
       title='Heard on the mesh - a formulation of truth'
       description='Proust questions asked over the Meshtastic mesh, and the answers heard back'
     >

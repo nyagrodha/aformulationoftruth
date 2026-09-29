@@ -95,6 +95,7 @@ function OwnEntry({ item }: { item: ShopItem }) {
 export default function ShopPage() {
   return (
     <PageShell
+      current='/shop'
       title='the gift shop — a formulation of truth'
       description='Books that shaped the questionnaire, and a few things to wear.'
     >
