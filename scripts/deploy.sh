@@ -44,20 +44,25 @@ if [ -n "$(git status --porcelain --untracked-files=no)" ]; then
   exit 1
 fi
 
+# FETCH_HEAD, not origin/$BRANCH: a clone whose fetch refspec does not map
+# $BRANCH would leave that ref stale, and a BRANCH override would then deploy
+# whatever the ref last held.
 git fetch --quiet origin "$BRANCH"
 current="$(git rev-parse HEAD)"
-incoming="$(git rev-parse "origin/$BRANCH")"
+incoming="$(git rev-parse FETCH_HEAD)"
 
+# Already current is NOT an early exit. A run that fast-forwarded and then
+# failed at the restart or the health check must be rerunnable, and a rerun
+# that stopped here would report success without checking anything. So the
+# check, restart and health poll always run; only the merge is skipped.
 if [ "$current" = "$incoming" ]; then
-  echo "[deploy] already at ${incoming:0:7}; nothing to deploy"
-  exit 0
-fi
-if ! git merge-base --is-ancestor "$current" "$incoming"; then
-  echo "[deploy] origin/$BRANCH is not a fast-forward of ${current:0:7}; refusing" >&2
+  echo "[deploy] already at ${incoming:0:7}; verifying schema, restarting, checking health"
+elif ! git merge-base --is-ancestor "$current" "$incoming"; then
+  echo "[deploy] $BRANCH at origin is not a fast-forward of ${current:0:7}; refusing" >&2
   exit 1
+else
+  echo "[deploy] ${current:0:7} -> ${incoming:0:7}"
 fi
-
-echo "[deploy] ${current:0:7} -> ${incoming:0:7}"
 
 staged="$(mktemp -d)"
 trap 'rm -rf "$staged"' EXIT
