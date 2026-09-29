@@ -1123,6 +1123,87 @@ footer .footer-return {
   font-style: italic;
 }
 
+/*
+ * The February essay's furniture (restored 2026-09-29 from completion.html at
+ * 084492f): epigraphs, the standalone lines, the three quoted questions, the
+ * divider that carries a line of its own, the Korsgaard image and the note.
+ */
+.essay-epigraph {
+  width: min(34rem, 100%);
+  margin: 2.5em auto;
+  text-align: center;
+}
+
+.essay-epigraph p {
+  margin: 0;
+}
+
+.essay-epigraph p + p {
+  margin-top: 0.5em;
+}
+
+.essay-epigraph [lang='sa'] {
+  font-size: 1.15em;
+}
+
+.essay-epigraph footer {
+  margin-top: 0.6em;
+  color: var(--muted);
+  font-size: 0.8em;
+}
+
+.essay-final {
+  margin-top: 3em;
+}
+
+.essay-standalone,
+.essay-aside {
+  text-align: center;
+}
+
+.essay-standalone {
+  font-size: 1.25em;
+}
+
+.essay-aside {
+  color: var(--muted);
+  font-style: italic;
+}
+
+.essay-question {
+  padding-left: 1.5em;
+  font-style: italic;
+}
+
+.essay-figure {
+  text-align: center;
+}
+
+.essay-figure img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 4px;
+}
+
+.footnote-ref {
+  font-size: 0.75em;
+  vertical-align: super;
+  text-decoration: none;
+}
+
+.essay-notes {
+  margin-top: 4em;
+  padding-top: 1.5em;
+  border-top: 1px solid currentColor;
+  font-size: 0.85em;
+}
+
+.essay-notes h3 {
+  margin: 0 0 0.8em;
+  font-size: 1em;
+  font-weight: 600;
+}
+
 .completion-links {
   display: flex;
   flex-wrap: wrap;

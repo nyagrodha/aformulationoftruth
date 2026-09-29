@@ -194,11 +194,34 @@ export default function CompletionPage({ data }: PageProps<CompletionData>) {
 
             <h2 class='essay-kicker' id='essay-title'>You are not one self.</h2>
 
-            <p>This is not a tragedy. It is more like the weather.</p>
+            <p>This is not a tRaGedY. It is more like the weather.</p>
 
             <p class='essay-dedication'>
               <em>Dedicated to the memory and imaginative talent of Richard Brautigan (1935–1984)</em>
             </p>
+
+            <blockquote class='essay-epigraph'>
+              <p lang='sa'>यैरेव पतनं द्रव्यैः सिद्धिस्तैरेव चोदिता</p>
+              <p>
+                <em>One rises, perfected, by precisely those things by which one falls.</em>
+              </p>
+              <footer>—Kulārṇava Tantra, 5.47</footer>
+            </blockquote>
+
+            <blockquote class='essay-epigraph'>
+              <p>
+                <em>
+                  For in happiness all that is earthly seeks its downfall, and only in good fortune is its downfall
+                  destined to find it.
+                </em>
+              </p>
+              <footer>—Walter Benjamin, "Theologico-Political Fragment"</footer>
+            </blockquote>
+
+            <Ornament />
+
+            <p class='essay-standalone'>You are not one self.</p>
+            <p>This is not a tragedy. It is more like the weather.</p>
 
             <Ornament />
 
@@ -214,172 +237,283 @@ export default function CompletionPage({ data }: PageProps<CompletionData>) {
             <p>In 2007 it was "to finish the book I'm writing."</p>
             <p>In 2017 it was, like clockwork, "a cabin in Montana with good light for reading."</p>
             <p>
-              He thought this meant something. Therein lies the ego's rub not upon the phallus per se. And it did. It
-              meant something the way weather means something.
+              He thought this meant something. Therein lies the ego's rub not upon the phallus per se. And it do. The
+              answers mean something the way the weather means something.
             </p>
-
             <Ornament />
-
             <p>
               A thousand or so years ago in what was then as now Kashmir a philosopher named Abhinavagupta lived. Doing
               what polymaths of brahmanical intellectual tradition do, he likely grew a long beard. Abhinava's name
-              against an ornament of 'skrit that causes mis ojos to glitter translates to English as "the secret of
-              being continuously new." fwiw his idears kinda rock one's headspace; unlikely he posed for a picture. But
-              I am aware of one portrait some devotee drew up of the man, the polymath, the legend. Reportedly his eyes
-              shine red—inebriated as we may be by the rasa—surrounded by yoginīs on a raised platform chalice in hand
-              he sips. Though I've yet to see it, the portrait has appeared in a dream. Or so I think I recall.
+              against the ornament of Sanskrit that causes this writer's eye pair to glitter translates something like
+              "the secret of being continuously new." fwiw his idears kinda rock one's headspace; unlikely he posed for
+              a picture.
             </p>
-            <p>In any case, Abhinava watched people watch plays, nāṭakam in the 'skrit sans devanagari.</p>
             <p>
-              And he noticed that when Rāma (whose creator coined the character, nee god's name as upon māra, or murder,
-              he meditated so long around this common thug a valmīk, or termite mound, enveloped him to become known as
-              Valmīkī in the records of how it's been/was) grieved stage left, the audience felt grief. But this grief
-              was not theirs. The audience hadn't lost anyone; neither was it Rāma's grief either—everyone knew it was a
-              nāṭakam, a play.
+              But I am aware of one portrait some devotee drew up of the man, the polymath, the legend. Reportedly his
+              eyes shine red—inebriated as we may be by the rasa—surrounded by yoginīs on a raised platform chalice in
+              hand he sips. Though I've yet to see it, the portrait has appeared in a dream. Or so I think I recall.
+            </p>
+            <p>In any case, Abhinava watched people watch plays, nāṭakam in the 'skrit sans devanagari</p>
+            <p>
+              And Abhinava observed that when Rāma—a god among men fashioned by Vālmīki, a common thug by legend,
+              absorbed in repetition of the name Rāma, Rāma, Rāma, māra, māra... reversed as māra ("murder"), remained
+              so long in meditation that a valmīk, a termite mound, rose around him and thus fixed his name in the
+              record of what was—grieved stage left, the audience too experienced grief.
+            </p>
+            <p>
+              Yet this grief belonged to no one. The spectators had suffered no loss, and Rāma himself did not truly
+              suffer, for all knew this was a nāṭakam, a play. What manifests instead is a transpersonal savoring:
+              sorrow divested of private ownership, universalized through representation. The emotion, stripped of
+              practical consequence and freed from egoic contraction, becomes aesthetic relish—karuṇa-rasa—apprehended
+              in luminous detachment.
             </p>
             <p>So whose grief was it?</p>
-            <p>Abhinavagupta said: it belongs to consciousness recognizing itself.</p>
+            <p>
+              Abhinavagupta said: it belongs to consciousness recognizing itself.<a
+                href='#fn1'
+                class='footnote-ref'
+                id='fnref1'
+              >
+                Ψ
+              </a>
+            </p>
             <p>
               Doing so it creates this effect that metaphor can't quite capture. Likely with a head full of LSD some
               folks remark it's like looking in a mirror and seeing that you are also the mirror; I'd paint a different
-              picture with words employing '2-CB'. Recognise within you, the I, as an absence. Words alone engender and
-              inaugurate its possibility just as around the inside clay the emptiness of a pot.
+              picture with words employing '2-CB'. Recognise within you, the I, as an absence that words alone create
+              the possibility for just as around an inside clay the emptiness of a pot.
             </p>
             <p>
               He called this <em>camatkāra</em>, which means something like "wonder" or "the shiver."
             </p>
             <p>The shiver doesn't need an object. It just needs you to stop for a second.</p>
-
             <Ornament />
-
             <p>
-              Lacan was a French psychoanalyst who smoked too many cigarettes and said things like "the unconscious is
-              structured like a language."
+              Lacan was a French psychoanalyst. From today's standard he smoked too many cigarettes. He said things like
+              "the very foundation of interhuman dialogue is misunderstanding.", "the unconscious is structured like a
+              language."; "I think where I am not; therefore, I am where I do not think."
             </p>
-            <p>He also said the self is basically a grammatical error.</p>
             <p>
-              When you say "I," you are not referring to yourself. You are referring to a word that stands where you
-              should be. The real you—if there is one—is somewhere else, hiding behind the sentence.
+              He also said the self, this thing we call 'I' in English is basically a grammatical error. Imagine that
+              bookish cunt we all know start correcting people for saying 'I'... apologies in advance.
             </p>
-            <p>This is why talking about yourself feels like trying to catch a fish with your hands.</p>
-            <p>Every time you grab, it slips.</p>
-
+            <p>
+              We all call ourselves by the same name: I. It's who we are and yet when we say I, per Lacanian theory, we
+              aren't referring to ourselves. Rather, I appeals to a phoneme—this word I—to stand in where oneself ought
+              be. But instead there is this grammatical anomaly.
+            </p>
+            <p>
+              Remember the clay pot? The emptiness that words create? Pāṇini knew about this two thousand years before
+              Lacan was born.
+            </p>
+            <p>
+              Pāṇini was an ancient Sanskrit grammarian. He wrote a grammar so precise it could compile computer code if
+              computers had existed in 400 BCE. His rules for how language works are like instructions for a very small
+              machine that builds sentences one atom at a time.
+            </p>
+            <p>
+              Here's what Pāṇini did that matters: he never gave you a cozy definition like "the nominative case marks
+              the subject." He did something sharper. The nominative—the case of I, the case of naming—only appears when
+              nothing else has claimed the noun. It's a case of exclusion. Of what remains.
+            </p>
+            <p>
+              In Sanskrit grammar, you don't get to be "I" because you're the doer or the thinker. You get to be "I"
+              because no other relationship seized you first. The nominative is the case of residue. What's left over
+              when every other connection has been mapped and named.
+            </p>
+            <p>
+              Think about that. "I" is what remains when nothing else applies. Like the empty space in the pot. Like
+              consciousness recognizing itself in a play. The subject isn't a thing. It's an absence that appears when
+              all the relationships have been accounted for and there's still... this. Whatever this is.
+            </p>
+            <p>
+              Lacan would have loved this. The grammatical anomaly isn't a bug. It's the feature. We're a remainder. A
+              leftover. The space that appears when you've mapped everything else.
+            </p>
+            <p>This is why talking about yourself feels like trying to catch a trout with your hands.</p>
+            <p>
+              Every time you grasp at trout fishing in America, they slip. Likely cause of that lube you'd been using
+              earlier to rub one out.
+            </p>
             <Ornament />
-
             <p>The questionnaire has thirty-five questions.</p>
-            <p>"What is your greatest fear?"</p>
-            <p>"What is the trait you most deplore in yourself?"</p>
-            <p>"How would you like to die?"</p>
-            <p>These are not polite questions. They are holes in the ice.</p>
-            <p>If you answer them honestly, something cold touches your feet.</p>
-
+            <p class='essay-question'>"What is your greatest fear?"</p>
+            <p class='essay-question'>"What is the trait you most deplore in yourself?"</p>
+            <p class='essay-question'>"How would you like to die?"</p>
+            <p>These are not polite questions. They are holes in the rapidly melting ice.</p>
+            <p>If you answer honestly, spontaneously, something cold touches your feet.</p>
             <Ornament />
-
             <p>
-              Christine Korsgaard is a philosopher at Harvard. She says the self is not something you find. It is
-              something you make.
+              If we think about this too much, we're likely students of Christine Korsgaard's, a Kantian ethicist
+              (retired) at Harvard.
             </p>
-            <p>Every choice is a kind of sewing.</p>
+            <p class='essay-figure'>
+              <img
+                src='/images/korsgaardonvacuuming-1200-cropped.webp'
+                alt="Pre-meme meme from 2012: You can't spell vacuum without u"
+                loading='lazy'
+                decoding='async'
+              />
+            </p>
             <p>
-              You stitch yourself together out of what's available: your mother's phrases, your teacher's posture, songs
-              you heard when you were seventeen, a stranger's coat you saw once and never forgot.
+              Anyhow 'stine says the self is not something we find. It's something we make. And from birth until death
+              we're making a quilt, our lives. Quilts on quilts on quilts--every irl choice a kind of sewing.
             </p>
-            <p>You are a quilt made of other people's fabric.</p>
-            <p>This is not sad. Quilts are warm.</p>
-
+            <p>
+              We stitch ourselves together (or not!) out of what's available: mother's phrases, a teacher's posture,
+              songs we heard when we were angsty teens, that stranger's coat I saw once at Cafe Roma and never forgot
+              (it was nice!).
+            </p>
+            <p>
+              We are a quilt. We are only ever made of other people's fabrics. These days in the hellscape that is
+              later-ish (?) capitalizm, priority is given to individuals, and we make like brands to sell a vanishingly
+              fleeting formulation. A you de parvence variously seeking fortune, fame, and all things incompatibile with
+              the realities of being a quilt. A family.
+            </p>
+            <p>This is not sad. Quilts are warm. This has been brought to you by extending the metaphor.</p>
             <Ornament />
-
-            <p>The instruction is: answer once. Then forget the questions for ten years.</p>
+            <p>
+              The instruction is this: answer once. Then do your best to forget the questions. That dude up there he
+              answered it four times. Frankly, tha's a lot.
+            </p>
             <p>This is important.</p>
             <p>
-              If you think about the questions too often, you will start to believe your answers are who you are. They
-              are not who you are. They are who you were on a Tuesday in November when you were tired and the light was
-              gray.
+              If we think about the questions too often, our responses start to become performative. It creates this
+              vicious cycle that, once embarked upon wittingly or not, the ego's in control and the value of the
+              mechanic is diminished. We soon (so soon!) start to believe the answers to be who we are. But questions
+              are not who you, or I, or anyone else are. They are who we were on a Tuesday in November when our I's were
+              tired and the light was grey.
             </p>
-            <p>Ten years later you will be someone else answering the same questions.</p>
-            <p>The questions don't change. You do.</p>
+            <p>
+              Ten years later, having all but perfectly forgotten, we'll be someone else. That person, who is sitting in
+              room different than the one you are in now, may answer the same questions and experience a good dose of
+              that camatkāra.
+            </p>
+            <p>The questions don't change. I do.</p>
             <p>
               This is like a river passing the same bridge twice. The bridge thinks it's seeing the same river. The
               river knows better.
             </p>
-
             <Ornament />
-
             <p>
-              Lacan had a concept called{' '}
-              <em>objet petit a</em>. The little object. The thing you're always looking for but can never find.
+              Lacan thought up a concept he called{' '}
+              <em>objet petit a</em>. The little object. The thing we're always looking for but can never find.
             </p>
-            <p>It's the reason you open the refrigerator when you're not hungry.</p>
-            <p>It's the reason you answer questionnaires about yourself.</p>
             <p>
-              You're looking for something. You don't know what it is. If you found it, you wouldn't recognize it. But
-              looking feels important.
+              It's the hole in your sould that makes you open the refrigerator late at night/early in the AM when you're
+              not even hungry.
+            </p>
+            <p>
+              It's the hole in your ass... I mean, self-understanding that makes anyone think to answer a questionnaire
+              in the first place!
+            </p>
+            <p>
+              We're seeking something. We don't know what that is. Engaged thusly a seeker, we wouldn't recognize it.
+              But the looking the perfecting feels important.
             </p>
             <p>The looking is the thing.</p>
-
             <Ornament />
-
             <p>
-              In India they have a word: <em>pratyabhijñā</em>. It means recognition.
+              In what is today India long time back some poet put together a word:{' '}
+              <em>pratyabhijñā</em>. In english it means recognition.
             </p>
-            <p>Not learning something new. Remembering something you always knew but forgot.</p>
             <p>
-              Like when you walk into a room and suddenly remember you've been there before, in a dream or another life
-              or last Thursday.
+              Not seeking, not looking for something new. Remembering something. Becoming Buddha. Buddha being a simple
+              past passive participle in Sanskrit. In English it means that which is known. Past in that we always knew
+              it, but forgot; passive because we don't gotta do anything to understand it. Precisely the opposite!
+            </p>
+            <p>
+              Like when I walked into a room and suddenly remembered I'd been there before, in a dream or another life
+              or (more likely) last Thursday.
             </p>
             <p>That shiver.</p>
-            <p>The questionnaire is a machine for producing that shiver.</p>
+            <p>The questionnaire is a machine I host here for producing that shiver.</p>
+            <p>Not the answers.</p>
             <p>
-              Not the answers. The moment between the question and the answer. The pause where you are nobody in
-              particular, just consciousness wondering what it will say.
+              The moment between having read the question and beginning to see the answer... that pause wherein I am
+              really nobody in particular, the absence I imagine who can translate a memory. This is what the eye is
+              therefore. Have we the courage not to correct but just to answer? Who is it, anyway, who thinks I
+              shouldn't write that? Stop giving a fuck. We are a speaking quilt, wondering what it will say next.
             </p>
-            <p>That pause is freedom.</p>
+            <p>That pause is uninterrupted delight, the freedom and bliss of cosnciousness recognizing itself.</p>
             <p>
               The eleventh-century Kashmiris had a word for that too:{' '}
               <em>svātantrya</em>. It means "not needing anything outside yourself to be what you are."
             </p>
             <p>Like a cat in a sunbeam. The cat isn't waiting for anything. The cat is complete.</p>
-            <p>You are also complete. You just keep forgetting.</p>
-
-            <Ornament />
-
-            <p>The world moves faster now.</p>
             <p>
-              In 1890, when Proust answered these questions in a parlor in Paris, a person might be one thing for their
+              You are also complete. I just keep forgetting it about you bc we're such bitches to one another because...
+              well, late (?) capitsalizm.
+            </p>
+            <Ornament />
+            <p>And the world moves faster now.</p>
+            <p>
+              In 1890, when Proust answered these questions somewhere in Paris, a person might be one thing for their
               whole life. A baker. A countess. A disappointment to their father.
             </p>
-            <p>Now you can be twelve things before lunch.</p>
-            <p>This is confusing but it is also an opportunity.</p>
             <p>
-              If you are not one self, you don't have to defend any particular self. You can watch them come and go like
-              clouds.
+              Now you or I can be twelve things before lunch! We can purge in the restroom and be another 7 to 9 before
+              bed.
+            </p>
+            <p>This is confusing, it is far from naturalized, but it also may be an opportunity.</p>
+            <p>
+              If we are not one self, I don't have to defend any particular self, any version of me against the others.
+              I do get to watch though as come for the second time in a day and go like clouds.
             </p>
             <p>Clouds are beautiful. Nobody argues with clouds.</p>
-
             <Ornament />
-
+            <p class='essay-standalone'>What is your idea of perfect happiness?</p>
             <p>The question is a door.</p>
             <p>Behind the door is another door.</p>
-            <p>Behind that door is a room with no floor, only sky.</p>
+            <p>Behind that door is a room with no floor, only a cloud-filled sky.</p>
             <p>You've been falling through that sky your whole life.</p>
+            <p>How did the clouds even get inside? And where am I falling to?</p>
             <p>The fall is the happiness.</p>
-
             <Ornament />
-
+            <p class='essay-aside'>Whatever nature may there be is in the fall.</p>
             <p>Answer. Wait ten years. Answer again.</p>
-            <p>Notice that you are different.</p>
-            <p>Notice that you are the same.</p>
-            <p>Notice that "different" and "same" are just words, and you are not a word.</p>
-            <p>You are the one using the words.</p>
-            <p>You are the one who can put them down.</p>
+            <p>Notice something different.</p>
+            <p>Notice the same.</p>
+            <p>Notice "different" and "same" are words, and we are not a word.</p>
+            <p>We are the ones using the words with one another.</p>
+            <p>
+              We are the ones who put down or lift up. And all of us do both. But we gotta practice doing more the
+              lifting up one another.
+            </p>
 
-            <Ornament />
+            <blockquote class='essay-epigraph essay-final'>
+              <p lang='sa'>सर्वथा पुनर् अविच्छिन्नचमत्कारनिरपेक्षस्वातन्त्र्याहंविमर्शे</p>
+              <p>
+                <em>
+                  The freedom of the uninterrupted delight of I-consciousness is completely independent of any reference
+                  to anything else.
+                </em>
+              </p>
+              <footer>—Abhinavagupta</footer>
+            </blockquote>
 
             <p>The cat in the sunbeam knows this.</p>
             <p>The river knows this.</p>
             <p>Now you know it too.</p>
             <p>Or you always did.</p>
             <p class='essay-close'>That's the whole point.</p>
+
+            <aside class='essay-notes' aria-labelledby='essay-notes-title'>
+              <h3 id='essay-notes-title'>Notes</h3>
+              <p id='fn1'>
+                <a href='#fnref1' aria-label='back to the text'>Ψ</a> See{' '}
+                <em>Abhinavabhāratī</em>, Abhinavagupta's commentary on Bharata's{' '}
+                <em>Nāṭyaśāstra</em>, particularly his gloss on the <em>rasasūtra</em>{' '}
+                (NS 6.31). The Kashmiris called the broader philosophical framework{' '}
+                <em>pratyabhijñā</em>—recognition. You don't acquire your nature; you remember it. The aesthetic shiver
+                and the liberating insight share the same structure: <em>saṃvid</em> glimpsing{' '}
+                <em>saṃvid</em>. Rasa opens a crack; through it, consciousness catches sight of itself. Cf. the famous
+                compound:{' '}
+                <em>sarvathā punar avicchinnacamatkāranirapekṣasvātantryāhaṃvimarśe</em>—the freedom of the
+                uninterrupted delight [in] I-consciousness (<em>ahamvimarśe</em>), is completely independent of any
+                reference to anything else.
+              </p>
+            </aside>
           </section>
 
           {/* ── 3. onward ───────────────────────────────────────────────── */}

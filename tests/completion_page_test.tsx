@@ -60,6 +60,19 @@ Deno.test('completion - carries the essay from the old completion.html', () => {
   assertStringIncludes(html, 'the whole point.');
 });
 
+Deno.test('completion - carries the February essay: epigraphs, the Pāṇini section, the Abhinavagupta close', () => {
+  // A flatter second-person draft once replaced this text unnoticed; these
+  // lines are the ones that draft had lost.
+  const html = page();
+  assertStringIncludes(html, 'यैरेव पतनं द्रव्यैः सिद्धिस्तैरेव चोदिता');
+  assertStringIncludes(html, 'Theologico-Political Fragment');
+  assertStringIncludes(html, 'Pāṇini knew about this two thousand years before Lacan was born.');
+  assertStringIncludes(html, 'The nominative is the case of residue.');
+  assertStringIncludes(html, "The questions don't change. I do.");
+  assertStringIncludes(html, 'सर्वथा पुनर् अविच्छिन्नचमत्कारनिरपेक्षस्वातन्त्र्याहंविमर्शे');
+  assertStringIncludes(html, 'id="fn1"');
+});
+
 Deno.test('completion - no page scripts and no third-party requests', () => {
   const html = page();
   assertEquals(/<script/i.test(html), false, 'no script in the server render');
