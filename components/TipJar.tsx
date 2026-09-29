@@ -13,11 +13,15 @@
  * <link> in <body> is allowed for stylesheets, and the jar is collapsed and at
  * the foot of the page, so nothing visible waits on it.
  *
+ * The note says outright that this is a tip, not a purchase: a card form reads
+ * like checkout, and a visitor should know before paying that nothing is being
+ * bought and nothing is withheld from anyone who doesn't tip.
+ *
  * What it shows comes from data/tip-jar.ts; entries not yet filled in there are
  * left out, and if nothing is filled in the jar renders nothing.
  */
 
-import { STRIPE_TIP_LINK, TIP_ADDRESSES } from '../data/tip-jar.ts';
+import { STRIPE_TIP_LINK, STRIPE_TIP_PRESET_USD, TIP_ADDRESSES } from '../data/tip-jar.ts';
 
 export default function TipJar() {
   const addresses = TIP_ADDRESSES.filter((a) => a.address);
@@ -29,10 +33,13 @@ export default function TipJar() {
       <details class='tip-jar'>
         <summary>tip jar</summary>
         <div class='tip-jar-body'>
-          <p class='tip-jar-note'>Tips keep this place running. Thank you.</p>
+          <p class='tip-jar-note'>
+            This is a tip, not a purchase. Nothing is sold, and nothing on the site depends on whether you tip. Tips
+            keep this place running. Thank you.
+          </p>
           {STRIPE_TIP_LINK && (
             <a class='tip-jar-card' href={STRIPE_TIP_LINK} target='_blank' rel='noopener noreferrer'>
-              tip by card <span>via Stripe</span>
+              tip ${STRIPE_TIP_PRESET_USD} by card <span>via Stripe · raise it at checkout if you like</span>
             </a>
           )}
           {addresses.length > 0 && (

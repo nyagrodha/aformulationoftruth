@@ -2,6 +2,7 @@ import { Head } from '$fresh/runtime.ts';
 import { Handlers, PageProps } from '$fresh/server.ts';
 import { increment } from '../../lib/metrics.ts';
 import { getProfileByHandle } from '../../lib/profiles.ts';
+import TipJar from '../../components/TipJar.tsx';
 
 interface Data {
   handle: string;
@@ -52,6 +53,7 @@ export default function ProfilePage({ data }: PageProps<Data>) {
             : null}
         </p>
       </main>
+      <TipJar />
     </>
   );
 }

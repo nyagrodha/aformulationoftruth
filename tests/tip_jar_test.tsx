@@ -12,7 +12,7 @@
 import { assert, assertEquals, assertMatch, assertStringIncludes } from '$std/assert/mod.ts';
 import { render } from 'preact-render-to-string';
 import TipJar from '../components/TipJar.tsx';
-import { STRIPE_TIP_LINK, TIP_ADDRESSES } from '../data/tip-jar.ts';
+import { STRIPE_TIP_LINK, STRIPE_TIP_PRESET_USD, TIP_ADDRESSES } from '../data/tip-jar.ts';
 import { extractTipJar, renderTipJar, STATIC_PAGES } from '../scripts/sync-tip-jar.tsx';
 
 /* Shape only — enough to catch a truncated paste or the wrong coin in a slot. */
@@ -23,7 +23,11 @@ const SHAPES: Record<string, RegExp> = {
   ZEC: /^(u1[02-9ac-hj-np-z]{100,}|zs1[02-9ac-hj-np-z]{75}|t1[1-9A-HJ-NP-Za-km-z]{33})$/,
 };
 
-/* Every page with a footer. Each must render the jar, directly or via SiteFooter. */
+/*
+ * Every public page. Each must render the jar, directly or via SiteFooter.
+ * Deliberately absent: /auth/verify, /w/[token], /e/[code] and the messenger,
+ * which are private or carry a token in the URL.
+ */
 const FOOTER_FILES = [
   'components/PageShell.tsx',
   'components/SiteFooter.tsx',
@@ -35,6 +39,10 @@ const FOOTER_FILES = [
   'routes/profile-choice.tsx',
   'routes/profile-create.tsx',
   'routes/questionnaire.tsx',
+  'routes/_404.tsx',
+  'routes/lotto.tsx',
+  'routes/people.tsx',
+  'routes/p/[handle].tsx',
 ];
 
 /*
@@ -62,6 +70,12 @@ Deno.test('tip jar - each address has the shape of its coin', () => {
 
 Deno.test('tip jar - the card option is a Stripe Payment Link', () => {
   if (STRIPE_TIP_LINK) assertMatch(STRIPE_TIP_LINK, /^https:\/\/buy\.stripe\.com\/[A-Za-z0-9]+$/);
+});
+
+Deno.test('tip jar - says plainly that it is a tip, not a purchase', () => {
+  const html = render(<TipJar />);
+  assertStringIncludes(html, 'This is a tip, not a purchase.');
+  if (STRIPE_TIP_LINK) assertStringIncludes(html, `tip $${STRIPE_TIP_PRESET_USD} by card`);
 });
 
 Deno.test('tip jar - opens without JavaScript', () => {
