@@ -137,11 +137,19 @@ export async function checkSchema(): Promise<SchemaDrift> {
 export type SchemaState = 'ok' | 'drift' | 'unknown';
 
 /**
- * Health polling would otherwise run two information_schema scans on every
- * hit. A minute of staleness is nothing against a failure that went unseen for
- * a week.
+ * Health polling would otherwise run two catalog scans on every hit. A minute
+ * of staleness is nothing against a failure that went unseen for a week.
  */
 const CACHE_MS = 60_000;
+
+/**
+ * Every concurrent /api/health request awaits the same comparison, so one hung
+ * pool connect or catalog read would hang them all. Past this, the answer is
+ * 'unknown' -- cached like any other, so a stuck database is not asked again
+ * on every poll. The abandoned check still holds its pool connection until it
+ * settles; the cache bounds that to one new attempt a minute.
+ */
+const CHECK_TIMEOUT_MS = 5_000;
 let cached: { state: SchemaState; at: number } | null = null;
 let inflight: Promise<SchemaState> | null = null;
 
@@ -150,14 +158,26 @@ let inflight: Promise<SchemaState> | null = null;
  * tables are missing is a map of what is broken, and the health endpoint is
  * unauthenticated.
  */
-export function schemaState(now: number = Date.now()): Promise<SchemaState> {
+export function schemaState(
+  now: number = Date.now(),
+  { check = checkSchema, timeoutMs = CHECK_TIMEOUT_MS }: {
+    check?: () => Promise<SchemaDrift>;
+    timeoutMs?: number;
+  } = {},
+): Promise<SchemaState> {
   if (cached && now - cached.at < CACHE_MS) return Promise.resolve(cached.state);
   inflight ??= (async () => {
     let state: SchemaState;
+    let timer: ReturnType<typeof setTimeout> | undefined;
     try {
-      state = hasDrift(await checkSchema()) ? 'drift' : 'ok';
+      const timedOut = new Promise<never>((_, reject) => {
+        timer = setTimeout(() => reject(new Error('schema check timed out')), timeoutMs);
+      });
+      state = hasDrift(await Promise.race([check(), timedOut])) ? 'drift' : 'ok';
     } catch {
       state = 'unknown';
+    } finally {
+      clearTimeout(timer);
     }
     // Once per change of state, not once per minute: the journal should show
     // when drift began, not a line per health poll.

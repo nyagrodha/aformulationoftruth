@@ -125,6 +125,12 @@ async function main(): Promise<number> {
 let status = 2;
 try {
   status = await main();
+} catch {
+  // Uncaught, Deno would exit 1 -- which this script's contract reserves for
+  // "drift: apply the named migrations". Anything unforeseen is "could not
+  // check". Category only: the error may carry the connection string.
+  console.error('[check-schema] Unexpected failure; schema not checked');
+  status = 2;
 } finally {
   await closePool().catch(() => {});
 }

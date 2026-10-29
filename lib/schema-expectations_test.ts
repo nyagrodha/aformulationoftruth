@@ -200,6 +200,17 @@ Deno.test('constructs the parser does not understand throw rather than guess', (
   assertParseError('/* never closed CREATE TABLE s (id INT);');
 });
 
+Deno.test('RENAME CONSTRAINT is harmless; renaming a table or column still throws', () => {
+  const e = expectedSchema([{
+    name: '001.sql',
+    sql: 'CREATE TABLE t (id INT); ALTER TABLE t ADD COLUMN c INT; ALTER TABLE t RENAME CONSTRAINT t_pkey TO t_pk;',
+  }]);
+  assertEquals([...e.tables], ['t']);
+  assertEquals([...e.columns.get('t')!], ['c']);
+  assertParseError('ALTER TABLE ok RENAME TO renamed;');
+  assertParseError('ALTER TABLE ok RENAME id TO ident;');
+});
+
 Deno.test('ignored statements never throw', () => {
   const e = expectedSchema([{
     name: '001.sql',
