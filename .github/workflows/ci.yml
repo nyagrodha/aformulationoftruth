@@ -111,3 +111,36 @@ jobs:
             routes/about_test.tsx \
             routes/messenger_test.tsx \
             routes/about/
+
+  # rust-server/ is the age-encrypting gate service that ships next to the Fresh
+  # app and was checked by nothing. `cargo fmt --check` is deliberately not run:
+  # the crate predates rustfmt and would fail on drift no one here introduced.
+  rust-gate:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: rust-server
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            rust-server/target
+          key: cargo-${{ hashFiles('rust-server/Cargo.lock') }}
+
+      - name: Clippy
+        run: cargo clippy --locked --all-targets -- -D warnings
+
+      - name: Test
+        run: cargo test --locked
