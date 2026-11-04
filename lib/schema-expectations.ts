@@ -2,8 +2,9 @@
  * Schema Expectations: what db/migrations/ says the database should contain.
  *
  * Pure: reads SQL text, never a database. lib/schema-check.ts compares the
- * result against information_schema; scripts/check-schema.ts and /api/health
- * report it.
+ * result against the pg_catalog tables (not information_schema, which hides
+ * whatever the connecting role has no grant on); scripts/check-schema.ts and
+ * /api/health report it.
  *
  * Why this exists: migrations are applied by hand, as the Postgres admin,
  * because a4m_app holds DML-only grants. The _migrations ledger that migrate.ts
@@ -41,6 +42,7 @@
  *   - CREATE TABLE ... AS / PARTITION OF / OF type: throws.
  *   - CREATE TEMP / TEMPORARY / FOREIGN TABLE: throws.
  *   - ALTER TABLE ... RENAME (table or column) and SET SCHEMA: throws.
+ *     RENAME CONSTRAINT is ignored: it cannot change what exists.
  *   - any table outside schema public: throws. The check reads only public.
  *   - SELECT ... INTO new_table, CREATE VIEW / MATERIALIZED VIEW: ignored. None
  *     is a table this check expects, and nothing here writes them.
@@ -96,8 +98,8 @@ export async function readMigrationFiles(dir: URL = MIGRATIONS_DIR): Promise<Mig
 /**
  * `word` is an unquoted identifier or keyword, folded to lower case the way
  * Postgres folds it. `ident` is a double-quoted identifier, kept exactly: that is
- * what lands in information_schema. Literals collapse to `other`, so text inside
- * a string can never be mistaken for a statement.
+ * what lands in pg_class.relname and pg_attribute.attname. Literals collapse to
+ * `other`, so text inside a string can never be mistaken for a statement.
  */
 type Token =
   | { kind: 'word'; value: string }
@@ -407,6 +409,8 @@ function parseAlterAction(
       if (c.isWord('schema')) fail(`ALTER TABLE ${table} SET SCHEMA is not supported`);
       return [];
     case 'rename':
+      // A constraint's name says nothing about which tables or columns exist.
+      if (c.isWord('constraint')) return [];
       return fail(`ALTER TABLE ${table} RENAME is not supported; the check would track the old name`);
     default:
       if (INERT_ALTER_ACTIONS.has(head)) return [];

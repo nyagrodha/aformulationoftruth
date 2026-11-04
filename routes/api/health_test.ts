@@ -15,13 +15,16 @@ import type { SchemaState } from '../../lib/schema-check.ts';
 import { expectedSchema, readMigrationFiles } from '../../lib/schema-expectations.ts';
 import { dbForTesting, handler, schemaForTesting } from './health.ts';
 
-Deno.env.set('DATABASE_URL', 'postgres://nobody:nothing@127.0.0.1:1/unused');
-
 const fakeClient = {
   queryObject: () => Promise.resolve({ rows: [{ now: new Date('2026-09-28T00:00:00Z') }] }),
 } as unknown as PoolClient;
 
 async function health(schema: SchemaState): Promise<{ status: number; text: string }> {
+  // Set per call and restored, not at module top: `deno test` loads every
+  // listed file into one process, and a top-level set would hand every later
+  // suite a "configured" database pointing at a port nothing listens on.
+  const previousUrl = Deno.env.get('DATABASE_URL');
+  Deno.env.set('DATABASE_URL', 'postgres://nobody:nothing@127.0.0.1:1/unused');
   dbForTesting.withConnection = (fn) => fn(fakeClient) as never;
   schemaForTesting.current = () => Promise.resolve(schema);
   try {
@@ -30,11 +33,15 @@ async function health(schema: SchemaState): Promise<{ status: number; text: stri
   } finally {
     delete dbForTesting.withConnection;
     delete schemaForTesting.current;
+    if (previousUrl === undefined) Deno.env.delete('DATABASE_URL');
+    else Deno.env.set('DATABASE_URL', previousUrl);
   }
 }
 
 Deno.test('schema ok: 200 and status ok', async () => {
+  const before = Deno.env.get('DATABASE_URL');
   const { status, text } = await health('ok');
+  assertEquals(Deno.env.get('DATABASE_URL'), before, 'DATABASE_URL must not leak to later suites');
   assertEquals(status, 200);
   assertEquals(JSON.parse(text).status, 'ok');
   assertEquals(JSON.parse(text).schema, 'ok');

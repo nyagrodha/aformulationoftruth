@@ -106,6 +106,7 @@ jobs:
             lib/email_test.ts \
             lib/gate_encrypt_test.ts \
             lib/schema-expectations_test.ts \
+            lib/schema-check_test.ts \
             routes/api/health_test.ts \
             routes/shop_test.tsx \
             routes/about_test.tsx \
