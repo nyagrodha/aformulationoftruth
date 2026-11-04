@@ -146,12 +146,20 @@ const CACHE_MS = 60_000;
  * Every concurrent /api/health request awaits the same comparison, so one hung
  * pool connect or catalog read would hang them all. Past this, the answer is
  * 'unknown' -- cached like any other, so a stuck database is not asked again
- * on every poll. The abandoned check still holds its pool connection until it
- * settles; the cache bounds that to one new attempt a minute.
+ * on every poll.
+ *
+ * A timeout abandons the comparison but cannot cancel it: it keeps its pool
+ * connection until the database answers. So no new comparison starts while an
+ * abandoned one is still pending. Without that, each cache expiry would add
+ * another hung check, and ten minutes of a stuck catalog read would hold all
+ * ten pool connections (lib/db.ts), taking the app's own queries down with it.
+ * With it, a stuck database costs one connection, however long it stays stuck.
  */
 const CHECK_TIMEOUT_MS = 5_000;
 let cached: { state: SchemaState; at: number } | null = null;
 let inflight: Promise<SchemaState> | null = null;
+/** The comparison still running, timed out or not; cleared only when it settles. */
+let outstanding: Promise<SchemaDrift> | null = null;
 
 /**
  * The public, nameless answer for /api/health. Names stay in the CLI: which
@@ -170,10 +178,19 @@ export function schemaState(
     let state: SchemaState;
     let timer: ReturnType<typeof setTimeout> | undefined;
     try {
+      if (outstanding) throw new Error('previous schema check still pending');
+      const run = check();
+      outstanding = run;
+      // Settling, not timing out, is what frees the connection. The catch is
+      // only so this bookkeeping branch never surfaces as an unhandled rejection;
+      // the race below is where the outcome is read.
+      run.finally(() => {
+        if (outstanding === run) outstanding = null;
+      }).catch(() => {});
       const timedOut = new Promise<never>((_, reject) => {
         timer = setTimeout(() => reject(new Error('schema check timed out')), timeoutMs);
       });
-      state = hasDrift(await Promise.race([check(), timedOut])) ? 'drift' : 'ok';
+      state = hasDrift(await Promise.race([run, timedOut])) ? 'drift' : 'ok';
     } catch {
       state = 'unknown';
     } finally {
