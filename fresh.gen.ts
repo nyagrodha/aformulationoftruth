@@ -40,6 +40,7 @@ import * as $messages from './routes/messages.tsx';
 import * as $p_handle_ from './routes/p/[handle].tsx';
 import * as $people from './routes/people.tsx';
 import * as $messenger from './routes/messenger.tsx';
+import * as $newsletter from './routes/newsletter.tsx';
 import * as $privacy from './routes/privacy.tsx';
 import * as $profile_choice from './routes/profile-choice.tsx';
 import * as $profile_create from './routes/profile-create.tsx';
@@ -93,6 +94,7 @@ const manifest = {
     './routes/p/[handle].tsx': $p_handle_,
     './routes/people.tsx': $people,
     './routes/messenger.tsx': $messenger,
+    './routes/newsletter.tsx': $newsletter,
     './routes/privacy.tsx': $privacy,
     './routes/profile-choice.tsx': $profile_choice,
     './routes/profile-create.tsx': $profile_create,
