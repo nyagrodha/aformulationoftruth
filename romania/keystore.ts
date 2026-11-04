@@ -21,15 +21,106 @@ function markerPath(dir: string, sessionId: string, kind: 'delivered' | 'seen'):
   return `${dir}/${sessionId}.${kind}`;
 }
 
+/*
+ * Symlink defense. A symlink planted in the key directory would turn a read
+ * into an arbitrary-file read and a write into an arbitrary-file overwrite.
+ *
+ * Checking the path with lstat and then opening it by name is not enough: the
+ * name can be repointed between the two calls (time-of-check to time-of-use).
+ * So the check is repeated against what was actually opened -- reads compare
+ * the open handle with the name -- and writes never open the final name at all:
+ * they create a fresh file with createNew (O_EXCL, which refuses any existing
+ * entry, symlinks included), write and check it through that handle, and
+ * rename it into place, which replaces the directory entry itself rather than
+ * following it. Nothing after the check resolves a name the attacker could have
+ * repointed. Deno exposes no O_NOFOLLOW, or that would be the whole of it.
+ *
+ * checkEntry stays as a pre-check so a symlink, FIFO or device planted in
+ * advance is refused without ever being opened.
+ */
+async function checkEntry(path: string, requireFile: boolean): Promise<void> {
+  try {
+    const info = await Deno.lstat(path);
+    if (info.isSymlink) throw new Error('refusing to follow symlink');
+    if (requireFile && !info.isFile) throw new Error('refusing to open non-regular file');
+  } catch (e) {
+    if (e instanceof Deno.errors.NotFound) return;
+    throw e;
+  }
+}
+
+async function readNoFollow(path: string): Promise<string> {
+  await checkEntry(path, true);
+  // Read AND write: if a FIFO is swapped in after the check, a read-only open
+  // would block until some writer appeared -- and delivery awaits this with no
+  // timeout. On Linux an O_RDWR open of a FIFO returns at once, and the handle
+  // comparison below then refuses it. Nothing is ever written through it.
+  const file = await Deno.open(path, { read: true, write: true });
+  try {
+    const held = await file.stat();
+    const named = await Deno.lstat(path);
+    if (named.isSymlink || !held.isFile || held.ino !== named.ino || held.dev !== named.dev) {
+      throw new Error('refusing to follow symlink');
+    }
+    return await new Response(file.readable).text();
+  } finally {
+    // file.readable closes the handle once consumed; close() on an already
+    // closed handle throws, and the error that matters is the one above.
+    try {
+      file.close();
+    } catch { /* already closed */ }
+  }
+}
+
+/** Temporary names are `<final name>.tmp-<uuid>`; see sweepTemporaries. */
+const TEMPORARY = /\.(key|seen)\.tmp-[0-9a-f-]{36}$/;
+
+async function writeNoFollow(path: string, data: string): Promise<void> {
+  await checkEntry(path, false);
+  const tmp = `${path}.tmp-${crypto.randomUUID()}`;
+  try {
+    const file = await Deno.open(tmp, { write: true, createNew: true, mode: 0o600 });
+    try {
+      const bytes = new TextEncoder().encode(data);
+      let offset = 0;
+      while (offset < bytes.length) offset += await file.write(bytes.subarray(offset));
+      await file.sync();
+      // The mode is checked on the handle, not fixed up by name: a chmod by
+      // path would resolve the name again. umask can only remove bits from
+      // 0600, never add them, so anything else means the owner lost access.
+      const mode = (await file.stat()).mode;
+      if (mode !== null && (mode & 0o777) !== 0o600) throw new Error('unexpected key file mode');
+    } finally {
+      file.close();
+    }
+    await Deno.rename(tmp, path);
+  } catch (e) {
+    await Deno.remove(tmp).catch(() => {});
+    throw e;
+  }
+}
+
+/**
+ * Store a session identity.
+ *
+ * A new key clears any markers left under the same id. Markers outlive their
+ * key when it is shredded by hand or a shred is interrupted, and a stale
+ * `.delivered` stamp would otherwise make shredExpired destroy the new key on
+ * its next run. Removing a marker unlinks the name, so a symlinked marker is
+ * removed, never followed.
+ */
 export async function storeIdentity(dir: string, sessionId: string, identity: string): Promise<void> {
   const path = keyPath(dir, sessionId);
-  await Deno.writeTextFile(path, identity, { mode: 0o600 });
-  // umask can weaken the create mode; be explicit.
-  await Deno.chmod(path, 0o600);
+  for (const kind of ['delivered', 'seen'] as const) {
+    await Deno.remove(markerPath(dir, sessionId, kind)).catch((e) => {
+      if (!(e instanceof Deno.errors.NotFound)) throw e;
+    });
+  }
+  await writeNoFollow(path, identity);
 }
 
 export async function loadIdentity(dir: string, sessionId: string): Promise<string> {
-  return (await Deno.readTextFile(keyPath(dir, sessionId))).trim();
+  return (await readNoFollow(keyPath(dir, sessionId))).trim();
 }
 
 /**
@@ -77,7 +168,7 @@ export async function markDelivered(dir: string, sessionId: string, at: Date): P
  * ACTIVITY, not from when the key was minted.
  */
 export async function touchActivity(dir: string, sessionId: string, at: Date): Promise<void> {
-  await Deno.writeTextFile(markerPath(dir, sessionId, 'seen'), at.toISOString(), { mode: 0o600 });
+  await writeNoFollow(markerPath(dir, sessionId, 'seen'), at.toISOString());
 }
 
 export interface ShredPolicy {
@@ -110,6 +201,16 @@ export async function shredExpired(dir: string, now: Date, policy: ShredPolicy):
   let removed = 0;
 
   for await (const entry of Deno.readDir(dir)) {
+    // A write interrupted between create and rename leaves `<name>.tmp-<uuid>`
+    // behind -- possibly holding a private key. A live write lasts
+    // milliseconds, so anything an hour old is an orphan. Not counted in the
+    // return value, which reports identities destroyed.
+    if (entry.isFile && TEMPORARY.test(entry.name)) {
+      const tmp = `${dir}/${entry.name}`;
+      const mtime = (await Deno.lstat(tmp)).mtime?.getTime() ?? 0;
+      if (now.getTime() - mtime >= 3_600_000) await Deno.remove(tmp).catch(() => {});
+      continue;
+    }
     if (!entry.isFile || !entry.name.endsWith('.key')) continue;
     const sessionId = entry.name.slice(0, -'.key'.length);
     if (!SESSION_ID.test(sessionId)) continue;
