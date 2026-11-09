@@ -26,3 +26,8 @@ ALTER TABLE fresh_profiles
 
 CREATE UNIQUE INDEX IF NOT EXISTS idx_fresh_profiles_private_slug
   ON fresh_profiles (private_slug);
+
+-- Only a public profile holds a handle (lib/profiles.ts validateProfile). A
+-- private row keeping one would make the UNIQUE constraint an oracle: trying to
+-- claim that handle would answer "taken" and reveal the private profile.
+UPDATE fresh_profiles SET handle = NULL WHERE visibility = 'private' AND handle IS NOT NULL;

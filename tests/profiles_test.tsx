@@ -50,11 +50,18 @@ Deno.test('validateProfile - handles are lowercased, checked, and reserved names
   assertEquals(ok, { handle: 'weather-report', displayName: null, bio: null, visibility: 'public' });
   for (const bad of ['-x', 'x-', 'a b', 'people', 'api', 'x'.repeat(65)]) {
     assertEquals(
-      validateProfile({ handle: bad, displayName: null, bio: null, visibility: 'private' }),
+      validateProfile({ handle: bad, displayName: null, bio: null, visibility: 'public' }),
       'handle_invalid',
       bad,
     );
   }
+});
+
+Deno.test('validateProfile - a private profile holds no handle, so "taken" cannot reveal it', () => {
+  assertEquals(
+    validateProfile({ handle: 'quiet', displayName: 'Q', bio: null, visibility: 'private' }),
+    { handle: null, displayName: 'Q', bio: null, visibility: 'private' },
+  );
 });
 
 Deno.test('validateProfile - overlong name or statement is refused', () => {

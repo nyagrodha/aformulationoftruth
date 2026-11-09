@@ -529,7 +529,10 @@ function OwnerForm({ data }: { data: Extract<ProfileCreateData, { state: 'owner'
               value={values.handle ?? ''}
               placeholder='weather-report'
             />
-            <p class='profile-create-note'>Lowercase letters, digits and hyphens. Needed for a public profile.</p>
+            <p class='profile-create-note'>
+              Lowercase letters, digits and hyphens. Only a public profile has a handle: making the profile private
+              gives it up, and someone else may take it.
+            </p>
           </div>
           <div class='profile-create-row'>
             <label for='profile-note'>small statement</label>

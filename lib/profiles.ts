@@ -290,17 +290,31 @@ function blankToNull(value: string | null | undefined): string | null {
   return trimmed.length ? trimmed : null;
 }
 
-/** Normalise and check an input. Returns the cleaned input or why it is refused. */
+/**
+ * Normalise and check an input. Returns the cleaned input or why it is refused.
+ *
+ * ONLY A PUBLIC PROFILE HOLDS A HANDLE. A private one is saved with handle
+ * null, whatever was typed. Handles share one UNIQUE namespace, so a private
+ * profile holding one would answer "That handle is already taken" to anyone
+ * who tried to claim it -- telling them a private profile exists under that
+ * name, which the 404 at /p/<handle> is there to hide. With private profiles
+ * out of the namespace, "taken" only ever reveals a handle that is already
+ * public.
+ */
 export function validateProfile(raw: ProfileInput): ProfileInput | ProfileError {
-  const handle = blankToNull(raw.handle)?.toLowerCase() ?? null;
   const displayName = blankToNull(raw.displayName);
   const bio = blankToNull(raw.bio);
-
   if ((displayName?.length ?? 0) > DISPLAY_NAME_MAX || (bio?.length ?? 0) > BIO_MAX) return 'too_long';
-  if (raw.visibility === 'public' && !handle) return 'handle_required';
-  if (handle && (!HANDLE_RE.test(handle) || RESERVED_HANDLES.has(handle))) return 'handle_invalid';
 
-  return { handle, displayName, bio, visibility: raw.visibility };
+  if (raw.visibility !== 'public') {
+    return { handle: null, displayName, bio, visibility: 'private' };
+  }
+
+  const handle = blankToNull(raw.handle)?.toLowerCase() ?? null;
+  if (!handle) return 'handle_required';
+  if (!HANDLE_RE.test(handle) || RESERVED_HANDLES.has(handle)) return 'handle_invalid';
+
+  return { handle, displayName, bio, visibility: 'public' };
 }
 
 /** Postgres unique-violation error code. */
