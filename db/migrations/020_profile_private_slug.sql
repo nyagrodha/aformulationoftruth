@@ -30,4 +30,13 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_fresh_profiles_private_slug
 -- Only a public profile holds a handle (lib/profiles.ts validateProfile). A
 -- private row keeping one would make the UNIQUE constraint an oracle: trying to
 -- claim that handle would answer "taken" and reveal the private profile.
+--
+-- The cleanup alone is not enough: this file is applied BEFORE the code that
+-- clears handles is deployed, so the old /api/profile could write a private
+-- row with a handle in between. The CHECK makes the database refuse that,
+-- whichever code is running.
 UPDATE fresh_profiles SET handle = NULL WHERE visibility = 'private' AND handle IS NOT NULL;
+
+ALTER TABLE fresh_profiles DROP CONSTRAINT IF EXISTS fresh_profiles_private_has_no_handle;
+ALTER TABLE fresh_profiles ADD CONSTRAINT fresh_profiles_private_has_no_handle
+  CHECK (visibility = 'public' OR handle IS NULL);
