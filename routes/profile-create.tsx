@@ -1,54 +1,191 @@
 /**
- * Profile Create Page
+ * Profile Create / Edit Page
  *
- * GET /profile-create
+ * GET  /profile-create   the form, prefilled from the stored profile if any
+ * POST /profile-create   intent=save | new-link | delete
  *
- * Landing page after a person chooses to create a profile.
+ * A plain HTML form that posts back here, so it works without JavaScript. It
+ * used to save through an inline <script>, which preact-render-to-string
+ * HTML-escaped (`&&` became `&amp;&amp;`), so the save button threw a
+ * SyntaxError and did nothing for anyone.
+ *
+ * A successful POST redirects back here (303) with ?done=..., so a reload does
+ * not resubmit. A refused one re-renders the form with what was typed and the
+ * reason.
+ *
+ * Access (lib/profile-access.ts): a guest is sent to the gate; a session that
+ * has not proved its address is told to open the emailed link; only a proven
+ * session sees or changes the profile. No PII is read into logs.
  */
 
-import { Handlers } from '$fresh/server.ts';
+import { Handlers, PageProps } from '$fresh/server.ts';
 import Nav from '../islands/Nav.tsx';
 import { NAV_NOSCRIPT_CSS, PAGE_NAV } from '../components/nav-shared.ts';
-import { verifyQuestionnaireJWT } from '../lib/jwt.ts';
-import { getSessionById } from '../lib/questionnaire-session.ts';
 import { increment } from '../lib/metrics.ts';
+import { checkSameOrigin } from '../lib/csrf.ts';
+import { noStore, profileAccess, withRefreshedJwt } from '../lib/profile-access.ts';
+import {
+  BIO_MAX,
+  deleteProfile,
+  DISPLAY_NAME_MAX,
+  getProfile,
+  type Profile,
+  PROFILE_ERROR_TEXT,
+  type ProfileInput,
+  rotatePrivateSlug,
+  saveProfile,
+} from '../lib/profiles.ts';
 import TipJar from '../components/TipJar.tsx';
 
-function getCookie(cookieHeader: string | null, name: string): string | null {
-  if (!cookieHeader) return null;
-  const match = cookieHeader.match(new RegExp(`(?:^|;\\s*)${name}=([^;]*)`));
-  return match ? decodeURIComponent(match[1]) : null;
+const DONE_TEXT = {
+  saved: 'Saved.',
+  'new-link': 'Made a new private link. The old one no longer works.',
+  deleted: 'Your profile is deleted.',
+} as const;
+type Done = keyof typeof DONE_TEXT;
+
+export type ProfileCreateData =
+  | { state: 'unproven' }
+  | {
+    state: 'owner';
+    /** The values the form shows: what is stored, or what was just typed. */
+    values: ProfileInput;
+    /** Whether a profile is stored, i.e. whether delete and the link apply. */
+    exists: boolean;
+    privatePath: string | null;
+    done?: Done;
+    error?: string;
+  };
+
+function emptyValues(): ProfileInput {
+  return { handle: null, displayName: null, bio: null, visibility: 'private' };
 }
 
-/**
- * Same magic-link session gate as /profile-choice: a valid `jwt` cookie
- * resolving to an active session, else redirect to the gate at `/`.
- * No PII is read or logged.
- */
-export const handler: Handlers = {
+function valuesOf(profile: Profile | null): ProfileInput {
+  if (!profile) return emptyValues();
+  return {
+    handle: profile.handle,
+    displayName: profile.displayName,
+    bio: profile.bio,
+    visibility: profile.visibility,
+  };
+}
+
+function redirect(location: string): Response {
+  return new Response(null, { status: 303, headers: { Location: location } });
+}
+
+export const handler: Handlers<ProfileCreateData> = {
   async GET(req, ctx) {
     increment('requests.api');
 
-    const jwtToken = getCookie(req.headers.get('Cookie'), 'jwt');
-    if (!jwtToken) {
-      return new Response(null, { status: 302, headers: { Location: '/' } });
+    const access = await profileAccess(req);
+    if (access.kind === 'guest') return redirect('/');
+    if (access.kind === 'unproven') {
+      return noStore(withRefreshedJwt(await ctx.render({ state: 'unproven' }), access.refreshedJwt));
     }
 
-    const jwtPayload = await verifyQuestionnaireJWT(jwtToken);
-    if (!jwtPayload) {
-      return new Response(null, { status: 302, headers: { Location: '/' } });
+    const profile = await getProfile(access.emailHash);
+    const doneParam = new URL(req.url).searchParams.get('done');
+    const done = doneParam && doneParam in DONE_TEXT ? doneParam as Done : undefined;
+
+    return noStore(withRefreshedJwt(
+      await ctx.render({
+        state: 'owner',
+        values: valuesOf(profile),
+        exists: !!profile,
+        privatePath: profile ? `/p/~${profile.privateSlug}` : null,
+        done,
+      }),
+      access.refreshedJwt,
+    ));
+  },
+
+  async POST(req, ctx) {
+    increment('requests.api');
+
+    const access = await profileAccess(req);
+    if (access.kind === 'guest') return redirect('/');
+    if (access.kind === 'unproven') {
+      return noStore(withRefreshedJwt(
+        await ctx.render({ state: 'unproven' }, { status: 403 }),
+        access.refreshedJwt,
+      ));
+    }
+    const finish = (res: Response) => noStore(withRefreshedJwt(res, access.refreshedJwt));
+
+    let form: FormData;
+    try {
+      form = await req.formData();
+    } catch {
+      increment('errors.4xx');
+      return finish(new Response('Bad request', { status: 400 }));
+    }
+    const field = (name: string) => {
+      const v = form.get(name);
+      return typeof v === 'string' ? v : null;
+    };
+
+    const stored = await getProfile(access.emailHash);
+    const typed: ProfileInput = {
+      handle: field('profile-handle'),
+      displayName: field('profile-name'),
+      bio: field('profile-note'),
+      visibility: field('visibility') === 'public' ? 'public' : 'private',
+    };
+    const refuse = async (error: string, status: number, values = valuesOf(stored)) =>
+      finish(
+        await ctx.render({
+          state: 'owner',
+          values,
+          exists: !!stored,
+          privatePath: stored ? `/p/~${stored.privateSlug}` : null,
+          error,
+        }, { status }),
+      );
+
+    // The page form posts same-origin; anything else is a forged request.
+    if (checkSameOrigin(req) !== null) {
+      return refuse('This request could not be verified as coming from this site. Reload the page and try again.', 403);
     }
 
-    const session = await getSessionById(jwtPayload.session_id);
-    if (!session) {
-      return new Response(null, { status: 302, headers: { Location: '/' } });
-    }
+    const intent = field('intent');
+    try {
+      if (intent === 'delete') {
+        if (field('confirm-delete') !== 'yes') {
+          return refuse('Tick the box to confirm you want the profile deleted.', 400);
+        }
+        await deleteProfile(access.emailHash);
+        increment('profile.deleted');
+        return finish(redirect('/profile-create?done=deleted'));
+      }
 
-    return ctx.render();
+      if (intent === 'new-link') {
+        if (!(await rotatePrivateSlug(access.emailHash))) {
+          return refuse('Save a profile first.', 400);
+        }
+        increment('profile.link_rotated');
+        return finish(redirect('/profile-create?done=new-link'));
+      }
+
+      const error = await saveProfile(access.emailHash, typed);
+      if (error) {
+        increment(error === 'failed' ? 'errors.5xx' : 'errors.4xx');
+        if (error === 'handle_taken') increment('profile.handle_taken');
+        if (error === 'failed') console.error('[profile-create] Failed to save profile');
+        return refuse(PROFILE_ERROR_TEXT[error], error === 'failed' ? 500 : 400, typed);
+      }
+      increment('profile.saved');
+      return finish(redirect('/profile-create?done=saved'));
+    } catch {
+      console.error('[profile-create] Profile request failed');
+      increment('errors.5xx');
+      return refuse(PROFILE_ERROR_TEXT.failed, 500, typed);
+    }
   },
 };
 
-export default function ProfileCreatePage() {
+export default function ProfileCreatePage({ data }: PageProps<ProfileCreateData>) {
   return (
     <html lang='en'>
       <head>
@@ -203,6 +340,29 @@ export default function ProfileCreatePage() {
               margin-top: 1rem;
             }
 
+            .profile-create-message {
+              border: 1px solid var(--neon-emerald);
+              color: var(--pearl);
+              padding: 0.7rem 0.9rem;
+              margin: 1rem 0 0;
+              font-size: 0.9rem;
+            }
+
+            .profile-create-message.is-error {
+              border-color: var(--neon-pink);
+            }
+
+            .profile-create-link {
+              word-break: break-all;
+              color: var(--neon-emerald);
+            }
+
+            .profile-create-secondary {
+              display: grid;
+              gap: 1.2rem;
+              margin-top: 1.5rem;
+            }
+
             @media (max-width: 820px) {
               .profile-create-grid {
                 grid-template-columns: 1fr;
@@ -229,75 +389,7 @@ export default function ProfileCreatePage() {
               <div class='profile-create-grid'>
                 <div>
                   <h1 class='profile-create-title'>make a small room</h1>
-                  <p class='section-text'>
-                    You selected create a profile. This can be private, public, or some awkward middle interval you
-                    adjust later.
-                  </p>
-
-                  <form class='profile-create-form'>
-                    <fieldset class='profile-create-fieldset'>
-                      <legend>visibility</legend>
-                      <div class='profile-create-radio'>
-                        <input type='radio' id='private' name='visibility' value='private' checked />
-                        <label for='private'>
-                          private encrypted space. no public answers.
-                          <p class='profile-create-note'>The profile exists for you; other visitors do not see it.</p>
-                        </label>
-                      </div>
-                      <div class='profile-create-radio'>
-                        <input type='radio' id='selected' name='visibility' value='selected' />
-                        <label for='selected'>
-                          list my profile in the directory.
-                          <p class='profile-create-note'>
-                            Your name, handle, and note will be public. Your answers stay private.
-                          </p>
-                        </label>
-                      </div>
-                    </fieldset>
-
-                    <fieldset class='profile-create-fieldset'>
-                      <legend>nameplate</legend>
-                      <div class='profile-create-row'>
-                        <label for='profile-name'>display name</label>
-                        <input id='profile-name' name='profile-name' placeholder='one self among many' />
-                      </div>
-                      <div class='profile-create-row'>
-                        <label for='profile-handle'>handle</label>
-                        <input id='profile-handle' name='profile-handle' placeholder='weather-report' />
-                      </div>
-                      <div class='profile-create-row'>
-                        <label for='profile-note'>small statement</label>
-                        <textarea
-                          id='profile-note'
-                          name='profile-note'
-                          placeholder='Write the thing that may or may not belong under your name.'
-                        >
-                        </textarea>
-                      </div>
-                    </fieldset>
-
-                    <fieldset class='profile-create-fieldset'>
-                      <legend>public answers</legend>
-                      <div class='profile-create-radio'>
-                        <input type='radio' id='answers-none' name='answers' value='none' checked />
-                        <label for='answers-none'>publish none for now</label>
-                      </div>
-                      <div class='profile-create-radio'>
-                        <input type='radio' id='answers-review' name='answers' value='review' />
-                        <label for='answers-review'>take me to a per-answer review screen</label>
-                      </div>
-                      <div class='profile-create-radio'>
-                        <input type='radio' id='answers-all' name='answers' value='all' />
-                        <label for='answers-all'>make all answers public after one more confirmation</label>
-                      </div>
-                    </fieldset>
-
-                    <div class='profile-create-actions'>
-                      <button type='button' id='profile-save-btn' class='cta cta-primary'>save this profile</button>
-                      <a href='/completion' class='cta'>not tonight</a>
-                    </div>
-                    <p id='profile-save-status' class='profile-create-note' role='status' aria-live='polite'></p>
-                  </form>
+                  {data.state === 'unproven' ? <UnprovenNotice /> : <OwnerForm data={data} />}
                 </div>
 
                 <aside class='profile-create-side'>
@@ -342,68 +434,154 @@ export default function ProfileCreatePage() {
           </div>
           <TipJar />
         </footer>
-
-        <script>
-          {`
-          // Progressive enhancement: POST the profile metadata to /api/profile.
-          // Per-answer publishing (the "public answers" fieldset) is deferred,
-          // so only visibility and nameplate are sent here.
-          (function () {
-            var btn = document.getElementById('profile-save-btn');
-            if (!btn) return;
-            var status = document.getElementById('profile-save-status');
-            function val(id) { var el = document.getElementById(id); return el ? el.value.trim() : ''; }
-            function radio(name) {
-              var el = document.querySelector('input[name="' + name + '"]:checked');
-              return el ? el.value : '';
-            }
-            function say(msg) { if (status) { status.textContent = msg; } }
-
-            btn.addEventListener('click', async function () {
-              var vis = radio('visibility');
-              // Map the form's visibility choice onto the profile schema.
-              var visibility = vis === 'selected' ? 'public' : 'private';
-              var handle = val('profile-handle').toLowerCase();
-
-              if (visibility === 'public' && !handle) {
-                say('A public profile needs a handle.');
-                return;
-              }
-
-              var original = btn.textContent;
-              btn.disabled = true;
-              btn.textContent = 'saving…';
-              say('');
-
-              try {
-                var res = await fetch('/api/profile', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({
-                    visibility: visibility,
-                    displayName: val('profile-name'),
-                    bio: val('profile-note'),
-                    handle: handle,
-                  }),
-                });
-                var data = await res.json().catch(function () { return {}; });
-                if (res.ok) {
-                  window.location.href = '/completion';
-                } else {
-                  say(data.error || 'Could not save your profile.');
-                  btn.disabled = false;
-                  btn.textContent = original;
-                }
-              } catch (e) {
-                say('Network error. Please try again.');
-                btn.disabled = false;
-                btn.textContent = original;
-              }
-            });
-          })();
-        `}
-        </script>
       </body>
     </html>
+  );
+}
+
+function UnprovenNotice() {
+  return (
+    <>
+      <p class='section-text'>
+        A profile is tied to your address, so it can only be made by someone who has shown they can read mail sent
+        there.
+      </p>
+      <p class='profile-create-message is-error' role='status'>
+        Open the link we emailed you, then come back to this page.
+      </p>
+      <div class='profile-create-actions'>
+        <a href='/completion' class='cta'>back</a>
+      </div>
+    </>
+  );
+}
+
+function OwnerForm({ data }: { data: Extract<ProfileCreateData, { state: 'owner' }> }) {
+  const { values, exists, privatePath, done, error } = data;
+
+  return (
+    <>
+      <p class='section-text'>
+        {exists
+          ? 'This is your profile. Change anything below and save it again.'
+          : 'You selected create a profile. This can be private, public, or some awkward middle interval you adjust later.'}
+      </p>
+
+      {done ? <p class='profile-create-message' role='status'>{DONE_TEXT[done]}</p> : null}
+      {error ? <p class='profile-create-message is-error' role='alert'>{error}</p> : null}
+
+      <form class='profile-create-form' method='post' action='/profile-create'>
+        <input type='hidden' name='intent' value='save' />
+        <fieldset class='profile-create-fieldset'>
+          <legend>visibility</legend>
+          <div class='profile-create-radio'>
+            <input
+              type='radio'
+              id='private'
+              name='visibility'
+              value='private'
+              checked={values.visibility !== 'public'}
+            />
+            <label for='private'>
+              private. not listed.
+              <p class='profile-create-note'>
+                Nobody finds it by browsing or by handle. Only people you give your private link to can see it.
+              </p>
+            </label>
+          </div>
+          <div class='profile-create-radio'>
+            <input
+              type='radio'
+              id='public'
+              name='visibility'
+              value='public'
+              checked={values.visibility === 'public'}
+            />
+            <label for='public'>
+              list my profile in the directory.
+              <p class='profile-create-note'>
+                Your name, handle, and note will be public at /p/your-handle. Your answers stay private.
+              </p>
+            </label>
+          </div>
+        </fieldset>
+
+        <fieldset class='profile-create-fieldset'>
+          <legend>nameplate</legend>
+          <div class='profile-create-row'>
+            <label for='profile-name'>display name</label>
+            <input
+              id='profile-name'
+              name='profile-name'
+              maxLength={DISPLAY_NAME_MAX}
+              value={values.displayName ?? ''}
+              placeholder='one self among many'
+            />
+          </div>
+          <div class='profile-create-row'>
+            <label for='profile-handle'>handle</label>
+            <input
+              id='profile-handle'
+              name='profile-handle'
+              maxLength={64}
+              autocapitalize='none'
+              spellcheck={false}
+              value={values.handle ?? ''}
+              placeholder='weather-report'
+            />
+            <p class='profile-create-note'>Lowercase letters, digits and hyphens. Needed for a public profile.</p>
+          </div>
+          <div class='profile-create-row'>
+            <label for='profile-note'>small statement</label>
+            <textarea
+              id='profile-note'
+              name='profile-note'
+              maxLength={BIO_MAX}
+              placeholder='Write the thing that may or may not belong under your name.'
+            >
+              {values.bio ?? ''}
+            </textarea>
+          </div>
+        </fieldset>
+
+        <p class='profile-create-note'>Publishing answers on your profile is not available yet.</p>
+
+        <div class='profile-create-actions'>
+          <button type='submit' class='cta cta-primary'>save this profile</button>
+          <a href='/completion' class='cta'>not tonight</a>
+        </div>
+      </form>
+
+      {exists && privatePath
+        ? (
+          <div class='profile-create-secondary'>
+            <fieldset class='profile-create-fieldset'>
+              <legend>private link</legend>
+              <p class='profile-create-note'>
+                Anyone with this link can see your profile, even while it is private:{' '}
+                <a class='profile-create-link' href={privatePath}>{privatePath}</a>
+              </p>
+              <form method='post' action='/profile-create'>
+                <input type='hidden' name='intent' value='new-link' />
+                <button type='submit' class='cta'>make a new link</button>
+                <p class='profile-create-note'>The current link stops working straight away.</p>
+              </form>
+            </fieldset>
+
+            <fieldset class='profile-create-fieldset'>
+              <legend>delete</legend>
+              <form method='post' action='/profile-create'>
+                <input type='hidden' name='intent' value='delete' />
+                <div class='profile-create-radio'>
+                  <input type='checkbox' id='confirm-delete' name='confirm-delete' value='yes' required />
+                  <label for='confirm-delete'>delete my profile: name, handle, statement and private link.</label>
+                </div>
+                <button type='submit' class='cta'>delete profile</button>
+              </form>
+            </fieldset>
+          </div>
+        )
+        : null}
+    </>
   );
 }
