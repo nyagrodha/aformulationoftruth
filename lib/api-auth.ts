@@ -51,20 +51,31 @@ export function json(body: unknown, status = 200, caller?: ApiCaller): Response 
  *
  * @returns the caller, or a Response to send back untouched
  */
-export async function requireProvenCaller(req: Request): Promise<ApiCaller | Response> {
+/** Which surface is asking: sets the metric prefix and the sign-in sentence. */
+export type ApiSurface = 'messenger' | 'profile';
+
+const SIGN_IN_TEXT: Record<ApiSurface, string> = {
+  messenger: 'Sign in to use messages.',
+  profile: 'Sign in to edit your profile.',
+};
+
+export async function requireProvenCaller(
+  req: Request,
+  surface: ApiSurface = 'messenger',
+): Promise<ApiCaller | Response> {
   if (checkSameOrigin(req) !== null) return csrfRefusal();
 
   const proof = await authenticateRequest(req);
 
   if (!isAuthenticated(proof)) {
-    increment('messenger.denied.unauthenticated');
-    return json({ error: 'Sign in to use messages.' }, 401);
+    increment(`${surface}.denied.unauthenticated`);
+    return json({ error: SIGN_IN_TEXT[surface] }, 401);
   }
 
   if (proof.via !== 'link') {
     // Deliberately distinguishable from a plain 401: the person IS signed in,
     // and telling them to check their mail is the only way they get past this.
-    increment('messenger.denied.unproven');
+    increment(`${surface}.denied.unproven`);
     return json({
       error: 'Open the link sent to your address to confirm it, then try again.',
     }, 403);

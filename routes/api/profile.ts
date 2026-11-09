@@ -1,166 +1,133 @@
 /**
- * Profile Save Endpoint
+ * Profile API, for scripted clients.
  *
- * POST /api/profile
+ * POST /api/profile   JSON body, one of:
+ *   { action?: 'save', visibility, handle?, displayName?, bio? }
+ *   { action: 'delete' }
+ *   { action: 'new-link' }
  *
- * Creates or updates the caller's optional profile (handle / display name /
- * bio / visibility). Per-answer publishing is a separate follow-up.
+ * The site's own form posts to /profile-create, which works without
+ * JavaScript; both go through the writes in lib/profiles.ts.
+ *
+ * A save with fields omitted keeps their stored values, so a client can change
+ * one thing without resending the rest. An empty string clears a field.
  *
  * gupta-vidya compliance:
- * - The owner is the authenticated session's email_hash, derived from the
- *   jwt cookie -> session, NEVER from the request body.
- * - Only content the caller chooses to publish is stored, and in plaintext
- *   because it is public by definition. The encrypted answer store is not
- *   touched.
+ * - The owner is the authenticated session's email_hash, NEVER the request
+ *   body. The caller must be same-origin and must have proved the address by
+ *   opening the emailed link (requireProvenCaller), or anyone could type an
+ *   address at the gate and overwrite its owner's profile.
+ * - Only content the caller chooses to publish is stored, in plaintext because
+ *   it is public by definition. The encrypted answer store is not touched.
  * - No profile content (handle, name, bio) is ever logged.
  */
 
 import { Handlers } from '$fresh/server.ts';
 import { z } from 'zod';
-import { withConnection } from '../../lib/db.ts';
-import { verifyQuestionnaireJWT } from '../../lib/jwt.ts';
-import { getSessionById } from '../../lib/questionnaire-session.ts';
+import { isRefusal, json, requireProvenCaller } from '../../lib/api-auth.ts';
 import { increment } from '../../lib/metrics.ts';
+import {
+  deleteProfile,
+  getProfile,
+  PROFILE_ERROR_TEXT,
+  type ProfileError,
+  rotatePrivateSlug,
+  saveProfile,
+} from '../../lib/profiles.ts';
 
-// Handles form the public URL (/p/<handle>): lowercase alphanumeric plus
-// internal hyphens, 2-64 chars, no leading/trailing hyphen.
-const HANDLE_RE = /^[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?$/;
-
-// Routes and asset prefixes a handle must not shadow.
-const RESERVED_HANDLES = new Set([
-  'about',
-  'contact',
-  'privacy',
-  'api',
-  'auth',
-  'admin',
-  'p',
-  'profile',
-  'profiles',
-  'login',
-  'logout',
-  'questionnaire',
-  'completion',
-  'gate',
-  'index',
-  'check-email',
-  'profile-choice',
-  'profile-create',
-  'static',
-  'css',
-  'js',
-  'images',
-  'assets',
-  'fonts',
-  'favicon',
-  'uploads',
-]);
-
-const ProfileSchema = z.object({
-  handle: z.string().trim().toLowerCase().optional(),
-  displayName: z.string().trim().max(120).optional(),
-  bio: z.string().trim().max(2000).optional(),
-  visibility: z.enum(['private', 'public']),
-  acceptsAnonymousMail: z.literal(false).optional().default(false),
+const SaveSchema = z.object({
+  action: z.literal('save').optional(),
+  handle: z.string().optional(),
+  displayName: z.string().optional(),
+  bio: z.string().optional(),
+  visibility: z.enum(['private', 'public']).optional(),
+  // Messaging is retired; the opt-in may be sent as false and is otherwise refused.
+  acceptsAnonymousMail: z.literal(false).optional(),
 });
 
-function getCookie(cookieHeader: string | null, name: string): string | null {
-  if (!cookieHeader) return null;
-  const match = cookieHeader.match(new RegExp(`(?:^|;\\s*)${name}=([^;]*)`));
-  return match ? decodeURIComponent(match[1]) : null;
-}
+const BodySchema = z.union([
+  z.object({ action: z.literal('delete') }),
+  z.object({ action: z.literal('new-link') }),
+  SaveSchema,
+]);
 
-function json(body: unknown, status: number): Response {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { 'Content-Type': 'application/json' },
-  });
-}
-
-/** Postgres unique-violation error code. */
-function isUniqueViolation(error: unknown): boolean {
-  const code = (error as { fields?: { code?: string }; code?: string })?.fields?.code ??
-    (error as { code?: string })?.code;
-  return code === '23505';
-}
+const STATUS: Record<ProfileError, number> = {
+  handle_required: 400,
+  handle_invalid: 400,
+  too_long: 400,
+  handle_taken: 409,
+  failed: 500,
+};
 
 export const handler: Handlers = {
   async POST(req, _ctx) {
     increment('requests.api');
 
-    // Step 1: Authenticate via the same session gate the profile pages use.
-    const jwtToken = getCookie(req.headers.get('Cookie'), 'jwt');
-    if (!jwtToken) return json({ error: 'Not authenticated' }, 401);
+    const caller = await requireProvenCaller(req, 'profile');
+    if (isRefusal(caller)) return caller;
 
-    const jwtPayload = await verifyQuestionnaireJWT(jwtToken);
-    if (!jwtPayload) return json({ error: 'Not authenticated' }, 401);
-
-    const session = await getSessionById(jwtPayload.session_id);
-    if (!session) return json({ error: 'Session not found' }, 401);
-
-    const emailHash = session.emailHash;
-
-    // Step 2: Parse and validate the submitted profile.
     let body: unknown;
     try {
       body = await req.json();
     } catch {
       increment('errors.4xx');
-      return json({ error: 'Invalid JSON body' }, 400);
+      return json({ error: 'Invalid JSON body' }, 400, caller);
     }
 
-    const parsed = ProfileSchema.safeParse(body);
+    const parsed = BodySchema.safeParse(body);
     if (!parsed.success) {
       increment('errors.4xx');
-      return json({ error: 'Invalid profile data' }, 400);
+      return json({ error: 'Invalid profile data' }, 400, caller);
     }
+    const data = parsed.data;
 
-    const { visibility, acceptsAnonymousMail } = parsed.data;
-    const handle = parsed.data.handle && parsed.data.handle.length ? parsed.data.handle : null;
-    const displayName = parsed.data.displayName && parsed.data.displayName.length ? parsed.data.displayName : null;
-    const bio = parsed.data.bio && parsed.data.bio.length ? parsed.data.bio : null;
-
-    // Public profiles are addressed by handle, so it is required and must
-    // be well-formed and not shadow a real route.
-    if (visibility === 'public') {
-      if (!handle) {
-        increment('errors.4xx');
-        return json({ error: 'A public profile needs a handle.' }, 400);
-      }
-    }
-    if (handle && (!HANDLE_RE.test(handle) || RESERVED_HANDLES.has(handle))) {
-      increment('errors.4xx');
-      return json({ error: 'That handle is not available.' }, 400);
-    }
-
-    // Step 3: Upsert the profile for this identity.
     try {
-      await withConnection(async (client) => {
-        await client.queryObject(
-          `INSERT INTO fresh_profiles
-             (email_hash, handle, display_name, bio_public, visibility, accepts_anonymous_mail, updated_at)
-           VALUES ($1, $2, $3, $4, $5, $6, NOW())
-           ON CONFLICT (email_hash) DO UPDATE SET
-             handle = EXCLUDED.handle,
-             display_name = EXCLUDED.display_name,
-             bio_public = EXCLUDED.bio_public,
-             visibility = EXCLUDED.visibility,
-             accepts_anonymous_mail = EXCLUDED.accepts_anonymous_mail,
-             updated_at = NOW()`,
-          [emailHash, handle, displayName, bio, visibility, acceptsAnonymousMail],
-        );
-      });
-    } catch (error) {
-      if (isUniqueViolation(error)) {
-        increment('profile.handle_taken');
-        return json({ error: 'That handle is already taken.' }, 409);
+      if (data.action === 'delete') {
+        const existed = await deleteProfile(caller.emailHash);
+        increment(existed ? 'profile.deleted' : 'profile.delete_missing');
+        return json({ message: existed ? 'Profile deleted' : 'No profile to delete' }, 200, caller);
       }
-      console.error('[profile] Failed to save profile');
-      increment('errors.5xx');
-      return json({ error: 'Could not save your profile. Please try again.' }, 500);
-    }
 
-    increment('profile.saved');
-    return json({ message: 'Profile saved', visibility, handle }, 200);
+      if (data.action === 'new-link') {
+        if (!(await rotatePrivateSlug(caller.emailHash))) {
+          return json({ error: 'Create a profile first.' }, 404, caller);
+        }
+        increment('profile.link_rotated');
+        const profile = await getProfile(caller.emailHash);
+        return json({ message: 'New private link made', privatePath: `/p/~${profile?.privateSlug}` }, 200, caller);
+      }
+
+      // Save: omitted fields keep their stored values.
+      const current = await getProfile(caller.emailHash);
+      const error = await saveProfile(caller.emailHash, {
+        handle: data.handle ?? current?.handle ?? null,
+        displayName: data.displayName ?? current?.displayName ?? null,
+        bio: data.bio ?? current?.bio ?? null,
+        visibility: data.visibility ?? current?.visibility ?? 'private',
+      });
+      if (error) {
+        increment(error === 'failed' ? 'errors.5xx' : 'errors.4xx');
+        if (error === 'handle_taken') increment('profile.handle_taken');
+        if (error === 'failed') console.error('[profile] Failed to save profile');
+        return json({ error: PROFILE_ERROR_TEXT[error] }, STATUS[error], caller);
+      }
+
+      increment('profile.saved');
+      const saved = await getProfile(caller.emailHash);
+      return json(
+        {
+          message: 'Profile saved',
+          visibility: saved?.visibility,
+          handle: saved?.handle,
+          privatePath: saved ? `/p/~${saved.privateSlug}` : undefined,
+        },
+        200,
+        caller,
+      );
+    } catch {
+      console.error('[profile] Profile request failed');
+      increment('errors.5xx');
+      return json({ error: PROFILE_ERROR_TEXT.failed }, 500, caller);
+    }
   },
 };
